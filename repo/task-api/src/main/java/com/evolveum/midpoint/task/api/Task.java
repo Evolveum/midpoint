@@ -1028,8 +1028,13 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         }
     }
 
+    // FIXME this is a temporary code
     void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
 
+    // FIXME this is a temporary code
     void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+
+    // FIXME this is a temporary code
+    boolean hasObjectProcessingListener();
     //endregion
 }

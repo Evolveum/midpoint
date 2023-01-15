@@ -2327,6 +2327,11 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public boolean hasObjectProcessingListener() {
+        return !objectProcessingListeners.isEmpty();
+    }
+
+    @Override
     public <O extends ObjectType> void onItemProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,

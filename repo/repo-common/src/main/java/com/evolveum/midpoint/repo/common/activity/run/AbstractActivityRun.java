@@ -146,11 +146,14 @@ public abstract class AbstractActivityRun<
     @NotNull final Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
             Lazy.from(this::createReportingCharacteristics);
 
+    @NotNull final SimulationSupport simulationSupport;
+
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();
         this.activity = context.getActivity();
         this.activityStateDefinition = determineActivityStateDefinition();
         this.activityState = new CurrentActivityState<>(this);
+        this.simulationSupport = new SimulationSupport(this);
     }
 
     /**
@@ -585,26 +588,21 @@ public abstract class AbstractActivityRun<
      */
     @SuppressWarnings("WeakerAccess")
     protected void onActivityRealizationStart(OperationResult result) throws ActivityRunException {
-        if (getExecutionModeDefinition().shouldCreateSimulationResult()) {
-            createSimulationResult(result);
-        }
-    }
-
-    private void createSimulationResult(OperationResult result) throws ActivityRunException {
-        ObjectReferenceType simResultRef =
-                getBeans().getAdvancedActivityRunSupport().createSimulationResult(result);
-        activityState.setSimulationResultRef(simResultRef);
-        activityState.flushPendingTaskModificationsChecked(result);
+        // The simulation result is created for the whole activity realization.
+        // When the activity execution is suspended and resumed, the result should stay the same.
+        // The "processed object" records in resumed execution will be appended to it.
+        simulationSupport.createSimulationResult(result);
     }
 
     /**
      * Called when the activity realization is complete. It should be called at most once for any given activity.
      * (Regardless of its delegation or distribution.)
      *
-     * TODO probably will not work currently
+     * Planned e.g. for closing the simulation result (for computing statistics, etc).
+     *
+     * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
     @SuppressWarnings({ "WeakerAccess", "unused" })
     protected void onActivityRealizationComplete(OperationResult result) {
-        // To be overridden in subclasses.
     }
 }

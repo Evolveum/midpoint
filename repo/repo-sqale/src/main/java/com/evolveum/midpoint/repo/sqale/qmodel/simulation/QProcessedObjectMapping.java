@@ -69,11 +69,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     @Override
     public SimulationResultProcessedObjectType toSchemaObject(MProcessedObject row) throws SchemaException {
-        var object = parseSchemaObject(row.fullObject, row.ownerOid + "," + row.cid);
-        if (ShadowType.COMPLEX_TYPE.equals(object.getType())) {
-            System.out.println("before = " + object.getBefore() + ", after = " + object.getAfter());
-        }
-        return object;
+        return parseSchemaObject(row.fullObject, row.ownerOid + "," + row.cid);
     }
 
     @Override

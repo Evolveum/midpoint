@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
@@ -22,15 +23,19 @@ import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INET
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -46,7 +51,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.ObjectsCounter;
 import com.evolveum.midpoint.model.test.SimulationResult;
-import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
+import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -172,6 +177,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; point 6 "I may now list the accounts in the resource through midPoint to see which data I have"_
+     *
      * We get some data from HR by providing the most simple definition (`hr-1`) - no `schemaHandling` there, `proposed` state.
      */
     @Test
@@ -204,6 +211,11 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     /**
      * Adding dummy `schemaHandling` - just defining the `account/default` type.
+     *
+     * Ref: _Step I: Connect_ - but no corresponding item is there (now)
+     *
+     * Setting `account/default` is not mentioned in the guide. But it perhaps should be. Without defining
+     * the object type we are not able to specify any mappings, correlation rules, nor synchronization reactions.
      */
     @Test
     public void test110AddDummySchemaHandling() throws Exception {
@@ -234,6 +246,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; point 12 "Set situations and reactions"_
+     *
      * Adding a reaction for `UNMATCHED` situation. Trying to import an account.
      * It should fail (in development simulation mode), because there are no mappings yet, so no user name is provided.
      */
@@ -275,6 +289,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; part "Start import user phase (repeat until satisfied)"_
+     *
      * Adding a mapping for `empNo`. Trying to import an account. It should succeed with simulated user ADD delta.
      */
     @Test
@@ -348,6 +364,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; part "Start import user phase (repeat until satisfied)"_
+     *
      * Adding other mappings, with broken `note` -> `description` mapping.
      * Trying single-user import and then full (simulated) import.
      */
@@ -429,6 +447,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; part "Start import user phase (repeat until satisfied)"_
+     *
      * The bug is fixed, another one is introduced.
      * In blissful ignorance we run the full import (switching the resource to the production mode).
      */
@@ -474,6 +494,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; part "Start import user phase (repeat until satisfied)"_
+     *
      * Finally we were able to fix the bug without introducing another one.
      * Let us be more humble and simulate the import first.
      */
@@ -544,6 +566,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
+     * Ref: _Step I: Connect; part "Start import user phase (repeat until satisfied)"_
+     *
      * Going towards more serious solution: we add mapping from `empNo` to `employeeNumber` along with enabling correlation
      * on this attribute/property, make `empNo` -> `name` mapping weak (anticipating taking usernames from LDAP),
      * and add all necessary synchronization reactions.
@@ -677,7 +701,11 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertEmployeeNumber("5");
     }
 
-    /** We simply create OpenDJ from template and try to read its content. */
+    /**
+     * Ref: _Step I Connect; part "Connect target system (AD)"_
+     *
+     * We simply create OpenDJ from template and try to read its content.
+     */
     @Test
     public void test200AddOpenDj() throws CommonException, IOException, URISyntaxException, LDIFException {
         Task task = getTestTask();
@@ -718,7 +746,11 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
     }
 
-    /** We are going to define the correlation on OpenDJ resource. Let us start with `employeeNumber`, if present. */
+    /**
+     * Ref: _Step II: Clean up; points 1 "review/update correlation" and 2 "run reconciliation with target system"_
+     *
+     * We are going to define the correlation on OpenDJ resource. Let us start with `employeeNumber`, if present.
+     */
     @Test
     public void test210OpenDjCorrelationOnEmpNo() throws CommonException, IOException {
         Task task = getTestTask();
@@ -728,7 +760,72 @@ public class TestFirstSteps extends AbstractStoryTest {
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_210, task, result);
 
-        when("the import is run in simulated development mode"); // TODO later - reconciliation
+        when("the reconciliation is run in simulated development mode");
+        String taskOid = reconcileAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(taskOid, "simulated task after")
+                .display()
+                .activityState(RECONCILIATION_OPERATION_COMPLETION_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .display()
+                        .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(null, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(3)
+                    .end()
+                .end()
+                .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .progress()
+                        .display()
+                        .assertCommitted(0, 0, REGULAR_INITIAL_OPENDJ_ACCOUNTS + PROTECTED_OPENDJ_ACCOUNTS) // FIXME do we really want to cover all accounts in 3rd stage when simulated?
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        // TODO
+                    .end()
+                .end()
+                .assertClockworkRunCount(0); // no reactions are there
+        // @formatter:on
+
+        assertShadow(getJSmith1OpenDjShadow(), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
+                .assertSynchronizationSituation(null); // no real execution was there
+
+        if (isNativeRepository()) {
+            and("there are no processed objects");
+            assertProcessedObjects(taskOid, "")
+                    .display()
+                    .assertSize(0);
+        }
+    }
+
+    /**
+     * Ref: _Step II: Clean up; points 1 "review/update correlation" and 2 "run reconciliation with target system"_
+     *
+     * As previous test ({@link #test210OpenDjCorrelationOnEmpNo()}) but using import instead of reconciliation.
+     * This is not covered by the "first steps" document but we want to check that import works as well.
+     */
+    @Test
+    public void test215OpenDjCorrelationOnEmpNoUsingImport() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        when("the import is run in simulated development mode");
         String taskOid = importAllOpenDjAccountsRequest()
                 .simulatedDevelopment()
                 .execute(result);
@@ -736,6 +833,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
+                .display()
                 .rootActivityState()
                     .progress()
                         .display()
@@ -765,7 +863,11 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
     }
 
-    /** Improving the correlation rules to include email and name. Testing the import. */
+    /**
+     * Ref: _Step II: Clean up; points 1 "review/update correlation" and 2 "run reconciliation with target system"_
+     *
+     * Improving the correlation rules to include email and name. Testing the reconciliation.
+     */
     @Test
     public void test220OpenDjCorrelationFinal() throws CommonException, IOException {
         Task task = getTestTask();
@@ -775,15 +877,15 @@ public class TestFirstSteps extends AbstractStoryTest {
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_220, task, result);
 
-        when("the import is run in simulated development mode"); // TODO later - reconciliation
-        String taskOid = importAllOpenDjAccountsRequest()
+        when("the reconciliation is run in simulated development mode");
+        String taskOid = reconcileAllOpenDjAccountsRequest()
                 .simulatedDevelopment()
                 .execute(result);
 
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
-                .rootActivityState()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .progress()
                         .display()
                         .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS, 0, PROTECTED_OPENDJ_ACCOUNTS)
@@ -883,7 +985,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
-     * Ref: _(Optional) Account marking phase_
+     * Ref: _Step II: Clean up; (Optional) Account marking phase_
      *
      * We review and mark unmatched shadows:
      *
@@ -918,15 +1020,15 @@ public class TestFirstSteps extends AbstractStoryTest {
                 TEST_POLICY_SITUATION_PENDING,
                 result);
 
-        when("the import is run in simulated development mode");
-        String taskOid = importAllOpenDjAccountsRequest()
+        when("the reconciliation is run in simulated development mode");
+        String taskOid = reconcileAllOpenDjAccountsRequest()
                 .simulatedDevelopment()
                 .execute(result);
 
         then("the task skips marked accounts");
         // @formatter:off
         assertTask(taskOid, "after")
-                .rootActivityState()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .progress()
                         .display()
                         .assertCommitted(5, 0, 8)
@@ -964,12 +1066,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_240, task, result);
 
         when("import task is run (real execution)");
-        String taskOid = importAllOpenDjAccountsRequest().execute(result);
+        String taskOid = reconcileAllOpenDjAccountsRequest().execute(result);
 
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
-                .rootActivityState()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .progress()
                         .display()
                         .assertCommitted(5, 0, 8)
@@ -1063,14 +1165,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .display();
 
         when("previewing the all-accounts import");
-        String simTaskOid = importAllOpenDjAccountsRequest()
+        String simTaskOid = reconcileAllOpenDjAccountsRequest()
                 .simulatedProduction()
                 .execute(result);
 
         then("task is OK");
         // @formatter:off
         assertTask(simTaskOid, "simulated task after")
-                .rootActivityState()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .progress()
                         .display()
                         .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS - 4, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
@@ -1086,20 +1188,35 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(5);
         // @formatter:on
 
+        and("there is exactly one simulation result");
+        Task simTask = taskManager.getTaskPlain(simTaskOid, result);
+        Set<String> simulationResultOids =
+                new HashSet<>(
+                        List.of(
+                                getSimulationResultOid(simTask, ActivityPath.empty()),
+                                getSimulationResultOid(simTask, RECONCILIATION_OPERATION_COMPLETION_PATH),
+                                getSimulationResultOid(simTask, RECONCILIATION_RESOURCE_OBJECTS_PATH),
+                                getSimulationResultOid(simTask, RECONCILIATION_REMAINING_SHADOWS_PATH)));
+        assertThat(simulationResultOids)
+                .as("simulation result OIDs in root activity and sub-activities")
+                .hasSize(1);
+
         if (isNativeRepository()) {
             and("there are no simulation deltas");
             // @formatter:off
             assertProcessedObjects(simTaskOid, "simulation deltas")
                     .display()
-                    //.assertSize(5) // TODO
                     .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4).end()
                     .by().objectType(UserType.class).state(UNMODIFIED).find()
-                        .assertName("jsmith1");
+                        .assertName("jsmith1")
+                    .end()
+                    .by().objectType(ShadowType.class).assertCount(10).end() // 5 source, 5 target
+                    .assertSize(15);
             // @formatter:on
         }
 
-        when("executing the all-accounts import");
-        importAllOpenDjAccountsRequest().execute(result);
+        when("executing the all-accounts reconciliation");
+        reconcileAllOpenDjAccountsRequest().execute(result);
 
         then("linked users now have correct names");
         assertUserByUsername(NAME_JSMITH2, "after").display();
@@ -1177,7 +1294,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertSize(3);
 
         when("trying the all-accounts import (development simulation)");
-        String simTaskOid = importAllOpenDjAccountsRequest()
+        String simTaskOid = importAllOpenDjAccountsRequest() // TODO switch to reconciliation
                 .simulatedDevelopment()
                 .execute(result);
 
@@ -1287,7 +1404,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         when("trying the all-accounts import (development simulation)");
-        String simTaskOid = importAllOpenDjAccountsRequest()
+        String simTaskOid = importAllOpenDjAccountsRequest() // TODO switch to reconciliation
                 .simulatedDevelopment()
                 .execute(result);
 
@@ -1421,7 +1538,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_290, task, result);
 
         when("running the all-accounts import (production)");
-        String taskOid = importAllOpenDjAccountsRequest().execute(result);
+        String taskOid = importAllOpenDjAccountsRequest().execute(result); // TODO switch to reconciliation
 
         then("task is OK");
         assertTask(taskOid, "simulated task after")
@@ -1545,31 +1662,37 @@ public class TestFirstSteps extends AbstractStoryTest {
         currentOpenDjResource = resource;
     }
 
-    private ImportAccountsRequestBuilder importHrAccountRequest(String name) {
+    private SynchronizationRequestBuilder importHrAccountRequest(String name) {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_HR_OID)
                 .withNamingAttribute(ATTR_EMP_NO)
                 .withNameValue(name);
     }
 
-    private ImportAccountsRequestBuilder importAllHrAccountsRequest() {
+    private SynchronizationRequestBuilder importAllHrAccountsRequest() {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_HR_OID)
-                .withImportingAllAccounts();
+                .withProcessingAllAccounts();
     }
 
     @SuppressWarnings("SameParameterValue")
-    private ImportAccountsRequestBuilder importOpenDjAccountRequest(String dn) {
+    private SynchronizationRequestBuilder importOpenDjAccountRequest(String dn) {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
                 .withNameValue(dn);
     }
 
-    private ImportAccountsRequestBuilder importAllOpenDjAccountsRequest() {
+    private SynchronizationRequestBuilder importAllOpenDjAccountsRequest() {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
-                .withImportingAllAccounts();
+                .withProcessingAllAccounts();
+    }
+
+    private SynchronizationRequestBuilder reconcileAllOpenDjAccountsRequest() {
+        return reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withProcessingAllAccounts();
     }
 
     private ShadowType findHrShadowRequired(String name) throws SchemaException {

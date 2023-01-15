@@ -52,6 +52,8 @@ public abstract class ActivityState implements DebugDumpable {
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
     private static final @NotNull ItemPath SCAVENGER_PATH =
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
+    private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
+            ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
 
     private static final int MAX_TREE_DEPTH = 30;
 
@@ -121,7 +123,8 @@ public abstract class ActivityState implements DebugDumpable {
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
     }
 
-    ObjectReferenceType getReferenceRealValue(ItemPath path) {
+    @SuppressWarnings("SameParameterValue")
+    private ObjectReferenceType getReferenceRealValue(ItemPath path) {
         return getTask()
                 .getReferenceRealValue(stateItemPath.append(path));
     }
@@ -210,7 +213,7 @@ public abstract class ActivityState implements DebugDumpable {
                 () -> new SystemException("Couldn't find definition for " + typeName));
     }
 
-    public abstract @NotNull ComplexTypeDefinition getWorkStateComplexTypeDefinition();
+    public abstract @Nullable ComplexTypeDefinition getWorkStateComplexTypeDefinition();
 
     public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
         return getPropertyRealValue(ActivityStateType.F_WORK_STATE.append(path), expectedType);
@@ -253,6 +256,10 @@ public abstract class ActivityState implements DebugDumpable {
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
 
         ItemDefinition<?> workStateItemDefinition = getWorkStateItemDefinition(path, explicitDefinition);
+        stateCheck(
+                workStateItemDefinition != null,
+                "Couldn't modify work state (path = '%s'), as the work state definition is not known. "
+                        + "Has it been initialized?", path);
         task.modify(
                 PrismContext.get().deltaFor(TaskType.class)
                         .item(getWorkStateItemPath().append(path), workStateItemDefinition)
@@ -260,16 +267,20 @@ public abstract class ActivityState implements DebugDumpable {
                         .asItemDelta());
     }
 
-    private @NotNull ItemDefinition<?> getWorkStateItemDefinition(ItemPath path, ItemDefinition<?> explicitDefinition)
+    private @Nullable ItemDefinition<?> getWorkStateItemDefinition(ItemPath path, ItemDefinition<?> explicitDefinition)
             throws SchemaException {
         if (explicitDefinition != null) {
             return explicitDefinition;
         }
         ComplexTypeDefinition workStateTypeDef = getWorkStateComplexTypeDefinition();
-        //noinspection RedundantTypeArguments
-        return MiscUtil.<ItemDefinition<?>, SchemaException>requireNonNull(
-                workStateTypeDef.findItemDefinition(path),
-                () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateTypeDef));
+        if (workStateTypeDef != null) {
+            //noinspection RedundantTypeArguments
+            return MiscUtil.<ItemDefinition<?>, SchemaException>requireNonNull(
+                    workStateTypeDef.findItemDefinition(path),
+                    () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateTypeDef));
+        } else {
+            return null;
+        }
     }
 
     private @NotNull ItemPath getWorkStateItemPath() {
@@ -291,13 +302,22 @@ public abstract class ActivityState implements DebugDumpable {
             throw new ActivityRunException(message, FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
+
+    public void setSimulationResultRef(ObjectReferenceType simResultRef) throws ActivityRunException {
+        setItemRealValues(SIMULATION_RESULT_REF_PATH, simResultRef);
+    }
+
+    public ObjectReferenceType getSimulationResultRef() {
+        return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
+    }
     //endregion
 
     //region debugDump + toString
     @Override
     public String toString() {
         return getEnhancedClassName() + "{" +
-                "stateItemPath=" + stateItemPath +
+                "task=" + getTask().getOid() +
+                ", stateItemPath=" + stateItemPath +
                 '}';
     }
 
@@ -321,15 +341,65 @@ public abstract class ActivityState implements DebugDumpable {
 
     /**
      * Returns the state of the _parent activity_, e.g. operations completion sub-activity -> reconciliation activity.
-     *
-     * Note: the caller must know the work state type name. This can be resolved somehow in the future, e.g. by requiring
-     * that the work state already exists.
      */
-    public @NotNull ActivityState getParentActivityState(@NotNull QName workStateTypeName, OperationResult result)
+    public @NotNull ActivityState getParentActivityState(@Nullable QName workStateTypeName, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
         return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, beans, result);
+    }
+
+    /**
+     * Returns an iterator over activity states, from the parent of the current activity to the root.
+     * Note that the _work_ states must either exist, or must not be modified by the caller after obtaining
+     * (as we don't know their type - at least for now).
+     *
+     * The idea is to encapsulate the crawling logic, while avoiding the (eventual) task fetch operations if they are not
+     * really needed.
+     *
+     * BEWARE: The {@link OperationResult} instance is buried into the iterator, and used within {@link Iterator#next()} calls.
+     * This is quite dangerous. Maybe we should not do this at all.
+     *
+     * The best use of this method is when the result is consumed (iterated through) just after it is obtained. That way
+     * you avoid the risk of using {@link OperationResult} instance at an unexpected place.
+     */
+    @Experimental
+    public Iterable<ActivityState> getActivityStatesUpwardsForParent(OperationResult result) {
+        Iterator<ActivityState> iterator = getActivityStatesUpwardsIterator(result);
+        iterator.next();
+        return () -> iterator;
+    }
+
+    private Iterator<ActivityState> getActivityStatesUpwardsIterator(OperationResult result) {
+        return new Iterator<>() {
+            private ActivityState next = ActivityState.this;
+
+            @Override
+            public boolean hasNext() {
+                return next != null;
+            }
+
+            @Override
+            public ActivityState next() {
+                var current = next;
+                ActivityPath activityPath = current.getActivityPath();
+                if (activityPath.isEmpty()) {
+                    next = null;
+                } else {
+                    try {
+                        next = getActivityStateUpwards(
+                                activityPath.allExceptLast(),
+                                current.getTask(),
+                                null,
+                                beans,
+                                result);
+                    } catch (SchemaException | ObjectNotFoundException e) {
+                        throw SystemException.unexpected(e, "when obtaining parent activity state for " + current);
+                    }
+                }
+                return current;
+            }
+        };
     }
 
     /**
@@ -339,15 +409,23 @@ public abstract class ActivityState implements DebugDumpable {
      * @param task Task where to start searching.
      * @param workStateTypeName Expected type of the work state.
      */
-    @Experimental
-    public static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
+    public static @NotNull ActivityState getActivityStateUpwards(
+            @NotNull ActivityPath activityPath,
+            @NotNull Task task,
+            @Nullable QName workStateTypeName,
+            @NotNull CommonTaskBeans beans,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return getActivityStateUpwards(activityPath, task, workStateTypeName, 0, beans, result);
     }
 
-    private static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result)
+    private static @NotNull ActivityState getActivityStateUpwards(
+            @NotNull ActivityPath activityPath,
+            @NotNull Task task,
+            @Nullable QName workStateTypeName,
+            int level,
+            @NotNull CommonTaskBeans beans,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskActivityStateType taskActivityState = getTaskActivityStateRequired(task);
         if (isLocal(activityPath, taskActivityState)) {

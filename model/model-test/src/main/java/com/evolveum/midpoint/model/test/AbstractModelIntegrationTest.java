@@ -78,7 +78,7 @@ import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
-import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
+import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -6892,8 +6892,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /** Import a single or multiple accounts (or other kind of object) by creating a specialized task - or on foreground. */
-    protected ImportAccountsRequestBuilder importAccountsRequest() {
-        return new ImportAccountsRequestBuilder(this);
+    protected SynchronizationRequestBuilder importAccountsRequest() {
+        return new SynchronizationRequestBuilder(this);
+    }
+
+    /** Reconcile accounts (or other kind of object) by creating a specialized task. */
+    protected SynchronizationRequestBuilder reconcileAccountsRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingReconciliation();
     }
 
     /**
@@ -7043,13 +7049,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @SuppressWarnings("WeakerAccess")
     protected @NotNull String getTaskSimulationResultOid(String taskOid, OperationResult result)
             throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        return getSimulationResultOid(task, ActivityPath.empty());
+    }
+
+    protected @NotNull String getSimulationResultOid(Task task, ActivityPath activityPath) {
         ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                Objects.requireNonNull(task.getActivityStateOrClone(activityPath))
                         .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        assertThat(simState).as("simulation state in " + task).isNotNull();
         ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        assertThat(simResultRef).as("simulation result ref in " + task).isNotNull();
         return Objects.requireNonNull(simResultRef.getOid(), "no OID in simulation result ref");
     }
 

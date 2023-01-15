@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -37,7 +36,6 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
 
 import static java.util.Objects.requireNonNull;
@@ -84,7 +82,12 @@ public abstract class LocalActivityRun<
 
         RunningTask runningTask = getRunningTask();
         TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
-        AggregatedObjectProcessingListener processingListener = getObjectProcessingListener();
+
+        // We will not create our own processing listener if there's any.
+        // FIXME this is very crude "solution" (there may be another kinds of listeners there)
+        //  But the whole reporting mechanism will be reworked, anyway.
+        AggregatedObjectProcessingListener processingListener =
+                runningTask.hasObjectProcessingListener() ? null : getObjectProcessingListener();
 
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
@@ -124,14 +127,7 @@ public abstract class LocalActivityRun<
     }
 
     public AggregatedObjectProcessingListener getObjectProcessingListener() {
-        ActivityExecutionModeDefinition modeDef = getExecutionModeDefinition();
-        if (modeDef.getMode() != ExecutionModeType.PREVIEW || !modeDef.shouldCreateSimulationResult()) {
-            return null;
-        }
-        ObjectReferenceType simulationResultRef = activityState.getSimulationResultRef();
-        stateCheck(simulationResultRef != null,
-                "No simulation result reference in %s even if simulation was requested", this);
-        return getBeans().getAdvancedActivityRunSupport().getObjectProcessingListener(simulationResultRef);
+        return simulationSupport.getObjectProcessingListener();
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */

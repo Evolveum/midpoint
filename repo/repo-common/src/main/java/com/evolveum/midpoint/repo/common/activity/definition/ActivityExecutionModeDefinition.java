@@ -92,7 +92,9 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
         return !Boolean.FALSE.equals(bean.isProductionConfiguration());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean shouldCreateSimulationResult() {
-        return Boolean.TRUE.equals(bean.isCreateSimulationResult());
+        return mode == ExecutionModeType.PREVIEW
+                && Boolean.TRUE.equals(bean.isCreateSimulationResult());
     }
 }

@@ -779,6 +779,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public boolean hasObjectProcessingListener() {
+        return false;
+    }
+
+    @Override
     public <O extends ObjectType> void onItemProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,

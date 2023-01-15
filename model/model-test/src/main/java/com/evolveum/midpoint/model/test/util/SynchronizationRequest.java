@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.test.util;
 
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -41,10 +42,10 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Causes a single or multiple accounts be imported:
+ * Causes a single or multiple accounts be synchronized (imported or reconciled):
  *
  * - typically on background, using one-time task created for this,
- * - or alternatively on foreground, using the appropriate model method (for single account only).
+ * - or alternatively on foreground, using the appropriate model method (for single account import only).
  *
  * Why a special class? To make clients' life easier and avoid many method variants.
  * (Regarding what parameters it needs to specify.)
@@ -54,24 +55,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * - only crude support for tracing on foreground (yet).
  */
 @Experimental
-public class ImportAccountsRequest {
+public class SynchronizationRequest {
 
     @NotNull private final AbstractModelIntegrationTest test;
     @NotNull private final String resourceOid;
     @NotNull private final ResourceObjectTypeIdentification typeIdentification;
     @NotNull private final AccountsSpecification accountsSpecification;
+    @NotNull private final SynchronizationStyle synchronizationStyle;
     private final long timeout;
     private final boolean assertSuccess;
     private final Task task;
     private final TracingProfileType tracingProfile;
     @NotNull private final TaskExecutionMode taskExecutionMode;
 
-    private ImportAccountsRequest(
-            @NotNull ImportAccountsRequest.ImportAccountsRequestBuilder builder) {
+    private SynchronizationRequest(
+            @NotNull SynchronizationRequest.SynchronizationRequestBuilder builder) {
         this.test = builder.test;
         this.resourceOid = Objects.requireNonNull(builder.resourceOid, "No resource OID");
         this.typeIdentification = Objects.requireNonNull(builder.typeIdentification, "No type");
         this.accountsSpecification = builder.getAccountsSpecification();
+        this.synchronizationStyle = Objects.requireNonNullElse(builder.synchronizationStyle, IMPORT);
         this.timeout = builder.timeout;
         this.assertSuccess = builder.assertSuccess;
         this.task = Objects.requireNonNullElseGet(builder.task, test::getTestTask);
@@ -81,18 +84,27 @@ public class ImportAccountsRequest {
 
     public String execute(OperationResult result) throws CommonException {
         ObjectQuery query = createResourceObjectQuery(result);
+        WorkDefinitionsType work;
+        ResourceObjectSetType resourceObjectSet = new ResourceObjectSetType()
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .kind(typeIdentification.getKind())
+                .intent(typeIdentification.getIntent())
+                .query(PrismContext.get().getQueryConverter().createQueryType(query))
+                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE);
+        if (synchronizationStyle == IMPORT) {
+            work = new WorkDefinitionsType()
+                    ._import(new ImportWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet));
+        } else {
+            work = new WorkDefinitionsType()
+                    .reconciliation(new ReconciliationWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet));
+        }
         TaskType importTask = new TaskType()
-                .name("import")
+                .name(synchronizationStyle.taskName)
                 .executionState(TaskExecutionStateType.RUNNABLE)
                 .activity(new ActivityDefinitionType()
-                        .work(new WorkDefinitionsType()
-                                ._import(new ImportWorkDefinitionType()
-                                        .resourceObjects(new ResourceObjectSetType()
-                                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                                                .kind(typeIdentification.getKind())
-                                                .intent(typeIdentification.getIntent())
-                                                .query(PrismContext.get().getQueryConverter().createQueryType(query))
-                                                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE))))
+                        .work(work)
                         .executionMode(
                                 getBackgroundTaskExecutionMode())
                         .execution(new ActivityExecutionDefinitionType()
@@ -237,103 +249,114 @@ public class ImportAccountsRequest {
     }
 
     @SuppressWarnings("unused")
-    public static final class ImportAccountsRequestBuilder {
+    public static final class SynchronizationRequestBuilder {
         @NotNull private final AbstractModelIntegrationTest test;
         private String resourceOid;
         private ResourceObjectTypeIdentification typeIdentification = ResourceObjectTypeIdentification.defaultAccount();
         private QName namingAttribute;
         private String nameValue;
-        private boolean importingAllAccounts;
+        private boolean processingAllAccounts;
+        private SynchronizationStyle synchronizationStyle;
         private long timeout = DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
         private boolean assertSuccess = true;
         private TracingProfileType tracingProfile;
         private Task task;
         private TaskExecutionMode taskExecutionMode;
 
-        public ImportAccountsRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
+        public SynchronizationRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
             this.test = test;
         }
 
-        public ImportAccountsRequestBuilder withResourceOid(String resourceOid) {
+        public SynchronizationRequestBuilder withResourceOid(String resourceOid) {
             this.resourceOid = resourceOid;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withTypeIdentification(ResourceObjectTypeIdentification typeIdentification) {
+        public SynchronizationRequestBuilder withTypeIdentification(ResourceObjectTypeIdentification typeIdentification) {
             this.typeIdentification = typeIdentification;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withNamingAttribute(String localName) {
+        public SynchronizationRequestBuilder withNamingAttribute(String localName) {
             return withNamingAttribute(new QName(MidPointConstants.NS_RI, localName));
         }
 
-        public ImportAccountsRequestBuilder withNamingAttribute(QName namingAttribute) {
+        public SynchronizationRequestBuilder withNamingAttribute(QName namingAttribute) {
             this.namingAttribute = namingAttribute;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withNameValue(String nameValue) {
+        public SynchronizationRequestBuilder withNameValue(String nameValue) {
             this.nameValue = nameValue;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withImportingAllAccounts() {
-            this.importingAllAccounts = true;
+        public SynchronizationRequestBuilder withProcessingAllAccounts() {
+            this.processingAllAccounts = true;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withTimeout(long timeout) {
+        public SynchronizationRequestBuilder withUsingReconciliation() {
+            return withSynchronizationStyle(RECONCILIATION);
+        }
+
+        @SuppressWarnings("SameParameterValue")
+        SynchronizationRequestBuilder withSynchronizationStyle(SynchronizationStyle value) {
+            this.synchronizationStyle = value;
+            return this;
+        }
+
+        public SynchronizationRequestBuilder withTimeout(long timeout) {
             this.timeout = timeout;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withNotAssertingSuccess() {
+        public SynchronizationRequestBuilder withNotAssertingSuccess() {
             return withAssertSuccess(false);
         }
 
         /** Note: this is the default */
-        public ImportAccountsRequestBuilder withAssertingSuccess() {
+        public SynchronizationRequestBuilder withAssertingSuccess() {
             return withAssertSuccess(true);
         }
 
         @SuppressWarnings("WeakerAccess")
-        public ImportAccountsRequestBuilder withAssertSuccess(boolean assertSuccess) {
+        public SynchronizationRequestBuilder withAssertSuccess(boolean assertSuccess) {
             this.assertSuccess = assertSuccess;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withTask(Task task) {
+        public SynchronizationRequestBuilder withTask(Task task) {
             this.task = task;
             return this;
         }
 
         @SuppressWarnings("WeakerAccess")
-        public ImportAccountsRequestBuilder withTracingProfile(TracingProfileType tracingProfile) {
+        public SynchronizationRequestBuilder withTracingProfile(TracingProfileType tracingProfile) {
             this.tracingProfile = tracingProfile;
             return this;
         }
 
-        public ImportAccountsRequestBuilder withTracing() {
+        public SynchronizationRequestBuilder withTracing() {
             return withTracingProfile(
                     test.createModelLoggingTracingProfile());
         }
 
-        public ImportAccountsRequestBuilder simulatedDevelopment() {
+        public SynchronizationRequestBuilder simulatedDevelopment() {
             return withTaskExecutionMode(TaskExecutionMode.SIMULATED_DEVELOPMENT);
         }
 
-        public ImportAccountsRequestBuilder simulatedProduction() {
+        public SynchronizationRequestBuilder simulatedProduction() {
             return withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
         }
 
-        public ImportAccountsRequestBuilder withTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
+        public SynchronizationRequestBuilder withTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
             this.taskExecutionMode = taskExecutionMode;
             return this;
         }
 
-        public ImportAccountsRequest build() {
-            return new ImportAccountsRequest(this);
+        public SynchronizationRequest build() {
+            return new SynchronizationRequest(this);
         }
 
         public String execute(OperationResult result) throws CommonException {
@@ -354,11 +377,21 @@ public class ImportAccountsRequest {
                 return new SingleAccountSpecification(
                         Objects.requireNonNullElse(namingAttribute, ICFS_NAME),
                         nameValue);
-            } else if (importingAllAccounts) {
+            } else if (processingAllAccounts) {
                 return new AllAccountsSpecification();
             } else {
                 throw new IllegalStateException("Either 'allAccounts' or a specific name value must be provided");
             }
+        }
+    }
+
+    public enum SynchronizationStyle {
+        IMPORT("import"), RECONCILIATION("reconciliation");
+
+        private final String taskName;
+
+        SynchronizationStyle(String taskName) {
+            this.taskName = taskName;
         }
     }
 }
