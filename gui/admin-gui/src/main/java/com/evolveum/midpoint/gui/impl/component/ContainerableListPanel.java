@@ -578,12 +578,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private IModel<String> createColumnDisplayModel(GuiObjectColumnType customColumn) {
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
-        String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
-        return StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
-                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
-                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
-                        createStringResource(getItemDisplayName(customColumn)) :
-                        Model.of(customColumn.getName())));
+        if (label != null) {
+            return createStringResource(label);
+        }
+
+        return createStringResource(getItemDisplayName(customColumn));
     }
 
     protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
@@ -1225,8 +1224,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private String getItemDisplayName(GuiObjectColumnType column) {
-        ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
-        return itemDefinition == null ? "" : itemDefinition.getDisplayName();
+        ItemDefinition def = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
+        if (def == null) {
+            return "";
+        }
+
+        return def.getDisplayName() != null ? def.getDisplayName() : def.getItemName().getLocalPart();
     }
 
     public ObjectPaging getCurrentTablePaging() {

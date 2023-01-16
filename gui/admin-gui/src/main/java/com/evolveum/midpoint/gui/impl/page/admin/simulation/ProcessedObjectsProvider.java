@@ -42,8 +42,7 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
         if (StringUtils.isNotEmpty(tagOid)) {
             builder = builder
                     .and()
-                    .ref(SimulationResultProcessedObjectType.F_EVENT_TAG_REF, TagType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, tagOid)
-                    .endBlock();
+                    .ref(SimulationResultProcessedObjectType.F_EVENT_TAG_REF, TagType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, tagOid).all();
         }
 
         return builder.build();

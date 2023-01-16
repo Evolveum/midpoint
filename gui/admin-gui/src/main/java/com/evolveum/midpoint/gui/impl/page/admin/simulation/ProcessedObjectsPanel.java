@@ -10,7 +10,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.resource.IResource;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -43,7 +52,18 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
         // TODO
-        return null;
+        return new RoundedIconColumn<>(null) {
+
+            @Override
+            protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
+                return null;
+            }
+
+            @Override
+            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
+                return () -> null;
+            }
+        };
     }
 
     @Override
@@ -74,5 +94,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     @Override
     public List<SimulationResultProcessedObjectType> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    protected PrismContainerDefinition<SimulationResultProcessedObjectType> getContainerDefinitionForColumns() {
+        return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SimulationResultType.class)
+                .findContainerDefinition(SimulationResultType.F_PROCESSED_OBJECT);
     }
 }
