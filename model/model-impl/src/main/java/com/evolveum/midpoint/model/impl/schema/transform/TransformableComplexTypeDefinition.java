@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefin
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.ObjectClassTypeDefinitionDelegator;
 
-public class TransformableComplexTypeDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
+public class TransformableComplexTypeDefinition extends TransformableDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
     private static final long serialVersionUID = 1L;
     private static final TransformableItemDefinition REMOVED = new Removed();
@@ -32,6 +32,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     private transient List<ItemDefinition<?>> definitionsCache;
 
     public TransformableComplexTypeDefinition(ComplexTypeDefinition delegate) {
+        super(null);
         var schemaDef = PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(delegate.getTypeName());
         if (schemaDef == delegate) {
             this.delegate = new DelegatedItem.StaticComplexType(delegate);

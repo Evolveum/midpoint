@@ -9,6 +9,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -33,6 +34,7 @@ import com.google.common.base.Preconditions;
  */
 
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
+        extends TransformableDefinition
         implements ItemDefinitionDelegator<I>, PrismItemAccessDefinition.Mutable, PartiallyMutableItemDefinition<I> {
 
     private static final long serialVersionUID = 1L;
@@ -57,6 +59,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private PrismReferenceValue valueEnumerationRef;
 
     protected TransformableItemDefinition(D delegate) {
+        super(delegate);
         if (delegate instanceof TransformableItemDefinition) {
             // CopyOf constructor
 
