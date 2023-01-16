@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
@@ -24,7 +24,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -75,16 +78,22 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     }
 
     @Override
-    public @NotNull ObjectReferenceType createSimulationResult(OperationResult result) {
+    public @NotNull ObjectReferenceType createSimulationResult(
+            @Nullable SimulationDefinitionType definition, OperationResult result) {
         throw noModelAvailableException();
     }
 
     @Override
-    public @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef) {
+    public @NotNull ObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef) {
         throw noModelAvailableException();
     }
 
     private UnsupportedOperationException noModelAvailableException() {
         return new UnsupportedOperationException("Model-impl is not available");
+    }
+
+    @Override
+    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result) {
+        throw noModelAvailableException();
     }
 }

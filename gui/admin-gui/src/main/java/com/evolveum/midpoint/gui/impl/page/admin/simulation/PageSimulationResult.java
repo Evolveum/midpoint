@@ -11,9 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -51,7 +48,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
@@ -123,11 +120,11 @@ public class PageSimulationResult extends PageAdmin {
         // todo implement
         IModel<List<SmallBoxData>> data = () -> {
 
-            List<SimulationMetricType> metrics = model.getObject().getMetric();
+            List<SimulationMetricValueType> metrics = model.getObject().getMetric();
             return metrics.stream().map(m -> {
                 SmallBoxData sbd = new SmallBoxData();
                 sbd.setDescription(m.getIdentifier());
-                sbd.setTitle(m.getMatchedObjects().longValue() + "/" + m.getProcessedObjects().longValue());
+                sbd.setTitle(String.valueOf(m.getValue()));
                 sbd.setSmallBoxCssClass("bg-info");
                 sbd.setLinkText("More info");
                 sbd.setIcon("fa fa-database");

@@ -395,7 +395,7 @@ public class ClockworkAuditHelper {
      */
     private <E extends ObjectType> void submitElementSimulationDelta(
             LensElementContext<E> elementContext, Task task, OperationResult result) throws SchemaException {
-        task.onItemProcessed(
+        task.onObjectProcessed(
                 asObjectable(elementContext.getObjectOld()),
                 null, // maybe will be filled-in later
                 getSummaryExecutedDelta(elementContext),

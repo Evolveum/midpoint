@@ -197,11 +197,11 @@ public class SynchronizationRequest {
 
     @SuppressWarnings("WeakerAccess")
     public SimulationResult executeOnForegroundSimulated(
-            SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
+            SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
         stateCheck(!taskExecutionMode.isPersistent(), "No simulation? Mode = %s", taskExecutionMode);
         return test.executeInSimulationMode(
                 taskExecutionMode,
-                simulationConfiguration,
+                simulationDefinition,
                 task,
                 result,
                 (localSimResult) -> executeOnForeground(result));
@@ -368,8 +368,8 @@ public class SynchronizationRequest {
         }
 
         public SimulationResult executeOnForegroundSimulated(
-                SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
-            return build().executeOnForegroundSimulated(simulationConfiguration, task, result);
+                SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
+            return build().executeOnForegroundSimulated(simulationDefinition, task, result);
         }
 
         AccountsSpecification getAccountsSpecification() {

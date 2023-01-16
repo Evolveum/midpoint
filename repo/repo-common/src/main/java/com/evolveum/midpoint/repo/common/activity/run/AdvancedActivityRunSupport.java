@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
@@ -24,7 +24,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -72,8 +75,13 @@ public interface AdvancedActivityRunSupport {
     <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 
     /** Creates a simulation result into which the activity will store information about processed objects. */
-    @NotNull ObjectReferenceType createSimulationResult(OperationResult result);
+    @NotNull ObjectReferenceType createSimulationResult(@Nullable SimulationDefinitionType definition, OperationResult result)
+            throws ConfigurationException;
 
     /** TODO better name */
-    @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
+    @NotNull ObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
+
+    /** Closes the simulation result. */
+    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result)
+            throws ObjectNotFoundException;
 }

@@ -71,11 +71,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .name("test100");
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -174,11 +173,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .linkRef(createLinkRefWithFullObject(target));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -298,11 +296,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         createAssignmentValue(target));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -393,11 +390,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createLinkRefDelta(userOid, target)),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -475,11 +471,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createAssignmentDelta(userOid, target)),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -578,11 +573,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .replace(ActivationStatusType.ENABLED)
                 .asObjectDelta(user.getOid());
 
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -626,12 +620,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test200");
 
         when("the account is imported");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue("test200")
                 .withTaskExecutionMode(getExecutionMode())
-                .executeOnForegroundSimulated(simulationConfiguration, task, result);
+                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
@@ -689,8 +682,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
      */
     @Test
     public void test205SimulatedAccountImportNoProjectionsBackground() throws Exception {
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
-        if (simulationConfiguration == null) {
+        SimulationDefinitionType simulationDefinition = getDefaultSimulationDefinition();
+        if (simulationDefinition == null) {
             throw new SkipException("Simulations not supported here");
         }
 
@@ -762,11 +755,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                                 .targetRef(ARCHETYPE_PERSON.ref()));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);

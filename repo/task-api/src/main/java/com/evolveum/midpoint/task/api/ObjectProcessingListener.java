@@ -18,21 +18,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-/**
- * TODO
- */
-public interface AggregatedObjectProcessingListener {
+public interface ObjectProcessingListener {
 
     /**
-     * Called after a specific item was processed. (Or after the "item-less" processing ended.)
+     * Called after a specific object was processed. (Whatever that means.)
      *
      * @param stateBefore The state of the object before the processing
      * @param executedDelta (Aggregated) delta that was executed (or attempted to be executed) - if any
      * @param simulatedDelta (Aggregated) delta that would be executed if the execution mode was real - if any
-     * @param eventTags Event tags connected with the item processing
+     * @param eventTags Event tags connected with the object processing
      * @param result Operation result under which the necessary actions are carried out
      */
-    <O extends ObjectType> void onItemProcessed(
+    <O extends ObjectType> void onObjectProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,

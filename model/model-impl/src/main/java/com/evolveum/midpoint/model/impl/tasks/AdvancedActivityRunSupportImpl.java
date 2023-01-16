@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -144,18 +145,26 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public @NotNull ObjectReferenceType createSimulationResult(OperationResult result) {
-        SimulationResultType configuration = simulationResultManager.newConfiguration();
+    public @NotNull ObjectReferenceType createSimulationResult(
+            @Nullable SimulationDefinitionType definition, OperationResult result)
+            throws ConfigurationException {
         return simulationResultManager
-                .newSimulationResult(configuration, result)
+                .newSimulationResult(definition, result)
                 .getResultRef();
     }
 
     @Override
-    public @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(
+    public @NotNull ObjectProcessingListener getObjectProcessingListener(
             @NotNull ObjectReferenceType simulationResultRef) {
         return simulationResultManager
                 .newSimulationContext(Objects.requireNonNull(simulationResultRef.getOid(), "no result OID"))
-                .aggregatedObjectProcessingListener();
+                .objectProcessingListener();
+    }
+
+    @Override
+    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result)
+            throws ObjectNotFoundException {
+        simulationResultManager
+                .closeSimulationResult(simulationResultRef, result);
     }
 }

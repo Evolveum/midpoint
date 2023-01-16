@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +33,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.test.DummyAuditEventListener;
 import com.evolveum.midpoint.test.MidpointTestContextWithTask;
 import com.evolveum.midpoint.test.TestSpringBeans;
@@ -98,15 +101,15 @@ public class SimulationResult {
         };
     }
 
-    AggregatedObjectProcessingListener aggregatedObjectProcessingListener() {
-        return this::onItemProcessed;
+    ObjectProcessingListener objectProcessingListener() {
+        return this::onObjectProcessed;
     }
 
     DummyAuditEventListener auditEventListener() {
         return record -> auditedDeltas.addAll(record.getDeltas());
     }
 
-    private <O extends ObjectType> void onItemProcessed(
+    private <O extends ObjectType> void onObjectProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
@@ -122,7 +125,7 @@ public class SimulationResult {
     }
 
     public void assertNoExecutedNorAuditedDeltas() {
-        // This is a bit fake. We currently do not report executed deltas using onItemProcessed method.
+        // This is a bit fake. We currently do not report executed deltas using onObjectProcessed method.
         assertThat(executedDeltas).as("executed deltas").isEmpty();
 
         // In a similar way, auditing is currently explicitly turned off in non-persistent mode. Nevertheless, this
@@ -136,6 +139,13 @@ public class SimulationResult {
         } else {
             return getTransientProcessedObjects(result);
         }
+    }
+
+    public SimulationResultType getSimulationResultBean(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assertThat(simulationResultOid).as("simulation result OID").isNotNull();
+        return TestSpringBeans.getCacheRepositoryService()
+                .getObject(SimulationResultType.class, simulationResultOid, null, result)
+                .asObjectable();
     }
 
     public List<ProcessedObject<?>> getTransientProcessedObjects(OperationResult result) {

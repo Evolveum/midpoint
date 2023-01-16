@@ -54,6 +54,8 @@ public abstract class ActivityState implements DebugDumpable {
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
     private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
             ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
+    private static final @NotNull ItemPath SIMULATION_RESULT_CREATED_PATH =
+            ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_CREATED);
 
     private static final int MAX_TREE_DEPTH = 30;
 
@@ -307,8 +309,17 @@ public abstract class ActivityState implements DebugDumpable {
         setItemRealValues(SIMULATION_RESULT_REF_PATH, simResultRef);
     }
 
+    public void setSimulationResultCreated() throws ActivityRunException {
+        setItemRealValues(SIMULATION_RESULT_CREATED_PATH, true);
+    }
+
     public ObjectReferenceType getSimulationResultRef() {
         return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
+    }
+
+    public boolean isSimulationResultCreated() {
+        return Boolean.TRUE.equals(
+                getPropertyRealValue(SIMULATION_RESULT_CREATED_PATH, Boolean.class));
     }
     //endregion
 

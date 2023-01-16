@@ -3,8 +3,9 @@ package com.evolveum.midpoint.model.impl.simulation;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,21 +17,23 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-public class SimulationResultContextImpl implements SimulationResultContext, AggregatedObjectProcessingListener {
+public class SimulationResultContextImpl implements SimulationResultContext, ObjectProcessingListener {
 
-    private @NotNull String oid;
-    private @NotNull SimulationResultManagerImpl manager;
-    private @Nullable SimulationResultType configuration;
+    private final @NotNull String oid;
+    private final @NotNull SimulationResultManagerImpl manager;
 
+    // The simulation definition could be here as well. But it would require fetching the simulation result object from
+    // the repository (each time the context is created). It is quite acceptable, but let us do it only when really needed.
 
-    public SimulationResultContextImpl(SimulationResultManagerImpl manager, @NotNull String storedOid, @Nullable SimulationResultType configuration) {
+    SimulationResultContextImpl(
+            @NotNull SimulationResultManagerImpl manager,
+            @NotNull String storedOid) {
         this.manager = manager;
         this.oid = storedOid;
-        this.configuration = configuration;
     }
 
     @Override
-    public <O extends ObjectType> void onItemProcessed(
+    public <O extends ObjectType> void onObjectProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
@@ -41,13 +44,13 @@ public class SimulationResultContextImpl implements SimulationResultContext, Agg
             if (processedObject != null) {
                 manager.storeProcessedObject(oid, processedObject.toBean(), result);
             }
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "when converting delta"); // Or should we ignore it?
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw SystemException.unexpected(e, "when storing processed object information"); // Or should we ignore it?
         }
     }
 
     @Override
-    public @NotNull AggregatedObjectProcessingListener aggregatedObjectProcessingListener() {
+    public @NotNull ObjectProcessingListener objectProcessingListener() {
         return this;
     }
 

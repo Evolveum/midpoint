@@ -771,20 +771,28 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    public void addObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    public void setSimulationObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
     }
 
     @Override
-    public boolean hasObjectProcessingListener() {
+    public void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
+    }
+
+    @Override
+    public void unsetSimulationObjectProcessingListener() {
+    }
+
+    @Override
+    public boolean hasSimulationObjectProcessingListener() {
         return false;
     }
 
     @Override
-    public <O extends ObjectType> void onItemProcessed(
+    public <O extends ObjectType> void onObjectProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,

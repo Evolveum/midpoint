@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -84,10 +84,8 @@ public abstract class LocalActivityRun<
         TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
 
         // We will not create our own processing listener if there's any.
-        // FIXME this is very crude "solution" (there may be another kinds of listeners there)
-        //  But the whole reporting mechanism will be reworked, anyway.
-        AggregatedObjectProcessingListener processingListener =
-                runningTask.hasObjectProcessingListener() ? null : getObjectProcessingListener();
+        ObjectProcessingListener processingListener =
+                runningTask.hasSimulationObjectProcessingListener() ? null : getSimulationObjectProcessingListener();
 
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
@@ -95,7 +93,7 @@ public abstract class LocalActivityRun<
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
             if (processingListener != null) {
-                runningTask.addObjectProcessingListener(processingListener);
+                runningTask.setSimulationObjectProcessingListener(processingListener);
             }
             runResult = runLocally(localResult);
         } catch (Exception e) {
@@ -105,7 +103,7 @@ public abstract class LocalActivityRun<
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
             if (processingListener != null) {
-                runningTask.removeObjectProcessingListener(processingListener);
+                runningTask.unsetSimulationObjectProcessingListener();
             }
         }
 
@@ -126,7 +124,7 @@ public abstract class LocalActivityRun<
         }
     }
 
-    public AggregatedObjectProcessingListener getObjectProcessingListener() {
+    public ObjectProcessingListener getSimulationObjectProcessingListener() {
         return simulationSupport.getObjectProcessingListener();
     }
 

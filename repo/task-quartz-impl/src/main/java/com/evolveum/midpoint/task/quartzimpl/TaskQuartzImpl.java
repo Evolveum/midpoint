@@ -107,7 +107,11 @@ public class TaskQuartzImpl implements Task {
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
-    @NotNull private final Collection<AggregatedObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
+    /** TODO */
+    @NotNull private final Collection<ObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
+
+    /** TODO */
+    private volatile ObjectProcessingListener simulationObjectProcessingListener;
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -2317,29 +2321,43 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    public void addObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
         objectProcessingListeners.add(listener);
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    public void setSimulationObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
+        simulationObjectProcessingListener = listener;
+    }
+
+    @Override
+    public void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
         objectProcessingListeners.remove(listener);
     }
 
     @Override
-    public boolean hasObjectProcessingListener() {
-        return !objectProcessingListeners.isEmpty();
+    public void unsetSimulationObjectProcessingListener() {
+        simulationObjectProcessingListener = null;
     }
 
     @Override
-    public <O extends ObjectType> void onItemProcessed(
+    public boolean hasSimulationObjectProcessingListener() {
+        return simulationObjectProcessingListener != null;
+    }
+
+    @Override
+    public <O extends ObjectType> void onObjectProcessed(
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
             @NotNull Collection<String> eventTags,
             @NotNull OperationResult result) throws SchemaException {
-        for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+        for (ObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
+            objectProcessingListener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+        }
+        ObjectProcessingListener listener = simulationObjectProcessingListener;
+        if (listener != null) {
+            listener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
         }
     }
     //endregion

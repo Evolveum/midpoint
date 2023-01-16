@@ -325,8 +325,8 @@ public abstract class AbstractActivityRun<
             getRunningTask()
                     .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
         } catch (CommonException e) {
-            throw new ActivityRunException("Couldn't update task when updating and closing activity state",
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(
+                    "Couldn't update task when updating and closing activity state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
         activityState.close();
@@ -603,6 +603,7 @@ public abstract class AbstractActivityRun<
      * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
     @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected void onActivityRealizationComplete(OperationResult result) {
+    protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
+        simulationSupport.closeSimulationResult(result);
     }
 }

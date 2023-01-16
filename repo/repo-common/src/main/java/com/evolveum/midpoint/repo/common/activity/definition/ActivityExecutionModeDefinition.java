@@ -10,14 +10,11 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +91,17 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean shouldCreateSimulationResult() {
-        return mode == ExecutionModeType.PREVIEW
-                && Boolean.TRUE.equals(bean.isCreateSimulationResult());
+        if (mode != ExecutionModeType.PREVIEW) {
+            return false;
+        }
+        Boolean explicitValue = bean.isCreateSimulationResult();
+        if (explicitValue != null) {
+            return explicitValue;
+        }
+        return bean.getSimulationDefinition() != null;
+    }
+
+    public SimulationDefinitionType getSimulationDefinition() {
+        return bean.getSimulationDefinition();
     }
 }

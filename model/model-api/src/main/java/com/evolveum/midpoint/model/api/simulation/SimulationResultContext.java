@@ -19,13 +19,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 public interface SimulationResultContext {
 
-    @NotNull AggregatedObjectProcessingListener aggregatedObjectProcessingListener();
+    @NotNull ObjectProcessingListener objectProcessingListener();
 
     /** OID of the {@link SimulationResultType} object. */
     @NotNull String getResultOid();

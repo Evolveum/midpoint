@@ -61,11 +61,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(user.getOid());
 
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -126,11 +125,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(PolyString.fromOrig("test810a"))
                 .asObjectDelta(user.getOid());
 
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -181,11 +179,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(new ProtectedStringType().clearValue("test"))
                 .asObjectDelta(user.getOid());
 
-        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
-                        getExecutionMode(), simulationConfiguration, task, result);
+                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);

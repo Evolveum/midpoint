@@ -7,18 +7,22 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Helps with managing simulation aspects of the activity.
@@ -56,12 +60,22 @@ class SimulationSupport {
             }
         }
         if (simResultRef == null) {
-            simResultRef = activityRun.getBeans().getAdvancedActivityRunSupport().createSimulationResult(result);
+            try {
+                ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
+                simResultRef =
+                        activityRun.getBeans().getAdvancedActivityRunSupport().createSimulationResult(
+                                execModeDef.getSimulationDefinition(), result);
+            } catch (ConfigurationException e) {
+                throw new ActivityRunException("Couldn't create simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
+            }
+            activityState.setSimulationResultCreated();
             LOGGER.trace("Created a simulation result: {}", simResultRef);
+        } else {
+            // TODO issue a warning when re-defining the simulation in a sub-activity
         }
 
         // We put the simulation result into the current activity to allow fast retrieval when processing the objects,
-        // see getObjectProcessingListener().
+        // see getSimulationObjectProcessingListener().
         activityState.setSimulationResultRef(simResultRef);
         activityState.flushPendingTaskModificationsChecked(result);
     }
@@ -69,9 +83,9 @@ class SimulationSupport {
     /**
      * Creates "object processing listener" that will record data into the simulation result object.
      */
-    AggregatedObjectProcessingListener getObjectProcessingListener() {
+    ObjectProcessingListener getObjectProcessingListener() {
         ActivityExecutionModeDefinition modeDef = activityRun.getExecutionModeDefinition();
-        if (modeDef.getMode() != ExecutionModeType.PREVIEW || !modeDef.shouldCreateSimulationResult()) {
+        if (!modeDef.shouldCreateSimulationResult()) {
             LOGGER.trace("Not creating object processing listener; mode definition = {}", modeDef);
             return null;
         }
@@ -80,5 +94,18 @@ class SimulationSupport {
         stateCheck(simulationResultRef != null,
                 "No simulation result reference in %s even if simulation was requested", this);
         return activityRun.getBeans().getAdvancedActivityRunSupport().getObjectProcessingListener(simulationResultRef);
+    }
+
+    void closeSimulationResult(OperationResult result) throws ActivityRunException {
+        if (activityRun.activityState.isSimulationResultCreated()) {
+            ObjectReferenceType simulationResultRef = activityRun.activityState.getSimulationResultRef();
+            stateCheck(simulationResultRef != null,
+                    "No simulation result reference in %s even it should be there (created=true)", this);
+            try {
+                activityRun.getBeans().getAdvancedActivityRunSupport().closeSimulationResult(simulationResultRef, result);
+            } catch (ObjectNotFoundException e) {
+                throw new ActivityRunException("Couldn't close simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
+            }
+        }
     }
 }
