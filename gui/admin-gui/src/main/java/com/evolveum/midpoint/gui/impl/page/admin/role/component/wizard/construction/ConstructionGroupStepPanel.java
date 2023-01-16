@@ -144,7 +144,7 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected void onSelectPerformed() {
+    protected void performSelectedTiles() {
         try {
             PrismContainerWrapper<ResourceObjectAssociationType> associationContainer =
                     getValueModel().getObject().findContainer(ConstructionType.F_ASSOCIATION);

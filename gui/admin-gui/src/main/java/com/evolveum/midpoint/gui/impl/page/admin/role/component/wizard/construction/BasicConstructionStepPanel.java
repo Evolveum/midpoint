@@ -30,7 +30,7 @@ import org.apache.wicket.model.IModel;
         containerPath = "empty")
 public class BasicConstructionStepPanel extends AbstractValueFormResourceWizardStepPanel<ConstructionType, FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-construction-basic";
+    public static final String PANEL_TYPE = "roleWizard-construction-basic";
 
     private final IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
 

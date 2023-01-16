@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 
 import java.util.Collection;
@@ -40,9 +39,14 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     private IModel<PrismContainerValueWrapper<V>> valueModel;
 
+    public SelectTileWizardStepPanel(ODM model, IModel<PrismContainerValueWrapper<V>> valueModel) {
+        super(model);
+        initValueModel(valueModel);
+    }
+
     public SelectTileWizardStepPanel(ODM model) {
         super(model);
-        initModels();
+        initValueModel(null);
     }
 
     @Override
@@ -51,8 +55,12 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         initLayout();
     }
 
-    private void initModels() {
-        valueModel = createValueModel();
+    private void initValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
+        if (valueModel == null) {
+            this.valueModel = createValueModel();
+        } else {
+            this.valueModel = valueModel;
+        }
     }
 
     protected IModel<PrismContainerValueWrapper<V>> createValueModel() {
@@ -75,6 +83,10 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
                 return null;
             }
         };
+    }
+
+    public void setValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
+        this.valueModel = valueModel;
     }
 
     protected PrismContainerValue<V> createNewValue(PrismContainerWrapper<V> parent) {
@@ -138,7 +150,7 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         if (isValid(target)){
-            onSelectPerformed();
+            performSelectedTiles();
             return super.onNextPerformed(target);
         }
         return false;
@@ -153,20 +165,11 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         return true;
     }
 
-    protected void onSelectPerformed() {
+    protected void performSelectedTiles() {
         Optional<TemplateTile<SelectableBean<O>>> selectedTile =
                 getTable().getTilesModel().getObject().stream().filter(tile -> tile.isSelected()).findFirst();
         if (selectedTile.isPresent()) {
-            try {
-                PrismReferenceWrapper<Referencable> resourceRef =
-                        getValueModel().getObject().findReference(getPathForTargetReference());
-                resourceRef.getValue().setRealValue(
-                        new ObjectReferenceType()
-                                .oid(selectedTile.get().getValue().getValue().getOid())
-                                .type(selectedTile.get().getValue().getValue().asPrismObject().getDefinition().getTypeName()));
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't find target reference.");
-            }
+            performSelectedTile(selectedTile.get());
         } else {
             try {
                 getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
@@ -177,6 +180,19 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         }
     }
 
+    protected void performSelectedTile(TemplateTile<SelectableBean<O>> selectedTile) {
+        try {
+            PrismReferenceWrapper<Referencable> resourceRef =
+                    getValueModel().getObject().findReference(getPathForTargetReference());
+            resourceRef.getValue().setRealValue(
+                    new ObjectReferenceType()
+                            .oid(selectedTile.getValue().getValue().getOid())
+                            .type(selectedTile.getValue().getValue().asPrismObject().getDefinition().getTypeName()));
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find target reference.");
+        }
+    }
+
     protected ItemPath getPathForTargetReference(){
         return ItemPath.EMPTY_PATH;
     }
@@ -184,7 +200,7 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         if (isValid(target)) {
-            onSelectPerformed();
+            performSelectedTiles();
             super.onSubmitPerformed(target);
         }
     }
