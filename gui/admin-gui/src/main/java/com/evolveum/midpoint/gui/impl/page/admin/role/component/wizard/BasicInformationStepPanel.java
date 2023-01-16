@@ -32,7 +32,7 @@ import org.apache.wicket.model.IModel;
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-basic";
+    public static final String PANEL_TYPE = "roleWizard-basic";
 
     public BasicInformationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);

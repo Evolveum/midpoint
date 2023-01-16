@@ -232,6 +232,9 @@ public class WrapperContext {
 
     protected void collectVirtualContainers(@NotNull Collection<? extends ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
         for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
+            if(isIgnoredWizardPanel(panelConfig)) {
+                continue;
+            }
             if (objectStatus == null || panelConfig.getApplicableForOperation() == null
                     || (ItemStatus.NOT_CHANGED.equals(objectStatus)
                         && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
@@ -241,6 +244,10 @@ public class WrapperContext {
                 collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
             }
         }
+    }
+
+    protected boolean isIgnoredWizardPanel(ContainerPanelConfigurationType panelConfig) {
+        return false;
     }
 
     public VirtualContainersSpecificationType findVirtualContainerConfiguration(ItemPath path) {

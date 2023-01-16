@@ -92,7 +92,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 if (isSavedAfterDetailsWizard()) {
-                    OperationResult result = onSaveResourcePerformed(target);
+                    OperationResult result = onSavePerformed(target);
                     if (result != null && !result.isError()) {
                         WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
 
@@ -229,7 +229,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
 
             @Override
             public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-                OperationResult result = ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = ResourceObjectTypeWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     refreshValueModel();
                 }

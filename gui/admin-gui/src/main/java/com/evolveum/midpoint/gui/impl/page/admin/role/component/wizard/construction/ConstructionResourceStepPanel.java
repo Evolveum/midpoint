@@ -1,9 +1,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.SelectTileWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import org.apache.wicket.model.IModel;
 
@@ -16,6 +25,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.Collections;
+
 @PanelType(name = "roleWizard-construction-resource")
 @PanelInstance(identifier = "roleWizard-construction-resource",
         applicableForType = RoleType.class,
@@ -24,10 +35,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         containerPath = "empty")
 public class ConstructionResourceStepPanel extends SelectTileWizardStepPanel<ResourceType, FocusDetailsModels<RoleType>, AssignmentType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SelectTileWizardStepPanel.class);
+
     public static final String PANEL_TYPE = "roleWizard-construction-resource";
 
-    public ConstructionResourceStepPanel(FocusDetailsModels<RoleType> model) {
-        super(model);
+    public ConstructionResourceStepPanel(
+            FocusDetailsModels<RoleType> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
+        super(model, valueModel);
     }
 
     @Override
@@ -58,7 +72,7 @@ public class ConstructionResourceStepPanel extends SelectTileWizardStepPanel<Res
     }
 
     protected PrismContainerValue<AssignmentType> createNewValue(PrismContainerWrapper<AssignmentType> parent) {
-        PrismContainerValue<AssignmentType> newValue =  super.createNewValue(parent);
+        PrismContainerValue<AssignmentType> newValue = super.createNewValue(parent);
         newValue.asContainerable().beginConstruction();
         return newValue;
     }
@@ -95,5 +109,20 @@ public class ConstructionResourceStepPanel extends SelectTileWizardStepPanel<Res
     @Override
     protected boolean isMandatory() {
         return true;
+    }
+
+    @Override
+    protected void performSelectedTile(TemplateTile<SelectableBean<ResourceType>> selectedTile) {
+        super.performSelectedTile(selectedTile);
+        try {
+            PrismContainerWrapper constructionWrapper = getValueModel().getObject().findContainer(AssignmentType.F_CONSTRUCTION);
+
+            if (constructionWrapper.getValue() instanceof ConstructionValueWrapper) {
+                ((ConstructionValueWrapper) constructionWrapper.getValue()).setResourceOid(
+                        selectedTile.getValue().getValue().getOid());
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find construction wrapper.");
+        }
     }
 }

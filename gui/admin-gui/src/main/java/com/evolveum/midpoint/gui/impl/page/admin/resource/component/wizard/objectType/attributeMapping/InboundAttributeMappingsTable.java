@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -30,8 +31,8 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class InboundAttributeMappingsTable extends AttributeMappingsTable{
-    public InboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P>{
+    public InboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
         super(id, valueModel);
     }
 
