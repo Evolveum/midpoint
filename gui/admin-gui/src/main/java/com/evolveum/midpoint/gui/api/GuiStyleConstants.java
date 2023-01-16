@@ -281,4 +281,6 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_HISTORY = "fa fa-history";
 
     public static final String CLASS_SIMULATION_RESULT = CLASS_CIRCLE_FULL;
+
+    public static final String CLASS_TAG = CLASS_CIRCLE_FULL;
 }

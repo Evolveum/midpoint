@@ -804,7 +804,7 @@
                                 in the system configuration. (Provided that this tag is in appropriate lifecycle state.)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.uri</a:displayName>
+                                <a:displayName>TagType.policyRule</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
