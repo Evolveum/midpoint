@@ -76,7 +76,7 @@ public class PageSimulationResultObjects extends PageAdmin {
             @Override
             protected String getTagOid() {
                 String oid = getPageParameterTagOid();
-                if (!Utils.isPrismObjectOidValid(oid)) {
+                if (oid != null && !Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
 
