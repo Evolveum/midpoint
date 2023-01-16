@@ -1,9 +1,16 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import java.util.Collection;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ActionStepPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -18,15 +25,9 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTablePanel<TemplateTile<SelectableBean<O>>, SelectableBean<O>> {
 
@@ -110,13 +111,13 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
         return new LoadableModel<>(false) {
             @Override
             protected Search<O> load() {
-                return SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
+                return new SearchFactory<>(getType()).modelServiceLocator(getPageBase()).createSearch();//SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
             }
         };
     }
 
     protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>(type, getPageBase());
+        return new SearchConfigurationWrapper<>();
     }
 
     protected Class<O> getType() {

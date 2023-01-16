@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 import com.evolveum.midpoint.gui.impl.component.search.panel.AbstractSearchItemPanel;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 public abstract class AbstractSearchItemWrapper<T> implements Serializable, SelectableRow {
 

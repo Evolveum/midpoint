@@ -1,6 +1,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
@@ -15,13 +21,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.model.IModel;
-
-import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.List;
 
 public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
         extends SelectTileWizardStepPanel<O, ODM, V> {
@@ -118,6 +117,6 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
     }
 
     protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>(type, getPageBase());
+        return new SearchConfigurationWrapper<>();
     }
 }

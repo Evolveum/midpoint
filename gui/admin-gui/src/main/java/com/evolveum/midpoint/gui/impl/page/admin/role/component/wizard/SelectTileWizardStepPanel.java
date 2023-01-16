@@ -5,7 +5,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;

@@ -114,7 +114,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         return getTenantValue() != null;
     }
 
-    private ObjectReferenceType getTenantValue() {
+    public ObjectReferenceType getTenantValue() {
         if (tenantSearchItemWrapper == null) {
             return null;
         }
@@ -134,7 +134,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         return getProjectValue() != null;
     }
 
-    private ObjectReferenceType getProjectValue() {
+    public ObjectReferenceType getProjectValue() {
         if (projectSearchItemWrapper == null) {
             return null;
         }
@@ -231,6 +231,10 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
 
     public QName getRelationValue() {
         return relationSearchItemWrapper.getValue().getValue();
+    }
+
+    public RelationSearchItemConfigurationType getRelationSearchItemConfiguration() {
+        return relationSearchItemWrapper.getRelationSearchItemConfigurationType();
     }
 
     public SearchBoxScopeType getScopeValue() {

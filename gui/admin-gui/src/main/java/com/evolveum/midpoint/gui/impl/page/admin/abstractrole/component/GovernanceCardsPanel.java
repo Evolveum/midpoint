@@ -95,19 +95,20 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             @Override
             protected Search<FocusType> load() {
 
-                SearchFactory<FocusType> searchFactory = new SearchFactory<>()
-                        .type(FocusType.class)
-                        .defaultSearchBoxConfig(getDefaultMemberSearchBoxConfig(FocusType.class))
+                SearchFactory<FocusType> searchFactory = new SearchFactory<>(FocusType.class)
                         .collectionView(getObjectCollectionView())
+                        .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
 
                 return searchFactory.createSearch();
-
-
-
-//                return createMemberSearch(FocusType.class);
             }
         };
+    }
+
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setPanelType(PredefinedSearchableItems.PanelType.CARDS_GOVERNANCE);
+        return ctx;
     }
 
     private CompiledObjectCollectionView getObjectCollectionView() {
@@ -126,10 +127,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             return AbstractRoleType.COMPLEX_TYPE;
         }
         return type;
-    }
-
-    protected List<QName> getSupportedRelations() {
-        return getSupportedGovernanceTabRelations();
     }
 
     @Override
@@ -365,12 +362,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
         target.add(getMemberTileTable());
     }
-
-    @Override
-    protected boolean isVisibleAdvanceSearchItem() {
-        return false;
-    }
-
     protected TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>> getMemberTileTable() {
         return (TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>>)
                 get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));

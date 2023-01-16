@@ -10,6 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +51,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
@@ -247,11 +249,10 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
-                        return new SearchBoxConfigurationUtil(type)
-                                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS)
-                                .modelServiceLocator(getPageBase())
-                                .create();
+                    protected SearchContext createAdditionalSearchContext() {
+                        SearchContext ctx = new SearchContext();
+                        ctx.setPanelType(PredefinedSearchableItems.PanelType.PROJECTION_SHADOW);
+                        return ctx;
                     }
                 };
         add(multivalueContainerListPanel);

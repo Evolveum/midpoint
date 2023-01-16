@@ -84,6 +84,10 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
         return supportedRelations;
     }
 
+    public RelationSearchItemConfigurationType getRelationSearchItemConfigurationType() {
+        return relationSearchItemConfigurationType;
+    }
+
     //TODO should be in member search
 //    @Override
 //    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {

@@ -1141,6 +1141,10 @@ public final class WebComponentUtil {
         return getTranslatedPolyString(PolyString.toPolyString(value));
     }
 
+    public static String getTranslatedPolyString(PolyStringType value, ModelServiceLocator modelServiceLocator) {
+        return getTranslatedPolyString(PolyString.toPolyString(value), modelServiceLocator.getLocalizationService());
+    }
+
     public static String getTranslatedPolyString(PolyString value) {
         MidPointApplication application = MidPointApplication.get();
         return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);

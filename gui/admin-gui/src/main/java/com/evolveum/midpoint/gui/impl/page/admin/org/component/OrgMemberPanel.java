@@ -47,14 +47,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
-        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
-                (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
-                        && !QueryScope.ALL.equals(scope))) {
+        if (!isSubtreeScope() || (isSubtreeScope() && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getSearchBoxConfiguration().getDefaultRelation());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getRelationValue());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -74,22 +72,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected Class<? extends ObjectType> getChoiceForAllTypes() {
-        return AssignmentHolderType.class;
-    }
-
-    @Override
-    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
-        List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
-        objectTypes.remove(ShadowType.COMPLEX_TYPE);
-        objectTypes.remove(ObjectType.COMPLEX_TYPE);
-        if (!includeAbstractTypes) {
-            objectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
-        }
-        return objectTypes;
-    }
-
-    @Override
     protected List<QName> getNewMemberObjectTypes() {
         List<QName> objectTypes = WebComponentUtil.createFocusTypeList();
         objectTypes.add(ResourceType.COMPLEX_TYPE);
@@ -99,21 +81,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected Class<? extends ObjectType> getDefaultObjectType() {
         return UserType.class;
-    }
-
-    @Override
-    protected List<QName> getSupportedRelations() {
-        if (getPanelConfiguration() == null) {
-            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
-        }
-        if ("orgMembers".equals(getPanelConfiguration().getIdentifier())) {
-            return getSupportedMembersTabRelations();
-        }
-        if ("orgGovernance".equals(getPanelConfiguration().getIdentifier())) {
-            return getSupportedGovernanceTabRelations();
-        }
-
-        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
     }
 
     private Class<? extends AssignmentHolderType> getSearchTypeClass() {
@@ -141,7 +108,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected @NotNull List<QName> getRelationsForRecomputeTask() {
-        if (CollectionUtils.isEmpty(getSearchBoxConfiguration().getSupportedRelations())) {
+        if (CollectionUtils.isEmpty(getSupportedRelations())) {
             return Collections.singletonList(PrismConstants.Q_ANY);
         }
         return super.getRelationsForRecomputeTask();

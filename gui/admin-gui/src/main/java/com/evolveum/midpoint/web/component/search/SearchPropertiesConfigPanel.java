@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -354,13 +353,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 Class<? extends Containerable> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
-                    Map<ItemPath, ItemDefinition<?>> availableDefs = new SearchBoxConfigurationUtil(type)
-                            .modelServiceLocator(getPageBase())
+                    Map<ItemPath, ItemDefinition<?>> availableDefs = new PredefinedSearchableItems(type, getPageBase())
                             .createAvailableSearchItems();
-//                    PrismObjectDefinition objectDef = SearchBoxConfigurationUtil.findObjectDefinition(getType(), null, getPageBase());
-//                    Map<ItemPath, ItemDefinition<?>> availableDefs = SearchBoxConfigurationUtil.createAvailableSearchItems(type, Collections.singletonList(ItemPath.create(ObjectType.F_EXTENSION)), null, getPageBase());
-////                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
-
                     List<Property> propertiesList = availableDefs.entrySet()
                             .stream()
                             .filter(searchItemDef -> !isPropertyAlreadyAdded(searchItemDef.getKey()))

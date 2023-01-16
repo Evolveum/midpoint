@@ -1,24 +1,33 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.search.ChoicesSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.MultiSelectTileWizardStepPanel;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -31,22 +40,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 @PanelType(name = "roleWizard-construction-group")
 @PanelInstance(identifier = "roleWizard-construction-group",
@@ -234,7 +231,7 @@ public class ConstructionGroupStepPanel
             associationRef.setObject((SearchValue<ItemName>) values.get(0));
         }
 
-        config.addSearchItem(new ChoicesSearchItemWrapper<>(ItemPath.EMPTY_PATH, values) {
+        config.getItemsList().add(new ChoicesSearchItemWrapper<>(ItemPath.EMPTY_PATH, values) {
             @Override
             public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
                 IModel<PrismContainerValueWrapper<ConstructionType>> valueModel = getValueModel();

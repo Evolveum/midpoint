@@ -53,7 +53,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
 
 
-    private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
+    private LoadableDetachableModel<Search<? extends AssignmentHolderType>> searchModel;
 
     private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
@@ -72,14 +72,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         if (searchModel == null) {
             searchModel = new LoadableDetachableModel<>() {
                 @Override
-                protected Search<AssignmentHolderType> load() {
+                protected Search<? extends AssignmentHolderType> load() {
                     PageStorage storage = getStorage();
-                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(templateType.getObject().getType())) {
-                        SearchFactory<AssignmentHolderType> factory = new SearchFactory<>()
-                                .type(templateType.getObject().getType())
+                    TemplateType template = templateType.getObject();
+                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(template.getType())) {
+                        SearchFactory<? extends AssignmentHolderType> factory = new SearchFactory<>(template.getType())
                                 .modelServiceLocator(getPageBase());
 
-                        Search<AssignmentHolderType> search = factory.createSearch();
+                        Search<? extends AssignmentHolderType> search = factory.createSearch();
 //                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
                         storage.setSearch(search);
                         return search;
@@ -161,7 +161,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
     }
 
     private SearchPanel<AssignmentHolderType> initSearch() {
-        return new SearchPanel<>(ID_SEARCH, searchModel) {
+        return new SearchPanel<>(ID_SEARCH, (IModel) searchModel) {
 
             @Override
             public void searchPerformed(AjaxRequestTarget target) {

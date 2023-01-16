@@ -9,10 +9,12 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +46,7 @@ public class SearchFactory<C extends Containerable> {
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
 
-    private PrismContainerDefinition<C> definition;
-    private SearchBoxConfigurationType defaultSearchBoxConfig;
+    private Class<C> type;
     private CompiledObjectCollectionView collectionView;
     private ModelServiceLocator modelServiceLocator;
 
@@ -55,37 +56,28 @@ public class SearchFactory<C extends Containerable> {
 
     private boolean isViewForDashboard;
 
-    private ResourceObjectDefinition resourceObjectDefinition;
+    private Map<ItemPath, ItemDefinition<?>> allSearchableItems;
 
-    public SearchFactory() {
+    private SearchContext additionalSearchContext;
 
+    public SearchFactory(Class<C> type) {
+        this.type = type;
     }
 
-    public SearchFactory type(Class<? extends C> type) {
-        //noinspection unchecked
-        this.definition = (PrismContainerDefinition<C>) PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+    public SearchFactory<C> type(Class<C> type) {
+        this.type = type;
         return this;
     }
 
-    public SearchFactory definition(PrismContainerDefinition<C> definition) {
-        this.definition = definition;
-        return this;
-    }
-
-    public SearchFactory defaultSearchBoxConfig(SearchBoxConfigurationType defaultSearchBoxConfig) {
-        this.defaultSearchBoxConfig = defaultSearchBoxConfig;
-        return this;
-    }
-
-    public SearchFactory collectionView(CompiledObjectCollectionView collectionView) {
+    public SearchFactory<C> collectionView(CompiledObjectCollectionView collectionView) {
         this.collectionView = collectionView;
         return this;
     }
-    public SearchFactory modelServiceLocator(ModelServiceLocator modelServiceLocator) {
+    public SearchFactory<C> modelServiceLocator(ModelServiceLocator modelServiceLocator) {
         this.modelServiceLocator = modelServiceLocator;
         return this;
     }
-    public SearchFactory nameSearch(String nameSearch) {
+    public SearchFactory<C> nameSearch(String nameSearch) {
         this.nameSearch = nameSearch;
         return this;
     }
@@ -94,17 +86,25 @@ public class SearchFactory<C extends Containerable> {
         return this;
     }
 
-    public SearchFactory isViewForDashboard(boolean isViewForDashboard) {
+    public SearchFactory<C> isViewForDashboard(boolean isViewForDashboard) {
         this.isViewForDashboard = isViewForDashboard;
         return this;
     }
 
-    public SearchFactory resourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
-        this.resourceObjectDefinition = resourceObjectDefinition;
+    public SearchFactory<C> additionalSearchContext(SearchContext additionalSearchContext) {
+        this.additionalSearchContext = additionalSearchContext;
         return this;
     }
 
     public Search<C> createSearch() {
+        PredefinedSearchableItems predefinedSearchableItems = new PredefinedSearchableItems(type, modelServiceLocator);
+        if (predefinedSearchableItems != null) {
+            predefinedSearchableItems = predefinedSearchableItems.resourceObjectDefinition(additionalSearchContext.getResourceObjectDefinition())
+                    .assignmentTargetType(additionalSearchContext.getAssignmentTargetType())
+                    .panelType(additionalSearchContext.getPanelType())
+                    .containerDefinition(additionalSearchContext.getDefinitionOverride());
+        }
+        allSearchableItems =  predefinedSearchableItems.createAvailableSearchItems();
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration();
 
         SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(mergedConfig);
@@ -156,7 +156,7 @@ public class SearchFactory<C extends Containerable> {
     }
 
     private void initTimestampForAudit(Search<C> search) {
-        if (!(AuditEventRecordType.class.equals(definition.getTypeClass()))) {
+        if (!(AuditEventRecordType.class.equals(type))) {
             return;
         }
         DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
@@ -169,6 +169,13 @@ public class SearchFactory<C extends Containerable> {
 
     private SearchBoxConfigurationType getMergedConfiguration() {
         SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox();
+        SearchBoxConfigurationType defaultSearchBoxConfig = new SearchBoxConfigurationBuilder()
+                .type(type)
+                .availableDefinitions(allSearchableItems)
+                .additionalSearchContext(additionalSearchContext)
+                .modelServiceLocator(modelServiceLocator)
+                .create();
+
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
@@ -177,9 +184,8 @@ public class SearchFactory<C extends Containerable> {
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
 
-        Class<C> type = definition.getTypeClass();
-        Search<C> search = new Search<>(definition.getTypeClass(), mergedConfig);
-        search.setTypeClass(definition.getTypeClass());
+        Search<C> search = new Search<>(type, mergedConfig);
+        search.setTypeClass(type);
 
         if (mergedConfig.getObjectTypeConfiguration() != null) {
             search.setAllowedTypeList(mergedConfig.getObjectTypeConfiguration()
@@ -222,12 +228,12 @@ public class SearchFactory<C extends Containerable> {
         }
 
         List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-                .findAllApplicableObjectCollectionViews(definition.getTypeName())
+                .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
                 .stream()
                 .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(views)) {
-            ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(definition.getTypeClass(),
+            ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
                     views);
             viewListItem.setVisible(true);
             basicSearchWrapper.getItemsList().add(viewListItem);
@@ -272,17 +278,11 @@ public class SearchFactory<C extends Containerable> {
     }
 
     public SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(SearchBoxConfigurationType mergedConfig) {
-        return createDefaultSearchBoxConfigurationWrapper(mergedConfig, null);
-    }
-
-    public SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(
-            @NotNull SearchBoxConfigurationType mergedConfig, ResourceShadowCoordinates coordinates) {
         SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
-            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(definition, searchItem,  resourceObjectDefinition, modelServiceLocator));
+            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(type, allSearchableItems, searchItem, modelServiceLocator));
         }
-
 
         return searchConfigWrapper;
     }

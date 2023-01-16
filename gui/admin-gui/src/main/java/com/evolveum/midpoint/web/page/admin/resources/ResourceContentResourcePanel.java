@@ -6,17 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,10 +15,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
@@ -49,50 +38,6 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
     protected boolean isUseObjectCounting() {
         return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
     }
-
-
-    //TODO//        //TODO compiled object collection view
-
-    @Override
-    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
-        return new SearchBoxConfigurationUtil(ShadowType.class)
-                .modelServiceLocator(getPageBase())
-                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.RESOURCE)
-                .resourceObjectDefinition(createAttributeSearchItemWrappers())
-                .create();
-    }
-
-//    private ResourceObjectDefinition createAttributeSearchItemWrappers() {
-//        try {
-//            if (getKind() != null) {
-//                return getDefinitionByKind();
-//            }
-//
-//            if (getObjectClass() != null) {
-//                return getDefinitionByObjectClass();
-//
-//            }
-//        } catch (SchemaException | ConfigurationException e) {
-//            warn("Could not determine object definition");
-//        }
-//        return null;
-//
-////        if (ocDef == null) {
-////            return itemsList;
-////        }
-////
-////        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-//////            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
-//////                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
-//////                    def, null, getPageBase()));
-////        }
-////
-////        return itemsList;
-//    }
-
-//    private ItemName getAttributeName(ResourceAttributeDefinition def) {
-//        return def.getItemName();
-//    }
 
     @Override
     protected ModelExecuteOptions createModelOptions() {

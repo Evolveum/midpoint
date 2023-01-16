@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.search.factory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public class SearchItemContext implements Serializable {
 
 
-    PrismContainerDefinition<? extends Containerable> containerDefinition;
+//    PrismContainerDefinition<? extends Containerable> containerDefinition;
     private SearchItemType item;
 
     @Nullable private ItemDefinition<?> itemDef;
@@ -48,30 +49,27 @@ public class SearchItemContext implements Serializable {
     private String lookupTableOid;
     @Nullable private ItemPath path;
 
-    public SearchItemContext(PrismContainerDefinition<? extends Containerable> containerDefinition,
-            ResourceObjectDefinition resourceObjectDefinition,
+    private Class<? extends Containerable> containerType;
+
+    public SearchItemContext(
+            Class<? extends Containerable> containerType,
+            Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType searchItem,
             ModelServiceLocator modelServiceLocator) {
-        this.containerDefinition = containerDefinition;
+
         this.item = searchItem;
+        this.containerType = containerType;
         if (item.getPath() != null) {
             this.path = item.getPath().getItemPath();
         }
         if (path != null) {
-            if (path.startsWith(ItemPath.create(ShadowType.F_ATTRIBUTES))) {
-                this.itemDef = resourceObjectDefinition.findAttributeDefinition(path.lastName());
-            } else {
-                this.itemDef = containerDefinition.findItemDefinition(path);
-            }
+            this.itemDef = availableSearchItems.get(path);
         }
         this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         this.valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
-
-
     }
-
 
     private List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
             ModelServiceLocator modelServiceLocator) {
@@ -222,6 +220,6 @@ public class SearchItemContext implements Serializable {
     }
 
     public Class<? extends Containerable> getContainerClassType() {
-        return containerDefinition.getTypeClass();
+        return containerType;
     }
 }

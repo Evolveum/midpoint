@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,17 +43,17 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
     private PageBase pageBase;
 
-    private final RelationSearchItemConfigurationType relationConfig;
+    private final Search<O> search;
     private final List<ObjectReferenceType> archetypeReferenceList;
 
-    public MemberPopupTabPanel(String id, RelationSearchItemConfigurationType supportedRelationList) {
-        this(id, supportedRelationList, new ArrayList<>());
+    public MemberPopupTabPanel(String id, Search<O> search) {
+        this(id, search, new ArrayList<>());
     }
 
-    public MemberPopupTabPanel(String id, RelationSearchItemConfigurationType relationConfig,
+    public MemberPopupTabPanel(String id, Search<O> search,
             List<ObjectReferenceType> archetypeReferenceList) {
         super(id);
-        this.relationConfig = relationConfig;
+        this.search = search;
         this.archetypeReferenceList = archetypeReferenceList;
     }
 
@@ -61,38 +63,53 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         pageBase = getPageBase();
     }
 
+    private List<QName> getSupportedRelations() {
+        AbstractRoleSearchItemWrapper memberSearchItem = getMemberSearchItem();
+        return memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
+//        return search.getSupportedRelations();
+    }
+
+    private AbstractRoleSearchItemWrapper getMemberSearchItem() {
+        return search.findMemberSearchItem();
+    }
+
     @Override
     protected void initParametersPanel(Fragment parametersPanel) {
         RelationDropDownChoice relation = new RelationDropDownChoice(ID_RELATION, getDefaultRelation(),
-                relationConfig.getSupportedRelations(), false);
+                getSupportedRelations(), false);
         relation.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(relationConfig.getSupportedRelations());
+                return CollectionUtils.isNotEmpty(getSupportedRelations());
             }
 
             @Override
             public boolean isEnabled() {
-                return CollectionUtils.isNotEmpty(relationConfig.getSupportedRelations())
-                        && relationConfig.getSupportedRelations().size() > 1;
+                return CollectionUtils.isNotEmpty(getSupportedRelations())
+                        && getSupportedRelations().size() > 1;
             }
         });
         parametersPanel.add(relation);
     }
 
     private QName getDefaultRelation() {
-        QName relation = relationConfig.getDefaultValue();
+        QName relation = getRelationValueFromSearch();
         if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
             QName defRelation = WebComponentUtil.getDefaultRelation();
-            if (relationConfig.getSupportedRelations().contains(defRelation)) {
+            if (getSupportedRelations().contains(defRelation)) {
                 relation = defRelation;
             } else {
-                relation = relationConfig.getSupportedRelations().iterator().next();
+                relation = getSupportedRelations().iterator().next();
             }
         }
         return relation;
+    }
+
+    private QName getRelationValueFromSearch() {
+        AbstractRoleSearchItemWrapper memberSearchitem = getMemberSearchItem();
+        return memberSearchitem != null ? memberSearchitem.getRelationValue() : null;
     }
 
     protected ObjectDelta prepareDelta() {

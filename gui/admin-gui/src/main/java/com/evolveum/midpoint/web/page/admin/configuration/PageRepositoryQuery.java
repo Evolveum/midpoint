@@ -470,7 +470,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             // TODO add containerable option too
             //noinspection unchecked
             //createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()),
-            Search<?> search = storage.getSearch() != null ? storage.getSearch() : new SearchFactory().type(request.getType()).modelServiceLocator(this).createSearch();//createSearch(request.getType(),  this);
+            Search<?> search = storage.getSearch() != null ? storage.getSearch() : new SearchFactory(request.getType()).modelServiceLocator(this).createSearch();//createSearch(request.getType(),  this);
             AdvancedQueryWrapper wrapper = new AdvancedQueryWrapper();
             wrapper.setAdvancedQuery(filterAsString);
 //            search.setAdvancedQuery(filterAsString);

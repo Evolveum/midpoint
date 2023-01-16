@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
@@ -50,62 +48,11 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
     }
 
     @Override
-    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<O> type) {
-        return new SearchBoxConfigurationUtil(type)
-                .supportedTypes(Arrays.asList(
-                        AbstractRoleType.COMPLEX_TYPE,
-                        OrgType.COMPLEX_TYPE,
-                        ArchetypeType.COMPLEX_TYPE,
-                        RoleType.COMPLEX_TYPE,
-                        ServiceType.COMPLEX_TYPE))
-                .modelServiceLocator(getPageBase())
-                .create();
-//        SearchBoxConfigurationType searchBoxConfigurationType = super.getDefaultSearchBoxConfiguration(type);
-//        searchBoxConfigurationType.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(type, );
-//        return searchBoxConfigurationType;
-
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setPanelType(PredefinedSearchableItems.PanelType.ASSIGNABLE);
+        return ctx;
     }
-
-    protected List<QName> getSupportedTypes() {
-        return Arrays.asList(
-                AbstractRoleType.COMPLEX_TYPE,
-                OrgType.COMPLEX_TYPE,
-                ArchetypeType.COMPLEX_TYPE,
-                RoleType.COMPLEX_TYPE,
-                ServiceType.COMPLEX_TYPE);
-    }
-
-    protected List<QName> getSupportedRelations() {
-        return Collections.emptyList();
-    }
-
-    protected QName getAbstractRoleType() {
-        return getObjectDetailsModel().getObjectWrapper().getTypeName();
-    }
-
-//    protected SearchConfigurationWrapper<O> createSearchBoxConfigurationWrapper() {
-//        CompiledObjectCollectionView view = getObjectCollectionView();
-//
-//        SearchConfigurationWrapper<O> searchWrapper;
-//        if (getPanelConfiguration() != null
-//                && getPanelConfiguration().getListView() != null
-//                && getPanelConfiguration().getListView().getSearchBoxConfiguration() != null) {
-//            searchWrapper = new SearchConfigurationWrapper<>(getPanelConfiguration().getListView().getSearchBoxConfiguration());
-//        } else if (view != null && view.getSearchBoxConfiguration() != null) {
-//            searchWrapper = new SearchConfigurationWrapper<>(view.getSearchBoxConfiguration());
-//        } else {
-//            searchWrapper = new SearchConfigurationWrapper<>();
-//        }
-
-//        if (view != null
-//                && view.getCollection() != null
-//                && view.getCollection().getCollectionRef() != null
-//                && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, view.getCollection().getCollectionRef().getType())) {
-//            searchWrapper.setCollectionRefOid(view.getCollection().getCollectionRef().getOid());
-//        }
-
-//        return searchWrapper;
-//    }
 
     @Override
     protected String getStorageKey() {

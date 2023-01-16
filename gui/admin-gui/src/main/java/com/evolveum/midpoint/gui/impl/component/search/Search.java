@@ -318,6 +318,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
+    public AbstractRoleSearchItemWrapper findMemberSearchItem() {
+        List<FilterableSearchItemWrapper<?>> items = searchConfigurationWrapper.getItemsList();
+        for (FilterableSearchItemWrapper<?> item : items) {
+            if (item instanceof AbstractRoleSearchItemWrapper) {
+                return (AbstractRoleSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
     private ObjectQuery createObjectTypeItemQuery(PageBase pageBase) {
         ObjectQuery query;
         if (getTypeClass() != null) {
@@ -468,8 +478,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-//        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
-//        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);

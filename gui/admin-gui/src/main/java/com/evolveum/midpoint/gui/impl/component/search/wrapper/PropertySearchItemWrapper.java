@@ -51,7 +51,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
      * The definition for given item. Usually needed e.g. for account attributes.
      * In other cases not systematically filled-in (yet).
      */
-    private final ItemDefinition<?> itemDef;
+    private ItemDefinition<?> itemDef;
 
     private QName valueTypeName;
     private String name;
@@ -68,7 +68,10 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
 
     public PropertySearchItemWrapper(ItemPath path, ItemDefinition<?> itemDef) {
         this.path = path;
-        this.itemDef = itemDef;
+        // for, now only shadow attributes definitions are added. the reason is to minimize the session size
+        if (path != null && path.startsWith(ShadowType.F_ATTRIBUTES)) {
+            this.itemDef = itemDef;
+        }
     }
 
     @Override

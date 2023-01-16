@@ -13,7 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 
@@ -74,8 +74,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -156,19 +154,17 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private Search<? extends ObjectType> createSearch(Class<? extends ObjectType> type) {
-        SearchBoxConfigurationType defaultSearchConfig = new SearchBoxConfigurationUtil(type)
-                .modelServiceLocator(PageDebugList.this)
-                .supportedTypes(getAllowedTypes())
-                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS)
-                .create();
-        //.getDefaultSearchBoxConfiguration(type, null, PageDebugList.this);
-//        defaultSearchConfig.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(SystemConfigurationType.class, getAllowedTypes()));
-        SearchFactory<? extends ObjectType> factory = new SearchFactory<>()
-                .type(type)
-                .defaultSearchBoxConfig(defaultSearchConfig)
+        SearchFactory<? extends ObjectType> factory = new SearchFactory<>(type)
+                .additionalSearchContext(createAdditionalSearchContext())
                 .modelServiceLocator(PageDebugList.this);
 
         return factory.createSearch();
+    }
+
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setPanelType(PredefinedSearchableItems.PanelType.DEBUG);
+        return ctx;
     }
 
 
@@ -517,15 +513,9 @@ public class PageDebugList extends PageAdminConfiguration {
             Class<? extends ObjectType> type = search.getTypeClass();
 
             Search<? extends ObjectType> newSearch = createSearch(type);
-//            SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, null, this);
-//            Search newSearch = new SearchFactory().type(type).defaultSearchBoxConfig(defaultSearchConfig).modelServiceLocator(PageDebugList.this).createSearch();
                         searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
-//                        configureSearch(search);
                         table.getDataTable().getColumns().clear();
-                        //noinspection unchecked
                         table.getDataTable().getColumns().addAll(createColumns());
-
-//                    SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, this);
         }
 
 

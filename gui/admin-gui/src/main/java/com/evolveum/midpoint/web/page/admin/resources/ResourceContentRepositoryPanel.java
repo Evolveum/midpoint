@@ -10,8 +10,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,8 +31,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
@@ -165,24 +161,6 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     protected boolean isUseObjectCounting() {
         return true;
     }
-
-    //TODO //        //TODO compuled object coolection view
-    @Override
-    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
-        return new SearchBoxConfigurationUtil(ShadowType.class)
-                .modelServiceLocator(getPageBase())
-                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.REPOSITORY)
-                .create();
-    }
-
-//    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
-//        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-//        config
-//                .removePropertySearchItem(ShadowType.F_RESOURCE_REF)
-//                .removePropertySearchItem(ShadowType.F_OBJECT_CLASS)
-//                .removePropertySearchItem(ShadowType.F_INTENT);
-//        return config;
-//    }
 
     @Override
     protected ModelExecuteOptions createModelOptions() {

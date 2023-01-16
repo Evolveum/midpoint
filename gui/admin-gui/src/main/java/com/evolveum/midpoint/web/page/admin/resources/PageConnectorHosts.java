@@ -91,7 +91,7 @@ public class PageConnectorHosts extends PageAdmin {
 
             @Override
             protected Search load() {
-                return new SearchFactory<>().type(ConnectorHostType.class).modelServiceLocator(PageConnectorHosts.this).createSearch();
+                return new SearchFactory<>(ConnectorHostType.class).modelServiceLocator(PageConnectorHosts.this).createSearch();
 //                return SearchFactory.createSearch(ConnectorHostType.class, PageConnectorHosts.this);
             }
         };

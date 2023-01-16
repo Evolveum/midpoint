@@ -12,6 +12,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -29,14 +38,49 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PredefinedSearchableItems {
-
     private static final Trace LOGGER = TraceManager.getTrace(PredefinedSearchableItems.class);
+    private static final String DOT_CLASS = PredefinedSearchableItems.class.getName() + ".";
+    private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
+
 
     private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
-
-    private static final Map<SearchBoxConfigurationUtil.ShadowSearchType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
-
+    private static final Map<PanelType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
     private static final Map<QName, List<ItemPath>> SEARCHABLE_ASSIGNMENT_ITEMS = new HashMap<>();
+
+    private Class<? extends Containerable> type;
+    private ResourceShadowCoordinates coordinates;
+    private ModelServiceLocator modelServiceLocator;
+    private PanelType panelType;
+    private QName assignmentTargetType;
+    private PrismContainerDefinition<? extends Containerable> containerDefinition;
+
+    private ResourceObjectDefinition resourceObjectDefinition;
+
+    private SearchContext additionalSearchContext;
+
+    public PredefinedSearchableItems(Class<? extends Containerable> type, ModelServiceLocator modelServiceLocator) {
+        this.type = type;
+        this.modelServiceLocator = modelServiceLocator;
+    }
+    public PredefinedSearchableItems panelType(PanelType panelType) {
+        this.panelType = panelType;
+        return this;
+    }
+    public PredefinedSearchableItems assignmentTargetType(QName assignmentTargetType) {
+        this.assignmentTargetType = assignmentTargetType;
+        return this;
+    }
+
+
+    public PredefinedSearchableItems resourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        return this;
+    }
+
+    public PredefinedSearchableItems containerDefinition(PrismContainerDefinition<? extends Containerable> containerDefinition) {
+        this.containerDefinition = containerDefinition;
+        return this;
+    }
 
 
     static {
@@ -162,16 +206,7 @@ public class PredefinedSearchableItems {
     }
 
     static {
-//        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-//                ItemPath.create(ShadowType.F_OBJECT_CLASS),
-//                ItemPath.create(ShadowType.F_RESOURCE_REF),
-//                ItemPath.create(ShadowType.F_DEAD),
-//                ItemPath.create(ShadowType.F_INTENT),
-//                ItemPath.create(ShadowType.F_KIND),
-//                ItemPath.create(ShadowType.F_EXISTS),
-//                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
-//        ));
-        SHADOW_SEARCHABLE_ITEMS.put(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS,
+        SHADOW_SEARCHABLE_ITEMS.put(PanelType.PROJECTION_SHADOW,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_OBJECT_CLASS),
                         ItemPath.create(ShadowType.F_RESOURCE_REF),
@@ -181,7 +216,15 @@ public class PredefinedSearchableItems {
                         ItemPath.create(ShadowType.F_EXISTS),
                         ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
 
-        SHADOW_SEARCHABLE_ITEMS.put(SearchBoxConfigurationUtil.ShadowSearchType.REPOSITORY,
+        SHADOW_SEARCHABLE_ITEMS.put(PanelType.REPO_SHADOW,
+                Arrays.asList(
+                        ItemPath.create(ShadowType.F_DEAD),
+                        ItemPath.create(ShadowType.F_INTENT),
+                        ItemPath.create(ShadowType.F_KIND),
+                        ItemPath.create(ShadowType.F_EXISTS),
+                        ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
+
+        SHADOW_SEARCHABLE_ITEMS.put(PanelType.DEBUG,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_DEAD),
                         ItemPath.create(ShadowType.F_INTENT),
@@ -206,58 +249,241 @@ public class PredefinedSearchableItems {
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF)
                 ));
     }
-    private static final Map<Class<?>, List<ItemPath>> FIXED_SEARCH_ITEMS = new HashMap<>();
-    static {
-        FIXED_SEARCH_ITEMS.put(ObjectType.class, Arrays.asList(
-                ItemPath.create(ObjectType.F_NAME))
-        );
-        FIXED_SEARCH_ITEMS.put(UserType.class, Arrays.asList(
-                ItemPath.create(UserType.F_GIVEN_NAME),
-                ItemPath.create(UserType.F_FAMILY_NAME)
-        ));
-        FIXED_SEARCH_ITEMS.put(AbstractRoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_DISPLAY_NAME)
-        ));
-        FIXED_SEARCH_ITEMS.put(RoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_IDENTIFIER)
-        ));
-        FIXED_SEARCH_ITEMS.put(ServiceType.class, Arrays.asList(
-                ItemPath.create(ServiceType.F_IDENTIFIER)
-        ));
-        FIXED_SEARCH_ITEMS.put(OrgType.class, Arrays.asList(
-                ItemPath.create(OrgType.F_PARENT_ORG_REF)
-        ));
-        FIXED_SEARCH_ITEMS.put(AuditEventRecordType.class, Arrays.asList(
-                ItemPath.create(AuditEventRecordType.F_TIMESTAMP)
-        ));
-        FIXED_SEARCH_ITEMS.put(ShadowType.class, Arrays.asList(
-                ItemPath.create(ShadowType.F_RESOURCE_REF),
-                ItemPath.create(ShadowType.F_OBJECT_CLASS)
-        ));
-    }
 
-    public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
-
-        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            if (FIXED_SEARCH_ITEMS.get(typeClass) != null &&
-                    ItemPathCollectionsUtil.containsEquivalent(FIXED_SEARCH_ITEMS.get(typeClass), path)) {
-                return true;
-            }
-            typeClass = (Class<C>) typeClass.getSuperclass();
-        }
-
-        return false;
-    }
 
     public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass) {
-        return getSearchableItemsFor(typeClass, SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS);
+        return getSearchableItemsFor(typeClass, PanelType.PROJECTION_SHADOW);
     }
 
-    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, SearchBoxConfigurationUtil.ShadowSearchType shadowSearchType) {
+    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, PanelType shadowSearchType) {
         if (ShadowType.class.equals(typeClass)) {
             return SHADOW_SEARCHABLE_ITEMS.get(shadowSearchType);
         }
 
         return PredefinedSearchableItems.SEARCHABLE_OBJECTS.get(typeClass);
     }
+
+
+    public enum PanelType {
+        ROLE_MEMBER_GOVERNANCE(true, "roleMembers"),
+        ROLE_MEMBER_MEMBER(true, "roleGovernance"),
+        SERVICE_MEMBER_GOVERNANCE(true, "serviceGovernance"),
+        SERVICE_MEMBER_MEMBER(true, "serviceMembers"),
+        ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance"),
+        ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers"),
+        ORG_MEMBER_GOVERNANCE(true, "orgGovernance"),
+        ORG_MEMBER_MEMBER(true, "orgMembers"),
+        MEMBER_ORGANIZATION(true, null),
+        CARDS_GOVERNANCE(true, null),
+        MEMBER_WIZARD(true, null),
+        RESOURCE_SHADOW(false, null),
+        REPO_SHADOW(false, null),
+        PROJECTION_SHADOW(false, null),
+        DEBUG(false, null),
+        ASSIGNABLE(false, null);
+
+        private boolean memberPanel;
+        private String panelInstance;
+
+        PanelType(boolean memberPanel, String panelInstance) {
+            this.memberPanel = memberPanel;
+            this.panelInstance = panelInstance;
+        }
+
+        public boolean isMemberPanel() {
+            return memberPanel;
+        }
+
+        public static PanelType getPanelType(String panelInstance) {
+            if (panelInstance == null) {
+                return null;
+            }
+            for (PanelType panelType : PanelType.values()) {
+                if (panelInstance.equals(panelType.panelInstance)) {
+                    return panelType;
+                }
+            }
+            return null;
+        }
+    }
+
+    public Map<ItemPath, ItemDefinition<?>> createAvailableSearchItems() {
+
+        Collection<ItemPath> extensionPaths = createExtensionPaths();
+
+        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
+
+        PrismContainerDefinition<? extends Containerable> containerDef = getDefinition();
+        collectExtensionDefinitions(containerDef, extensionPaths, searchableDefinitions);
+
+        collectionNonExtensionDefinitions(containerDef, searchableDefinitions, isUseSuperclassDefinition());
+
+        collectAttributesDefinitions(searchableDefinitions);
+
+        return searchableDefinitions;
+
+    }
+
+    private boolean isUseSuperclassDefinition() {
+        return !ShadowType.class.equals(type) || PanelType.RESOURCE_SHADOW != panelType;
+
+    }
+
+    private PrismContainerDefinition<? extends Containerable> getDefinition() {
+        if (containerDefinition != null) {
+            return containerDefinition;
+        }
+        if (ObjectType.class.isAssignableFrom(type)) {
+            return containerDefinition = findObjectDefinition();
+        }
+
+        return containerDefinition = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+    }
+
+    private Collection<ItemPath> createExtensionPaths() {
+        List<ItemPath> extensionPaths = new ArrayList<>();
+        extensionPaths.add(ObjectType.F_EXTENSION);
+        if (AssignmentType.class.equals(type)) {
+            extensionPaths.add(ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(assignmentTargetType), ObjectType.F_EXTENSION));
+        }
+        return extensionPaths;
+    }
+
+    private PrismObjectDefinition findObjectDefinition() {
+
+        Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
+        OperationResult result = task.getResult();
+        try {
+            if (Modifier.isAbstract(type.getModifiers())) {
+                SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
+                return registry.findObjectDefinitionByCompileTimeClass((Class<? extends ObjectType>)type);
+            }
+            PrismObject empty = modelServiceLocator.getPrismContext().createObject((Class<? extends ObjectType>)type);
+
+            if (ShadowType.class.equals(type)) {
+                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(
+                        coordinates, AuthorizationPhaseType.REQUEST, task, result);
+            } else {
+                return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
+                        empty, AuthorizationPhaseType.REQUEST, task, result);
+            }
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
+            result.recordFatalError(ex.getMessage());
+            throw new SystemException(ex);
+        }
+    }
+    private <C extends Containerable> void collectExtensionDefinitions(PrismContainerDefinition<C> containerDef, Collection<ItemPath> extensionPaths, Map<ItemPath, ItemDefinition<?>> searchableItems) {
+        if (containerDef == null) {
+            return;
+        }
+
+        if (PanelType.RESOURCE_SHADOW == panelType) {
+            return;
+        }
+
+        for (ItemPath path : extensionPaths) {
+
+            PrismContainerDefinition ext = containerDef.findContainerDefinition(path);
+            if (ext == null) {
+                LOGGER.trace("No extension defined, shipping collecting extension search items");
+                return;
+            }
+            Map<ItemPath, ItemDefinition<?>> extensionItems = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
+                    .filter(PredefinedSearchableItems::isNotContainerAndIsIndexed)
+                    .collect(Collectors.toMap(d -> ItemPath.create(path, d.getItemName()), d -> d));
+            searchableItems.putAll(extensionItems);
+        }
+    }
+
+    private <C extends Containerable> void collectionNonExtensionDefinitions(PrismContainerDefinition<C> containerDef, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass) {
+        if (PanelType.RESOURCE_SHADOW == panelType) {
+            return;
+        }
+        Class<C> typeClass = containerDef.getCompileTimeClass();
+        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
+            List<ItemPath> paths = getAvailableSearchableItems(typeClass);
+
+            if (paths == null) {
+                if (!useDefsFromSuperclass) {
+                    break;
+                }
+                typeClass = (Class<C>) typeClass.getSuperclass();
+                continue;
+            }
+
+            for (ItemPath path : paths) {
+                ItemDefinition<?> def = containerDef.findItemDefinition(path);
+                if (def != null) {
+                    searchableDefinitions.put(path, def);
+                }
+            }
+
+            if (!useDefsFromSuperclass) {
+                break;
+            }
+
+            typeClass = (Class<C>) typeClass.getSuperclass();
+        }
+    }
+
+    private List<ItemPath> getAvailableSearchableItems(Class<? extends Containerable> typeClass) {
+        List<ItemPath> items = getSearchableItemsFor(typeClass, panelType);//SEARCHABLE_OBJECTS.get(typeClass);
+        if (AuditEventRecordType.class.equals(typeClass)) {
+            SystemConfigurationType systemConfigurationType;
+            try {
+                systemConfigurationType = modelServiceLocator.getModelInteractionService()
+                        .getSystemConfiguration(new OperationResult("load_system_config"));
+            } catch (SchemaException | ObjectNotFoundException e) {
+                throw new SystemException(e);
+            }
+            if (systemConfigurationType != null && systemConfigurationType.getAudit() != null
+                    && systemConfigurationType.getAudit().getEventRecording() != null &&
+                    Boolean.TRUE.equals(systemConfigurationType.getAudit().getEventRecording().isRecordResourceOids())) {
+                ArrayList<ItemPath> auditItems = new ArrayList<>(items);
+                auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
+                items = auditItems;
+            }
+        }
+        return items;
+    }
+
+    private void collectAttributesDefinitions(Map<ItemPath, ItemDefinition<?>> searchableDefinitions) {
+        if (resourceObjectDefinition == null) {
+            return;
+        }
+
+        if (PanelType.RESOURCE_SHADOW != panelType) {
+            return;
+        }
+
+        for (ResourceAttributeDefinition def : resourceObjectDefinition.getAttributeDefinitions()) {
+            searchableDefinitions.put(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def);
+        }
+    }
+
+    private ItemName getAttributeName(ResourceAttributeDefinition def) {
+        return def.getItemName();
+    }
+
+    private static boolean isNotContainerAndIsIndexed(ItemDefinition<?> def) {
+        if (def instanceof PrismContainerDefinition) {
+            return false;
+        }
+        return isIndexed(def);
+    }
+
+    private static boolean isIndexed(ItemDefinition def) {
+        if (!(def instanceof PrismPropertyDefinition)) {
+            return true;
+        }
+
+        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
+        Boolean indexed = propertyDef.isIndexed();
+        if (indexed == null) {
+            return true;
+        }
+
+        return indexed;
+    }
+
 }

@@ -9,12 +9,9 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -258,13 +255,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
 
             @Override
-            protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
-                return ResourceContentPanel.this.getDefaultSearchBoxConfiguration();
-            }
-
-            @Override
-            protected ResourceObjectDefinition getResourceObjectDefinition() {
-                return createAttributeSearchItemWrappers();
+            protected SearchContext createAdditionalSearchContext() {
+                SearchContext searchContext = new SearchContext();
+                searchContext.setResourceObjectDefinition(createAttributeSearchItemWrappers());
+                searchContext.setPanelType(searchMode == SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT ? PredefinedSearchableItems.PanelType.REPO_SHADOW : PredefinedSearchableItems.PanelType.RESOURCE_SHADOW);
+                return searchContext;
             }
 
             @Override
@@ -543,9 +538,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         }
         return baseQuery;
     }
-
-    protected abstract SearchBoxConfigurationType getDefaultSearchBoxConfiguration();
-
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()

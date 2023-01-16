@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import java.util.Collection;
+
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -11,10 +15,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
 
 @PanelType(name = "roleWizard-access-application")
 @PanelInstance(identifier = "roleWizard-access-application",

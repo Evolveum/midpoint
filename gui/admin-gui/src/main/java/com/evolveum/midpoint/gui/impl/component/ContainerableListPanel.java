@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,14 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
@@ -63,7 +60,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -186,7 +182,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         PageStorage storage = getPageStorage();
         Search<C> search = loadSearch(storage);
 
-        if (storage != null) {
+        if (storage != null && !isPreview()) {
             storage.setSearch(search);
         }
         getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
@@ -210,29 +206,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private Search<C> createSearch() {
-        Class<C> defaultType = getType();
-
-        SearchFactory<C> searchFactory = new SearchFactory<>()
-                .definition((PrismContainerDefinition<Containerable>) getContainerDefinitionForColumns())
-                .defaultSearchBoxConfig(getDefaultSearchBoxConfiguration(defaultType))
+        SearchFactory<C> searchFactory = new SearchFactory<>(getType())
                 .collectionView(getObjectCollectionView())
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
                 .isPreview(isPreview())
                 .isViewForDashboard(isCollectionViewPanelForWidget())
-                .resourceObjectDefinition(getResourceObjectDefinition());
+                .additionalSearchContext(createAdditionalSearchContext());
 
         return searchFactory.createSearch();
     }
 
-    protected ResourceObjectDefinition getResourceObjectDefinition() {
-        return null;
-    }
-
-    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
-        return new SearchBoxConfigurationUtil(type)
-                .modelServiceLocator(getPageBase())
-                .create(); //getDefaultSearchBoxConfiguration(type, null, getPageBase());
+    protected SearchContext createAdditionalSearchContext() {
+        return new SearchContext();
     }
 
     private void initLayout() {
@@ -637,7 +623,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return null;
         }
 
-        List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
+        List<ItemPath> searchablePaths = getSearchablePaths(getType());
 
         for (ItemPath searchablePath : searchablePaths) {
             if (searchablePath.size() > 1) {
@@ -653,8 +639,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private List<ItemPath> getSearchablePaths(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> availablePaths = PredefinedSearchableItems.getSearchableItemsFor(type);//SearchBoxConfigurationUtil.getAvailableSearchableItems(type, modelServiceLocator);
+    private List<ItemPath> getSearchablePaths(Class<C> type) {
+        List<ItemPath> availablePaths = PredefinedSearchableItems.getSearchableItemsFor(type);
         if (CollectionUtils.isEmpty(availablePaths)) {
             availablePaths = new ArrayList<>();
         }
@@ -668,7 +654,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return typePaths;
         }
 
-        List<ItemPath> superPaths = PredefinedSearchableItems.getSearchableItemsFor(superClass);//SearchBoxConfigurationUtil.getAvailableSearchableItems(superClass, getPageBase());
+        List<ItemPath> superPaths = PredefinedSearchableItems.getSearchableItemsFor(superClass);
         if (CollectionUtils.isNotEmpty(superPaths)) {
             typePaths.addAll(superPaths);
         }

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -582,9 +582,22 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected abstract UserProfileStorage.TableId getTableId();
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setAssignmentTargetType(getAssignmentType());
+        ctx.setDefinitionOverride(getTypeDefinitionForSearch());
+        return ctx;
+    }
 
     @Override
-    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AssignmentType> type) {
+    protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
+        // In columns model we can benefit for same targetType expansion as in container model.
+        return getTypeDefinitionForSearch();
+    }
+
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
         QName targetType = getAssignmentType();
         PrismContainerDefinition<AssignmentType> definitionOverwrite;
         PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
@@ -595,21 +608,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             // with one with concrete assignment type.
             definitionOverwrite = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
         }
-
-//        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
-        return new SearchBoxConfigurationUtil(type)
-                .assignmentTargetType(getAssignmentType())
-                .containerDefinition(definitionOverwrite)
-                .modelServiceLocator(getPageBase())
-                .create();
-//        return SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(getAssignmentType(), definitionOverwrite,
-//                Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), getPageBase());
-    }
-
-    @Override
-    protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
-        // In columns model we can benefit for same targetType expansion as in container model.
-        return getTypeDefinitionForSearch();
+        return definitionOverwrite;
     }
 
     protected abstract void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super FilterableSearchItemWrapper> defs);

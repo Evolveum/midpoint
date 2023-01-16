@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
@@ -45,10 +46,6 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
 
     private void initLayout() {
         AbstractRoleMemberPanel table = new AbstractRoleMemberPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
-            @Override
-            protected List<QName> getSupportedRelations() {
-                return getSupportedMembersTabRelations();
-            }
 
             @Override
             protected List<InlineMenuItem> createRowActions() {
@@ -65,45 +62,9 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             protected String getStorageKeyTabSuffix() {
                 return getConfiguration() == null ? PANEL_TYPE : super.getStorageKeyTabSuffix();
             }
-
             @Override
-            protected boolean isVisibleAdvanceSearchItem() {
-                return false;
-            }
-
-            @Override
-            protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
-                return List.of(UserType.COMPLEX_TYPE);
-            }
-
-            @Override
-            protected Class<UserType> getChoiceForAllTypes() {
-                return UserType.class;
-            }
-
-            @Override
-            protected SearchBoxConfigurationType getAdditionalPanelConfig() {
-                SearchBoxConfigurationType searchConfig = super.getAdditionalPanelConfig();
-                if (searchConfig == null) {
-                    searchConfig = new SearchBoxConfigurationType();
-                }
-
-                if (searchConfig.getObjectTypeConfiguration() == null) {
-                    ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
-                    objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-                    objTypeConfig.setDefaultValue(UserType.COMPLEX_TYPE);
-                    objTypeConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    searchConfig.setObjectTypeConfiguration(objTypeConfig);
-                }
-
-                if (searchConfig.getRelationConfiguration() == null && getSupportedRelations().size() == 1) {
-                    RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
-                    relationConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    relationConfig.getSupportedRelations().addAll(getSupportedRelations());
-                    relationConfig.setDefaultValue(getSupportedRelations().get(0));
-                    searchConfig.setRelationConfiguration(relationConfig);
-                }
-                return searchConfig;
+            protected PredefinedSearchableItems.PanelType getPanelType() {
+                return PredefinedSearchableItems.PanelType.MEMBER_WIZARD;
             }
 
             @Override

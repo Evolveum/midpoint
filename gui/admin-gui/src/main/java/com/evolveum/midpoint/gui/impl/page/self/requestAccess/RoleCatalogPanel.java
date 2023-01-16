@@ -331,8 +331,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected Search<? extends ObjectType> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
 
-                SearchFactory<? extends ObjectType> factory = new SearchFactory<>()
-                        .type(type)
+                SearchFactory<? extends ObjectType> factory = new SearchFactory<>(type)
                         .modelServiceLocator(page);
 
                 return factory.createSearch();
@@ -603,8 +602,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         Search search = searchModel.getObject();
         if (!Objects.equals(search.getTypeClass(), query.getType())) {
-            SearchFactory factory = new SearchFactory()
-                    .type(query.getType())
+            SearchFactory factory = new SearchFactory(query.getType())
                     .modelServiceLocator(page);
 
             searchModel.setObject(factory.createSearch());
