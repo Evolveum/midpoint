@@ -112,7 +112,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     private <F extends FocusType> void initLayout(PrismObject<F> object) {
-        setOutputMarkupId(true);
+                setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
         inputContainer.add(new VisibleBehaviour(() -> passwordInputVisible));
@@ -142,9 +142,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-                if (clearPasswordInput) {
-                    tag.remove("value");
-                }
+                tag.remove("value");
             }
 
         };
