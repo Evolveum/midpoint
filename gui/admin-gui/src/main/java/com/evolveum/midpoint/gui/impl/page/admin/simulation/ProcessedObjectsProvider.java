@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
  */
 public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvider<SimulationResultProcessedObjectType> {
 
+    public static final String SORT_BY_NAME = "name";
+
     public ProcessedObjectsProvider(Component component, @NotNull IModel<Search<SimulationResultProcessedObjectType>> search) {
         super(component, search, null, false);
     }

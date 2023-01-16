@@ -10,23 +10,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -64,6 +63,51 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                 return () -> null;
             }
         };
+    }
+
+    @Override
+    protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createNameColumn(
+            IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+
+        displayModel = displayModel == null ? createStringResource("ProcessedObjectsPanel.nameColumn") : displayModel;
+
+        return new AjaxLinkColumn<>(displayModel, ProcessedObjectsProvider.SORT_BY_NAME, null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return () -> {
+                    SelectableBean bean = rowModel.getObject();
+                    if (bean == null) {
+                        return null;
+                    }
+
+                    // todo if bean.getValue == null ||  bean.getResult is not success - show warning/error with some text instead of name
+                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
+                    if (obj == null) {
+                        return null;
+                    }
+
+                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
+                };
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                onObjectNameClicked(target, rowModel.getObject());
+            }
+        };
+    }
+
+    private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
+        // todo implement
+
+        PageParameters params = new PageParameters();
+        params.set("RESULT_OID", "123");
+        params.set("TAG_OID", "456");
+        params.set("CONTAINER_ID", "789");
+
+        setResponsePage( new PageSimulationResultObject(params));
     }
 
     @Override
