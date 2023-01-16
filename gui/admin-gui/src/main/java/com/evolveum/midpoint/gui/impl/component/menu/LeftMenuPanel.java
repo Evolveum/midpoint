@@ -16,6 +16,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageTag;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageTags;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -492,6 +495,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
         boolean editActive = classMatches(PageSimulationResult.class);
         if (editActive) {
             MenuItem edit = new MenuItem("PageAdmin.menu.top.simulationResult", PageSimulationResult.class);
+            edit.setDynamic(true);
+            simulation.addMenuItem(edit);
+        }
+
+        simulation.addMenuItem(new MenuItem("PageAdmin.menu.top.tags", PageTags.class));
+        if (classMatches(PageTags.class)) {
+            MenuItem edit = new MenuItem("PageAdmin.menu.top.tag", PageTag.class);
             edit.setDynamic(true);
             simulation.addMenuItem(edit);
         }

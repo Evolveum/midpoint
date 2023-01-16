@@ -74,14 +74,25 @@ public class AuthorizationConstants {
     // public static final String AUTZ_UI_TASKS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_TASKS_ALL_QNAME);
     // are not constant enough for use in annotations (e.g. in GUI pages)
 
+    // simulation ui
     public static final QName AUTZ_UI_SIMULATIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationsAll");
     public static final String AUTZ_UI_SIMULATIONS_ALL_URL = NS_AUTHORIZATION_UI + "#simulationsAll";
-
     public static final QName AUTZ_UI_SIMULATION_RESULTS_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationResults");
     public static final String AUTZ_UI_SIMULATION_RESULTS_URL = NS_AUTHORIZATION_UI + "#simulationResults";
-
     public static final QName AUTZ_UI_SIMULATION_RESULT_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationResult");
     public static final String AUTZ_UI_SIMULATION_RESULT_URL = NS_AUTHORIZATION_UI + "#simulationResult";
+    public static final QName AUTZ_UI_SIMULATION_PROCESSED_OBJECTS_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationProcessedObjects");
+    public static final String AUTZ_UI_SIMULATION_PROCESSED_OBJECTS_URL = NS_AUTHORIZATION_UI + "#simulationProcessedObjects";
+    public static final QName AUTZ_UI_SIMULATION_PROCESSED_OBJECT_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationProcessedObject");
+    public static final String AUTZ_UI_SIMULATION_PROCESSED_OBJECT_URL = NS_AUTHORIZATION_UI + "#simulationProcessedObject";
+
+    // tags
+    public static final QName AUTZ_UI_TAGS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "tagsAll");
+    public static final String AUTZ_UI_TAGS_ALL_URL = NS_AUTHORIZATION_UI + "#tagsAll";
+    public static final QName AUTZ_UI_TAGS_QNAME = new QName(NS_AUTHORIZATION_UI, "tags");
+    public static final String AUTZ_UI_TAGS_URL = NS_AUTHORIZATION_UI + "#tags";
+    public static final QName AUTZ_UI_TAG_QNAME = new QName(NS_AUTHORIZATION_UI, "tag");
+    public static final String AUTZ_UI_TAG_URL = NS_AUTHORIZATION_UI + "#tag";
 
     //user
     public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "usersAll");
