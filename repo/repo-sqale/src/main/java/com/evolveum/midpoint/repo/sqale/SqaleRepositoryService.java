@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
@@ -1274,25 +1275,38 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    // TODO what is the return type?
-    //  Can be: SearchResultList<ObjectReferenceType> of references extracted from objects selected by ref owners
-    public <T extends Containerable> SearchResultList<ObjectReferenceType> searchReference(
-            @NotNull Class<T> ownerType, @NotNull ObjectQuery refQuery, @Nullable ObjectFilter parentFilter) {
-        //Class<ObjectType> ownerType, RefFilter filter) {
-        // RefFilter or something different? Probably, extended ref filter could work just fine.
-        ObjectFilter filter = refQuery.getFilter();
-        if (!(filter instanceof RefFilter)) {
-            throw new RuntimeException("Only RefFilter is supported for reference query"); // TODO proper exception type
-        }
-        System.out.println("ownerType = " + ownerType);
-        System.out.println("refQuery = " + refQuery);
-        System.out.println("parentFilter = " + parentFilter);
+    public SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) {
+        try {
+            // First experiment: query has OwnedBy filter only
+            ObjectFilter filter = query.getFilter();
+            if (!(filter instanceof OwnedByFilter)) {
+                throw new UnsupportedOperationException("wrong filter type");
+            }
 
-        // 1. select refs, this can be low-level repo based List<MReference>
-        // 2. collect unique owner OIDs
-        // 3. select owner objects
-        // 4. crawl the object to extract the result references from them
-        return new SearchResultList<>();
+            System.out.println("query = " + query);
+            OwnedByFilter ownedByFilter = (OwnedByFilter) filter;
+
+            // TODO later this should be resolved from the ownedBy filter, starting with its type
+            SqaleQueryContext<Referencable, QObjectReference<MObject>, MReference> queryContext =
+                    SqaleQueryContext.from(
+                            QObjectReferenceMapping.getForRoleMembership(),
+                            sqlRepoContext, sqlRepoContext.newQuery(), null);
+            SearchResultList<Referencable> list = sqlQueryExecutor.list(queryContext, query, options);
+            System.out.println("list = " + list);
+
+            // 1. select refs, this can be low-level repo based List<MReference>
+            // 2. collect unique owner OIDs // from here optionally based on options? what if client does not want parents?
+            // 3. select owner objects
+            // 4. crawl the object to extract the result references from them
+            return new SearchResultList<>();
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
     // endregion
 

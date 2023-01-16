@@ -96,7 +96,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final String resourceOid = UUID.randomUUID().toString();
     private final String connectorHostOid = UUID.randomUUID().toString();
 
-    private ItemDefinition<?> shadowAttributeDefinition;
+    private ItemDefinition<?> shadowAttributeStringMvDefinition;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -173,7 +173,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
-        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
+        shadowAttributeStringMvDefinition = attributesHelper.getDefinition(shadowAttributeName);
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
@@ -2036,7 +2036,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
-                f -> f.itemWithDef(shadowAttributeDefinition,
+                f -> f.itemWithDef(shadowAttributeStringMvDefinition,
                                 ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
@@ -2425,16 +2425,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // region reference search
     @Test // TODO disable if not finished before merging
-    public void test800SearchReference() {
-        S_FilterEntryOrEmpty userTypeQuery = prismContext.queryFor(UserType.class);
-        ObjectQuery refQuery = userTypeQuery
-                .ref(UserType.F_ROLE_MEMBERSHIP_REF)
+    public void test800SearchReference() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+        ObjectFilter parentFilter = null;
+
+//        ObjectQuery refQuery = prismContext.queryFor(UserType.class)
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
                 .item(F_NAME).eq("actual-role-name")
+                .or()
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid")
+                .endBlock()
+                .and()
+                .ownedBy(UserType.class)
+                .id("user-oid-here")
                 .maxSize(5)
                 .build();
-        ObjectFilter parentFilter = userTypeQuery.id("user-oid-here").buildFilter();
+//        ObjectFilter parentFilter = userTypeQuery.id("user-oid-here").buildFilter();
         SearchResultList<ObjectReferenceType> objectReferenceTypes =
-                repositoryService.searchReference(UserType.class, refQuery, parentFilter);
+                repositoryService.searchReferences(refQuery, null, operationResult);
     }
     // endregion
 
