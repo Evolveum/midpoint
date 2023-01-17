@@ -2303,6 +2303,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test630SearchContainersByCidWithOrderById() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "by owner OID and CID, ordered by CID", AssignmentType.class, f -> f.ownerId(user1Oid)
+                        .and()
+                        .item(T_ID).gt(1)
+                        .asc(T_ID));
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactly("assignment1-2", "assignment1-3-ext"); // in this order
+    }
+
+    @Test
     public void test690SearchErrorOperationExecutionForTask() throws SchemaException {
         SearchResultList<OperationExecutionType> result = searchContainerTest(
                 "with errors related to the task", OperationExecutionType.class,

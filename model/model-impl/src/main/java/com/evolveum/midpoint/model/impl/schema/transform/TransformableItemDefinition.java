@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDe
 import com.google.common.base.Preconditions;
 
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
+        extends TransformableDefinition
         implements ItemDefinitionDelegator<I>, PrismItemAccessDefinition.Mutable, PartiallyMutableItemDefinition<I> {
 
     private static final long serialVersionUID = 1L;
@@ -42,6 +43,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private PrismReferenceValue valueEnumerationRef;
 
     protected TransformableItemDefinition(D delegate) {
+        super(delegate);
         if (delegate instanceof TransformableItemDefinition) {
             // CopyOf constructor
 
