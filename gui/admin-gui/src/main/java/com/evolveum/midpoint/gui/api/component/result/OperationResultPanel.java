@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -224,7 +226,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         Label messageLabel = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
             OpResult result = OperationResultPanel.this.getModel().getObject();
 
-            PageBase page = getPageBase();
+            PageAdminLTE page = getPageAdminLTE();
 
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {

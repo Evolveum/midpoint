@@ -2424,6 +2424,15 @@ public final class WebComponentUtil {
         }
     }
 
+    public static PageAdminLTE getPageAdminLTE(Component component) {
+        Page page = component.getPage();
+        if (page instanceof PageAdminLTE) {
+            return (PageAdminLTE) page;
+        } else {
+            throw new IllegalStateException("Couldn't determine page base for " + page);
+        }
+    }
+
     public static String debugHandler(IRequestHandler handler) {
         if (handler == null) {
             return null;
