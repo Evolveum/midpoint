@@ -78,11 +78,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         return objectTypes;
     }
 
-    @Override
-    protected Class<? extends ObjectType> getDefaultObjectType() {
-        return UserType.class;
-    }
-
     private Class<? extends AssignmentHolderType> getSearchTypeClass() {
         return getMemberPanelStorage().getSearch().getTypeClass();
     }

@@ -77,7 +77,7 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(ShadowType.F_OBJECT_CLASS)
         ));
     }
-    
+
     private Class<? extends Containerable> type;
     private PredefinedSearchableItems.PanelType panelType;
     private ModelServiceLocator modelServiceLocator;
