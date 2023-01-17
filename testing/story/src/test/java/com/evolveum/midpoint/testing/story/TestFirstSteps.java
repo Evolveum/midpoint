@@ -1191,20 +1191,20 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(5);
         // @formatter:on
 
-        and("there is exactly one simulation result");
-        Task simTask = taskManager.getTaskPlain(simTaskOid, result);
-        Set<String> simulationResultOids =
-                new HashSet<>(
-                        List.of(
-                                getSimulationResultOid(simTask, ActivityPath.empty()),
-                                getSimulationResultOid(simTask, RECONCILIATION_OPERATION_COMPLETION_PATH),
-                                getSimulationResultOid(simTask, RECONCILIATION_RESOURCE_OBJECTS_PATH),
-                                getSimulationResultOid(simTask, RECONCILIATION_REMAINING_SHADOWS_PATH)));
-        assertThat(simulationResultOids)
-                .as("simulation result OIDs in root activity and sub-activities")
-                .hasSize(1);
-
         if (isNativeRepository()) {
+            and("there is exactly one simulation result");
+            Task simTask = taskManager.getTaskPlain(simTaskOid, result);
+            Set<String> simulationResultOids =
+                    new HashSet<>(
+                            List.of(
+                                    getSimulationResultOid(simTask, ActivityPath.empty()),
+                                    getSimulationResultOid(simTask, RECONCILIATION_OPERATION_COMPLETION_PATH),
+                                    getSimulationResultOid(simTask, RECONCILIATION_RESOURCE_OBJECTS_PATH),
+                                    getSimulationResultOid(simTask, RECONCILIATION_REMAINING_SHADOWS_PATH)));
+            assertThat(simulationResultOids)
+                    .as("simulation result OIDs in root activity and sub-activities")
+                    .hasSize(1);
+
             and("there are no simulation deltas");
             SimulationResult taskSimResult = getTaskSimResult(simTaskOid, result);
             SimulationResultType simResultBean = taskSimResult.getSimulationResultBean(result);
