@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -132,6 +134,11 @@ public class BasePanel<T> extends Panel {
     @Contract(pure = true)
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
+    }
+
+    @Contract(pure = true)
+    public PageAdminLTE getPageAdminLTE() {
+        return WebComponentUtil.getPageAdminLTE(this);
     }
 
     public PrismContext getPrismContext() {
