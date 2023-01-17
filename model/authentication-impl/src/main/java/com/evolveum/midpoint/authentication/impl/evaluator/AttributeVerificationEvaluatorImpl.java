@@ -36,9 +36,10 @@ public class AttributeVerificationEvaluatorImpl extends AuthenticationEvaluatorI
 
     @Override
     protected AttributeVerificationCredentialsType getCredential(CredentialsType credentials) {
-        //todo hack
-        return new AttributeVerificationCredentialsType();
-//        return credentials.getAttributeVerification();
+        if (credentials.getAttributeVerification() == null) {
+            credentials.setAttributeVerification(new AttributeVerificationCredentialsType());
+        }
+        return credentials.getAttributeVerification();
     }
 
     @Override
@@ -73,7 +74,7 @@ public class AttributeVerificationEvaluatorImpl extends AuthenticationEvaluatorI
     }
 
     @Override
-    protected CredentialPolicyType getEffectiveCredentialPolicy(
+    protected AttributeVerificationCredentialsPolicyType getEffectiveCredentialPolicy(
             SecurityPolicyType securityPolicy, AttributeVerificationAuthenticationContext authnCtx) {
 
         return null;
