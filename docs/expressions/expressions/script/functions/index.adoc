@@ -121,7 +121,7 @@ columns:
         linkText: "Source"
   - heading: Logging Library
     links:
-      - linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/common/expression/functions/BasicExpressionFunctions.html"
+      - linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/common/expression/functions/LogExpressionFunctions.html"
         linkText: "JavaDoc"
       - linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/model-common/src/main/java/com/evolveum/midpoint/model/common/expression/functions/LogExpressionFunctions.java"
         linkText: "Source"
