@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -17,18 +21,16 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/object/${CONTAINER_ID}"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/object/${CONTAINER_ID}")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/object/${CONTAINER_ID}",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/object/?*"),
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/object/${CONTAINER_ID}",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/tag/?*/object/?*")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -39,12 +41,9 @@ import org.jetbrains.annotations.NotNull;
                         description = "PageSimulationResultObject.auth.simulationProcessedObject.description")
         }
 )
-public class PageSimulationResultObject extends PageAdmin {
+public class PageSimulationResultObject extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String PAGE_PARAMETER_RESULT_OID = "RESULT_OID";
-    private static final String PAGE_PARAMETER_TAG_OID = "TAG_OID";
 
     private static final String ID_TABLE = "table";
 
@@ -60,16 +59,6 @@ public class PageSimulationResultObject extends PageAdmin {
 
     private void initLayout() {
 
-    }
-
-    private String getPageParameterResultOid() {
-        PageParameters params = getPageParameters();
-        return params.get(PAGE_PARAMETER_RESULT_OID).toString();
-    }
-
-    private String getPageParameterTagOid() {
-        PageParameters params = getPageParameters();
-        return params.get(PAGE_PARAMETER_TAG_OID).toString();
     }
 
     @Override

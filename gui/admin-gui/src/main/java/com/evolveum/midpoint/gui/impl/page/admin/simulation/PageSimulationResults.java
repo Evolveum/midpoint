@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -29,7 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/simulations/results", matchUrlForSecurity = "/admin/simulations/results")
+                @Url(mountUrl = "/admin/simulations/results",
+                        matchUrlForSecurity = "/admin/simulations/results")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -67,6 +70,14 @@ public class PageSimulationResults extends PageAdmin {
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_SIMULATION_RESULTS;
+            }
+
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, SimulationResultType object) {
+                PageParameters params = new PageParameters();
+                params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, object.getOid());
+
+                navigateToNext(PageSimulationResult.class, params);
             }
         };
         table.setOutputMarkupId(true);

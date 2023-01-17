@@ -28,8 +28,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/objects"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/objects",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/objects"),
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/objects",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/tag/?*/objects")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -40,12 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
                         description = "PageSimulationResultObjects.auth.simulationProcessedObjects.description")
         }
 )
-public class PageSimulationResultObjects extends PageAdmin {
+public class PageSimulationResultObjects extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String PAGE_PARAMETER_RESULT_OID = "RESULT_OID";
-    private static final String PAGE_PARAMETER_TAG_OID = "TAG_OID";
 
     private static final String ID_TABLE = "table";
 
@@ -83,16 +82,6 @@ public class PageSimulationResultObjects extends PageAdmin {
             }
         };
         add(table);
-    }
-
-    private String getPageParameterResultOid() {
-        PageParameters params = getPageParameters();
-        return params.get(PAGE_PARAMETER_RESULT_OID).toString();
-    }
-
-    private String getPageParameterTagOid() {
-        PageParameters params = getPageParameters();
-        return params.get(PAGE_PARAMETER_TAG_OID).toString();
     }
 
     @Override

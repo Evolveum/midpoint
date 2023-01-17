@@ -23,8 +23,12 @@ public @interface Url {
     String mountUrl();
 
     /**
-     * If empty {@link Url#mountUrl()} + "/**" will be used for URL ant pattern matching in security configuration.
-     * See {@link DescriptorLoader}, {@link com.evolveum.midpoint.authentication.impl.authorization.MidPointGuiAuthorizationEvaluator}.
+     * Url that will be matched in {@link com.evolveum.midpoint.authentication.impl.authorization.MidPointGuiAuthorizationEvaluator}
+     * using {@link org.springframework.security.web.util.matcher.AntPathRequestMatcher}.
+     * <p/>
+     * If empty then {@link Url#mountUrl()} + "/**" will be used for URL ant pattern matching in security configuration.
+     *
+     * @see {@link DescriptorLoader}
      */
     String matchUrlForSecurity() default "";
 }

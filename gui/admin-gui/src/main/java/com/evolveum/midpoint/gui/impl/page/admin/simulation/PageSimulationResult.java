@@ -11,11 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
-
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -30,6 +25,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
@@ -43,11 +39,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
@@ -57,9 +54,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/simulations/result")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}",
+                        matchUrlForSecurity = "/admin/simulations/result/?*")
         },
-        encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
                         label = "PageSimulationResults.auth.simulationsAll.label",
@@ -69,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
                         description = "PageSimulationResults.auth.simulationResult.description")
         }
 )
-public class PageSimulationResult extends PageAdmin {
+public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
 
@@ -100,13 +97,15 @@ public class PageSimulationResult extends PageAdmin {
         model = new LoadableDetachableModel<>() {
             @Override
             protected SimulationResultType load() {
-                String oid = OnePageParameterEncoder.getParameter(PageSimulationResult.this);
-                if (StringUtils.isEmpty(oid)) {
+                String oid = getPageParameterResultOid();
+                if (!Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
 
                 Task task = getPageTask();
-                PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(SimulationResultType.class, oid, PageSimulationResult.this, task, task.getResult());
+                PrismObject<SimulationResultType> object =
+                        WebModelServiceUtils.loadObject(SimulationResultType.class, oid, PageSimulationResult.this, task, task.getResult());
+                // todo handle error
                 if (object == null) {
                     throw new RestartResponseException(PageError404.class);
                 }
@@ -124,7 +123,7 @@ public class PageSimulationResult extends PageAdmin {
             return metrics.stream().map(m -> {
                 SmallBoxData sbd = new SmallBoxData();
                 sbd.setDescription(m.getIdentifier());
-                sbd.setTitle(String.valueOf(m.getValue()));
+                sbd.setTitle("" + m.getValue());
                 sbd.setSmallBoxCssClass("bg-info");
                 sbd.setLinkText("More info");
                 sbd.setIcon("fa fa-database");
