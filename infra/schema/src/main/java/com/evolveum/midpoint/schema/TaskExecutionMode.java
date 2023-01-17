@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -63,5 +67,10 @@ public class TaskExecutionMode implements Serializable {
     @Override
     public String toString() {
         return name; // temporary
+    }
+
+    public @NotNull ConfigurationSpecificationType toConfigurationSpecification() {
+        return new ConfigurationSpecificationType()
+                .productionConfiguration(productionConfiguration);
     }
 }

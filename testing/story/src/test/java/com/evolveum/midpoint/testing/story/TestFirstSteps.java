@@ -22,6 +22,7 @@ import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INET
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
@@ -1213,7 +1214,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .display()
                     .assertStartTimestampBetween(before, after)
                     .assertEndTimestampBetween(simStartTs, after)
-                    .assertMetricValue(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, 4)
+                    .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, BigDecimal.valueOf(4))
                     .assertMetricValueEntryCount(1);
 
             // @formatter:off

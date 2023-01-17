@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +87,7 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
     }
 
     public boolean isProductionConfiguration() {
-        return !Boolean.FALSE.equals(bean.isProductionConfiguration());
+        return ConfigurationSpecificationTypeUtil.isProductionConfiguration(bean.getConfigurationToUse());
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -103,5 +104,9 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
 
     public SimulationDefinitionType getSimulationDefinition() {
         return bean.getSimulationDefinition();
+    }
+
+    public @Nullable ConfigurationSpecificationType getConfigurationSpecification() {
+        return bean.getConfigurationToUse();
     }
 }

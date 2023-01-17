@@ -2666,15 +2666,10 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- TODO "mode" will be here. -->
-            <xsd:element name="productionConfiguration" type="xsd:boolean" minOccurs="0" default="true">
+            <xsd:element name="configurationToUse" type="tns:ConfigurationSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What configuration should the actions take into account? Production or "development" one?
-
-                        - Production usually means `active` and `deprecated` lifecycle states.
-                        - Development will probably `active` and `proposed` states. (Currently: `active`, `proposed` and `deprecated`.)
-
-                        TEMPORARY. May change in near future.
+                        What configuration should be used to run the simulation?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -10,10 +10,9 @@ package com.evolveum.midpoint.model.api.simulation;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.Referencable;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +51,13 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
     private final PolyStringType name;
     @NotNull private final ObjectProcessingStateType state;
     @NotNull private final Collection<String> eventTags;
+
+    /** Present only when parsed from the bean. */
+    @NotNull private final Map<String, BigDecimal> metricValues;
+
     /** Complete information on the tags (optional) */
     private Map<String, TagType> eventTagsMap;
+
     @Nullable private final O before;
     @Nullable private final O after;
     @Nullable private final ObjectDelta<O> delta;
@@ -64,6 +68,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
             PolyStringType name,
             @NotNull ObjectProcessingStateType state,
             @NotNull Collection<String> eventTags,
+            @NotNull Map<String, BigDecimal> metricValues,
             @Nullable O before,
             @Nullable O after,
             @Nullable ObjectDelta<O> delta) {
@@ -72,6 +77,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         this.name = name;
         this.state = state;
         this.eventTags = eventTags;
+        this.metricValues = metricValues;
         this.before = before;
         this.after = after;
         this.delta = delta;
@@ -88,9 +94,17 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
                 getEventTagsOids(bean),
+                getMetricValues(bean),
                 (O) bean.getBefore(),
                 (O) bean.getAfter(),
                 DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
+    }
+
+    private static Map<String, BigDecimal> getMetricValues(SimulationResultProcessedObjectType bean) {
+        return bean.getMetricValue().stream()
+                .collect(Collectors.toMap(
+                        ProcessedObjectSimulationMetricValueType::getIdentifier,
+                        ProcessedObjectSimulationMetricValueType::getValue));
     }
 
     private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
@@ -126,6 +140,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                         DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()) :
                         ObjectProcessingStateType.UNMODIFIED,
                 eventTags,
+                Map.of(),
                 stateBefore,
                 stateAfter,
                 delta);
@@ -220,6 +235,12 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         List<ObjectReferenceType> eventTagRef = processedObject.getEventTagRef();
         eventTags.forEach(
                 oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
+        List<ProcessedObjectSimulationMetricValueType> metricValues = processedObject.getMetricValue();
+        this.metricValues.forEach(
+                (id, value) -> metricValues.add(
+                        new ProcessedObjectSimulationMetricValueType()
+                                .identifier(id)
+                                .value(value)));
         return processedObject;
     }
 
@@ -244,6 +265,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         sb.append(state);
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsDebugDump(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "metrics", metricValues, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "before", before, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
         return sb.toString();
@@ -257,6 +279,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 ", name=" + name +
                 ", state=" + state +
                 ", eventTags=" + getEventTagsDebugDump() +
+                ", metrics=" + metricValues +
                 ", before=" + before +
                 ", after=" + after +
                 ", delta=" + delta +

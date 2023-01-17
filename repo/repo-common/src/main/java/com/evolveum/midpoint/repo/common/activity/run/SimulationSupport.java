@@ -64,7 +64,10 @@ class SimulationSupport {
                 ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
                 simResultRef =
                         activityRun.getBeans().getAdvancedActivityRunSupport().createSimulationResult(
-                                execModeDef.getSimulationDefinition(), result);
+                                execModeDef.getSimulationDefinition(),
+                                activityRun.getRunningTask().getRootTaskOid(),
+                                execModeDef.getConfigurationSpecification(),
+                                result);
             } catch (ConfigurationException e) {
                 throw new ActivityRunException("Couldn't create simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
             }

@@ -5,6 +5,7 @@ import java.util.*;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,11 +39,12 @@ public class SimulationResultContextImpl implements SimulationResultContext, Obj
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
             @NotNull Collection<String> eventTags,
+            @NotNull Task task,
             @NotNull OperationResult result) {
         try {
             ProcessedObject<?> processedObject = ProcessedObject.create(stateBefore, simulatedDelta, eventTags);
             if (processedObject != null) {
-                manager.storeProcessedObject(oid, processedObject.toBean(), result);
+                manager.storeProcessedObject(oid, processedObject, task, result);
             }
         } catch (SchemaException | ObjectNotFoundException e) {
             throw SystemException.unexpected(e, "when storing processed object information"); // Or should we ignore it?

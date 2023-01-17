@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -79,7 +80,10 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
 
     @Override
     public @NotNull ObjectReferenceType createSimulationResult(
-            @Nullable SimulationDefinitionType definition, OperationResult result) {
+            @Nullable SimulationDefinitionType definition,
+            @NotNull String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            OperationResult result) {
         throw noModelAvailableException();
     }
 

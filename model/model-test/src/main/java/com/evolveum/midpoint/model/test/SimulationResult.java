@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
@@ -114,6 +115,7 @@ public class SimulationResult {
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
             @NotNull Collection<String> eventTags,
+            @NotNull Task task,
             @NotNull OperationResult ignored) throws SchemaException {
         if (executedDelta != null) {
             executedDeltas.add(executedDelta);
