@@ -127,7 +127,7 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
                     onExitPerformed(target);
                     return;
                 }
-                OperationResult result = ActivationsWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = ActivationsWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);

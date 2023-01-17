@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-members";
+    public static final String PANEL_TYPE = "roleWizard-members";
     private static final String ID_TABLE = "table";
 
     public MembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {

@@ -54,7 +54,7 @@ import java.util.*;
 /**
  * @author lskublik
  */
-public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceType, ResourceDetailsModel> {
+public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectObjectClassesStepPanel.class);
 

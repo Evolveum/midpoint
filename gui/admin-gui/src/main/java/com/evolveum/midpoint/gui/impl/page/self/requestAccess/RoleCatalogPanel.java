@@ -30,6 +30,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -358,6 +359,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
+                // make sure menuModel was loaded
+                menuModel.getObject();
+
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
                 ObjectQuery query = catalogQuery.getQuery();
 
@@ -376,9 +380,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 .build();
         provider.setOptions(options);
 
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+                new TileTablePanel<>(ID_TILES, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+
+                    @Override
+                    protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
+                        return RoleCatalogPanel.this.createColumns();
+                    }
 
                     @Override
                     protected Component createHeader(String id) {
@@ -474,6 +482,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                 return createImage(() -> model.getObject().getValue().getValue());
                             }
                         };
+                    }
+
+                    @Override
+                    protected ISortableDataProvider createProvider() {
+                        return provider;
                     }
 
                     @Override

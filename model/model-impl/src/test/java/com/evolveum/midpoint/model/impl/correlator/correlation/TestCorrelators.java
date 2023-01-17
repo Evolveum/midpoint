@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +41,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.concepts.func.FailableConsumer;
 import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
@@ -62,10 +63,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -320,7 +317,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @SuppressWarnings("SameParameterValue")
     private void executeTest(String name, File usersFile)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException {
+            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         executeTest(
                 correlator(name),
                 usersFile,
@@ -332,24 +329,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @SuppressWarnings("SameParameterValue")
     private void executeTest(String name, File usersFile, TestResource<ObjectTemplateType> template)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException {
+            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         executeTest(
                 correlator(name, template),
                 usersFile,
                 accountsFile(name),
                 FULL,
-                null);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void executeTest(String name, File usersFile, TestResource<ObjectTemplateType> template, DescriptionMode mode)
-            throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException {
-        executeTest(
-                correlator(name, template),
-                usersFile,
-                accountsFile(name),
-                mode,
                 null);
     }
 
@@ -360,7 +345,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             DescriptionMode descriptionMode,
             FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
             throws CommonException, IOException, ConflictException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException, EncryptionException {
+            InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         executeTest(
                 correlator(name),
                 usersFile,
@@ -376,7 +361,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             DescriptionMode descriptionMode,
             FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
             throws CommonException, IOException, ConflictException, SchemaViolationException,
-            InterruptedException, ObjectAlreadyExistsException, EncryptionException {
+            InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -385,11 +370,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         String userTemplateOid = userTemplateResource != null ? userTemplateResource.oid : null;
         if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
             if (userTemplateResource != null) {
-                repoAdd(userTemplateResource, result);
-                ObjectTemplateType expanded =
-                        archetypeManager.getExpandedObjectTemplate(
-                                userTemplateResource.oid, TaskExecutionMode.PRODUCTION, result);
-                userTemplateResource.set(expanded.asPrismObject());
+                importUserTemplateIfNeeded(userTemplateResource, result);
             }
             System.out.println("Setting user template OID (in system config) to be " + userTemplateOid);
             setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid, result);
@@ -451,6 +432,20 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             displayDumpable("case description", description);
             assertCorrelationDescription(description, descriptionMode, account);
         }
+    }
+
+    private void importUserTemplateIfNeeded(TestResource<ObjectTemplateType> userTemplateResource, OperationResult result)
+            throws SchemaException, IOException, EncryptionException, ObjectNotFoundException, ConfigurationException {
+        try {
+            repoAdd(userTemplateResource, result);
+        } catch (ObjectAlreadyExistsException e) {
+            // OK, the template was already imported
+            return;
+        }
+        ObjectTemplateType expanded =
+                archetypeManager.getExpandedObjectTemplate(
+                        userTemplateResource.oid, TaskExecutionMode.PRODUCTION, result);
+        userTemplateResource.set(expanded.asPrismObject());
     }
 
     private void deleteUsers(OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -30,9 +30,9 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleType, FocusDetailsModels<RoleType>> {
+public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-basic";
+    public static final String PANEL_TYPE = "roleWizard-basic";
 
     public BasicInformationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);
@@ -75,14 +75,4 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleT
         }
         return itemWrapper.isMandatory();
     }
-
-    //    @Override
-//    protected ItemVisibilityHandler getVisibilityHandler() {
-//        return wrapper -> {
-//            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)) {
-//                return ItemVisibility.HIDDEN;
-//            }
-//            return ItemVisibility.AUTO;
-//        };
-//    }
 }

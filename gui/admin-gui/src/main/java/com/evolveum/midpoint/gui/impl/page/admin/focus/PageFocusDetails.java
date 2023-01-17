@@ -218,6 +218,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         };
     }
 
+    protected Boolean getReadonlyOverride() {
+        return readonlyOverride;
+    }
+
     @Override
     public ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result) {
         LOGGER.trace("startProcessing called, making main panel invisible");
