@@ -241,6 +241,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.SUCCESS)
                         .timestamp("2021-10-01T00:00:00Z"))
+                .roleMembershipRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
                 .extension(new ExtensionType());
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -336,6 +337,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .status(OperationResultStatusType.WARNING)
                         .timestamp("2021-08-01T00:00:00Z"))
                 .organization("org-33")
+                .roleMembershipRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
                 .extension(new ExtensionType());
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
@@ -2425,24 +2427,30 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // region reference search
     @Test // TODO disable if not finished before merging
-    public void test800SearchReference() throws SchemaException {
+    public void test800SearchReference() {
         OperationResult operationResult = createOperationResult();
         ObjectFilter parentFilter = null;
 
-//        ObjectQuery refQuery = prismContext.queryFor(UserType.class)
         ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
-                .item(F_NAME).eq("actual-role-name")
-                .or()
-                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid")
-                .endBlock()
                 .and()
-                .ownedBy(UserType.class)
-                .id("user-oid-here")
-                .maxSize(5)
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE)
                 .build();
+        // orgXOid, org11Oid have user2 as a member
 //        ObjectFilter parentFilter = userTypeQuery.id("user-oid-here").buildFilter();
         SearchResultList<ObjectReferenceType> objectReferenceTypes =
                 repositoryService.searchReferences(refQuery, null, operationResult);
+    }
+
+    @Test
+    public void test819SearchReferenceFailsOnWrongTopLevelPath() {
+        assertThatThrownBy(
+                () -> prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                        .or()
+                        .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid") // this fails
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
     }
     // endregion
 

@@ -1283,7 +1283,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // First experiment: query has OwnedBy filter only
             ObjectFilter filter = query.getFilter();
             if (!(filter instanceof OwnedByFilter)) {
-                throw new UnsupportedOperationException("wrong filter type");
+                throw new UnsupportedOperationException("Invalid filter for reference search: " + filter);
             }
 
             System.out.println("query = " + query);
