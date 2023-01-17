@@ -22,6 +22,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageTag;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageTags;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -54,7 +56,8 @@ public enum PageTypes {
     OBJECT_COLLECTION("objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class, PageObjectCollection.class, ObjectCollectionType.COMPLEX_TYPE),
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE),
-    SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE);
+    SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
+    TAG("tags", GuiStyleConstants.CLASS_TAG, PageTags.class, PageTag.class, TagType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

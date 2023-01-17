@@ -280,7 +280,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_HISTORY = "fa fa-history";
 
-    public static final String CLASS_SIMULATION_RESULT = CLASS_CIRCLE_FULL;
+    public static final String CLASS_TODO_FIXME_NOT_YET_DEFINED = "fas fa-question-circle text-fuchsia";
 
-    public static final String CLASS_TAG = CLASS_CIRCLE_FULL;
+    public static final String CLASS_SIMULATION_RESULT = CLASS_TODO_FIXME_NOT_YET_DEFINED;
+
+    public static final String CLASS_TAG = CLASS_TODO_FIXME_NOT_YET_DEFINED;
 }
