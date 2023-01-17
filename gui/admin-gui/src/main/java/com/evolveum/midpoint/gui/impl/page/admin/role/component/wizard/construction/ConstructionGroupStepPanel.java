@@ -6,10 +6,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.search.ChoicesSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.MultiSelectTileWizardStepPanel;
@@ -18,7 +16,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -41,7 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +56,8 @@ public class ConstructionGroupStepPanel
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
     public static final String PANEL_TYPE = "roleWizard-construction-group";
+
+    private static final String SKIP_INFO = "skipInfo";
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<SearchValue<ItemName>> associationRef = Model.of();
@@ -68,6 +66,19 @@ public class ConstructionGroupStepPanel
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(model);
         this.assignmentModel = assignmentModel;
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (isSkipInfoVisible()) {
+            getPageBase().info(getPageBase().createStringResource("ConstructionGroupStepPanel.skipStep").getString());
+        }
+        super.onBeforeRender();
+    }
+
+    private boolean isSkipInfoVisible() {
+        List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        return associations.isEmpty();
     }
 
     @Override
@@ -221,8 +232,14 @@ public class ConstructionGroupStepPanel
 
     @Override
     protected SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper(Class<ShadowType> type) {
-        SearchConfigurationWrapper<ShadowType> config = super.createSearchConfigWrapper(type);
+        SearchConfigurationWrapper<ShadowType> config =
+                SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
+
+        config.getItemsList().removeIf(item ->
+                (item instanceof ReferenceSearchItemWrapper
+                    && ShadowType.F_RESOURCE_REF.equivalent(((ReferenceSearchItemWrapper<?>) item).getDef().getItemName()))
+                        || item instanceof ObjectClassSearchItemWrapper);
 
         List<ResourceAssociationDefinition> associations =
                 WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
@@ -241,6 +258,11 @@ public class ConstructionGroupStepPanel
                 ConstructionType construction = valueModel.getObject().getRealValue();
                 return WebComponentUtil.getShadowTypeFilterForAssociation(
                         construction, (ItemName)getValue().getValue(), "load resource", getPageBase());
+            }
+
+            @Override
+            public String getName() {
+                return getPageBase().createStringResource("ConstructionType.association").getString();
             }
 
             @Override
@@ -264,6 +286,11 @@ public class ConstructionGroupStepPanel
 
             @Override
             public boolean allowNull() {
+                return false;
+            }
+
+            @Override
+            public boolean canRemoveSearchItem() {
                 return false;
             }
         });

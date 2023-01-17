@@ -3609,7 +3609,6 @@ public final class WebComponentUtil {
     public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(ConstructionType construction, PageBase pageBase) {
         List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
 
-        PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
             return associationDefinitions;
         }
@@ -3617,11 +3616,8 @@ public final class WebComponentUtil {
         if (resource == null) {
             return associationDefinitions;
         }
-
-        ObjectQuery query = prismContext.queryFactory().createQuery();
         try {
-            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-            ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
+            ResourceObjectDefinition oc = getResourceObjectDefinition(construction, pageBase);
             if (oc == null) {
                 LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
                 return null;
@@ -3636,6 +3632,22 @@ public final class WebComponentUtil {
             LOGGER.error("Association for {} not supported by resource {}: {}", construction, resource, ex.getLocalizedMessage());
         }
         return associationDefinitions;
+    }
+
+    public static ResourceObjectDefinition getResourceObjectDefinition(ConstructionType construction, PageBase pageBase) throws CommonException {
+
+        PrismContext prismContext = pageBase.getPrismContext();
+        if (construction == null) {
+            return null;
+        }
+        PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, "load resource", pageBase);
+        if (resource == null) {
+            return null;
+        }
+
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
+        return oc;
     }
 
     public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
@@ -5467,12 +5479,12 @@ public final class WebComponentUtil {
         return AdminLTESkin.create(skin);
     }
 
-    public static void createToastForUpdateObject(AjaxRequestTarget target, Component panel, QName type) {
-        createToastForResource("AbstractWizardPanel.updateObject", ResourceType.COMPLEX_TYPE, target);
+    public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {
+        createToastForResource("AbstractWizardPanel.updateObject", type, target);
     }
 
-    public static void createToastForCreateObject(AjaxRequestTarget target, Component panel, QName type) {
-        createToastForResource("AbstractWizardPanel.createObject", ResourceType.COMPLEX_TYPE, target);
+    public static void createToastForCreateObject(AjaxRequestTarget target, QName type) {
+        createToastForResource("AbstractWizardPanel.createObject", type, target);
     }
 
     private static void createToastForResource(String key, QName type, AjaxRequestTarget target) {
@@ -5485,6 +5497,10 @@ public final class WebComponentUtil {
                 .delay(5_000)
                 .body(PageBase.createStringResourceStatic(key + ".text", typeLabel).getString())
                 .show(target);
+    }
+
+    public static <O extends ObjectType> String getLabelForType(Class<O> type, boolean startsWithUppercase) {
+        return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
     }
 
     public static String translateMessage(LocalizableMessage msg) {

@@ -1,9 +1,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
@@ -158,7 +161,19 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     private boolean isValid(AjaxRequestTarget target) {
         if (isMandatory() && isNotSelected()) {
-            getPageBase().error("Selecting of object is mandatory");
+            String key = "SelectTileWizardStepPanel.isMandatory";
+            String typeLabel = WebComponentUtil.getLabelForType(getType(), false);
+            String text = PageBase.createStringResourceStatic(key + ".text", typeLabel).getString();
+            new Toast()
+                    .error()
+                    .title(PageBase.createStringResourceStatic(key).getString())
+                    .icon("fas fa-circle-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(text)
+                    .show(target);
+
+            getPageBase().error(text);
             target.add(getFeedback());
             return false;
         }
