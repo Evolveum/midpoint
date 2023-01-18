@@ -1,17 +1,14 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,33 +17,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.merger.simulation.SimulationDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 @Component
 public class SimulationResultManagerImpl implements SimulationResultManager, SystemConfigurationChangeListener {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SimulationResultManagerImpl.class);
+
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
     @Autowired private Clock clock;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private ExpressionFactory expressionFactory;
 
     /** Global definitions provided by the system configuration. */
-    @NotNull private volatile List<SimulationDefinitionType> definitions = new ArrayList<>();
+    @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
+
+    /** Global metric definitions provided by the system configuration. */
+    @NotNull private volatile List<GlobalSimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
 
     /** Primitive way of checking we do not write to closed results. */
     @VisibleForTesting
@@ -54,7 +71,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @Override
     public SimulationDefinitionType defaultDefinition() throws ConfigurationException {
-        List<SimulationDefinitionType> allDefinitions = this.definitions;
+        List<SimulationDefinitionType> allDefinitions = this.simulationDefinitions;
         if (allDefinitions.size() == 1) {
             return allDefinitions.get(0); // regardless of whether it's marked as default
         }
@@ -82,7 +99,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @Override
     public @NotNull SimulationResultContext newSimulationResult(
-            @Nullable SimulationDefinitionType definition, @NotNull OperationResult result) throws ConfigurationException {
+            @Nullable SimulationDefinitionType definition,
+            @Nullable String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            @NotNull OperationResult result)
+            throws ConfigurationException {
         if (definition == null) {
             definition = defaultDefinition();
         }
@@ -92,6 +113,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                 .name(getResultName(expandedDefinition, now))
                 .definition(expandedDefinition.clone())
                 .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(now))
+                .rootTaskRef(
+                        rootTaskOid != null ?
+                                ObjectTypeUtil.createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
+                .configurationUsed(
+                        configurationSpecification != null ? configurationSpecification.clone() : null)
                 .useOwnPartitionForProcessedObjects(expandedDefinition.isUseOwnPartitionForProcessedObjects());
 
         String storedOid;
@@ -141,7 +167,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     private SimulationDefinitionType findDefinitionById(@NotNull String id) throws ConfigurationException {
-        List<SimulationDefinitionType> matching = definitions.stream()
+        List<SimulationDefinitionType> matching = simulationDefinitions.stream()
                 .filter(def -> id.equals(def.getIdentifier()))
                 .collect(Collectors.toList());
         return MiscUtil.extractSingletonRequired(
@@ -156,7 +182,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         try {
             String oid = Objects.requireNonNull(simulationResultRef.getOid(), "No oid in simulationResultRef");
             closedResultsChecker.markClosed(oid);
-            Collection<SimulationMetricValueType> metricValues = computeMetricsValues(oid, result);
+            Collection<AggregatedSimulationMetricValueType> metricValues = computeAggregatedMetricValues(oid, result);
             repository.modifyObject(
                     SimulationResultType.class,
                     oid,
@@ -173,20 +199,21 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TODO implement iteratively + more efficiently */
-    private Collection<SimulationMetricValueType> computeMetricsValues(String oid, OperationResult result)
+    private Collection<AggregatedSimulationMetricValueType> computeAggregatedMetricValues(String oid, OperationResult result)
             throws SchemaException {
-        Map<String, Integer> metricMap = new HashMap<>();
+        Map<String, BigDecimal> metricMap = new HashMap<>();
         for (ProcessedObject<?> processedObject : getStoredProcessedObjects(oid, result)) {
             for (String eventTag : processedObject.getEventTags()) {
                 metricMap.compute(
                         eventTag,
-                        (tag, count) -> or0(count) + 1);
+                        (tag, count) -> or0(count).add(BigDecimal.ONE));
             }
         }
         return metricMap.entrySet().stream()
                 .map(e ->
-                        new SimulationMetricValueType()
-                                .identifier(e.getKey())
+                        new AggregatedSimulationMetricValueType()
+                                .ref(new AbstractSimulationMetricReferenceType()
+                                        .eventTagRef(e.getKey(), TagType.COMPLEX_TYPE))
                                 .value(e.getValue()))
                 .collect(Collectors.toList());
     }
@@ -195,7 +222,8 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     public void update(@Nullable SystemConfigurationType value) {
         var configuration = value != null ? value.getSimulation() : null;
         if (configuration != null) {
-            definitions = CloneUtil.cloneCollectionMembers(configuration.getDefinition());
+            simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getDefinition());
+            metricDefinitions = CloneUtil.cloneCollectionMembers(configuration.getMetric());
         }
     }
 
@@ -210,18 +238,74 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     void storeProcessedObject(
-            @NotNull String oid, @NotNull SimulationResultProcessedObjectType processedObject, @NotNull OperationResult result)
+            @NotNull String oid, @NotNull ProcessedObject<?> processedObject, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         try {
+            SimulationResultProcessedObjectType processedObjectBean = processedObject.toBean();
+            processedObjectBean.getMetricValue()
+                    .addAll(computeObjectMetricValues(processedObject, task, result));
             closedResultsChecker.checkNotClosed(oid);
             List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                     .item(SimulationResultType.F_PROCESSED_OBJECT)
-                    .add(processedObject.asPrismContainerValue())
+                    .add(processedObjectBean.asPrismContainerValue())
                     .asItemDeltas();
             repository.modifyObject(SimulationResultType.class, oid, modifications, result);
         } catch (ObjectAlreadyExistsException e) {
             throw SystemException.unexpected(e, "when storing processed object information");
         }
+    }
+
+    private List<ProcessedObjectSimulationMetricValueType> computeObjectMetricValues(
+            ProcessedObject<?> processedObject, Task task, OperationResult result) {
+        List<ProcessedObjectSimulationMetricValueType> values = new ArrayList<>();
+        for (GlobalSimulationMetricDefinitionType metricDefinition : metricDefinitions) {
+            AbstractSimulationMetricComputationType abstractComputation = metricDefinition.getComputation();
+            if (abstractComputation == null) {
+                continue;
+            }
+            OriginalSimulationMetricComputationType computation = abstractComputation.getOriginal();
+            if (computation == null) {
+                continue;
+            }
+            String identifier = metricDefinition.getIdentifier();
+            ExpressionType expression = computation.getExpression();
+            if (expression == null) {
+                LOGGER.warn("Metric definition without an expression - ignoring: {}", computation);
+                continue;
+            }
+            ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory()
+                    .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DECIMAL);
+            VariablesMap variables = new VariablesMap();
+            variables.put(
+                    ExpressionConstants.VAR_PROCESSED_OBJECT, processedObject, ProcessedObject.class);
+            try {
+                PrismPropertyValue<BigDecimal> value = ExpressionUtil.evaluateExpression(
+                        variables,
+                        outputDefinition,
+                        expression,
+                        MiscSchemaUtil.getExpressionProfile(),
+                        expressionFactory,
+                        "metric expression evaluation",
+                        task,
+                        result);
+                LOGGER.trace("Computed value for metric '{}': {}", identifier, value);
+                if (value != null) {
+                    BigDecimal realValue = value.getRealValue();
+                    if (realValue != null) {
+                        values.add(
+                                new ProcessedObjectSimulationMetricValueType()
+                                        .identifier(identifier)
+                                        .value(realValue));
+                    }
+                }
+            } catch (CommonException e) {
+                throw new SystemException(
+                        String.format(
+                                "Couldn't evaluate expression for metric '%s': %s", identifier, e.getMessage()),
+                        e);
+            }
+        }
+        return values;
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */

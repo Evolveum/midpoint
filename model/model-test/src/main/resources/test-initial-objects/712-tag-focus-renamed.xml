@@ -10,10 +10,10 @@
     <name>Focus name changed</name>
     <description>Operation that changed the focus name</description>
     <policyRule>
-        <name>focus-name-changed</name>
+        <name>focus-renamed</name>
         <policyConstraints>
             <modification>
-                <name>$focus-name-changed</name>
+                <name>$focus-renamed</name>
                 <operation>modify</operation>
                 <item>name</item>
             </modification>

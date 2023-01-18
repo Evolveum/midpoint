@@ -179,4 +179,5 @@ public class ExpressionConstants {
     public static final String VAR_SYNCHRONIZATION_CONTEXT = "synchronizationContext";
     public static final String VAR_CORRELATION_CONTEXT = "correlationContext";
     public static final String VAR_CORRELATOR_STATE = "correlatorState";
+    public static final String VAR_PROCESSED_OBJECT = "processedObject";
 }

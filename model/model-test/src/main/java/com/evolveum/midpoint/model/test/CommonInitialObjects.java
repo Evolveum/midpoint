@@ -51,7 +51,7 @@ public interface CommonInitialObjects {
             SystemObjectsType.TAG_FOCUS_DISABLED.value());
 
     AbstractTestResource<TagType> TAG_FOCUS_NAME_CHANGED = new ClassPathTestResource<>(
-            TEST_INITIAL_OBJECTS, "712-tag-focus-name-changed.xml",
+            TEST_INITIAL_OBJECTS, "712-tag-focus-renamed.xml",
             SystemObjectsType.TAG_FOCUS_NAME_CHANGED.value());
 
     AbstractTestResource<TagType> TAG_FOCUS_ASSIGNMENT_CHANGED = new ClassPathTestResource<>(
@@ -79,7 +79,7 @@ public interface CommonInitialObjects {
             SystemObjectsType.TAG_PROJECTION_DISABLED.value());
 
     AbstractTestResource<TagType> TAG_PROJECTION_NAME_CHANGED = new ClassPathTestResource<>(
-            TEST_INITIAL_OBJECTS, "732-tag-projection-name-changed.xml",
+            TEST_INITIAL_OBJECTS, "732-tag-projection-renamed.xml",
             SystemObjectsType.TAG_PROJECTION_NAME_CHANGED.value());
 
     AbstractTestResource<TagType> TAG_PROJECTION_IDENTIFIER_CHANGED = new ClassPathTestResource<>(

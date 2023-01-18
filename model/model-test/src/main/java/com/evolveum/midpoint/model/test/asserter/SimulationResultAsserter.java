@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.util.AbstractSimulationMetricReferenceTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -17,6 +19,8 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
+import java.math.BigDecimal;
 
 /**
  * Asserts on the collections of {@link SimulationResultType} objects.
@@ -53,9 +57,16 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return XmlTypeConverter.toMillis(simulationResult.getEndTimestamp());
     }
 
-    public SimulationResultAsserter<RA> assertMetricValue(String metricId, Integer expected) {
-        assertThat(getMetricValue(metricId))
+    public SimulationResultAsserter<RA> assertMetricValueByIdentifier(String metricId, BigDecimal expected) {
+        assertThat(getMetricValueByIdentifier(metricId))
                 .as("metric " + metricId + " value")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public SimulationResultAsserter<RA> assertMetricValueByEventTag(String oid, BigDecimal expected) {
+        assertThat(getMetricValueByEventTag(oid))
+                .as("metric with event tag " + oid + " value")
                 .isEqualTo(expected);
         return this;
     }
@@ -68,9 +79,17 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    private Integer getMetricValue(String metricId) {
+    private BigDecimal getMetricValueByIdentifier(String metricId) {
         return simulationResult.getMetric().stream()
-                .filter(m -> metricId.equals(m.getIdentifier()))
+                .filter(m -> AbstractSimulationMetricReferenceTypeUtil.isMetricIdentifier(m.getRef(), metricId))
+                .map(m -> m.getValue())
+                .findFirst()
+                .orElse(null);
+    }
+
+    private BigDecimal getMetricValueByEventTag(String oid) {
+        return simulationResult.getMetric().stream()
+                .filter(m -> AbstractSimulationMetricReferenceTypeUtil.isEventTag(m.getRef(), oid))
                 .map(m -> m.getValue())
                 .findFirst()
                 .orElse(null);

@@ -108,8 +108,9 @@ public class SynchronizationRequest {
                         .executionMode(
                                 getBackgroundTaskExecutionMode())
                         .execution(new ActivityExecutionDefinitionType()
-                                .productionConfiguration(
-                                        taskExecutionMode.isProductionConfiguration())
+                                .configurationToUse(new ConfigurationSpecificationType()
+                                                .productionConfiguration(
+                                                        taskExecutionMode.isProductionConfiguration()))
                                 .createSimulationResult(
                                         test.isNativeRepository() && !taskExecutionMode.isPersistent())));
         String taskOid = test.addObject(importTask, task, result);

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -75,7 +76,11 @@ public interface AdvancedActivityRunSupport {
     <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 
     /** Creates a simulation result into which the activity will store information about processed objects. */
-    @NotNull ObjectReferenceType createSimulationResult(@Nullable SimulationDefinitionType definition, OperationResult result)
+    @NotNull ObjectReferenceType createSimulationResult(
+            @Nullable SimulationDefinitionType definition,
+            @NotNull String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            OperationResult result)
             throws ConfigurationException;
 
     /** TODO better name */

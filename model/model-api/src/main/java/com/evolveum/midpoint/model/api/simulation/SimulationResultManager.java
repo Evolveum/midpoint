@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.api.simulation;
 import java.util.List;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +28,16 @@ public interface SimulationResultManager {
      * Creates a new simulation result in repository.
      *
      * @param definition Definition to use. If null, the default one is used.
-     *
+     * @param rootTaskOid
+     * @param configurationSpecification
      * @see #defaultDefinition()
      */
     @NotNull SimulationResultContext newSimulationResult(
-            @Nullable SimulationDefinitionType definition, @NotNull OperationResult result) throws ConfigurationException;
+            @Nullable SimulationDefinitionType definition,
+            @Nullable String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            @NotNull OperationResult result)
+            throws ConfigurationException;
 
     /** TODO better name */
     SimulationResultContext newSimulationContext(@NotNull String resultOid);

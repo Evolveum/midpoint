@@ -6987,7 +6987,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectProcessingListener simulationObjectProcessingListener;
         if (simulationDefinition != null) {
             SimulationResultContext simulationResultContext =
-                    simulationResultManager.newSimulationResult(simulationDefinition, result);
+                    simulationResultManager.newSimulationResult(
+                            simulationDefinition, null, mode.toConfigurationSpecification(), result);
             simulationResultOid = simulationResultContext.getResultOid();
             simulationObjectProcessingListener = simulationResultContext.objectProcessingListener();
         } else {

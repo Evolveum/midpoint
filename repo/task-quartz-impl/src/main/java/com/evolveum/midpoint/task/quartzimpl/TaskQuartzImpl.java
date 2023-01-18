@@ -2353,11 +2353,11 @@ public class TaskQuartzImpl implements Task {
             @NotNull Collection<String> eventTags,
             @NotNull OperationResult result) throws SchemaException {
         for (ObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+            objectProcessingListener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, this, result);
         }
         ObjectProcessingListener listener = simulationObjectProcessingListener;
         if (listener != null) {
-            listener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+            listener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, this, result);
         }
     }
     //endregion

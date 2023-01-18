@@ -9,7 +9,6 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public interface ObjectProcessingListener {
+public interface TaskObjectProcessingListener {
 
     /**
      * Called after a specific object was processed. (Whatever that means.)
@@ -34,6 +33,5 @@ public interface ObjectProcessingListener {
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
             @NotNull Collection<String> eventTags,
-            @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException;
 }

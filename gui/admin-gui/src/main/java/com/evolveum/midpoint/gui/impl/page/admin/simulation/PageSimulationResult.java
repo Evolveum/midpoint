@@ -45,9 +45,11 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AggregatedSimulationMetricValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+
+import static com.evolveum.midpoint.schema.util.AbstractSimulationMetricReferenceTypeUtil.getDisplayableIdentifier;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -119,10 +121,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         // todo implement
         IModel<List<SmallBoxData>> data = () -> {
 
-            List<SimulationMetricValueType> metrics = model.getObject().getMetric();
+            List<AggregatedSimulationMetricValueType> metrics = model.getObject().getMetric();
             return metrics.stream().map(m -> {
                 SmallBoxData sbd = new SmallBoxData();
-                sbd.setDescription(m.getIdentifier());
+                sbd.setDescription(getDisplayableIdentifier(m.getRef()));
                 sbd.setTitle("" + m.getValue());
                 sbd.setSmallBoxCssClass("bg-info");
                 sbd.setLinkText("More info");
