@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
@@ -48,7 +49,7 @@ import java.util.Optional;
 @PanelInstance(identifier = "roleWizard-construction-group",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageRole.wizard.step.construction.group", icon = "fa fa-building"),
+        display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
 public class ConstructionGroupStepPanel
         extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel.AssociationWrapper, ShadowType, FocusDetailsModels<RoleType>, ConstructionType> {
@@ -60,6 +61,7 @@ public class ConstructionGroupStepPanel
     private static final String SKIP_INFO = "skipInfo";
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
+    private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
     private IModel<SearchValue<ItemName>> associationRef = Model.of();
 
     public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
@@ -76,6 +78,13 @@ public class ConstructionGroupStepPanel
         super.onBeforeRender();
     }
 
+    public IModel<PrismContainerValueWrapper<ConstructionType>> getValueModel() {
+        if (valueModel == null) {
+            valueModel = createValueModel();
+        }
+        return valueModel;
+    }
+
     private boolean isSkipInfoVisible() {
         List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
@@ -86,9 +95,8 @@ public class ConstructionGroupStepPanel
         return selectedItems;
     }
 
-    @Override
     protected IModel<PrismContainerValueWrapper<ConstructionType>> createValueModel() {
-        return new LoadableModel<>() {
+        return new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConstructionType> load() {
 
@@ -113,6 +121,11 @@ public class ConstructionGroupStepPanel
     @Override
     protected void deselectItem(AssociationWrapper entry) {
         selectedItems.getObject().removeIf(selectedItem -> selectedItem.equals(entry));
+    }
+
+    @Override
+    protected boolean isSelectedItemsPanelVisible() {
+        return true;
     }
 
     @Override
@@ -169,7 +182,12 @@ public class ConstructionGroupStepPanel
                     PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper;
 
                     Optional<PrismContainerValueWrapper<ResourceObjectAssociationType>> match = associationContainer.getValues().stream().filter(
-                            value -> value.getRealValue().getRef().equivalent(item.associationName)).findFirst();
+                            value -> {
+                                if (value.getRealValue() == null || value.getRealValue().getRef() == null) {
+                                    return false;
+                                }
+                                return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
+                            }).findFirst();
                     if (match.isPresent()) {
                         valueWrapper = match.get();
                     } else {

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -38,94 +39,13 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectTileWizardStepPanel.class);
 
-    private static final String ID_TABLE = "table";
-
-    private IModel<PrismContainerValueWrapper<V>> valueModel;
-
-    public SelectTileWizardStepPanel(ODM model, IModel<PrismContainerValueWrapper<V>> valueModel) {
-        super(model);
-        initValueModel(valueModel);
-    }
+    static final String ID_TABLE = "table";
 
     public SelectTileWizardStepPanel(ODM model) {
         super(model);
-        initValueModel(null);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
-        if (valueModel == null) {
-            this.valueModel = createValueModel();
-        } else {
-            this.valueModel = valueModel;
-        }
-    }
-
-    protected IModel<PrismContainerValueWrapper<V>> createValueModel() {
-        return new LoadableModel<>() {
-            @Override
-            protected PrismContainerValueWrapper<V> load() {
-
-                ItemPath path = getPathForValueContainer();
-                try {
-                    PrismContainerWrapper<V> container =
-                            getDetailsModel().getObjectWrapper().findContainer(path);
-                    PrismContainerValue<V> newValue = createNewValue(container);
-                    PrismContainerValueWrapper<V> valueWrapper = WebPrismUtil.createNewValueWrapper(
-                            container, newValue, getPageBase(), getDetailsModel().createWrapperContext());
-                    container.getValues().add(valueWrapper);
-                    return valueWrapper;
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find parent container with path " + path + " in " + getDetailsModel().getObjectWrapper());
-                }
-                return null;
-            }
-        };
-    }
-
-    public void setValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
-        this.valueModel = valueModel;
-    }
-
-    protected PrismContainerValue<V> createNewValue(PrismContainerWrapper<V> parent) {
-        return parent.getItem().createNewValue();
     }
 
     protected abstract ItemPath getPathForValueContainer();
-
-    protected void initLayout() {
-        SingleSelectTileTablePanel<O> tilesTable =
-                new SingleSelectTileTablePanel<>(
-                        ID_TABLE,
-                        UserProfileStorage.TableId.PANEL_ACCESS_WIZARD_STEP) {
-
-                    @Override
-                    protected ObjectQuery getCustomQuery() {
-                        return SelectTileWizardStepPanel.this.getCustomQuery();
-                    }
-
-                    @Override
-                    protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
-                        return SelectTileWizardStepPanel.this.getSearchOptions();
-                    }
-
-                    @Override
-                    protected ContainerPanelConfigurationType getContainerConfiguration() {
-                        return SelectTileWizardStepPanel.this.getContainerConfiguration(getPanelType());
-                    }
-
-                    @Override
-                    protected Class<O> getType() {
-                        return SelectTileWizardStepPanel.this.getType();
-                    }
-                };
-        add(tilesTable);
-    }
 
     protected Class<O> getType() {
         return (Class<O>) ObjectType.class;
@@ -180,29 +100,17 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         return true;
     }
 
-    protected void performSelectedTiles() {
-        Optional<TemplateTile<SelectableBean<O>>> selectedTile =
-                getTable().getTilesModel().getObject().stream().filter(tile -> tile.isSelected()).findFirst();
-        if (selectedTile.isPresent()) {
-            performSelectedTile(selectedTile.get());
-        } else {
-            try {
-                getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
-                getValueModel().detach();
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't remove value from inducement container.");
-            }
-        }
-    }
+    protected abstract void performSelectedTiles();
 
-    protected void performSelectedTile(TemplateTile<SelectableBean<O>> selectedTile) {
+    protected <C extends Containerable> void performSelectedTile(
+            String oid, QName typeName, PrismContainerValueWrapper<C> value) {
         try {
             PrismReferenceWrapper<Referencable> resourceRef =
-                    getValueModel().getObject().findReference(getPathForTargetReference());
+                    value.findReference(getPathForTargetReference());
             resourceRef.getValue().setRealValue(
                     new ObjectReferenceType()
-                            .oid(selectedTile.getValue().getValue().getOid())
-                            .type(selectedTile.getValue().getValue().asPrismObject().getDefinition().getTypeName()));
+                            .oid(oid)
+                            .type(typeName));
         } catch (SchemaException e) {
             LOGGER.error("Couldn't find target reference.");
         }
@@ -218,10 +126,6 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
             performSelectedTiles();
             super.onSubmitPerformed(target);
         }
-    }
-
-    public IModel<PrismContainerValueWrapper<V>> getValueModel() {
-        return valueModel;
     }
 
     private boolean isNotSelected() {
