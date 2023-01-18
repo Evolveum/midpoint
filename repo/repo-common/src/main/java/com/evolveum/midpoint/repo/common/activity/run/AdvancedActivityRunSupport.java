@@ -87,6 +87,6 @@ public interface AdvancedActivityRunSupport {
     @NotNull ObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
 
     /** Closes the simulation result. */
-    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result)
+    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
             throws ObjectNotFoundException;
 }

@@ -87,6 +87,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         assertTest100SimulationResult(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest100SimulationResult(simResult, true);
         }
 
@@ -189,6 +192,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
         assertTest11xSimulationResult(name, target, accountShouldExist, simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest11xSimulationResult(name, target, accountShouldExist, simResult, true);
         }
 
@@ -230,7 +236,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
             throws CommonException {
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                 .display()
@@ -312,6 +318,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
         assertTest12xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest12xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
         }
 
@@ -327,7 +336,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
             throws CommonException {
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                 .display()
@@ -406,6 +415,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
         assertTest13xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest13xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
         }
 
@@ -422,7 +434,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         // @formatter:off
         if (accountShouldExist) {
-            Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+            Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
             assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                     .display()
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
@@ -487,6 +499,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
         assertTest14xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest14xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
         }
 
@@ -501,7 +516,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             SimulationResult simResult, boolean persistentOverride)
             throws CommonException {
 
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, "objects")
                 .display()
@@ -530,7 +545,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         // @formatter:on
     }
 
-    private void assertAccountAdded(String name, DummyTestResource target, Collection<ProcessedObject<?>> processedObjects) {
+    private void assertAccountAdded(
+            String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects) {
         assertProcessedObjects(processedObjects, "objects")
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
                     .assertEventTags()
@@ -588,6 +604,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         and("simulation result is OK");
         assertTest150UserDeltas(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest150UserDeltas(simResult, true);
         }
     }
@@ -633,6 +652,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         and("simulation result is OK");
         assertTest20xSimulationResult("test200", simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest20xSimulationResult("test200", simResult, true);
         }
 
@@ -770,6 +792,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         and("simulation result is OK");
         assertTest300UserDeltas(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest300UserDeltas(simResult, true);
         }
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.simulation;
 
 import java.util.List;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -28,8 +29,6 @@ public interface SimulationResultManager {
      * Creates a new simulation result in repository.
      *
      * @param definition Definition to use. If null, the default one is used.
-     * @param rootTaskOid
-     * @param configurationSpecification
      * @see #defaultDefinition()
      */
     @NotNull SimulationResultContext newSimulationResult(
@@ -50,10 +49,13 @@ public interface SimulationResultManager {
     /**
      * Fetches and parses all stored processed objects from given {@link SimulationResultType}.
      */
-    @NotNull List<ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
+    @NotNull List<? extends ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException;
 
     /** Closes the simulation result, e.g. computes the metrics. No "processed object" records should be added afterwards. */
-    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result)
+    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
             throws ObjectNotFoundException;
+
+    /** TODO */
+    ProcessedObject.Factory getProcessedObjectsFactory();
 }

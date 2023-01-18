@@ -165,9 +165,9 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result)
+    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
             throws ObjectNotFoundException {
         simulationResultManager
-                .closeSimulationResult(simulationResultRef, result);
+                .closeSimulationResult(simulationResultRef, task, result);
     }
 }

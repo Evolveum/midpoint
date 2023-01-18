@@ -118,6 +118,13 @@ public class TagManager {
         }
     }
 
+    public @NotNull Collection<TagType> getAllEventTags(OperationResult result) {
+        return getAllTags(result); // FIXME TEMPORARY
+//        return getAllTags(result).stream()
+//                .filter(tag -> ObjectTypeUtil.hasArchetypeRef(tag, SystemObjectsType.ARCHETYPE_EVENT_TAG.value()))
+//                .collect(Collectors.toList());
+    }
+
     /**
      * Collects all (global) policy rules from all tags. Adding the `tagRef` in case it does not include a reference to the
      * current tag.

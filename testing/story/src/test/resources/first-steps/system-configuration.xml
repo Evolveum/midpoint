@@ -11,25 +11,14 @@
     <simulation>
         <metric>
             <identifier>modifications</identifier>
-            <computation>
-                <original>
-                    <expression>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.prism.delta.ChangeType
-                                import com.evolveum.midpoint.prism.delta.ObjectDelta
-
-                                ObjectDelta delta = processedObject.delta
-                                if (delta?.changeType == ChangeType.MODIFY) {
-                                    delta.modifications.size()
-                                } else {
-                                    0
-                                }
-                            </code>
-                        </script>
-                    </expression>
-                </original>
-            </computation>
+            <objectValue>
+                <expression>
+                    <script>
+                        <code>processedObject.nonOperationalItemModificationsCount</code>
+                    </script>
+                </expression>
+            </objectValue>
         </metric>
+        <!-- TODO other metrics -->
     </simulation>
 </systemConfiguration>

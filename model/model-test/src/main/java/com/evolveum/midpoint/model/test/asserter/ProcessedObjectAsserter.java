@@ -11,10 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.test.AbstractTestResource;
 
 import org.jetbrains.annotations.NotNull;

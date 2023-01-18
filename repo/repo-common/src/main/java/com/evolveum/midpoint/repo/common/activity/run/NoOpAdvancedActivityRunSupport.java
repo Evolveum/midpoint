@@ -97,7 +97,7 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     }
 
     @Override
-    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, OperationResult result) {
+    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result) {
         throw noModelAvailableException();
     }
 }

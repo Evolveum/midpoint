@@ -76,6 +76,9 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         and("simulation result is OK");
         assertTest800Deltas(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest800Deltas(simResult, true);
         }
     }
@@ -140,6 +143,9 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         and("simulation result is OK");
         assertTest810Deltas(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest810Deltas(simResult, true);
         }
     }
@@ -194,6 +200,9 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         and("simulation result is OK");
         assertTest820Deltas(simResult, false);
         if (isNativeRepository()) {
+            closeSimulationResult(simResult, task, result);
+            assertSimulationResult(simResult, "after")
+                    .display();
             assertTest820Deltas(simResult, true);
         }
     }

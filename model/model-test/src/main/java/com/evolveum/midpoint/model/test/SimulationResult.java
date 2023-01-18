@@ -17,8 +17,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.jetbrains.annotations.NotNull;
@@ -102,28 +105,29 @@ public class SimulationResult {
         };
     }
 
-    ObjectProcessingListener objectProcessingListener() {
-        return this::onObjectProcessed;
+    ObjectProcessingListener objectProcessingListener(ProcessedObject.Factory factory) {
+        return new ObjectProcessingListener() {
+            @Override
+            public <O extends ObjectType> void onObjectProcessed(
+                    @Nullable O stateBefore,
+                    @Nullable ObjectDelta<O> executedDelta,
+                    @Nullable ObjectDelta<O> simulatedDelta,
+                    @NotNull Collection<String> eventTags,
+                    @NotNull Task task,
+                    @NotNull OperationResult ignored) throws SchemaException {
+                if (executedDelta != null) {
+                    executedDeltas.add(executedDelta);
+                }
+                ProcessedObject<?> processedObject = factory.create(stateBefore, simulatedDelta, eventTags);
+                if (processedObject != null) {
+                    objectsProcessedBySimulation.add(processedObject);
+                }
+            }
+        };
     }
 
     DummyAuditEventListener auditEventListener() {
         return record -> auditedDeltas.addAll(record.getDeltas());
-    }
-
-    private <O extends ObjectType> void onObjectProcessed(
-            @Nullable O stateBefore,
-            @Nullable ObjectDelta<O> executedDelta,
-            @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull Collection<String> eventTags,
-            @NotNull Task task,
-            @NotNull OperationResult ignored) throws SchemaException {
-        if (executedDelta != null) {
-            executedDeltas.add(executedDelta);
-        }
-        ProcessedObject<?> processedObject = ProcessedObject.create(stateBefore, simulatedDelta, eventTags);
-        if (processedObject != null) {
-            objectsProcessedBySimulation.add(processedObject);
-        }
     }
 
     public void assertNoExecutedNorAuditedDeltas() {
@@ -135,11 +139,19 @@ public class SimulationResult {
         assertThat(auditedDeltas).as("audited deltas").isEmpty();
     }
 
-    public Collection<ProcessedObject<?>> getProcessedObjects(OperationResult result) throws CommonException {
+    public Collection<? extends ProcessedObject<?>> getProcessedObjects(OperationResult result) throws CommonException {
         if (simulationResultOid != null) {
             return getPersistentProcessedObjects(result);
         } else {
             return getTransientProcessedObjects(result);
+        }
+    }
+
+    public ObjectReferenceType getSimulationResultRef() {
+        if (simulationResultOid != null) {
+            return ObjectTypeUtil.createObjectRef(simulationResultOid, ObjectTypes.SIMULATION_RESULT);
+        } else {
+            return null;
         }
     }
 
@@ -155,18 +167,19 @@ public class SimulationResult {
         return objectsProcessedBySimulation;
     }
 
-    public @NotNull List<ProcessedObject<?>> getPersistentProcessedObjects(OperationResult result) throws CommonException {
+    public @NotNull List<? extends ProcessedObject<?>> getPersistentProcessedObjects(OperationResult result)
+            throws CommonException {
         stateCheck(
                 simulationResultOid != null,
                 "Asking for persistent processed objects but there is no simulation result OID");
-        List<ProcessedObject<?>> objects = TestSpringBeans.getBean(SimulationResultManager.class)
+        List<? extends ProcessedObject<?>> objects = TestSpringBeans.getBean(SimulationResultManager.class)
                 .getStoredProcessedObjects(simulationResultOid, result);
         resolveTagNames(objects, result);
         applyAttributesDefinitions(objects, result);
         return objects;
     }
 
-    public void resolveTagNames(Collection<ProcessedObject<?>> processedObjects, OperationResult result) {
+    public void resolveTagNames(Collection<? extends ProcessedObject<?>> processedObjects, OperationResult result) {
         TagManager tagManager = TestSpringBeans.getBean(TagManager.class);
         for (ProcessedObject<?> processedObject : processedObjects) {
             if (processedObject.getEventTagsMap() == null) {
@@ -179,7 +192,8 @@ public class SimulationResult {
     /**
      * Shadow deltas stored in the repository have no definitions. These will be found and applied now.
      */
-    private void applyAttributesDefinitions(List<ProcessedObject<?>> objects, OperationResult result) throws CommonException {
+    private void applyAttributesDefinitions(List<? extends ProcessedObject<?>> objects, OperationResult result)
+            throws CommonException {
         for (ProcessedObject<?> object : objects) {
             if (object.getDelta() == null
                     || !ShadowType.class.equals(object.getType())) {

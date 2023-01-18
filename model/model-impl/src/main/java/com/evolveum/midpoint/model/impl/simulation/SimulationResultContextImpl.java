@@ -2,7 +2,6 @@ package com.evolveum.midpoint.model.impl.simulation;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -42,7 +41,7 @@ public class SimulationResultContextImpl implements SimulationResultContext, Obj
             @NotNull Task task,
             @NotNull OperationResult result) {
         try {
-            ProcessedObject<?> processedObject = ProcessedObject.create(stateBefore, simulatedDelta, eventTags);
+            ProcessedObjectImpl<?> processedObject = ProcessedObjectImpl.create(stateBefore, simulatedDelta, eventTags);
             if (processedObject != null) {
                 manager.storeProcessedObject(oid, processedObject, task, result);
             }
@@ -62,7 +61,7 @@ public class SimulationResultContextImpl implements SimulationResultContext, Obj
     }
 
     @Override
-    public @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException {
+    public @NotNull Collection<ProcessedObjectImpl<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException {
         return manager.getStoredProcessedObjects(oid, result);
     }
 }

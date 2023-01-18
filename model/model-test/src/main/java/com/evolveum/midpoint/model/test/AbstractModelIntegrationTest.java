@@ -6997,7 +6997,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 
         SimulationResult simulationResult = new SimulationResult(simulationResultOid);
-        ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
+        ObjectProcessingListener testObjectProcessingListener =
+                simulationResult.objectProcessingListener(simulationResultManager.getProcessedObjectsFactory());
         DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         try {
@@ -7094,7 +7095,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 desc);
     }
 
-    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
+    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
             throws CommonException {
         OperationResult result = getTestOperationResult();
         if (persistentOverride == null) {
@@ -7115,9 +7116,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(Collection<ProcessedObject<?>> objects, String message) {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
+            Collection<? extends ProcessedObject<?>> objects, String message) {
         return initializeAsserter(
                 ProcessedObjectsAsserter.forObjects(objects, message));
+    }
+
+    protected void closeSimulationResult(SimulationResult simResult, Task task, OperationResult result)
+            throws ObjectNotFoundException {
+        simulationResultManager.closeSimulationResult(
+                simResult.getSimulationResultRef(), task, result);
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResult simResult, String desc)
+            throws SchemaException, ObjectNotFoundException {
+        return initializeAsserter(
+                SimulationResultAsserter.forResult(
+                        simResult.getSimulationResultBean(getTestOperationResult()), desc));
     }
 
     protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResultType simResult, String desc) {

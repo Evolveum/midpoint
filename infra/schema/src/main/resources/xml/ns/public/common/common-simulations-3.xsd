@@ -177,6 +177,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -184,10 +185,26 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="computation" type="tns:AbstractSimulationMetricComputationType" minOccurs="0">
+            <xsd:choice>
+                <xsd:element name="objectValue" type="tns:OriginalSimulationMetricComputationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="aggregation" type="tns:AggregatedSimulationMetricComputationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="domain" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How is the metric computed?
+                        Domain for aggregation - i.e. specification of objects that undergo the aggregation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -222,34 +239,6 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:choice>
-    </xsd:complexType>
-
-    <xsd:complexType name="AbstractSimulationMetricComputationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specification of how is a simulation metric computed.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:choice>
-            <xsd:element name="original" type="tns:OriginalSimulationMetricComputationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="aggregated" type="tns:AggregatedSimulationMetricComputationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:choice>
@@ -303,13 +292,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="domain" type="tns:SimulationMetricAggregationDomainType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Domain for aggregation - i.e. specification of objects that undergo the aggregation.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="source" type="tns:AbstractSimulationMetricReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -317,10 +299,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="selection" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which objects are selected (relevant for some of the aggregation functions).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="dimension" type="tns:SimulationMetricAnalyticDimensionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Dimensions under which we want to analyze this metric.
+                        Dimensions under which we want to analyze this metric. (Not implemented yet.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -337,31 +326,123 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="sum">
+            <xsd:enumeration value="selectionSize">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionSize".
+                    </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUM"/>
+                        <jaxb:typesafeEnumMember name="SELECTION_SIZE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="avg">
+            <xsd:enumeration value="selectionTotalValue">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionTotalValue".
+                    </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="AVG"/>
+                        <jaxb:typesafeEnumMember name="SELECTION_TOTAL_VALUE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="min">
+            <xsd:enumeration value="domainSize">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "domainSize".
+                    </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MIN"/>
+                        <jaxb:typesafeEnumMember name="DOMAIN_SIZE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="max">
+            <xsd:enumeration value="domainTotalValue">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "domainTotalValue".
+                    </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MAX"/>
+                        <jaxb:typesafeEnumMember name="DOMAIN_TOTAL_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="domainTotalValueToDomainSize">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "domainTotalValue / domainSize".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOMAIN_TOTAL_VALUE_TO_DOMAIN_SIZE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectionTotalValueToDomainSize">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionTotalValue / domainSize".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_TOTAL_VALUE_TO_DOMAIN_SIZE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectionSizeToDomainSize">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionSize / domainSize".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_SIZE_TO_DOMAIN_SIZE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectionTotalValueToDomainTotalValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionTotalValue / domainTotalValue".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_TOTAL_VALUE_TO_DOMAIN_TOTAL_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="domainMinValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as minimal metric value in the domain.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOMAIN_MIN_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectionMinValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as minimal metric value in the selection.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_MIN_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="domainMaxValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as maximum metric value in the domain.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOMAIN_MAX_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="SELECTION_MAX_VALUE">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as maximum metric value in the selection.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_MAX_VALUE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -409,10 +490,11 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="SimulationMetricAggregationDomainType">
+    <xsd:complexType name="SimulationResultProcessedObjectPredicateType">
         <xsd:annotation>
             <xsd:documentation>
-                Specification of a domain over which we want to aggregate metric values.
+                A predicate over SimulationResultProcessedObjectType and/or ProcessedObject instances.
+                Used e.g. for selecting objects for aggregated metric domain and selected objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -424,6 +506,17 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         A filter over SimulationResultProcessedObjectType objects that denotes the matching ones.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An expression evaluated on SimulationResultProcessedObjectType and/or ProcessedObject instances
+                        that denotes the matching ones.
+
+                        Input: processedObject (ProcessedObject), with processedObject.originalBean pointing to
+                        SimulationResultProcessedObjectType.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -618,35 +711,129 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+            <xsd:element name="classifier" type="tns:AggregatedSimulationMetricClassifierType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object type "dimension" of the aggregation, if applicable.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="shadowDiscriminator" type="tns:ShadowDiscriminatorDimensionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Shadow discriminator "dimension" of the aggregation, if applicable.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="nullDimensions" type="tns:SimulationMetricAnalyticDimensionType" minOccurs="0"
-                    maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Dimensions that are present but null. (To distinguish them from dimensions not present.)
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="value" type="xsd:decimal" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The aggregated metric value.
+                        The aggregated metric value according to specified aggregation function.
+
+                        For example, for VALUE_PER_DOMAIN_ITEM function it is the selectionTotalValue / domainSize.
+                        See the description of aggregation functions for more information.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="selectionSize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects were selected by the metric selector?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionTotalValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Sum of the metric values for the selected objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="domainSize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects are there in the domain for this metric?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="domainTotalValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Sum of the metric values for all objects in the domain.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionMinValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimum value in the selection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="domainMinValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimum value in the domain.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionMaxValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximum value in the selection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="domainMaxValue" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximum value in the domain.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AggregatedSimulationMetricClassifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="typeName" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO (fully qualified)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!--<xsd:element name="nullDimensions" type="tns:SimulationMetricAnalyticDimensionType" minOccurs="0"-->
+            <!--        maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Dimensions that are present but null. (To distinguish them from dimensions not present.)-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -817,6 +1004,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="simulationResultProcessedObject" type="tns:SimulationResultProcessedObjectType"/>
 
     <xsd:simpleType name="ObjectProcessingStateType">
         <xsd:annotation>

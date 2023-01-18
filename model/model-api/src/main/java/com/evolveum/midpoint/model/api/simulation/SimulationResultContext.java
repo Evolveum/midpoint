@@ -44,5 +44,5 @@ public interface SimulationResultContext {
     }
 
     /** TEMPORARY. Retrieves stored processed objects. May be replaced by something more general in the future. */
-    @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException;
+    @NotNull Collection<? extends ProcessedObject<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException;
 }

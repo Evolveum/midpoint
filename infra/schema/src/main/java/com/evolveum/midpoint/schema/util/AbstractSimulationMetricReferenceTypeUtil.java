@@ -32,4 +32,16 @@ public class AbstractSimulationMetricReferenceTypeUtil {
     public static boolean isEventTag(@NotNull AbstractSimulationMetricReferenceType ref, String oid) {
         return oid != null && oid.equals(getOid(ref.getEventTagRef()));
     }
+
+    public static String describe(AbstractSimulationMetricReferenceType reference) {
+        if (reference == null) {
+            return "(no metric)";
+        }
+        String identifier = reference.getIdentifier();
+        if (identifier != null) {
+            return "metric '" + identifier + "'";
+        } else {
+            return "event tag '" + getOid(reference.getEventTagRef()) + "'";
+        }
+    }
 }

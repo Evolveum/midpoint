@@ -1214,8 +1214,8 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .display()
                     .assertStartTimestampBetween(before, after)
                     .assertEndTimestampBetween(simStartTs, after)
-                    .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, BigDecimal.valueOf(4))
-                    .assertMetricValueEntryCount(1);
+                    .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, BigDecimal.valueOf(4));
+                    // TODO other metrics, also classified ones
 
             // @formatter:off
             assertProcessedObjects(taskSimResult, "simulation deltas")

@@ -105,7 +105,8 @@ class SimulationSupport {
             stateCheck(simulationResultRef != null,
                     "No simulation result reference in %s even it should be there (created=true)", this);
             try {
-                activityRun.getBeans().getAdvancedActivityRunSupport().closeSimulationResult(simulationResultRef, result);
+                activityRun.getBeans().getAdvancedActivityRunSupport().closeSimulationResult(
+                        simulationResultRef, activityRun.getRunningTask(), result);
             } catch (ObjectNotFoundException e) {
                 throw new ActivityRunException("Couldn't close simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
             }
