@@ -35,12 +35,9 @@ import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublis
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -127,6 +124,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        if (mpAuthentication != null && mpAuthentication.authenticationShouldBeAborted()) {
+            clearAuthentication((HttpServletRequest) request);
+        }
 
         if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
             chain.doFilter(request, response);
@@ -434,16 +435,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return securityPolicy != null ? securityPolicy : getGlobalSecurityPolicy();
     }
 
-    private boolean isPrincipalAuthenticated(MidpointAuthentication mpAuthentication) {
-        return mpAuthentication != null && mpAuthentication.isAuthenticated() && mpAuthentication.getPrincipal() != null && !mpAuthentication.isAnonymous();
-    }
-
     private boolean principalExists(MidpointAuthentication mpAuthentication) {
         return mpAuthentication != null && mpAuthentication.getPrincipal() != null
                 && mpAuthentication.getPrincipal() instanceof MidPointPrincipal;
     }
-
-
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {
         return systemObjectCache.getSecurityPolicy();
@@ -506,7 +501,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
         PrismObject<SecurityPolicyType> securityPolicy = null;
-        List<AuthModule> authModules;   //vsetky module
+        List<AuthModule> authModules;
         AuthenticationSequenceType sequence = null;
         AuthenticationChannel authenticationChannel;
     }

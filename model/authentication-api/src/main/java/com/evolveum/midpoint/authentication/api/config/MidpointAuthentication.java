@@ -460,4 +460,12 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public boolean hasSucceededAuthentication() {
         return getAuthentications().stream().anyMatch(auth -> AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
     }
+
+    public boolean authenticationShouldBeAborted() {
+        return authentications
+                .stream()
+                .anyMatch(a -> AuthenticationModuleState.FAILURE.equals(a.getState())
+                        && AuthenticationSequenceModuleNecessityType.REQUISITE.equals(a.getNecessity()));
+    }
+
 }
