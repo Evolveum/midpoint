@@ -253,7 +253,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     private boolean allRequiredModulesAreSuccessful() {
-        return nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED);
+        return !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED);
     }
 
     private boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
