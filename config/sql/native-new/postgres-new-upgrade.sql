@@ -173,6 +173,7 @@ $aa$);
 call apply_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'TAG' AFTER 'SYSTEM_CONFIGURATION';
+   ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_TAG' AFTER 'PROJECTION';
    ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
 $aa$);
 
@@ -182,6 +183,7 @@ DROP TABLE IF EXISTS m_simulation_result CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object_default CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object CASCADE;
 DROP TABLE IF EXISTS m_tag CASCADE;
+DROP TABLE IF EXISTS m_processed_object_event_tag;
 DROP TYPE IF EXISTS ObjectProcessingStateType;
 -- TODO end of the block
 
@@ -283,6 +285,18 @@ CREATE TRIGGER m_tag_oid_delete_tr AFTER DELETE ON m_tag
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 
+CREATE TABLE m_processed_object_event_tag (
+  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
+  processedObjectCid INTEGER NOT NULL,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_TAG') STORED,
+  targetOid UUID NOT NULL, -- soft-references m_object
+  targetType ObjectType NOT NULL,
+  relationId INTEGER NOT NULL REFERENCES m_uri(id)
+
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_processed_object_event_tag_default PARTITION OF m_processed_object_event_tag DEFAULT;
 
 $aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
 

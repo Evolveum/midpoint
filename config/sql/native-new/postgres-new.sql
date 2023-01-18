@@ -96,6 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'DELEGATED',
     'INCLUDE',
     'PROJECTION',
+    'PROCESSED_OBJECT_EVENT_TAG',
     'OBJECT_CREATE_APPROVER',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
@@ -1953,6 +1954,20 @@ LANGUAGE plpgsql;
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
+
+
+CREATE TABLE m_processed_object_event_tag (
+  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
+  processedObjectCid INTEGER NOT NULL,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_TAG') STORED,
+  targetOid UUID NOT NULL, -- soft-references m_object
+  targetType ObjectType NOT NULL,
+  relationId INTEGER NOT NULL REFERENCES m_uri(id)
+
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_processed_object_event_tag_default PARTITION OF m_processed_object_event_tag DEFAULT;
 
 -- endregion
 

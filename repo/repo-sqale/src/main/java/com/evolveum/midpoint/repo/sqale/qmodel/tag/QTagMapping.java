@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.tag;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -21,10 +23,20 @@ public class QTagMapping
         extends QAssignmentHolderMapping<TagType, QTag, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "tag";
+    private static QTagMapping instance;
 
     public static QTagMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QTagMapping(repositoryContext);
+        if (needsInitialization(instance, repositoryContext)) {
+            instance = new QTagMapping(repositoryContext);
+        }
+        return getInstance();
     }
+
+    public static QTagMapping getInstance() {
+        return Objects.requireNonNull(instance);
+    }
+
+
 
     private QTagMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QTag.TABLE_NAME, DEFAULT_ALIAS_NAME,

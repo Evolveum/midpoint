@@ -57,6 +57,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
         addItemMapping(F_STATE, enumMapper(q -> q.state));
         addItemMapping(F_METRIC_IDENTIFIER, multiStringMapper(q -> q.metricIdentifiers));
+        addRefMapping(F_EVENT_TAG_REF, QProcessedObjectEventTagReferenceMapping.init(repositoryContext));
     }
 
     /*
@@ -113,6 +114,8 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
         // Before / After not serialized
         insert(row, jdbcSession);
+        // We store event tags
+        storeRefs(row, object.getEventTagRef(), QProcessedObjectEventTagReferenceMapping.getInstance(), jdbcSession);
         return row;
     }
 }
