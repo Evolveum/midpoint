@@ -72,6 +72,17 @@ The user template object definition could look like this one:
 			</target>
 		</mapping>
 
+        <item>
+            <description>
+            Item handling details, specifically in this case an override for display name
+            and item being emphasized which means that it will always be displayed in the user
+            interfaces (even if they are empty).
+            </description>
+            <ref>emailAddress</ref>
+            <displayName>Email Address</displayName>
+            <emphasized>true</emphasized>
+        </item>
+
     </objectTemplate>
 
 ----
