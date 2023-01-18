@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -104,7 +104,15 @@ public class SqlRecorder extends SqlLogger {
 
     public synchronized String dumpQueryBuffer() {
         StringBuilder sb = new StringBuilder("QUERIES:\n");
-        queryBuffer.forEach(q -> sb.append(q).append('\n'));
+        boolean someQueryAppended = false;
+        for (QueryEntry query : queryBuffer) {
+            if (someQueryAppended) {
+                sb.append("\n\n");
+            } else {
+                someQueryAppended = true;
+            }
+            sb.append(query);
+        }
         return sb.toString();
     }
 
