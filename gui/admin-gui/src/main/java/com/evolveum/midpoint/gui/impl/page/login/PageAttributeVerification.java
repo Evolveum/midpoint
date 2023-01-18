@@ -35,6 +35,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
@@ -166,7 +167,8 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
                 RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
                 attributeValue.setOutputMarkupId(true);
-                attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
+                attributeValue.add(new OnChangeAjaxBehavior() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {

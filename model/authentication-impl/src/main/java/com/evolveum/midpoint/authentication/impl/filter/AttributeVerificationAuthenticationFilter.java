@@ -15,6 +15,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,7 +51,7 @@ public class AttributeVerificationAuthenticationFilter extends MidpointUsernameP
 
     protected Map<ItemPath, String> obtainAttributeValues(HttpServletRequest request) {
         String attrValuesString = request.getParameter(SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY);
-        if (attrValuesString == null) {
+        if (StringUtils.isEmpty(attrValuesString)) {
             return null;
         }
 
