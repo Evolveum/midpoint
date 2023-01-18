@@ -2510,6 +2510,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test805SearchLinkRefs() throws SchemaException {
+        when("searching link references (pure owned-by filter)");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected ref is returned");
+        assertThat(result)
+                .hasSize(1)
+                .anyMatch(r -> refMatches(r, user3Oid, shadow1Oid, ORG_DEFAULT));
+    }
+
+    @Test
     public void test819ReferenceQueryFailsOnWrongTopLevelPath() {
         assertThatThrownBy(
                 () -> prismContext
@@ -2521,7 +2535,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
     }
 
-    // TODO test for linkRefs to ensure support of other ref paths
+    // TODO test wrong ref type
+    // TODO test multiple owned-by (failing)
     // endregion
 
     // region special cases

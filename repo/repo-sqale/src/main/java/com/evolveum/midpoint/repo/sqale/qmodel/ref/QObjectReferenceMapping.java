@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -73,7 +74,6 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     public static QObjectReferenceMapping<?, ?, ?> instanceRoleMembership;
 
     private final Supplier<QueryTableMapping<OS, OQ, OR>> ownerMappingSupplier;
-    private final ItemPath referencePath;
 
     // region static init/get methods
     public static <Q extends QObject<R>, R extends MObject>
@@ -127,7 +127,11 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
         if (needsInitialization(instanceProjection, repositoryContext)) {
             instanceProjection = new QObjectReferenceMapping<>(
                     "m_ref_projection", "refpj", repositoryContext,
-                    QShadowMapping::getShadowMapping);
+                    QShadowMapping::getShadowMapping,
+                    QFocusMapping::getFocusMapping,
+                    (q, oq) -> q.ownerOid.eq(oq.oid),
+                    FocusType.class,
+                    FocusType.F_LINK_REF);
         }
         return getForProjection();
     }
@@ -225,6 +229,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
                     QAbstractRoleMapping::getAbstractRoleMapping,
                     QAssignmentHolderMapping::getAssignmentHolderMapping,
                     (q, oq) -> q.ownerOid.eq(oq.oid),
+                    AssignmentHolderType.class,
                     AssignmentHolderType.F_ROLE_MEMBERSHIP_REF);
         }
         return getForRoleMembership();
@@ -244,7 +249,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
         this(tableName, defaultAliasName,
                 repositoryContext, targetMappingSupplier,
-                null, null, null);
+                null, null, null, null);
     }
 
     /** {@inheritDoc} */
@@ -256,13 +261,14 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier,
             @Nullable Supplier<QueryTableMapping<OS, OQ, OR>> ownerMappingSupplier,
             @Nullable BiFunction<QObjectReference<OR>, OQ, Predicate> ownerJoin,
+            @Nullable Class<?> ownerType,
             @Nullable ItemPath referencePath) {
         super(tableName, defaultAliasName, (Class) QObjectReference.class,
                 repositoryContext, targetMappingSupplier,
-                ownerMappingSupplier, ownerJoin);
+                ownerMappingSupplier, ownerJoin,
+                ownerType, referencePath);
 
         this.ownerMappingSupplier = ownerMappingSupplier;
-        this.referencePath = referencePath;
     }
 
     @Override

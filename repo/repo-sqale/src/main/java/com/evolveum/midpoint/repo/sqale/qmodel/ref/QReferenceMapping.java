@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
@@ -51,10 +54,36 @@ public class QReferenceMapping<
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
 
+    public static final Map<Class<?>, Map<ItemPath, QReferenceMapping<?, ?, ?, ?>>>
+            MAPPING_BY_OWNER_TYPE_AND_PATH = new HashMap<>();
+
+    protected final ItemPath referencePath;
+
     public static QReferenceMapping<?, ?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
         return new QReferenceMapping<>(
                 QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS, repositoryContext,
                 QObjectMapping::getObjectMapping);
+    }
+
+    public static void registerByOwnerTypeAndPath(
+            Class<?> ownerType, ItemPath itemPath, QReferenceMapping<?, ?, ?, ?> mapping) {
+        Map<ItemPath, QReferenceMapping<?, ?, ?, ?>> ownerSubmap =
+                MAPPING_BY_OWNER_TYPE_AND_PATH.computeIfAbsent(ownerType, k -> new HashMap<>());
+        ownerSubmap.put(itemPath, mapping);
+    }
+
+    public static QReferenceMapping<?, ?, ?, ?> getByOwnerTypeAndPath(Class<?> ownerType, ItemPath itemPath) {
+        // get() is not enough, we need to support sub-typing as well
+        for (var entry : MAPPING_BY_OWNER_TYPE_AND_PATH.entrySet()) {
+            Class<?> ownerTypeCandidate = entry.getKey();
+            if (ownerTypeCandidate.isAssignableFrom(ownerType)) {
+                QReferenceMapping<?, ?, ?, ?> mapping = entry.getValue().get(itemPath);
+                if (mapping != null) {
+                    return mapping;
+                }
+            }
+        }
+        return null;
     }
 
     protected <TQ extends QObject<TR>, TR extends MObject> QReferenceMapping(
@@ -63,7 +92,8 @@ public class QReferenceMapping<
             Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext,
             @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
-        this(tableName, defaultAliasName, queryType, repositoryContext, targetMappingSupplier, null, null);
+        this(tableName, defaultAliasName, queryType, repositoryContext, targetMappingSupplier,
+                null, null, null, null);
     }
 
     /**
@@ -74,6 +104,9 @@ public class QReferenceMapping<
      * @param ownerMappingSupplier optional supplier for reference owner, needed for .. (parent) resolution
      * and support of reference search
      * @param ownerJoin JOIN function for parent resolution
+     * @param ownerType needed for registration for reference search later; this cannot be taken
+     * from the ownerMappingSupplier yet, because the supplier may still return null at this moment
+     * @param referencePath item path to the reference in the owner
      * @param <OS> reference owner schema type, needed only for safer typing in the constructor
      * @param <TQ> type of target entity path
      * @param <TR> row type related to the {@link TQ}
@@ -85,14 +118,16 @@ public class QReferenceMapping<
             @NotNull SqaleRepoContext repositoryContext,
             @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier,
             @Nullable Supplier<QueryTableMapping<OS, OQ, OR>> ownerMappingSupplier,
-            @Nullable BiFunction<Q, OQ, Predicate> ownerJoin) {
+            @Nullable BiFunction<Q, OQ, Predicate> ownerJoin,
+            @Nullable Class<?> ownerType,
+            @Nullable ItemPath referencePath) {
         super(tableName, defaultAliasName, ObjectReferenceType.class, queryType, repositoryContext);
 
         if (ownerMappingSupplier != null) {
-            if (ownerJoin == null) {
-                throw new IllegalArgumentException(
-                        "When owner mapping is provided, owner JOIN function must be provided too."
-                                + " Mapping for table '" + tableName + "', default alias '" + defaultAliasName + "'.");
+            if (ownerJoin == null || ownerType == null || referencePath == null) {
+                throw new IllegalArgumentException("When owner mapping is provided,"
+                        + " owner JOIN function, owner type and referencePath must be provided too."
+                        + " Mapping for table '" + tableName + "', default alias '" + defaultAliasName + "'.");
             }
             addRelationResolver(PrismConstants.T_PARENT,
                     // Mapping supplier is used to avoid cycles in the initialization code.
@@ -105,7 +140,12 @@ public class QReferenceMapping<
                             q -> q.targetType,
                             q -> q.relationId,
                             null)));
+
+            registerByOwnerTypeAndPath(ownerType, referencePath, this);
         }
+
+        this.referencePath = referencePath;
+
         addRelationResolver(PrismConstants.T_OBJECT_REFERENCE,
                 new RefTableTargetResolver<>(targetMappingSupplier));
     }

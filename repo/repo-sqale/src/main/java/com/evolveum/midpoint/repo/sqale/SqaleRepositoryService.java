@@ -54,9 +54,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -1283,20 +1283,70 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             ObjectFilter filter = query.getFilter();
             if (!(filter instanceof OwnedByFilter || filter instanceof LogicalFilter)) {
-                throw new UnsupportedOperationException("Invalid filter for reference search: " + filter);
+                throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
+                        + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
             }
 
-//            OwnedByFilter ownedByFilter = (OwnedByFilter) filter;
-            // TODO later this should be resolved from the ownedBy filter, starting with its type
-            SqaleQueryContext<ObjectReferenceType, QObjectReference<MObject>, MReference> queryContext =
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(filter);
+            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
                     SqaleQueryContext.from(
-                            QObjectReferenceMapping.getForRoleMembership(),
-                            sqlRepoContext, sqlRepoContext.newQuery(), null);
+                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
             return sqlQueryExecutor.list(queryContext, query, options);
         } catch (RepositoryException e) {
             throw new RuntimeException(e);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @NotNull
+    private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
+        OwnedByFilter ownedByFilter;
+        if (filter instanceof OwnedByFilter) {
+            ownedByFilter = (OwnedByFilter) filter;
+        } else if (filter instanceof LogicalFilter) {
+            ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
+        } else {
+            throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
+                    + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
+        }
+
+        ComplexTypeDefinition type = ownedByFilter.getType();
+        ItemPath path = ownedByFilter.getPath();
+        QReferenceMapping<?, ?, ?, ?> refMapping =
+                QReferenceMapping.getByOwnerTypeAndPath(type.getCompileTimeClass(), path);
+        if (refMapping == null) {
+            throw new QueryException(
+                    "Reference search is not supported for " + type + " and item path " + path);
+        }
+        return refMapping;
+    }
+
+    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter, ObjectFilter originalFilter)
+            throws QueryException {
+        if (filter instanceof OwnedByFilter) {
+            return (OwnedByFilter) filter;
+        } else if (filter instanceof UnaryLogicalFilter) {
+            return extractOwnedByFilterForReferenceSearch(((UnaryLogicalFilter) filter).getFilter(), originalFilter);
+        } else if (filter instanceof NaryLogicalFilter) {
+            OwnedByFilter ownedByFilter = null;
+            for (ObjectFilter condition : ((NaryLogicalFilter) filter).getConditions()) {
+                if (condition instanceof OwnedByFilter) {
+                    if (ownedByFilter != null) {
+                        throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                                + " for reference search, but multiple found. Filter: " + originalFilter);
+                    }
+                    ownedByFilter = (OwnedByFilter) condition;
+                }
+            }
+            if (ownedByFilter == null) {
+                throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                        + " for reference search, but none found. Filter: " + originalFilter);
+            }
+            return ownedByFilter;
+        } else {
+            throw new QueryException("Invalid filter for reference search: " + originalFilter
+                    + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
         }
     }
     // endregion
