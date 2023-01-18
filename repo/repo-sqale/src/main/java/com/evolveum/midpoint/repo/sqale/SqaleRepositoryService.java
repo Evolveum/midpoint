@@ -1286,9 +1286,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 throw new UnsupportedOperationException("Invalid filter for reference search: " + filter);
             }
 
-            System.out.println("query = " + query);
 //            OwnedByFilter ownedByFilter = (OwnedByFilter) filter;
-
             // TODO later this should be resolved from the ownedBy filter, starting with its type
             SqaleQueryContext<ObjectReferenceType, QObjectReference<MObject>, MReference> queryContext =
                     SqaleQueryContext.from(
