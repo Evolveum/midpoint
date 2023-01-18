@@ -46,7 +46,7 @@ public class InitialDataImport extends DataImport {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 
-    private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/*";
+    private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/**/*.xml";
 
     public void init() throws SchemaException {
         init(false);

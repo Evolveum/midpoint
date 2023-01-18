@@ -85,7 +85,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                     // todo if bean.getValue == null ||  bean.getResult is not success - show warning/error with some text instead of name
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
                     if (obj == null) {
-                        return null;
+                        return "asdf";
                     }
 
                     return WebComponentUtil.getTranslatedPolyString(obj.getName());
