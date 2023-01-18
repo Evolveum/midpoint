@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1279,29 +1279,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) {
+        // TODO cleanup, op-result and other ceremonies
         try {
-            // First experiment: query has OwnedBy filter only
             ObjectFilter filter = query.getFilter();
-            if (!(filter instanceof OwnedByFilter)) {
+            if (!(filter instanceof OwnedByFilter || filter instanceof LogicalFilter)) {
                 throw new UnsupportedOperationException("Invalid filter for reference search: " + filter);
             }
 
             System.out.println("query = " + query);
-            OwnedByFilter ownedByFilter = (OwnedByFilter) filter;
+//            OwnedByFilter ownedByFilter = (OwnedByFilter) filter;
 
             // TODO later this should be resolved from the ownedBy filter, starting with its type
-            SqaleQueryContext<Referencable, QObjectReference<MObject>, MReference> queryContext =
+            SqaleQueryContext<ObjectReferenceType, QObjectReference<MObject>, MReference> queryContext =
                     SqaleQueryContext.from(
                             QObjectReferenceMapping.getForRoleMembership(),
                             sqlRepoContext, sqlRepoContext.newQuery(), null);
-            SearchResultList<Referencable> list = sqlQueryExecutor.list(queryContext, query, options);
-            System.out.println("list = " + list);
-
-            // 1. select refs, this can be low-level repo based List<MReference>
-            // 2. collect unique owner OIDs // from here optionally based on options? what if client does not want parents?
-            // 3. select owner objects
-            // 4. crawl the object to extract the result references from them
-            return new SearchResultList<>();
+            return sqlQueryExecutor.list(queryContext, query, options);
         } catch (RepositoryException e) {
             throw new RuntimeException(e);
         } catch (SchemaException e) {

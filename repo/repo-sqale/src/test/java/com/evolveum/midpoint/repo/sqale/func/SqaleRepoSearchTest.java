@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -113,6 +112,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         String roleOtherOid = repositoryService.addObject(
                 new RoleType().name("role-other")
+                        .asPrismObject(), null, result);
+        String roleOneMoreOid = repositoryService.addObject(
+                new RoleType().name("role-one-more")
                         .asPrismObject(), null, result);
 
         // org structure
@@ -241,7 +243,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.SUCCESS)
                         .timestamp("2021-10-01T00:00:00Z"))
-                .roleMembershipRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
+                .roleMembershipRef(testRefWithMetadata(roleOtherOid, RoleType.COMPLEX_TYPE, relation2))
                 .extension(new ExtensionType());
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -369,6 +371,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .organization("org-2")
                         .organizationalUnit("ou-1")
                         .organizationalUnit("ou-2")
+                        .roleMembershipRef(testRefWithMetadata(
+                                roleOneMoreOid, RoleType.COMPLEX_TYPE, ORG_DEFAULT))
                         .asPrismObject(),
                 null, result);
 
@@ -474,6 +478,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         });
 
         assertThatOperationResult(result).isSuccess();
+    }
+
+    private ObjectReferenceType testRefWithMetadata(String targetOid, QName targetType, QName relation) throws SchemaException {
+        ObjectReferenceType ref = new ObjectReferenceType()
+                .oid(targetOid)
+                .type(targetType)
+                .relation(relation);
+        ref.asReferenceValue().setValueMetadata(new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .acquisition(new ProvenanceAcquisitionType()
+                                .channel("acquisition-channel"))));
+        return ref;
     }
 
     // region simple filters
@@ -2441,17 +2457,45 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test // TODO disable if not finished before merging
     public void test800SearchReference() {
         OperationResult operationResult = createOperationResult();
-        ObjectFilter parentFilter = null;
+        queryRecorder.clearBufferAndStartRecording();
 
-        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
-                .and()
-                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE)
-                .build();
-        // orgXOid, org11Oid have user2 as a member
-//        ObjectFilter parentFilter = userTypeQuery.id("user-oid-here").buildFilter();
-        SearchResultList<ObjectReferenceType> objectReferenceTypes =
-                repositoryService.searchReferences(refQuery, null, operationResult);
+        try {
+            ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                    .and()
+                    .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, relation2)
+                    .build();
+            // orgXOid, org11Oid have user2 as a member
+            SearchResultList<ObjectReferenceType> result =
+                    repositoryService.searchReferences(refQuery, null, operationResult);
+            // TODO asserts incl. metadata check
+            System.out.println("result = " + result);
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.dumpQueryBuffer());
+        }
     }
+
+    @Test // TODO disable if not finished before merging
+    public void test801SearchReferenceWithImpliedDefaultRelation() {
+        OperationResult operationResult = createOperationResult();
+        queryRecorder.clearBufferAndStartRecording();
+
+        try {
+            ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                    .and()
+                    .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE) // no relation => default
+                    .build();
+            // orgXOid, org11Oid have user2 as a member
+            SearchResultList<ObjectReferenceType> result =
+                    repositoryService.searchReferences(refQuery, null, operationResult);
+            // TODO asserts
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.dumpQueryBuffer());
+        }
+    }
+
+    // TODO test with relation is null behavior
 
     @Test
     public void test819SearchReferenceFailsOnWrongTopLevelPath() {
@@ -2464,6 +2508,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
     }
+
+    // TODO test for linkRefs to ensure support of other ref paths
     // endregion
 
     // region special cases
