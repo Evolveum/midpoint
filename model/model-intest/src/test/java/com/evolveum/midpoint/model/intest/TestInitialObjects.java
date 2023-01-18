@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.intest;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -47,16 +47,13 @@ public class TestInitialObjects extends AbstractIntegrationTest {
                 .getResources(INITIAL_OBJECTS_RESOURCE_PATTERN);
 
         for (Resource resource : resources) {
-            File file = resource.getFile();
-            if (file.isFile()) {
-                try {
-                    testInitialObject(validator, errorsSb, file);
-                } catch (Throwable e) {
-                    String msg = "Error processing file " + file.getName() + ": " + e.getMessage();
-                    logger.error(msg, e);
-                    displayException(msg, e);
-                    throw e;
-                }
+            try (InputStream is = resource.getInputStream()) {
+                testInitialObject(validator, errorsSb, is, resource.getFilename());
+            } catch (Throwable e) {
+                String msg = "Error processing file " + resource.getFilename() + ": " + e.getMessage();
+                logger.error(msg, e);
+                displayException(msg, e);
+                throw e;
             }
         }
 
@@ -65,8 +62,8 @@ public class TestInitialObjects extends AbstractIntegrationTest {
         }
     }
 
-    private <O extends ObjectType> void testInitialObject(ObjectValidator validator, StringBuilder errorsSb, File file) throws SchemaException, IOException {
-        PrismObject<O> object = prismContext.parseObject(file);
+    private <O extends ObjectType> void testInitialObject(ObjectValidator validator, StringBuilder errorsSb, InputStream is, String fileName) throws SchemaException, IOException {
+        PrismObject<O> object = prismContext.parserFor(is).xml().parse();
         ValidationResult validationResult = validator.validate(object);
         if (validationResult.isEmpty() || isIgnoredWarning(validationResult)) {
             display("Checked " + object + ": no warnings");
@@ -74,7 +71,7 @@ public class TestInitialObjects extends AbstractIntegrationTest {
         }
         displayDumpable("Validation warnings for " + object, validationResult);
         for (ValidationItem valItem : validationResult.getItems()) {
-            errorsSb.append(file.getName());
+            errorsSb.append(fileName);
             errorsSb.append(" ");
             errorsSb.append(object);
             errorsSb.append(" ");
