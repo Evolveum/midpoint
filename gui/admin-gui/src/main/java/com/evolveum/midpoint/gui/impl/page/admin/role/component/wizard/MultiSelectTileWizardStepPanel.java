@@ -19,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 

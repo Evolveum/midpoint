@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -28,12 +29,12 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
         expanded = true)
-public class AttributeOutboundStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<MappingType, ResourceDetailsModel> {
+public class AttributeOutboundStepPanel<ODM extends ObjectDetailsModels>
+        extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
     public static final String PANEL_TYPE = "rw-attribute-outbound";
 
-    public AttributeOutboundStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
+    public AttributeOutboundStepPanel(ODM model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }
 

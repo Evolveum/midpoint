@@ -71,7 +71,7 @@ public class ResourceWizardPanel extends BasePanel {
             }
 
             @Override
-            public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                 return ResourceWizardPanel.this.onSaveResourcePerformed(target);
             }
         };
@@ -102,7 +102,7 @@ public class ResourceWizardPanel extends BasePanel {
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
-            WebComponentUtil.createToastForCreateObject(target, this, ResourceType.COMPLEX_TYPE);
+            WebComponentUtil.createToastForCreateObject(target, ResourceType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }

@@ -66,9 +66,9 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
                     onExitPerformed(target);
                     return;
                 }
-                OperationResult result = CredentialsWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = CredentialsWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
-                    WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
+                    WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
             }

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -37,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
+public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
     private static final String ID_TAB_TABLE = "tabTable";
 
@@ -45,7 +47,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
 
     public AttributeMappingsTableWizardPanel(
             String id,
-            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper,
+            WizardPanelHelper<P, ResourceDetailsModel> superHelper,
             WrapperContext.AttributeMappingType initialTab) {
         super(id, superHelper);
         this.initialTab = initialTab;
@@ -108,7 +110,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new InboundAttributeMappingsTable(panelId, getValueModel()) {
+                return new InboundAttributeMappingsTable<>(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -118,7 +120,16 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
                     }
                 };
             }
+
+            @Override
+            public boolean isVisible() {
+                return isInboundVisible();
+            }
         };
+    }
+
+    protected boolean isInboundVisible() {
+        return true;
     }
 
     private ITab createOutboundTableTab() {
@@ -127,7 +138,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new OutboundAttributeMappingsTable(panelId, getValueModel()) {
+                return new OutboundAttributeMappingsTable<>(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -137,7 +148,16 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
                     }
                 };
             }
+
+            @Override
+            public boolean isVisible() {
+                return isOutboundVisible();
+            }
         };
+    }
+
+    protected boolean isOutboundVisible() {
+        return true;
     }
 
     public TabbedPanel<ITab> getTabPanel() {
@@ -190,9 +210,13 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
         return "AttributeMappingsTableWizardPanel.saveButton";
     }
 
-    protected abstract void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target);
+    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
 
-    protected abstract void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target);
+    }
+
+    protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+
+    }
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
