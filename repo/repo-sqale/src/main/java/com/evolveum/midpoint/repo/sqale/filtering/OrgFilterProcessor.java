@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -106,7 +106,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
     }
 
     private QObjectReference<MObject> getNewRefAlias() {
-        QObjectReferenceMapping<QObject<MObject>, MObject> refMapping =
+        QObjectReferenceMapping<?, QObject<MObject>, MObject> refMapping =
                 QObjectReferenceMapping.getForParentOrg();
         return refMapping.newAlias(
                 context.uniqueAliasName(refMapping.defaultAliasName()));
