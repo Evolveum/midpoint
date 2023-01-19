@@ -537,6 +537,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             public ObjectQuery getCustomizeContentQuery() {
                 return AbstractAssignmentTypePanel.this.getCustomizeQuery();
             }
+
+            @Override
+            public PrismContainerDefinition<AssignmentType> getDefinition() {
+                return getTypeDefinitionForSearch();
+            }
         });
     }
 
