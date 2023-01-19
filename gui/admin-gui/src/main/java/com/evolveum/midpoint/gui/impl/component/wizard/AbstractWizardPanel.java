@@ -99,8 +99,8 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
         return helper.getValueModel();
     }
 
-    protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-        return helper.onSaveResourcePerformed(target);
+    protected OperationResult onSavePerformed(AjaxRequestTarget target) {
+        return helper.onSaveObjectPerformed(target);
     }
 
     protected boolean isSavedAfterWizard() {

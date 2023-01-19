@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-governance";
+    public static final String PANEL_TYPE = "roleWizard-governance";
     private static final String ID_TABLE = "table";
 
     public GovernanceMembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {

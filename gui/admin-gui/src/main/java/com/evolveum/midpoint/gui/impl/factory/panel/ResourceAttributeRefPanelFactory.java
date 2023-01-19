@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.wicket.model.IModel;
@@ -75,7 +76,7 @@ public class ResourceAttributeRefPanelFactory
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         ItemPath wrapperPath = wrapper.getPath().removeIds();
-        return isAssignmentAttributeOrAssociation(wrapperPath) || isInducementAttributeOrAssociation(wrapperPath);
+        return isAssignmentAttributeOrAssociation(wrapperPath) || isInducementAttributeOrAssociation(wrapper);
     }
 
     private boolean isAssignmentAttributeOrAssociation(ItemPath wrapperPath) {
@@ -85,11 +86,21 @@ public class ResourceAttributeRefPanelFactory
         return assignmentAttributePath.equivalent(wrapperPath) || assignmentAssociationPath.equivalent(wrapperPath);
     }
 
-    private boolean isInducementAttributeOrAssociation(ItemPath wrapperPath) {
+    private <IW extends ItemWrapper<?, ?>> boolean isInducementAttributeOrAssociation(IW wrapper) {
+        ItemPath wrapperPath = wrapper.getPath().removeIds();
         ItemPath inducementAttributePath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
         ItemPath inducementAssociationPath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceAttributeDefinitionType.F_REF);
 
-        return inducementAttributePath.equivalent(wrapperPath) || inducementAssociationPath.equivalent(wrapperPath);
+        return inducementAttributePath.equivalent(wrapperPath) || inducementAssociationPath.equivalent(wrapperPath) || isVirtualPropertyOfMapping(wrapper);
+    }
+
+    private <IW extends ItemWrapper<?, ?>> boolean isVirtualPropertyOfMapping(IW wrapper) {
+        return QNameUtil.match(wrapper.getItemName(), ResourceAttributeDefinitionType.F_REF)
+                && wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+                AbstractRoleType.F_INDUCEMENT,
+                AssignmentType.F_CONSTRUCTION,
+                ConstructionType.F_ATTRIBUTE,
+                ResourceAttributeDefinitionType.F_OUTBOUND));
     }
 
     private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
@@ -101,17 +112,19 @@ public class ResourceAttributeRefPanelFactory
         }
 
         //attribute value
-        if (wrapper.getParent() == null) {
+        PrismContainerValueWrapper<ResourceAttributeDefinitionType> attributeValueWrapper =
+                wrapper.getParentContainerValue(ResourceAttributeDefinitionType.class);
+        if (attributeValueWrapper == null) {
             return Collections.emptyList();
         }
 
         //attribute
-        ItemWrapper<?, ?> attributeWrapper = wrapper.getParent().getParent();
+        ItemWrapper<?, ?> attributeWrapper = attributeValueWrapper.getParent();
         if (attributeWrapper == null) {
             return Collections.emptyList();
         }
 
-        PrismContainerValueWrapper<?> itemWrapper = attributeWrapper.getParent();
+        PrismContainerValueWrapper<ConstructionType> itemWrapper = wrapper.getParentContainerValue(ConstructionType.class);
 
         if (itemWrapper == null) {
             return Collections.emptyList();

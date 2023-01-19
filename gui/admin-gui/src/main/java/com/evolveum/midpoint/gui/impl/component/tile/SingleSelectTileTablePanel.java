@@ -110,13 +110,13 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
         return new LoadableModel<>(false) {
             @Override
             protected Search<O> load() {
-                return SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
+                return SearchFactory.createSearch(createSearchConfigWrapper(getType()), false, getPageBase());
             }
         };
     }
 
     protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>(type, getPageBase());
+        return SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
     }
 
     protected Class<O> getType() {

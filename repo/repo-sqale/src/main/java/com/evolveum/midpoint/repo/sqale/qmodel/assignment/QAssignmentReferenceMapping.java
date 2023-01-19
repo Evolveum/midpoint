@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Both mapping instances are initialized (`init*()` methods) in {@link QAssignmentMapping}.
  * Init methods can be called multiple times, only one instance for each sub-tables is created.
  *
- * @param <AOR> type of the row (M-bean) of the assignment owner
+ * @param <AOR> type of the row (M-bean) of the owner (assignment)
  */
 public class QAssignmentReferenceMapping<AOR extends MObject>
         extends QReferenceMapping<QAssignmentReference, MAssignmentReference, QAssignment<AOR>, MAssignment> {
