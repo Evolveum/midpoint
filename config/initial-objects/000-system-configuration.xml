@@ -342,8 +342,7 @@
                     <help>PageSelfDashboard.profile.description</help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
-                        <cssClass>fa fa-user</cssClass>
-                        <color>green</color>
+                        <cssClass>bg-green fa fa-user</cssClass>
                     </icon>
                 </display>
                 <panelType>linkWidget</panelType>
@@ -366,8 +365,7 @@
                     <help>PageSelfDashboard.credentials.description</help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
-                        <cssClass>fa fa-shield-alt</cssClass>
-                        <color>blue</color>
+                        <cssClass>bg-blue fa fa-shield-alt</cssClass>
                     </icon>
                 </display>
                 <panelType>linkWidget</panelType>
@@ -389,8 +387,7 @@
                     </label>
                     <cssClass>col-md-3</cssClass>
                     <icon>
-                        <cssClass>fa fa-database</cssClass>
-                        <color>purple</color>
+                        <cssClass>bg-purple fa fa-database</cssClass>
                     </icon>
                 </display>
                 <panelType>linkWidget</panelType>
@@ -412,8 +409,7 @@
                     </label>
                     <cssClass>col-md-3</cssClass>
                     <icon>
-                        <cssClass>fa fa-user</cssClass>
-                        <color>red</color>
+                        <cssClass>bg-red fa fa-user</cssClass>
                     </icon>
                 </display>
                 <panelType>linkWidget</panelType>
@@ -783,6 +779,22 @@
                     <collectionRef oid="00000000-0000-0000-0000-000000000171" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>application-role</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>business-role</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage>
@@ -909,6 +921,30 @@
                             <c:path>stalledSince</c:path>
                         </item>
                     </container>
+                </panel>
+            </objectDetailsPage>
+            <objectDetailsPage>
+                <type>c:UserType</type>
+                <panel>
+                    <identifier>roleMemberships</identifier>
+                    <display>
+                        <label>Application.panel.applications</label>
+                    </display>
+                    <panelType>roleMemberships</panelType>
+                    <listView>
+                        <identifier>applications</identifier>
+                        <type>c:ServiceType</type>
+                        <collection>
+                            <collectionRef oid="00000000-0000-0000-0001-000000000017" type="c:ObjectCollectionType"/>
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>ServiceType</defaultValue>
+                                <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
                 </panel>
             </objectDetailsPage>
             <resourceDetailsPage>
