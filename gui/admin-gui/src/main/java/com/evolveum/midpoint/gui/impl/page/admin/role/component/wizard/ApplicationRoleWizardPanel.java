@@ -76,6 +76,7 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
+        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
         showChoiceFragment(
                 target,
                 new RoleWizardPreviewPanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
