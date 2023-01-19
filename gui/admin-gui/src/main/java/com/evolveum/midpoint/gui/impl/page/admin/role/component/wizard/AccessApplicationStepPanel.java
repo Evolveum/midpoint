@@ -22,7 +22,7 @@ import java.util.Collection;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.application", icon = "fa fa-list"),
         containerPath = "empty")
-public class AccessApplicationStepPanel extends SelectTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {
+public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {
 
     public static final String PANEL_TYPE = "roleWizard-access-application";
 

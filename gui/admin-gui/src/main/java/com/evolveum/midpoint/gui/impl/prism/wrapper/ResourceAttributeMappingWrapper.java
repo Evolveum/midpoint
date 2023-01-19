@@ -527,4 +527,12 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             return this;
         }
     }
+
+    public void applyDelta() throws SchemaException {
+        Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> deltas = getDelta();
+        getItem().clear();
+        for (ItemDelta<? extends PrismValue, ? extends ItemDefinition> delta : deltas) {
+            delta.applyTo(getItem());
+        }
+    }
 }

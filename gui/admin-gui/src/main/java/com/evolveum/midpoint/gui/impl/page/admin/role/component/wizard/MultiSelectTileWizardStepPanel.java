@@ -1,17 +1,23 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -19,14 +25,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 
 public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
         extends SelectTileWizardStepPanel<O, ODM, V> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(MultiSelectTileWizardStepPanel.class);
 
     private static final String ID_TABLE = "table";
 
@@ -34,7 +37,13 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
         super(model);
     }
 
-    protected void initLayout() {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         MultiSelectTileTablePanel<SI, O> tilesTable =
                 new MultiSelectTileTablePanel<>(
                         ID_TABLE,
@@ -48,6 +57,11 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     @Override
                     protected IModel<String> getItemLabelModel(SI entry) {
                         return MultiSelectTileWizardStepPanel.this.getItemLabelModel(entry);
+                    }
+
+                    @Override
+                    protected boolean isSelectedItemsPanelVisible() {
+                        return MultiSelectTileWizardStepPanel.this.isSelectedItemsPanelVisible();
                     }
 
                     @Override
@@ -110,6 +124,10 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
 
     protected abstract void deselectItem(SI entry);
 
+    protected boolean isSelectedItemsPanelVisible() {
+        return false;
+    }
+
     protected void customizeTile(TemplateTile<SelectableBean<O>> tile) {
     }
 
@@ -118,6 +136,6 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
     }
 
     protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>(type, getPageBase());
+        return SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
     }
 }

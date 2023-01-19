@@ -15,7 +15,6 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -50,7 +49,7 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
         return true;
     }
 
-    public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
         return null;
     }
 

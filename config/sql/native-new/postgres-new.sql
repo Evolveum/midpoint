@@ -1876,7 +1876,12 @@ CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
         CHECK (objectType = 'SIMULATION_RESULT'),
-    partitioned boolean
+    partitioned boolean,
+    rootTaskRefTargetOid UUID,
+    rootTaskRefTargetType ObjectType,
+    rootTaskRefRelationId INTEGER REFERENCES m_uri(id),
+    startTimestamp TIMESTAMPTZ,
+    endTimestamp TIMESTAMPTZ
 )
     INHERITS (m_object);
 

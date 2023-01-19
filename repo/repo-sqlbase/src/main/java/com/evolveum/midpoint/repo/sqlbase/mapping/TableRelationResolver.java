@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -37,7 +37,6 @@ public class TableRelationResolver<
     protected final BiFunction<Q, TQ, Predicate> correlationPredicate;
     private final boolean useSubquery;
 
-
     public BiFunction<Q, TQ, Predicate> getCorrelationPredicate() {
         return correlationPredicate;
     }
@@ -49,8 +48,8 @@ public class TableRelationResolver<
     public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     TableRelationResolver<Q, R, TS, TQ, TR> usingSubquery(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        return new TableRelationResolver<>(targetMapping, correlationPredicate);
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
+        return new TableRelationResolver<>(targetMapping, correlationPredicateFunction);
     }
 
     /**
@@ -62,8 +61,8 @@ public class TableRelationResolver<
     public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     TableRelationResolver<Q, R, TS, TQ, TR> usingJoin(
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        return new TableRelationResolver<>(targetMappingSupplier, correlationPredicate);
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
+        return new TableRelationResolver<>(targetMappingSupplier, correlationPredicateFunction);
     }
 
     /**
@@ -72,9 +71,9 @@ public class TableRelationResolver<
      */
     protected TableRelationResolver(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
         this.targetMappingSupplier = () -> targetMapping;
-        this.correlationPredicate = correlationPredicate;
+        this.correlationPredicate = correlationPredicateFunction;
         this.useSubquery = true;
     }
 
@@ -86,9 +85,9 @@ public class TableRelationResolver<
      */
     private TableRelationResolver(
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
         this.targetMappingSupplier = targetMappingSupplier;
-        this.correlationPredicate = correlationPredicate;
+        this.correlationPredicate = correlationPredicateFunction;
         this.useSubquery = false;
     }
 
@@ -113,14 +112,14 @@ public class TableRelationResolver<
         }
     }
 
+    @SuppressWarnings("unchecked")
     public TableRelationResolver<Q, R, TS, TQ, TR> replaceTable(QueryTableMapping<? extends TS, TQ, TR> target) {
         // FIXME: Add check
 
         return new TableRelationResolver(() -> target, correlationPredicate);
     }
 
-    public TableRelationResolver<Q, R, TS, TQ, TR>  withSubquery() {
-
+    public TableRelationResolver<Q, R, TS, TQ, TR> withSubquery() {
         return usingSubquery(targetMappingSupplier.get(), correlationPredicate);
     }
 

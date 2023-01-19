@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -126,7 +126,7 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     @Override
     public OperationExecutionType toSchemaObject(MOperationExecution row) {
-        return new OperationExecutionType(prismContext())
+        return new OperationExecutionType()
                 .status(row.status)
                 .recordType(row.recordType)
                 .initiatorRef(objectReference(row.initiatorRefTargetOid,
