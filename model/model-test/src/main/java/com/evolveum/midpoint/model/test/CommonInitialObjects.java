@@ -9,13 +9,12 @@ package com.evolveum.midpoint.model.test;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractTestResource;
 import com.evolveum.midpoint.test.ClassPathTestResource;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
@@ -101,25 +100,25 @@ public interface CommonInitialObjects {
             SystemObjectsType.TAG_PROJECTION_PASSWORD_CHANGED.value());
 
     /** To be used when needed. */
-    static void addTags(AbstractModelIntegrationTest test, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    static void addTags(AbstractModelIntegrationTest test, Task task, OperationResult result)
+            throws CommonException, IOException {
         if (!test.areTagsSupported()) {
             return;
         }
-        test.repoAdd(ARCHETYPE_EVENT_TAG, result);
-        test.repoAdd(ARCHETYPE_POLICY_SITUATION, result);
-        test.repoAdd(TAG_FOCUS_ENABLED, result);
-        test.repoAdd(TAG_FOCUS_DISABLED, result);
-        test.repoAdd(TAG_FOCUS_NAME_CHANGED, result);
-        test.repoAdd(TAG_FOCUS_ASSIGNMENT_CHANGED, result);
-        test.repoAdd(TAG_FOCUS_ARCHETYPE_CHANGED, result);
-        test.repoAdd(TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED, result);
-        test.repoAdd(TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED, result);
-        test.repoAdd(TAG_PROJECTION_ENABLED, result);
-        test.repoAdd(TAG_PROJECTION_DISABLED, result);
-        test.repoAdd(TAG_PROJECTION_NAME_CHANGED, result);
-        test.repoAdd(TAG_PROJECTION_IDENTIFIER_CHANGED, result);
-        test.repoAdd(TAG_PROJECTION_ENTITLEMENT_CHANGED, result);
-        test.repoAdd(TAG_PROJECTION_PASSWORD_CHANGED, result);
+        test.addObject(ARCHETYPE_EVENT_TAG, task, result);
+        test.addObject(ARCHETYPE_POLICY_SITUATION, task, result);
+        test.addObject(TAG_FOCUS_ENABLED, task, result);
+        test.addObject(TAG_FOCUS_DISABLED, task, result);
+        test.addObject(TAG_FOCUS_NAME_CHANGED, task, result);
+        test.addObject(TAG_FOCUS_ASSIGNMENT_CHANGED, task, result);
+        test.addObject(TAG_FOCUS_ARCHETYPE_CHANGED, task, result);
+        test.addObject(TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED, task, result);
+        test.addObject(TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED, task, result);
+        test.addObject(TAG_PROJECTION_ENABLED, task, result);
+        test.addObject(TAG_PROJECTION_DISABLED, task, result);
+        test.addObject(TAG_PROJECTION_NAME_CHANGED, task, result);
+        test.addObject(TAG_PROJECTION_IDENTIFIER_CHANGED, task, result);
+        test.addObject(TAG_PROJECTION_ENTITLEMENT_CHANGED, task, result);
+        test.addObject(TAG_PROJECTION_PASSWORD_CHANGED, task, result);
     }
 }

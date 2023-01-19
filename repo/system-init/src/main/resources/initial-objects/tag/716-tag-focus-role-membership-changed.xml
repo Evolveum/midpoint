@@ -9,6 +9,9 @@
     oid="00000000-0000-0000-0000-000000000716">
     <name>Focus role membership changed</name>
     <description>Operation that changed the focus role membership (roleMembershipRef value)</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <policyRule>
         <name>focus-role-membership-changed</name>
         <policyConstraints>

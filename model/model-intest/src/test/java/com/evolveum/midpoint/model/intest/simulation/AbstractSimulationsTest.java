@@ -84,7 +84,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         if (repositoryService.supportsTags()) {
-            CommonInitialObjects.addTags(this, initResult);
+            CommonInitialObjects.addTags(this, initTask, initResult);
             repoAdd(TAG_USER_ADD, initResult);
             repoAdd(TAG_USER_DELETE, initResult);
         }

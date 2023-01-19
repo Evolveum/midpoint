@@ -3892,7 +3892,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
+    protected <T extends ObjectType> PrismObject<T> addObject(AbstractTestResource<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
@@ -3935,7 +3935,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(
-            TestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+            AbstractTestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = testResource.getFresh();

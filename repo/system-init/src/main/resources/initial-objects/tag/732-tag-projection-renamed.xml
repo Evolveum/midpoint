@@ -13,6 +13,9 @@
         This is an operation that changed the name (naming attribute) of a projection.
         TODO we may or may not be able to assess the original value
     </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <!-- TODO @Vilo please add "display" here (and to other tags) -->
     <policyRule>
         <name>projection-renamed</name>

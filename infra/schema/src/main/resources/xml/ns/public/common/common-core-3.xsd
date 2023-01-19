@@ -808,14 +808,53 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="eventTag" type="tns:EventTagInformationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information specific to event tags.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.eventTag</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="tag" type="tns:TagType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="EventTagInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information specific for event tags.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="domain" type="tns:EventTagDomainType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of objects on which this tag is applicable.
+                        Normally, the applicability is determined by the presence of the respective policy rule(s) related to
+                        this tag (by assignments or global policy rules selectors). But we need more fine-grained approach
+                        when reporting on the tags. For example, we may need to consider only a subset of all projections
+                        (shadows) that were processed.
+
+                        Experimental. This may be a bad idea overall.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="eventTagInformation" type="tns:EventTagInformationType"/>
+
     <xsd:complexType name="TriggerType">
-           <xsd:annotation>
+        <xsd:annotation>
             <xsd:documentation>
                 Defines triggers for an object. Trigger is an action that should take place
                 at specified time or under some other condition.

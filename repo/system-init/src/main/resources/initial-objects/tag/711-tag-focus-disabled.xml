@@ -13,6 +13,9 @@
         This is an operation that switched the effective status of the focus from (any) enabled state
         to (any) disabled state.
     </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <policyRule>
         <name>focus-disabled</name>
         <policyConstraints>

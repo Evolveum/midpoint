@@ -114,7 +114,7 @@ class AggregatedMetricsComputation {
     private void processObject(ProcessedObjectImpl<?> processedObject, OperationResult result) throws CommonException {
         LOGGER.trace("Summarizing {}", processedObject);
         for (DefaultEventTagAggregation tagAggregation : eventTagAggregations.values()) {
-            tagAggregation.addObject(processedObject);
+            tagAggregation.addObject(processedObject, result);
         }
         for (MetricAggregation metricAggregation : metricAggregations.values()) {
             metricAggregation.addObject(processedObject, result);
@@ -185,7 +185,7 @@ class AggregatedMetricsComputation {
     }
 
     /** Similar to {@link MetricAggregation} but let's not complicate the code by trying to generalize these. */
-    private static class DefaultEventTagAggregation {
+    private class DefaultEventTagAggregation {
 
         @NotNull private final TagType tag;
         @NotNull private final String tagOid;
@@ -203,8 +203,8 @@ class AggregatedMetricsComputation {
                     .collect(Collectors.toList());
         }
 
-        public void addObject(ProcessedObjectImpl<?> processedObject) throws CommonException {
-            if (!processedObject.isProbablyApplicable(tag)) {
+        public void addObject(ProcessedObjectImpl<?> processedObject, OperationResult result) throws CommonException {
+            if (!processedObject.isInDomainOf(tag, task, result)) {
                 return;
             }
             Classifier classifier = Classifier.forObject(processedObject);

@@ -174,7 +174,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         if (repositoryService.supportsTags()) {
-            CommonInitialObjects.addTags(this, initResult);
+            CommonInitialObjects.addTags(this, initTask, initResult);
         }
     }
 

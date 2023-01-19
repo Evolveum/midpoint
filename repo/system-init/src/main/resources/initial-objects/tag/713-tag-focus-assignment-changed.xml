@@ -9,6 +9,9 @@
     oid="00000000-0000-0000-0000-000000000713">
     <name>Focus assignments changed</name>
     <description>Operation that changed the focus assignment(s)</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <policyRule>
         <name>focus-assignment-changed</name>
         <policyConstraints>

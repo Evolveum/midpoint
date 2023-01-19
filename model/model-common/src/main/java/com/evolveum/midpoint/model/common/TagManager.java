@@ -10,6 +10,9 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,10 +122,9 @@ public class TagManager {
     }
 
     public @NotNull Collection<TagType> getAllEventTags(OperationResult result) {
-        return getAllTags(result); // FIXME TEMPORARY
-//        return getAllTags(result).stream()
-//                .filter(tag -> ObjectTypeUtil.hasArchetypeRef(tag, SystemObjectsType.ARCHETYPE_EVENT_TAG.value()))
-//                .collect(Collectors.toList());
+        return getAllTags(result).stream()
+                .filter(tag -> ObjectTypeUtil.hasArchetypeRef(tag, SystemObjectsType.ARCHETYPE_EVENT_TAG.value()))
+                .collect(Collectors.toList());
     }
 
     /**

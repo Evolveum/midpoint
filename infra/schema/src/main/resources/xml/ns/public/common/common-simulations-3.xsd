@@ -1078,4 +1078,29 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="EventTagDomainType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Domain of a given event tag.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="simulation" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Domain of the event tag to be used during simulation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Later, we may have a domain to be used when audit events are considered, or a generic specification
+                 of a domain for both purposes. -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="eventTagDomain" type="tns:EventTagDomainType"/>
 </xsd:schema>

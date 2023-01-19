@@ -68,7 +68,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        CommonInitialObjects.addTags(this, initResult);
+        CommonInitialObjects.addTags(this, initTask, initResult);
 
         RESOURCE_DUMMY_TAGS.initAndTest(this, initTask, initResult);
 

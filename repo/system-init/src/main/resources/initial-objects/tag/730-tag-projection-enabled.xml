@@ -13,6 +13,9 @@
         This is an operation that switched the administrative status of a projection to the enabled state.
         TODO we may or may not be able to assess the original value
     </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <policyRule>
         <name>projection-enabled</name>
         <policyConstraints>

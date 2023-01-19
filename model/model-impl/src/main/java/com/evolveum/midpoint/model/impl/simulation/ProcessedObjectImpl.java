@@ -13,44 +13,39 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AbstractSimulationMetricReferenceTypeUtil;
-
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TagTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.VisibleForTesting;
-
-import javax.xml.namespace.QName;
 
 /**
  * Parsed analogy of {@link SimulationResultProcessedObjectType}.
@@ -201,10 +196,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     public @NotNull QName getTypeName() {
         return typeName;
-    }
-
-    public ShadowDiscriminatorType getShadowDiscriminator() {
-        return shadowDiscriminator;
     }
 
     public String getResourceOid() {
@@ -457,12 +448,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return ShadowType.class.isAssignableFrom(type);
     }
 
-    @NotNull BigDecimal getMetricValueRequired(@NotNull AbstractSimulationMetricReferenceType sourceRef) {
-        return MiscUtil.stateNonNull(
-                getMetricValue(sourceRef),
-                () -> String.format("No value for %s in %s", AbstractSimulationMetricReferenceTypeUtil.describe(sourceRef), this));
-    }
-
     @Nullable BigDecimal getMetricValue(@NotNull AbstractSimulationMetricReferenceType ref) {
         String identifier = ref.getIdentifier();
         if (identifier != null) {
@@ -510,21 +495,23 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 result);
     }
 
-    // ugly heuristics to decide if this event is applicable to given type - TODO decide what to do with this funny method
-    boolean isProbablyApplicable(TagType eventTag) {
-        Set<PolicyRuleEvaluationTargetType> targets = eventTag.getPolicyRule().stream()
-                .map(rule -> rule.getEvaluationTarget())
-                .collect(Collectors.toSet());
-        if (targets.size() != 1) {
-            return true;
+    /**
+     * Checks whether this (simulation-related) object is in the domain of given event tag.
+     *
+     * The domain is specified either explicitly, or we have to look at attached policy rules.
+     *
+     * In other words, if the determination from attached policy rules is insufficient (e.g. there are other rules elsewhere),
+     * the administrator is obliged to specify the domain explicitly.
+     */
+    boolean isInDomainOf(TagType eventTag, Task task, OperationResult result) throws CommonException {
+        SimulationResultProcessedObjectPredicateType domain = TagTypeUtil.getSimulationDomain(eventTag);
+        if (domain != null) {
+            return matches(domain, task, result);
         }
-        PolicyRuleEvaluationTargetType target = targets.iterator().next();
-        if (target == PolicyRuleEvaluationTargetType.PROJECTION) {
-            return ShadowType.class.equals(type);
-        } else if (target == PolicyRuleEvaluationTargetType.OBJECT) {
-            return !ShadowType.class.equals(type);
+        if (ShadowType.class.equals(type)) {
+            return TagTypeUtil.attachedRuleEvaluatesOnProjection(eventTag);
         } else {
-            return true;
+            return TagTypeUtil.attachedRuleEvaluatesOnFocus(eventTag);
         }
     }
 }
