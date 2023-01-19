@@ -265,29 +265,34 @@ public class PredefinedSearchableItems {
 
 
     public enum PanelType {
-        ROLE_MEMBER_GOVERNANCE(true, "roleMembers"),
-        ROLE_MEMBER_MEMBER(true, "roleGovernance"),
-        SERVICE_MEMBER_GOVERNANCE(true, "serviceGovernance"),
-        SERVICE_MEMBER_MEMBER(true, "serviceMembers"),
-        ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance"),
-        ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers"),
-        ORG_MEMBER_GOVERNANCE(true, "orgGovernance"),
-        ORG_MEMBER_MEMBER(true, "orgMembers"),
-        MEMBER_ORGANIZATION(true, null),
-        CARDS_GOVERNANCE(true, null),
-        MEMBER_WIZARD(true, null),
-        RESOURCE_SHADOW(false, null),
-        REPO_SHADOW(false, null),
-        PROJECTION_SHADOW(false, null),
-        DEBUG(false, null),
-        ASSIGNABLE(false, null);
+        ROLE_MEMBER_GOVERNANCE(true, "roleGovernance", true, FocusType.COMPLEX_TYPE),
+        ROLE_MEMBER_MEMBER(true, "roleMembers", true, FocusType.COMPLEX_TYPE),
+        SERVICE_MEMBER_GOVERNANCE(true, "serviceGovernance", true, FocusType.COMPLEX_TYPE),
+        SERVICE_MEMBER_MEMBER(true, "serviceMembers", true, FocusType.COMPLEX_TYPE),
+        ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance", true, FocusType.COMPLEX_TYPE),
+        ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers", true, AssignmentHolderType.COMPLEX_TYPE),
+        ORG_MEMBER_GOVERNANCE(true, "orgGovernance", true, FocusType.COMPLEX_TYPE),
+        ORG_MEMBER_MEMBER(true, "orgMembers", true, AssignmentType.COMPLEX_TYPE),
+        MEMBER_ORGANIZATION(true, null, true, AssignmentHolderType.COMPLEX_TYPE),
+        CARDS_GOVERNANCE(true, null, true, FocusType.COMPLEX_TYPE),
+        MEMBER_WIZARD(true, null, false, UserType.COMPLEX_TYPE),
+        RESOURCE_SHADOW(false, null, false, null),
+        REPO_SHADOW(false, null, false, null),
+        PROJECTION_SHADOW(false, null, false, null),
+        DEBUG(false, null, false, null),
+        ASSIGNABLE(false, null, false, null);
 
         private boolean memberPanel;
         private String panelInstance;
 
-        PanelType(boolean memberPanel, String panelInstance) {
+        private boolean isAllowAllTypeSearch;
+        private QName typeForNull;
+
+        PanelType(boolean memberPanel, String panelInstance, boolean isAllowAllTypeSearch, QName typeForNull) {
             this.memberPanel = memberPanel;
             this.panelInstance = panelInstance;
+            this.isAllowAllTypeSearch = isAllowAllTypeSearch;
+            this.typeForNull = typeForNull;
         }
 
         public boolean isMemberPanel() {
@@ -304,6 +309,14 @@ public class PredefinedSearchableItems {
                 }
             }
             return null;
+        }
+
+        public QName getTypeForNull() {
+            return typeForNull;
+        }
+
+        public boolean isAllowAllTypeSearch() {
+            return isAllowAllTypeSearch;
         }
     }
 

@@ -162,28 +162,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private void initSearchPanel(String panelId, Form form) {
 
 // type search.. applicable for all types of searches
-        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(ID_TYPE_SEARCH, new PropertyModel<>(getModel(), Search.F_TYPE),
-                new PropertyModel<>(getModel(), Search.F_ALLOWED_TYPES), new QNameObjectTypeChoiceRenderer(), true) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getNullValidDisplayValue() {
-                return getString("ObjectTypes.all");
-            }
-        };
-        choices.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                Search<C> search = getModelObject();
-                search.setForceReload(true);
-                SearchPanel.this.searchPerformed(target);
-            }
-        });
-        choices.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));
-        form.add(choices);
-
+        ObjectTypeSearchItemPanel<C> objectTypeSearchItemPanel = new ObjectTypeSearchItemPanel<>(ID_TYPE_SEARCH, new PropertyModel<>(getModel(), Search.F_TYPE));
+        objectTypeSearchItemPanel.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));
+        form.add(objectTypeSearchItemPanel);
 
         initSpecificSearchPanel(panelId, form);
     }

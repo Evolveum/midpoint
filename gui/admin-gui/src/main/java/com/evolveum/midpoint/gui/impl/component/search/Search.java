@@ -47,11 +47,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public static final String F_MODE = "defaultSearchBoxMode";
     public static final String F_ALLOWED_MODES = "allowedModeList";
-    public static final String F_ALLOWED_TYPES = "allowedTypeList";
 
-    private Class<C> typeClass;
-
-    private List<QName> allowedTypeList = new ArrayList<>();
+    private ObjectTypeSearchItemWrapper<C> type;
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
     private AdvancedQueryWrapper advancedQueryWrapper;
@@ -59,10 +56,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private FulltextQueryWrapper fulltextQueryWrapper;
     private SearchConfigurationWrapper searchConfigurationWrapper;
     private String advancedError;
-    private PrismContainerDefinition<C> containerDefinitionOverride;
     private String collectionViewName;
     private String collectionRefOid;
-    private boolean forceReload;
 
     private List<AvailableFilterType> availableFilterTypes;
 
@@ -82,18 +77,15 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.collectionRefOid = collectionRefOid;
     }
 
-    public Search(Class type, SearchBoxConfigurationType searchBoxConfigurationType) {
-        this.typeClass = type;
+    public Search(ObjectTypeSearchItemWrapper<C> type, SearchBoxConfigurationType searchBoxConfigurationType) {
+
+        this.type = type;
         this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
         this.availableFilterTypes = searchBoxConfigurationType.getAvailableFilter();
     }
 
-    public void setAllowedTypeList(List<QName> allowedTypeList) {
-        this.allowedTypeList = allowedTypeList;
-    }
-
     public List<QName> getAllowedTypeList() {
-        return allowedTypeList;
+        return type.getAvailableValues();
     }
 
     void setAdvancedQueryWrapper(AdvancedQueryWrapper advancedQueryWrapper) {
@@ -110,10 +102,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     void setFulltextQueryWrapper(FulltextQueryWrapper fulltextQueryWrapper) {
         this.fulltextQueryWrapper = fulltextQueryWrapper;
-    }
-
-    public SearchConfigurationWrapper getSearchConfigurationWrapper() {
-        return searchConfigurationWrapper;
     }
 
     public List<FilterableSearchItemWrapper> getItems() {
@@ -188,18 +176,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public Class<C> getTypeClass() {
-        ObjectTypeSearchItemWrapper<C> objectTypeWrapper = findObjectTypeSearchItemWrapper();
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             return (Class<C> )  ObjectType.class;
         }
-        if (objectTypeWrapper != null) {
-            if (objectTypeWrapper.getValue().getValue() != null){
-                return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
-            } else if (objectTypeWrapper.getValueForNull() != null) {
-                return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValueForNull());
-            }
+        if (type.getValue().getValue() != null){
+            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValue().getValue());
+        } else if (type.getValueForNull() != null) {
+            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValueForNull());
         }
-        return typeClass;
+
+        return null; //should not happen
     }
 
     private String createErrorMessage(Exception ex) {
@@ -307,17 +293,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
         return null;
     }
-
-    public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
-        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (FilterableSearchItemWrapper item : items) {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                return (ObjectTypeSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
     public AbstractRoleSearchItemWrapper findMemberSearchItem() {
         List<FilterableSearchItemWrapper<?>> items = searchConfigurationWrapper.getItemsList();
         for (FilterableSearchItemWrapper<?> item : items) {
@@ -339,7 +314,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery evaluateCollectionFilter(PageBase pageBase) {
-        CompiledObjectCollectionView view = null;
+        CompiledObjectCollectionView view;
         OperationResult result = new OperationResult(OPERATION_EVALUATE_COLLECTION_FILTER);
         Task task = pageBase.createSimpleTask(OPERATION_EVALUATE_COLLECTION_FILTER);
         ObjectFilter collectionFilter = null;
@@ -496,10 +471,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 '}';
     }
 
-    public PrismContainerDefinition<C> getContainerDefinitionOverride() {
-        return containerDefinitionOverride;
-    }
-
     public boolean searchByNameEquals(String nameValueToCompare) {
         String nameValue = null;
         if (SearchBoxModeType.BASIC.equals(getSearchMode())) {
@@ -511,24 +482,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return nameValueToCompare != null && nameValueToCompare.equals(nameValue);
     }
 
-    public void setTypeClass(Class<C> typeClass) {
-        this.typeClass = typeClass;
-    }
-
-    public QName getType() {
-        return WebComponentUtil.containerClassToQName(PrismContext.get(), typeClass);
-    }
-
-    public void setType(QName type) {
-        this.typeClass = WebComponentUtil.qnameToContainerClass(PrismContext.get(), type);
-    }
-
-    public void setForceReload(boolean forceReload) {
-        this.forceReload = forceReload;
-    }
-
     public boolean isForceReload() {
-        return forceReload;
+        return type.isTypeChanged();
     }
 
     public List<AvailableFilterType> getAvailableFilterTypes() {

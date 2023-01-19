@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 public class SearchFactory<C extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFactory.class);
@@ -184,13 +186,10 @@ public class SearchFactory<C extends Containerable> {
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
 
-        Search<C> search = new Search<>(type, mergedConfig);
-        search.setTypeClass(type);
-
-        if (mergedConfig.getObjectTypeConfiguration() != null) {
-            search.setAllowedTypeList(mergedConfig.getObjectTypeConfiguration()
-                    .getSupportedTypes());
-        }
+        ObjectTypeSearchItemWrapper<C> objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper<>(mergedConfig.getObjectTypeConfiguration());
+        objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());
+        objectTypeSearchItemWrapper.setValueForNull(getValueRepresentingAllTypes());
+        Search<C> search = new Search<>(objectTypeSearchItemWrapper, mergedConfig);
 
         search.setAdvancedQueryWrapper(advancedQueryWrapper);
         search.setAxiomQueryWrapper(axiomWrapper);
@@ -302,6 +301,20 @@ public class SearchFactory<C extends Containerable> {
             return true; //todo should be set to false
         }
         return searchBoxConfigurationType.isAllowToConfigureSearchItems();
+    }
+
+    private boolean isAllowedAllTypesSearch() {
+        if (additionalSearchContext == null || additionalSearchContext.getPanelType() == null) {
+            return false;
+        }
+        return additionalSearchContext.getPanelType().isAllowAllTypeSearch();
+    }
+
+    private QName getValueRepresentingAllTypes() {
+        if (additionalSearchContext == null || additionalSearchContext.getPanelType() == null) {
+            return null;
+        }
+        return additionalSearchContext.getPanelType().getTypeForNull();
     }
 
 }

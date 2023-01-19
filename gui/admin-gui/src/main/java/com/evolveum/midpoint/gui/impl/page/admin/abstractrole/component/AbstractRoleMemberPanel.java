@@ -170,7 +170,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
-        return (Class<AH>) AssignmentHolderType.class;
+        return (Class<AH>) UserType.class;
     }
     protected  <AH extends AssignmentHolderType> void initMemberTable(Form<?> form) {
         WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);

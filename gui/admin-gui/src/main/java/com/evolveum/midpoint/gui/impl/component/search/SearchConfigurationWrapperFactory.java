@@ -31,7 +31,6 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new AutocompleteSearchItemWrapperFactory());
         factories.add(new ReferenceSearchItemWrapperFactory());
         factories.add(new ObjectClassSearchItemWrapperFactory());
-        factories.add(new ObjectClassSearchItemWrapperFactory());
         factories.add(new ItemPathSearchItemWrapperFactory());
         factories.add(new DateSearchItemWrapperFactory());
         factories.add(new TextSearchItemWrapperFactory());

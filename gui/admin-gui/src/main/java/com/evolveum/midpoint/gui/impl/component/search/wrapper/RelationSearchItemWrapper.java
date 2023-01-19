@@ -40,7 +40,6 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
         return CollectionUtils.isNotEmpty(relationSearchItemConfigurationType.getSupportedRelations());
     }
 
-    //TODO should be in panel!!!
     public boolean isVisible() {
         return true;
     }
@@ -88,9 +87,4 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
         return relationSearchItemConfigurationType;
     }
 
-    //TODO should be in member search
-//    @Override
-//    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-//        return !SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
-//    }
 }

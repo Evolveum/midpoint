@@ -228,13 +228,9 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration() {
-        List<QName> supportedTypes = getSupportedObjectTypes(panelType);
-        if (CollectionUtils.isEmpty(supportedTypes)) {
-            return null;
-        }
         ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
         objectTypeItem.setDefaultValue(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-        objectTypeItem.getSupportedTypes().addAll(supportedTypes);
+        objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(panelType));
         objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         return objectTypeItem;
     }
@@ -355,7 +351,7 @@ public class SearchBoxConfigurationBuilder {
 
     public static List<QName> getSupportedObjectTypes(PredefinedSearchableItems.PanelType panelType) {
         if (panelType == null) {
-            return null;
+            return new ArrayList<>();
         }
         switch (panelType) {
             case ROLE_MEMBER_MEMBER:
@@ -364,7 +360,7 @@ public class SearchBoxConfigurationBuilder {
             case SERVICE_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
-                return WebComponentUtil.createFocusTypeList(true);
+                return WebComponentUtil.createFocusTypeList();
             case ORG_MEMBER_MEMBER:
             case MEMBER_ORGANIZATION:
             case ARCHETYPE_MEMBER_MEMBER:
@@ -384,7 +380,7 @@ public class SearchBoxConfigurationBuilder {
             case MEMBER_WIZARD:
                 return Arrays.asList(UserType.COMPLEX_TYPE);
         }
-        return null;
+        return new ArrayList<>();
     }
 
     public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
