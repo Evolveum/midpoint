@@ -11,6 +11,7 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -40,6 +41,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
@@ -121,7 +124,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         } else {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
-            throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof MidpointAuthentication && !((MidpointAuthentication) authentication).canContinueAfterCredentialsCheckFail()) {
+                throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            }
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
