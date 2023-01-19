@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,7 +19,6 @@ import org.postgresql.util.PSQLState;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -73,7 +72,7 @@ public class SqaleUtils {
      * Fixes reference type if `null` and tries to use default from definition.
      * Use returned value.
      */
-    public static Referencable referenceWithTypeFixed(Referencable value) {
+    public static ObjectReferenceType referenceWithTypeFixed(ObjectReferenceType value) {
         if (value.getType() != null) {
             return value;
         }

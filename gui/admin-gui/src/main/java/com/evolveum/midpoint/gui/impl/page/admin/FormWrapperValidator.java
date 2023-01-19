@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
@@ -88,15 +88,15 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
     }
 
     private void validateItemWrapperWithFormValidator(Form form, ItemWrapper iw, PrismValueWrapper value) {
-        Validatable<T> validatable = new Validatable<>() {
+        Validatable<Serializable> validatable = new Validatable<>() {
 
             @Override
-            public T getValue() {
+            public Serializable getValue() {
                 return value.getNewValue().getRealValue();
             }
 
             @Override
-            public IModel<T> getModel() {
+            public IModel<Serializable> getModel() {
                 return () -> getValue();
             }
         };
