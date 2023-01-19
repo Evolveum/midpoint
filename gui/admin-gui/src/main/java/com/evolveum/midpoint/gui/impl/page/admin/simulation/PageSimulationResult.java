@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -45,11 +47,11 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AggregatedSimulationMetricValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
-import static com.evolveum.midpoint.schema.util.AbstractSimulationMetricReferenceTypeUtil.getDisplayableIdentifier;
+import static com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil.getDisplayableIdentifier;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -121,11 +123,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         // todo implement
         IModel<List<SmallBoxData>> data = () -> {
 
-            List<AggregatedSimulationMetricValueType> metrics = model.getObject().getMetric();
+            List<SimulationMetricValuesType> metrics = model.getObject().getMetric();
             return metrics.stream().map(m -> {
                 SmallBoxData sbd = new SmallBoxData();
                 sbd.setDescription(getDisplayableIdentifier(m.getRef()));
-                sbd.setTitle("" + m.getValue());
+                sbd.setTitle("" + SimulationMetricValuesTypeUtil.getValue(m));
                 sbd.setSmallBoxCssClass("bg-info");
                 sbd.setLinkText("More info");
                 sbd.setIcon("fa fa-database");

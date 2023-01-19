@@ -20,7 +20,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEva
  */
 public class TagTypeUtil {
 
-    public static @Nullable SimulationResultProcessedObjectPredicateType getSimulationDomain(@NotNull TagType tag) {
+    public static @Nullable SimulationObjectPredicateType getSimulationDomain(@NotNull TagType tag) {
         EventTagInformationType eventTagInfo = tag.getEventTag();
         if (eventTagInfo == null) {
             return null;

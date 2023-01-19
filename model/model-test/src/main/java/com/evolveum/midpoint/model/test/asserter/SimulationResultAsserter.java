@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.schema.util.AbstractSimulationMetricReferenceTypeUtil;
+import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -58,14 +58,14 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public SimulationResultAsserter<RA> assertMetricValueByIdentifier(String metricId, BigDecimal expected) {
-        assertThat(getMetricValueByIdentifier(metricId))
+        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByIdentifier(simulationResult, metricId))
                 .as("metric " + metricId + " value")
                 .isEqualTo(expected);
         return this;
     }
 
     public SimulationResultAsserter<RA> assertMetricValueByEventTag(String oid, BigDecimal expected) {
-        assertThat(getMetricValueByEventTag(oid))
+        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByEventTag(simulationResult, oid))
                 .as("metric with event tag " + oid + " value")
                 .isEqualTo(expected);
         return this;
@@ -77,22 +77,6 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
                 .as("metric value entry set")
                 .hasSize(expected);
         return this;
-    }
-
-    private BigDecimal getMetricValueByIdentifier(String metricId) {
-        return simulationResult.getMetric().stream()
-                .filter(m -> AbstractSimulationMetricReferenceTypeUtil.isMetricIdentifier(m.getRef(), metricId))
-                .map(m -> m.getValue())
-                .findFirst()
-                .orElse(null);
-    }
-
-    private BigDecimal getMetricValueByEventTag(String oid) {
-        return simulationResult.getMetric().stream()
-                .filter(m -> AbstractSimulationMetricReferenceTypeUtil.isEventTag(m.getRef(), oid))
-                .map(m -> m.getValue())
-                .findFirst()
-                .orElse(null);
     }
 
     @Override

@@ -49,7 +49,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     O getAfter();
     @Nullable ObjectDelta<O> getDelta();
     O getAfterOrBefore();
-    boolean matches(SimulationResultProcessedObjectPredicateType predicate, Task task, OperationResult result)
+    boolean matches(SimulationObjectPredicateType predicate, Task task, OperationResult result)
             throws CommonException;
 
     interface Factory {

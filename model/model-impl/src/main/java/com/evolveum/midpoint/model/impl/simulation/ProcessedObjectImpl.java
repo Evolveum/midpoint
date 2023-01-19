@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.simulation.PartitionScope;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -125,8 +127,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private static Map<String, BigDecimal> getMetricValues(SimulationResultProcessedObjectType bean) {
         return bean.getMetricValue().stream()
                 .collect(Collectors.toMap(
-                        ProcessedObjectSimulationMetricValueType::getIdentifier,
-                        ProcessedObjectSimulationMetricValueType::getValue));
+                        SimulationProcessedObjectMetricValueType::getIdentifier,
+                        SimulationProcessedObjectMetricValueType::getValue));
     }
 
     private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
@@ -301,10 +303,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         List<ObjectReferenceType> eventTagRef = processedObject.getEventTagRef();
         eventTags.forEach(
                 oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
-        List<ProcessedObjectSimulationMetricValueType> metricValues = processedObject.getMetricValue();
+        List<SimulationProcessedObjectMetricValueType> metricValues = processedObject.getMetricValue();
         this.metricValues.forEach(
                 (id, value) -> metricValues.add(
-                        new ProcessedObjectSimulationMetricValueType()
+                        new SimulationProcessedObjectMetricValueType()
                                 .identifier(id)
                                 .value(value)));
         return processedObject;
@@ -448,7 +450,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return ShadowType.class.isAssignableFrom(type);
     }
 
-    @Nullable BigDecimal getMetricValue(@NotNull AbstractSimulationMetricReferenceType ref) {
+    @Nullable BigDecimal getMetricValue(@NotNull SimulationMetricReferenceType ref) {
         String identifier = ref.getIdentifier();
         if (identifier != null) {
             return metricValues.get(identifier);
@@ -461,7 +463,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public boolean matches(SimulationResultProcessedObjectPredicateType predicate, Task task, OperationResult result)
+    public boolean matches(SimulationObjectPredicateType predicate, Task task, OperationResult result)
             throws CommonException {
         SearchFilterType filter = predicate.getFilter();
         if (filter != null && !matchesFilter(filter)) {
@@ -504,7 +506,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      * the administrator is obliged to specify the domain explicitly.
      */
     boolean isInDomainOf(TagType eventTag, Task task, OperationResult result) throws CommonException {
-        SimulationResultProcessedObjectPredicateType domain = TagTypeUtil.getSimulationDomain(eventTag);
+        SimulationObjectPredicateType domain = TagTypeUtil.getSimulationDomain(eventTag);
         if (domain != null) {
             return matches(domain, task, result);
         }
@@ -513,5 +515,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         } else {
             return TagTypeUtil.attachedRuleEvaluatesOnFocus(eventTag);
         }
+    }
+
+    PartitionScope partitionScope() {
+        return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent());
     }
 }

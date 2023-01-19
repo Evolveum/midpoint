@@ -45,35 +45,35 @@ class ObjectMetricsComputation {
     @NotNull private final ModelCommonBeans beans = ModelCommonBeans.get();
 
     @NotNull private final ProcessedObject<?> processedObject;
-    @NotNull private final List<GlobalSimulationMetricDefinitionType> metricDefinitions;
+    @NotNull private final List<SimulationMetricDefinitionType> metricDefinitions;
     @NotNull private final Task task;
 
     private ObjectMetricsComputation(
             @NotNull ProcessedObject<?> processedObject,
-            @NotNull List<GlobalSimulationMetricDefinitionType> metricDefinitions,
+            @NotNull List<SimulationMetricDefinitionType> metricDefinitions,
             @NotNull Task task) {
         this.processedObject = processedObject;
         this.metricDefinitions = metricDefinitions;
         this.task = task;
     }
 
-    static List<ProcessedObjectSimulationMetricValueType> computeAll(
+    static List<SimulationProcessedObjectMetricValueType> computeAll(
             ProcessedObject<?> processedObject,
-            List<GlobalSimulationMetricDefinitionType> metricDefinitions,
+            List<SimulationMetricDefinitionType> metricDefinitions,
             Task task,
             OperationResult result) throws CommonException {
         return new ObjectMetricsComputation(processedObject, metricDefinitions, task)
                 .computeAll(result);
     }
 
-    private List<ProcessedObjectSimulationMetricValueType> computeAll(OperationResult result) throws CommonException {
-        List<ProcessedObjectSimulationMetricValueType> values = new ArrayList<>();
-        for (GlobalSimulationMetricDefinitionType metricDefinition : metricDefinitions) {
-            OriginalSimulationMetricComputationType computation = metricDefinition.getObjectValue();
+    private List<SimulationProcessedObjectMetricValueType> computeAll(OperationResult result) throws CommonException {
+        List<SimulationProcessedObjectMetricValueType> values = new ArrayList<>();
+        for (SimulationMetricDefinitionType metricDefinition : metricDefinitions) {
+            SimulationMetricComputationType computation = metricDefinition.getComputation();
             if (computation == null) {
                 continue;
             }
-            SimulationResultProcessedObjectPredicateType domain = metricDefinition.getDomain();
+            SimulationObjectPredicateType domain = metricDefinition.getDomain();
             if (domain != null && !processedObject.matches(domain, task, result)) {
                 continue;
             }
@@ -83,7 +83,7 @@ class ObjectMetricsComputation {
             LOGGER.trace("Value for metric '{}': {}", identifier, value);
             if (value != null) {
                 values.add(
-                        new ProcessedObjectSimulationMetricValueType()
+                        new SimulationProcessedObjectMetricValueType()
                                 .identifier(identifier)
                                 .value(value));
             }

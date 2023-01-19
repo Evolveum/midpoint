@@ -37,7 +37,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 Result of a simulation run. The simulation may have run either on foreground or on background (within a task).
-                In the latter case, the task run could be suspended and resumed, but the simulation result object stays the same.
+                In the latter case, the task run can be suspended and resumed, but the simulation result object stays the same.
+
+                (However, note that suspension and resuming is not fully supported now. There can be duplicate information
+                about objects being processed.)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:object/>
@@ -50,7 +53,9 @@
                     <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of this simulation.
+                                (Expanded) definition of this simulation.
+
+                                TODO decide about this item
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -86,15 +91,22 @@
                     <xsd:element name="configurationUsed" type="tns:ConfigurationSpecificationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What configuration was used to run the simulation?
+                                What (system) configuration was used to run the simulation? E.g. whas that production
+                                or development one?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="metric" type="tns:AggregatedSimulationMetricValueType" maxOccurs="unbounded">
+                    <xsd:element name="metric" type="tns:SimulationMetricValuesType" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Aggregated values of individual metrics for this simulation. For example, the number of users
-                                that were disabled. Or the number of attributes that were changed.
+                                that were disabled. Or the number of attributes that were changed. It may be partitioned according
+                                to various criteria.
+
+                                This item contains complete information about given (aggregated) metric. For example, it is
+                                aggregated according to various dimensions in structures called partitions.
+
+                                Both event-tag-based and other (custom) metrics are covered here.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -102,14 +114,9 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Information about individual objects that were processed by this simulation.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO @Tony please remove this, and use definition/useOwnPartitionForProcessedObjects
-                                to store in index table
+
+                                Currently, it cannot be fetched from the repository in the same way as the rest of the object.
+                                "Search containers" method has to be used.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -130,12 +137,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="metric" type="tns:GlobalSimulationMetricDefinitionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="metric" type="tns:SimulationMetricDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of a metric that can not be described by using an event tag alone.
-
-                        TODO name (custom metric? metric?)
+                        Explicit definition of a metric (other than implicit ones, like event-tag-based).
+                        Note that currently these metrics can be defined only at the global level.
+                        Later, we may consider allowing metrics definitions also in individual simulation definitions.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:container/>
@@ -143,7 +150,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="simulation" type="tns:SimulationDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Globally-known definitions of simulations.
@@ -159,10 +166,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="GlobalSimulationMetricDefinitionType">
+    <xsd:complexType name="SimulationMetricDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a metric that can not be described by using an event tag alone.
+                Explicit definition of a metric.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -177,7 +184,9 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <!-- TODO lifecycle state? -->
             <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -185,38 +194,46 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:choice>
-                <xsd:element name="objectValue" type="tns:OriginalSimulationMetricComputationType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="aggregation" type="tns:AggregatedSimulationMetricComputationType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:element name="domain" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
+            <xsd:element name="computation" type="tns:SimulationMetricComputationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Domain for aggregation - i.e. specification of objects that undergo the aggregation.
+                        How is the metric value computed for individual "processed objects"?
+                        May be missing when this metric is computed from a different (source) object-level metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="aggregation" type="tns:SimulationMetricAggregationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How are the metric values aggregated?
+                        May be missing when automatic aggregation (i.e. plain summation) is employed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="domain" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Domain of the metric. It denotes objects that should be considered by the metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!--<xsd:element name="defaultDimension" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Default dimensions under which we want to analyze this metric.-->
+            <!--            -->
+            <!--            Not implemented yet.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <!-- TODO how is the metric displayed (@Vilo); see how it's done in dashboards -->
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractSimulationMetricReferenceType">
+    <xsd:complexType name="SimulationMetricReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                Reference to an abstract simulation metric, i.e. one that is based on either explicit definition, or
-                an event tag.
+                Reference to a metric - either by identifier (for explicitly defined ones) or by tag OID (for event tag based).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -227,7 +244,7 @@
             <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of a "custom" metric.
+                        Identifier of an explicitly defined metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -244,11 +261,10 @@
         </xsd:choice>
     </xsd:complexType>
 
-    <xsd:complexType name="OriginalSimulationMetricComputationType">
+    <xsd:complexType name="SimulationMetricComputationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specification of how is an "original" simulation metric, i.e. the one that is present at the level of individual
-                processed objects computed.
+                Specification of how is the metric value computed for individual "processed objects".
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -272,12 +288,16 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AggregatedSimulationMetricComputationType">
+    <xsd:complexType name="SimulationMetricAggregationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specification of how an aggregated metric is computed.
+                Specification of how metric values are aggregated.
 
-                An example of this metric is "the average number of attributes changed on an account on the LDAP-1 resource".
+                There are two key terms here:
+
+                - domain: The set of objects for which the metric is computed (and thus aggregated);
+                - selection: The set of "more relevant" objects is used in some aggregation functions, like
+                SELECTION_SIZE_TO_DOMAIN_SIZE or SELECTION_TOTAL_VALUE_TO_DOMAIN_TOTAL_VALUE.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -288,28 +308,22 @@
             <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        An aggregation function used to compute the metric.
+                        An aggregation function used to compute the (aggregated) metric value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="source" type="tns:AbstractSimulationMetricReferenceType" minOccurs="0">
+            <xsd:element name="source" type="tns:SimulationMetricReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Source metric that is to be aggregated. Must be present on individual processed objects.
+                        Source metric that is to be aggregated. The metric must be present on individual processed objects,
+                        i.e. it is not possible to aggregate the aggregation-only metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="selection" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
+            <xsd:element name="selection" type="tns:SimulationObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Which objects are selected (relevant for some of the aggregation functions).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="dimension" type="tns:SimulationMetricAnalyticDimensionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Dimensions under which we want to analyze this metric. (Not implemented yet.)
+                        Denotes the "selection" object set. Relevant for some aggregation functions.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -319,13 +333,23 @@
     <xsd:simpleType name="SimulationMetricAggregationFunctionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                An aggregation function used to compute the (aggregated) metric value.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The metric should not be aggregated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="selectionSize">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -449,48 +473,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="SimulationMetricAnalyticDimensionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="objectType">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OBJECT_TYPE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="resource">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RESOURCE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="shadowKind">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SHADOW_KIND"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="shadowIntent">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SHADOW_INTENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="SimulationResultProcessedObjectPredicateType">
+    <xsd:complexType name="SimulationObjectPredicateType">
         <xsd:annotation>
             <xsd:documentation>
                 A predicate over SimulationResultProcessedObjectType and/or ProcessedObject instances.
@@ -515,7 +498,7 @@
                         An expression evaluated on SimulationResultProcessedObjectType and/or ProcessedObject instances
                         that denotes the matching ones.
 
-                        Input: processedObject (ProcessedObject), with processedObject.originalBean pointing to
+                        Input: processedObject (ProcessedObject), with processedObject.TODO pointing to
                         SimulationResultProcessedObjectType.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -555,10 +538,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metrics" type="tns:SimulationMetricsDefinitionType" minOccurs="0">
+            <xsd:element name="metrics" type="tns:SimulationMetricsUseType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of metrics to be used for this simulation.
+                        How should be the (globally-defined) metrics used in this particular simulation type?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -581,19 +564,13 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SimulationMetricsDefinitionType">
+    <xsd:complexType name="SimulationMetricsUseType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a simulation metrics for the particular type of simulation.
+                Definition of the use of simulation metrics for the particular type of simulation.
 
-                A prominent type of metrics are event tags. They are of "0-1" type (either present for a processed object,
-                or not present). But there are other kinds of metrics conceivable, e.g.
-
-                - number of attributes changed,
-                - number of critical attributes changed (whatever "critical attribute" is),
-                - number of focus items changed,
-                - percentage of modified users (from all users processed?),
-                - and so on.
+                Currently, here we allow selecting from the globally-defined metrics.
+                Later, we may consider adding simulation-type-specific ones here.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -601,24 +578,24 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="eventTags" type="tns:SimulationEventTagsDefinitionType" minOccurs="0">
+            <xsd:element name="eventTags" type="tns:SimulationEventTagsUseType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Selecting which event tags to consider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metrics" type="tns:SimulationOtherMetricsDefinitionType" minOccurs="0">
+            <xsd:element name="metrics" type="tns:SimulationOtherMetricsUseType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Selecting which non-tag-based metrics to consider.
+                        Selecting which of the explicit metrics to consider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SimulationEventTagsDefinitionType">
+    <xsd:complexType name="SimulationEventTagsUseType">
         <xsd:annotation>
             <xsd:documentation>
                 <p>Specifies which event tags to consider for given simulation.</p>
@@ -630,6 +607,7 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
+                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -654,7 +632,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SimulationOtherMetricsDefinitionType">
+    <xsd:complexType name="SimulationOtherMetricsUseType">
         <xsd:annotation>
             <xsd:documentation>
                 <p>Specifies which (non-tag) metrics to consider for given simulation.</p>
@@ -666,6 +644,7 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
+                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -690,13 +669,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AggregatedSimulationMetricValueType">
+    <xsd:complexType name="SimulationMetricValuesType">
         <xsd:annotation>
             <xsd:documentation>
-                A value of an aggregated simulation metric, e.g. during a particular simulation run.
-
-                Metric values from individual SimulationResultProcessedObjectType instances are aggregated, summarizing
-                them according to specific dimensions (e.g. object type or shadow discriminator).
+                Values of a simulation metric, aggregated along with specific dimensions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -704,17 +680,63 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="tns:AbstractSimulationMetricReferenceType" minOccurs="0">
+            <xsd:element name="ref" type="tns:SimulationMetricReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Metric identifier (reference).
+                        Identifier of the metric. This is either the identifier of the new (aggregation) metric, like
+                        "percent-of-users-disabled", or the name of the original (source) metric that is being aggregated,
+                        like "number-of-attributes-modified" or an event tag reference.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="classifier" type="tns:AggregatedSimulationMetricClassifierType" minOccurs="0">
+            <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        What function is used to produce the aggregated value.
+                        It is provided here to be ready when it should be re-applied e.g. during data aggregation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sourceDimensions" type="tns:SimulationMetricPartitionDimensionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What are the dimensions of the "most granular" (source) data?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="partition" type="tns:SimulationMetricPartitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Partial or total aggregation of values for given metric.
+
+                        The exact values that are stored here are configurable, e.g. according to what dimensions we want to
+                        do the partitioning, and whether we should also provide summarization (collapsing) along some or
+                        all of these dimensions.
+
+                        TODO item name
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationMetricPartitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Partial or total aggregation of values for given metric.
+
+                TODO type name
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="scope" type="tns:SimulationMetricPartitionScopeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The scope of this partition, i.e. what dimensions are bound to what values and what are free.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -787,10 +809,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AggregatedSimulationMetricClassifierType">
+    <xsd:complexType name="SimulationMetricPartitionScopeType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                The scope of a partition, i.e. what dimensions are bound to what values and what are free.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -801,46 +823,47 @@
             <xsd:element name="typeName" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO (fully qualified)
+                        Value of the "object type" dimension. The QName must be really qualified, i.e. namespace must be present.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resourceOid" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Value of the "shadow resource OID" dimension.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Value of the "shadow kind" dimension.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Value of the "shadow intent" dimension.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="nullDimensions" type="tns:SimulationMetricAnalyticDimensionType" minOccurs="0"-->
-            <!--        maxOccurs="unbounded">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            Dimensions that are present but null. (To distinguish them from dimensions not present.)-->
-            <!--        </xsd:documentation>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
+            <xsd:element name="nullDimensions" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Dimensions that are present but have null values.
+                        This is to distinguish these from the dimensions that are not present.
+                        They are specified as fully-qualified names of properties of the partition scope, e.g. "c:resourceOid".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ShadowDiscriminatorDimensionType">
+    <xsd:complexType name="SimulationMetricPartitionDimensionsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Set of dimensions of a partition.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -848,50 +871,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="dimension" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="ProcessedObjectSimulationMetricValueType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A value of a simulation metric observed on a particular processed object.
-                (Applies only to non-event-tag-based metrics; the tags are treated in "present/not-present" way.)
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Identifier of a non-event-tag-based metric.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="value" type="xsd:decimal" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The value itself.
+                        The name of the property that represents the dimension. It must be qualified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -926,8 +909,10 @@
             <xsd:element name="resourceObjectCoordinates" type="tns:ShadowDiscriminatorType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Information about the shadow (if applicable). TODO reconsider if all information from the type
-                        should be used (e.g. tombstone and discriminator order - are they relevant?).
+                        Information about the shadow (if applicable).
+
+                        TODO reconsider if all information from the type should be used (e.g. tombstone and discriminator order
+                        - are they relevant?).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -956,17 +941,11 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metricValue" type="tns:ProcessedObjectSimulationMetricValueType" maxOccurs="unbounded">
+            <xsd:element name="metricValue" type="tns:SimulationProcessedObjectMetricValueType" minOccurs="0"
+                    maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Values of non-event-tag-based metrics. (Not searchable.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TEMPORARY. Just to give @Tony time to adapt the repository implementation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1005,6 +984,35 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="simulationResultProcessedObject" type="tns:SimulationResultProcessedObjectType"/>
+
+    <xsd:complexType name="SimulationProcessedObjectMetricValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A value of a metric observed on a particular object processed by the simulation.
+                (Applies only to explicit metrics; the tags are treated in "present/not-present" way.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of a non-event-tag-based metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:decimal" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value itself.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:simpleType name="ObjectProcessingStateType">
         <xsd:annotation>
@@ -1083,6 +1091,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Domain of a given event tag.
+
+                TODO decide on this -- maybe we won't need it for simulations at all, but who knows about the audit?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1091,7 +1101,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="simulation" type="tns:SimulationResultProcessedObjectPredicateType" minOccurs="0">
+            <xsd:element name="simulation" type="tns:SimulationObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Domain of the event tag to be used during simulation.

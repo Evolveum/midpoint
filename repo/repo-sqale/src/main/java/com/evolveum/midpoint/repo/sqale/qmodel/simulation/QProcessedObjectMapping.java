@@ -56,7 +56,6 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         // addItemMapping(F_OBJECT_TYPE, ));
 
         addItemMapping(F_STATE, enumMapper(q -> q.state));
-        addItemMapping(F_METRIC_IDENTIFIER, multiStringMapper(q -> q.metricIdentifiers));
         addRefMapping(F_EVENT_TAG_REF, QProcessedObjectEventTagReferenceMapping.init(repositoryContext));
     }
 
@@ -109,7 +108,6 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         }
         row.state = object.getState();
 
-        row.metricIdentifiers = stringsToArray(object.getMetricIdentifier());
         row.fullObject = createFullObject(object);
 
         // Before / After not serialized

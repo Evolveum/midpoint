@@ -53,7 +53,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
 
     /** Global metric definitions provided by the system configuration. */
-    @NotNull private volatile List<GlobalSimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
+    @NotNull private volatile List<SimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
 
     /** TODO (updated on result close) */
     @NotNull private volatile Collection<TagType> allEventTags = new ArrayList<>();
@@ -110,8 +110,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                         rootTaskOid != null ?
                                 ObjectTypeUtil.createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
                 .configurationUsed(
-                        configurationSpecification != null ? configurationSpecification.clone() : null)
-                .useOwnPartitionForProcessedObjects(expandedDefinition.isUseOwnPartitionForProcessedObjects());
+                        configurationSpecification != null ? configurationSpecification.clone() : null);
 
         String storedOid;
         try {
@@ -200,7 +199,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     public void update(@Nullable SystemConfigurationType value) {
         var configuration = value != null ? value.getSimulation() : null;
         if (configuration != null) {
-            simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getDefinition());
+            simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getSimulation());
             metricDefinitions = CloneUtil.cloneCollectionMembers(configuration.getMetric());
         }
     }
@@ -256,7 +255,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         return new SimulationResultContextImpl(this, resultOid);
     }
 
-    @NotNull List<GlobalSimulationMetricDefinitionType> getMetricDefinitions() {
+    @NotNull List<SimulationMetricDefinitionType> getMetricDefinitions() {
         return metricDefinitions;
     }
 

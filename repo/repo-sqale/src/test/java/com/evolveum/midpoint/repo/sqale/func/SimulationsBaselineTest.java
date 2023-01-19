@@ -41,8 +41,6 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                     .state(ObjectProcessingStateType.UNMODIFIED)
                     .eventTagRef(TEST_TAG_1, TagType.COMPLEX_TYPE)
                     .eventTagRef(TEST_TAG_2, TagType.COMPLEX_TYPE)
-                    .metricIdentifier("disabled")
-                    .metricIdentifier("business")
                     .before(systemConfiguration.clone())
                  )
                 .processedObject(new SimulationResultProcessedObjectType()

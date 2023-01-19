@@ -14,23 +14,23 @@
         <metric>
             <identifier>modifications</identifier>
             <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
-            <objectValue>
+            <computation>
                 <expression>
                     <script>
                         <code>processedObject.nonOperationalItemModificationsCount</code>
                     </script>
                 </expression>
-            </objectValue>
+            </computation>
         </metric>
         <metric>
             <identifier>attribute-modifications</identifier>
-            <objectValue>
+            <computation>
                 <expression>
                     <script>
                         <code>processedObject.attributeModificationsCount</code>
                     </script>
                 </expression>
-            </objectValue>
+            </computation>
             <domain>
                 <expression>
                     <script>
@@ -41,13 +41,13 @@
         </metric>
         <metric>
             <identifier>association-values-changed</identifier>
-            <objectValue>
+            <computation>
                 <expression>
                     <script>
                         <code>processedObject.associationValuesChanged</code>
                     </script>
                 </expression>
-            </objectValue>
+            </computation>
             <domain>
                 <expression>
                     <script>

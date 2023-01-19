@@ -11,13 +11,13 @@
     <simulation>
         <metric>
             <identifier>modifications</identifier>
-            <objectValue>
+            <computation>
                 <expression>
                     <script>
                         <code>processedObject.nonOperationalItemModificationsCount</code>
                     </script>
                 </expression>
-            </objectValue>
+            </computation>
         </metric>
         <!-- TODO other metrics -->
     </simulation>
