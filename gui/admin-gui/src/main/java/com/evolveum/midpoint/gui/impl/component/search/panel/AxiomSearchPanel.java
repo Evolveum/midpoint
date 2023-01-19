@@ -30,8 +30,6 @@ public class AxiomSearchPanel<C extends Containerable> extends BasePanel<AxiomQu
                 new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY));
         queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
-//        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
-//        queryDslField.add(AttributeAppender.append("class", createValidityStyle()));
         add(queryDslField);
     }
 

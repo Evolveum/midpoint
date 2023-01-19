@@ -48,6 +48,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_MODE = "defaultSearchBoxMode";
     public static final String F_ALLOWED_MODES = "allowedModeList";
 
+    public static final String F_OID_SEARCH = "oidSearchItemWrapper";
+    public static final String F_ADVANCED_SEARCH = "advancedQueryWrapper";
+    public static final String F_AXIOM_SEARCH = "axiomQueryWrapper";
+    public static final String F_FULLTEXT_SEARCH = "fulltextQueryWrapper";
+    public static final String F_BASIC_SEARCH = "searchConfigurationWrapper";
+
     private ObjectTypeSearchItemWrapper<C> type;
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
@@ -55,6 +61,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private AxiomQueryWrapper axiomQueryWrapper;
     private FulltextQueryWrapper fulltextQueryWrapper;
     private SearchConfigurationWrapper searchConfigurationWrapper;
+
+    private OidSearchItemWrapper oidSearchItemWrapper;
     private String advancedError;
     private String collectionViewName;
     private String collectionRefOid;
@@ -102,6 +110,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     void setFulltextQueryWrapper(FulltextQueryWrapper fulltextQueryWrapper) {
         this.fulltextQueryWrapper = fulltextQueryWrapper;
+    }
+
+    public void setOidSearchItemWrapper(OidSearchItemWrapper oidSearchItemWrapper) {
+        this.oidSearchItemWrapper = oidSearchItemWrapper;
     }
 
     public List<FilterableSearchItemWrapper> getItems() {
@@ -275,13 +287,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
-        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (FilterableSearchItemWrapper item : items) {
-            if (item instanceof OidSearchItemWrapper) {
-                return (OidSearchItemWrapper) item;
-            }
-        }
-        return null;
+        return oidSearchItemWrapper;
+//        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+//        for (FilterableSearchItemWrapper item : items) {
+//            if (item instanceof OidSearchItemWrapper) {
+//                return (OidSearchItemWrapper) item;
+//            }
+//        }
+//        return null;
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {

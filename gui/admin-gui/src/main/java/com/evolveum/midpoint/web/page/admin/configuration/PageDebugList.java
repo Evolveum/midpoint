@@ -12,14 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.component.search.*;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
-
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.web.session.GenericPageStorage;
-
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -43,8 +35,14 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -81,6 +79,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -139,10 +138,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 
                     search = createSearch(type);
-                //SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, PageDebugList.this);
-//                    search = SearchFactory.createSearch((Class) confDialogModel.getObject().getType(),  PageDebugList.this);
-                    //TODO axiom?
-                    search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+
 
                     storage.setSearch(search);
                 }
@@ -158,21 +154,16 @@ public class PageDebugList extends PageAdminConfiguration {
                 .additionalSearchContext(createAdditionalSearchContext())
                 .modelServiceLocator(PageDebugList.this);
 
-        return factory.createSearch();
+        Search<? extends ObjectType> search = factory.createSearch();
+        //TODO axiom?
+        search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+        return search;
     }
 
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(PredefinedSearchableItems.PanelType.DEBUG);
         return ctx;
-    }
-
-
-    private List<QName> getAllowedTypes() {
-        List<QName> choices = new ArrayList<>();
-        WebComponentUtil.createObjectTypesList().stream()
-                .forEach(type -> choices.add(type.getTypeQName()));
-        return choices;
     }
 
     private void initLayout() {

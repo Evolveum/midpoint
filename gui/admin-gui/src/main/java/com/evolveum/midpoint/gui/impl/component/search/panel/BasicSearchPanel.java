@@ -51,16 +51,13 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
 
             @Override
             protected List<FilterableSearchItemWrapper> load() {
-                return getModelObject().getItemsList()
-                        .stream().filter(item
-                                -> !(item instanceof OidSearchItemWrapper))
-                        .collect(Collectors.toList());
+                return getModelObject().getItemsList();
             }
         };
     }
 
     private void initMorePopupModel() {
-        morePopupModel = new LoadableDetachableModel<List<FilterableSearchItemWrapper>>() {
+        morePopupModel = new LoadableDetachableModel<>() {
             @Override
             protected List<FilterableSearchItemWrapper> load() {
                 return getModelObject().getItemsList();

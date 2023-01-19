@@ -191,10 +191,14 @@ public class SearchFactory<C extends Containerable> {
         objectTypeSearchItemWrapper.setValueForNull(getValueRepresentingAllTypes());
         Search<C> search = new Search<>(objectTypeSearchItemWrapper, mergedConfig);
 
+        OidSearchItemWrapper oidSearchItemWrapper = new OidSearchItemWrapper();
+        oidSearchItemWrapper.setValue(new SearchValue<>());
+        search.setOidSearchItemWrapper(oidSearchItemWrapper);
         search.setAdvancedQueryWrapper(advancedQueryWrapper);
         search.setAxiomQueryWrapper(axiomWrapper);
         search.setFulltextQueryWrapper(fulltextQueryWrapper);
         search.setSearchConfigurationWrapper(basicSearchWrapper);
+
         search.setSearchMode(getDefaultSearchMode(mergedConfig, type));
         search.setAllowedModeList(mergedConfig.getAllowedMode());
         if (collectionView !=  null) {
