@@ -5558,6 +5558,10 @@ public final class WebComponentUtil {
             return null;
         }
 
+        if (column.getPath() == null) {
+            return null;
+        }
+
         return column.getPath().getItemPath();
     }
 }

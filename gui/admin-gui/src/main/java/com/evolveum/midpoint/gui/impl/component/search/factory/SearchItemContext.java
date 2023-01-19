@@ -91,12 +91,17 @@ public class SearchItemContext implements Serializable {
             PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(def, (PageBase) modelServiceLocator);
             return lookupTable != null ? lookupTable.asObjectable() : null;
         }
-        if (hasParameter() && item.getParameter().getAllowedValuesLookupTable() != null) {
+        if (hasParameter() && hasLookupTableDefined(item)) {
             PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(
                     item.getParameter().getAllowedValuesLookupTable().asReferenceValue(), (PageBase) modelServiceLocator);
             return lookupTable != null ? lookupTable.asObjectable() : null;
         }
         return null;
+    }
+
+    private boolean hasLookupTableDefined(SearchItemType item) {
+        ObjectReferenceType lookupTableRef = item.getParameter().getAllowedValuesLookupTable();
+        return  lookupTableRef != null && lookupTableRef.getOid() != null;
     }
 
     private QName getSearchItemValueTypeName(SearchItemType searchItem, ItemDefinition<?> def) {
