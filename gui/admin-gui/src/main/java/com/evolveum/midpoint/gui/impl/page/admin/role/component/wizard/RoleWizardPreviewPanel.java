@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
@@ -22,34 +22,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-public abstract class ApplicationRoleWizardPreviewPanel
-        extends EnumWizardChoicePanel<ApplicationRoleWizardPreviewPanel.PreviewTileType, AssignmentHolderDetailsModel<RoleType>> {
+public abstract class RoleWizardPreviewPanel<T extends TileEnum>
+        extends EnumWizardChoicePanel<T, AssignmentHolderDetailsModel<RoleType>> {
 
-    public ApplicationRoleWizardPreviewPanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel) {
-        super(id, roleModel, PreviewTileType.class);
+    public RoleWizardPreviewPanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type) {
+        super(id, roleModel, type);
     }
 
     @Override
     protected QName getObjectType() {
         return RoleType.COMPLEX_TYPE;
-    }
-
-    enum PreviewTileType implements TileEnum {
-
-        CONFIGURE_GOVERNANCE_MEMBERS("fa fa-users"),
-        CONFIGURE_MEMBERS("fa fa-users"),
-        CONFIGURE_CONSTRUCTION("fa fa-retweet");
-
-        private final String icon;
-
-        PreviewTileType(String icon) {
-            this.icon = icon;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
     }
 
     @Override

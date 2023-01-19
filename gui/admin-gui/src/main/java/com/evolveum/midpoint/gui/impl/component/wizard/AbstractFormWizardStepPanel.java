@@ -93,7 +93,7 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
                 (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel<?>) component).updateFeedbackPanel(target));
     }
 
-    private VerticalFormPanel getVerticalForm() {
+    protected VerticalFormPanel getVerticalForm() {
         return (VerticalFormPanel) get(ID_FORM);
     }
 }

@@ -253,6 +253,11 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     protected IModel<Search<? extends ObjectType>> createSearchModel() {
                         return (IModel) searchModel;
                     }
+
+                    @Override
+                    protected boolean isSelectedItemsPanelVisible() {
+                        return false;
+                    }
                 };
         memberContainer.add(tilesTable);
     }

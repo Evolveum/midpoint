@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -111,13 +113,11 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
         return new LoadableModel<>(false) {
             @Override
             protected Search<O> load() {
-                return new SearchFactory<>(getType()).modelServiceLocator(getPageBase()).createSearch();//SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
+                return new SearchFactory<>(getType())
+                        .modelServiceLocator(getPageBase())
+                        .createSearch();//SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
             }
         };
-    }
-
-    protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>();
     }
 
     protected Class<O> getType() {

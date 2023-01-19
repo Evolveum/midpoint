@@ -100,7 +100,7 @@ public class SearchFactory<C extends Containerable> {
 
     public Search<C> createSearch() {
         PredefinedSearchableItems predefinedSearchableItems = new PredefinedSearchableItems(type, modelServiceLocator);
-        if (predefinedSearchableItems != null) {
+        if (additionalSearchContext != null) {
             predefinedSearchableItems = predefinedSearchableItems.resourceObjectDefinition(additionalSearchContext.getResourceObjectDefinition())
                     .assignmentTargetType(additionalSearchContext.getAssignmentTargetType())
                     .panelType(additionalSearchContext.getPanelType())

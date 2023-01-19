@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "roleWizard-construction-mapping",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-building"),
+        display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-arrow-right-from-bracket"),
         containerPath = "empty")
 public class ConstructionOutboundMappingsStepPanel
         extends AbstractWizardStepPanel<FocusDetailsModels<RoleType>> {

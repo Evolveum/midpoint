@@ -6,16 +6,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectClassSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ReferenceSearchItemWrapper;
+
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
@@ -49,7 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @PanelInstance(identifier = "roleWizard-construction-group",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageRole.wizard.step.construction.group", icon = "fa fa-building"),
+        display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
 public class ConstructionGroupStepPanel
         extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel.AssociationWrapper, ShadowType, FocusDetailsModels<RoleType>, ConstructionType> {
@@ -57,8 +61,11 @@ public class ConstructionGroupStepPanel
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
     public static final String PANEL_TYPE = "roleWizard-construction-group";
+
+    private static final String SKIP_INFO = "skipInfo";
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
+    private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
     private IModel<SearchValue<ItemName>> associationRef = Model.of();
 
     public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
@@ -68,13 +75,32 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
+    protected void onBeforeRender() {
+        if (isSkipInfoVisible()) {
+            getPageBase().info(getPageBase().createStringResource("ConstructionGroupStepPanel.skipStep").getString());
+        }
+        super.onBeforeRender();
+    }
+
+    public IModel<PrismContainerValueWrapper<ConstructionType>> getValueModel() {
+        if (valueModel == null) {
+            valueModel = createValueModel();
+        }
+        return valueModel;
+    }
+
+    private boolean isSkipInfoVisible() {
+        List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        return associations.isEmpty();
+    }
+
+    @Override
     protected IModel<List<AssociationWrapper>> getSelectedItemsModel() {
         return selectedItems;
     }
 
-    @Override
     protected IModel<PrismContainerValueWrapper<ConstructionType>> createValueModel() {
-        return new LoadableModel<>() {
+        return new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConstructionType> load() {
 
@@ -99,6 +125,11 @@ public class ConstructionGroupStepPanel
     @Override
     protected void deselectItem(AssociationWrapper entry) {
         selectedItems.getObject().removeIf(selectedItem -> selectedItem.equals(entry));
+    }
+
+    @Override
+    protected boolean isSelectedItemsPanelVisible() {
+        return true;
     }
 
     @Override
@@ -155,7 +186,12 @@ public class ConstructionGroupStepPanel
                     PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper;
 
                     Optional<PrismContainerValueWrapper<ResourceObjectAssociationType>> match = associationContainer.getValues().stream().filter(
-                            value -> value.getRealValue().getRef().equivalent(item.associationName)).findFirst();
+                            value -> {
+                                if (value.getRealValue() == null || value.getRealValue().getRef() == null) {
+                                    return false;
+                                }
+                                return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
+                            }).findFirst();
                     if (match.isPresent()) {
                         valueWrapper = match.get();
                     } else {
@@ -216,56 +252,74 @@ public class ConstructionGroupStepPanel
         return createStringResource("PageRole.wizard.step.construction.group.subText");
     }
 
-    @Override
-    protected SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper(Class<ShadowType> type) {
-        SearchConfigurationWrapper<ShadowType> config = super.createSearchConfigWrapper(type);
-        List<DisplayableValue<ItemName>> values = new ArrayList<>();
 
-        List<ResourceAssociationDefinition> associations =
-                WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
-        associations.forEach(association -> values.add(
-                new SearchValue<>(
-                        association.getName(),
-                        WebComponentUtil.getAssociationDisplayName(association))));
-        if (!values.isEmpty()) {
-            associationRef.setObject((SearchValue<ItemName>) values.get(0));
-        }
-
-        config.getItemsList().add(new ChoicesSearchItemWrapper<>(ItemPath.EMPTY_PATH, values) {
-            @Override
-            public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-                IModel<PrismContainerValueWrapper<ConstructionType>> valueModel = getValueModel();
-                ConstructionType construction = valueModel.getObject().getRealValue();
-                return WebComponentUtil.getShadowTypeFilterForAssociation(
-                        construction, (ItemName)getValue().getValue(), "load resource", getPageBase());
-            }
-
-            @Override
-            public boolean isVisible() {
-                return !getAvailableValues().isEmpty() || getAvailableValues().size() != 1;
-            }
-
-            @Override
-            public void setValue(DisplayableValue value) {
-                super.setValue(value);
-                associationRef.setObject((SearchValue<ItemName>) value);
-            }
-
-            @Override
-            public DisplayableValue getDefaultValue() {
-                if (!getAvailableValues().isEmpty()) {
-                    return getAvailableValues().get(0);
-                }
-                return super.getDefaultValue();
-            }
-
-            @Override
-            public boolean allowNull() {
-                return false;
-            }
-        });
-        return config;
-    }
+    //TODO what is the goal of this?
+//    @Override
+//    protected SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper(Class<ShadowType> type) {
+//        SearchConfigurationWrapper<ShadowType> config =
+//                SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+//        List<DisplayableValue<ItemName>> values = new ArrayList<>();
+//
+//        config.getItemsList().removeIf(item ->
+//                (item instanceof ReferenceSearchItemWrapper
+//                    && ShadowType.F_RESOURCE_REF.equivalent(((ReferenceSearchItemWrapper<?>) item).getDef().getItemName()))
+//                        || item instanceof ObjectClassSearchItemWrapper);
+//
+//        List<ResourceAssociationDefinition> associations =
+//                WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+//        associations.forEach(association -> values.add(
+//                new SearchValue<>(
+//                        association.getName(),
+//                        WebComponentUtil.getAssociationDisplayName(association))));
+//        if (!values.isEmpty()) {
+//            associationRef.setObject((SearchValue<ItemName>) values.get(0));
+//        }
+//
+//        config.getItemsList().add(new ChoicesSearchItemWrapper<>(ItemPath.EMPTY_PATH, values) {
+//            @Override
+//            public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+//                IModel<PrismContainerValueWrapper<ConstructionType>> valueModel = getValueModel();
+//                ConstructionType construction = valueModel.getObject().getRealValue();
+//                return WebComponentUtil.getShadowTypeFilterForAssociation(
+//                        construction, (ItemName)getValue().getValue(), "load resource", getPageBase());
+//            }
+//
+//            @Override
+//            public String getName() {
+//                return getPageBase().createStringResource("ConstructionType.association").getString();
+//            }
+//
+//            @Override
+//            public boolean isVisible() {
+//                return !getAvailableValues().isEmpty() || getAvailableValues().size() != 1;
+//            }
+//
+//            @Override
+//            public void setValue(DisplayableValue value) {
+//                super.setValue(value);
+//                associationRef.setObject((SearchValue<ItemName>) value);
+//            }
+//
+//            @Override
+//            public DisplayableValue getDefaultValue() {
+//                if (!getAvailableValues().isEmpty()) {
+//                    return getAvailableValues().get(0);
+//                }
+//                return super.getDefaultValue();
+//            }
+//
+//            @Override
+//            public boolean allowNull() {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//        });
+//        return config;
+//    }
 
     public class AssociationWrapper implements Serializable {
 

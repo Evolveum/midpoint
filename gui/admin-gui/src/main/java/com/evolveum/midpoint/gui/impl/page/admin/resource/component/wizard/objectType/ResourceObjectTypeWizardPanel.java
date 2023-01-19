@@ -94,7 +94,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
                 if (isSavedAfterDetailsWizard()) {
                     OperationResult result = onSavePerformed(target);
                     if (result != null && !result.isError()) {
-                        WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
+                        WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
 
                         getHelper().setValueModel(refreshValueModel(ResourceObjectTypeWizardPanel.this.getValueModel()));
                         showObjectTypePreviewFragment(ResourceObjectTypeWizardPanel.this.getValueModel(), target);
@@ -228,7 +228,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
             }
 
             @Override
-            public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                 OperationResult result = ResourceObjectTypeWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     refreshValueModel();

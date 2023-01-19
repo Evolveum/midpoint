@@ -75,8 +75,15 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             SqaleRepoContext sqlRepoContext,
             SQLQuery<?> sqlQuery,
             SqaleObjectLoader objectLoader) {
+        return from(sqlRepoContext.getMappingBySchemaType(schemaType),
+                sqlRepoContext, sqlQuery, objectLoader);
+    }
 
-        SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
+            SqaleTableMapping<S, Q, R> rootMapping,
+            SqaleRepoContext sqlRepoContext,
+            SQLQuery<?> sqlQuery,
+            SqaleObjectLoader objectLoader) {
         Q rootPath = rootMapping.defaultAlias();
         SQLQuery<?> query = sqlQuery.from(rootPath);
         // Turns on validations of aliases, does not ignore duplicate JOIN expressions,

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -14,8 +15,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -25,15 +24,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
         extends SelectTileWizardStepPanel<O, ODM, V> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiSelectTileWizardStepPanel.class);
-
     private static final String ID_TABLE = "table";
 
     public MultiSelectTileWizardStepPanel(ODM model) {
         super(model);
     }
 
-    protected void initLayout() {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         MultiSelectTileTablePanel<SI, O> tilesTable =
                 new MultiSelectTileTablePanel<>(
                         ID_TABLE,
@@ -47,6 +50,11 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     @Override
                     protected IModel<String> getItemLabelModel(SI entry) {
                         return MultiSelectTileWizardStepPanel.this.getItemLabelModel(entry);
+                    }
+
+                    @Override
+                    protected boolean isSelectedItemsPanelVisible() {
+                        return MultiSelectTileWizardStepPanel.this.isSelectedItemsPanelVisible();
                     }
 
                     @Override
@@ -80,11 +88,6 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
-                    protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-                        return MultiSelectTileWizardStepPanel.this.createSearchConfigWrapper(type);
-                    }
-
-                    @Override
                     protected SelectableBeanObjectDataProvider<O> createProvider() {
                         return MultiSelectTileWizardStepPanel.this.createProvider(super.createProvider());
                     }
@@ -109,14 +112,14 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
 
     protected abstract void deselectItem(SI entry);
 
+    protected boolean isSelectedItemsPanelVisible() {
+        return false;
+    }
+
     protected void customizeTile(TemplateTile<SelectableBean<O>> tile) {
     }
 
     protected SelectableBeanObjectDataProvider<O> createProvider(SelectableBeanObjectDataProvider<O> defaultProvider) {
         return defaultProvider;
-    }
-
-    protected SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type) {
-        return new SearchConfigurationWrapper<>();
     }
 }

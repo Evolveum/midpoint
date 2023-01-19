@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,13 +27,11 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -57,6 +55,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -88,6 +87,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String connector1Oid;
     private String connector2Oid;
     private String roleAvIOid; // role for assignment-vs-inducement tests
+    private String roleOtherOid;
+    private String roleOneMoreOid;
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
@@ -95,7 +96,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final String resourceOid = UUID.randomUUID().toString();
     private final String connectorHostOid = UUID.randomUUID().toString();
 
-    private ItemDefinition<?> shadowAttributeDefinition;
+    private ItemDefinition<?> shadowAttributeStringMvDefinition;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -110,8 +111,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .lifecycleState("role-ind-lc"))
                         .asPrismObject(), null, result);
 
-        String roleOtherOid = repositoryService.addObject(
+        roleOtherOid = repositoryService.addObject(
                 new RoleType().name("role-other")
+                        .asPrismObject(), null, result);
+        roleOneMoreOid = repositoryService.addObject(
+                new RoleType().name("role-one-more")
                         .asPrismObject(), null, result);
 
         // org structure
@@ -172,7 +176,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
-        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
+        shadowAttributeStringMvDefinition = attributesHelper.getDefinition(shadowAttributeName);
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
@@ -240,6 +244,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.SUCCESS)
                         .timestamp("2021-10-01T00:00:00Z"))
+                .roleMembershipRef(createTestRefWithMetadata(roleOtherOid, RoleType.COMPLEX_TYPE, relation2))
                 .extension(new ExtensionType());
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -335,6 +340,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .status(OperationResultStatusType.WARNING)
                         .timestamp("2021-08-01T00:00:00Z"))
                 .organization("org-33")
+                .roleMembershipRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
                 .extension(new ExtensionType());
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
@@ -366,6 +372,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .organization("org-2")
                         .organizationalUnit("ou-1")
                         .organizationalUnit("ou-2")
+                        .roleMembershipRef(createTestRefWithMetadata(
+                                roleOneMoreOid, RoleType.COMPLEX_TYPE, ORG_DEFAULT))
                         .asPrismObject(),
                 null, result);
 
@@ -471,6 +479,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         });
 
         assertThatOperationResult(result).isSuccess();
+    }
+
+    private ObjectReferenceType createTestRefWithMetadata(
+            String targetOid, QName targetType, QName relation) throws SchemaException {
+        ObjectReferenceType ref = new ObjectReferenceType()
+                .oid(targetOid)
+                .type(targetType)
+                .relation(relation);
+        ref.asReferenceValue().setValueMetadata(new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .acquisition(new ProvenanceAcquisitionType()
+                                .channel("acquisition-channel"))));
+        return ref;
     }
 
     // region simple filters
@@ -747,6 +768,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test171SearchShadowOwner() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
+        //noinspection deprecation
         PrismObject<UserType> result =
                 repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
 
@@ -762,6 +784,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test172SearchShadowOwnerByNonexistentOid() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
+        //noinspection deprecation
         PrismObject<UserType> result =
                 repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
 
@@ -2033,7 +2056,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
-                f -> f.itemWithDef(shadowAttributeDefinition,
+                f -> f.itemWithDef(shadowAttributeStringMvDefinition,
                                 ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
@@ -2411,26 +2434,109 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
                 user1Oid);
     }
-    // endregion
 
-    // right-hand path
     @Test
-    public void test800SearchUsersWithSimplePath() throws SchemaException {
-        searchUsersTest("fullName does not equals fname",
+    public void test750SearchUsersWithRightHandSimplePath() throws SchemaException {
+        searchUsersTest("where fullName equals givenName",
                 f -> f.item(UserType.F_FULL_NAME).eq().item(UserType.F_GIVEN_NAME),
                 user4Oid);
     }
 
     @Test
-    public void test820SearchUsersWithReferencedPath() {
-        assertThatThrownBy(() ->
-                searchUsersTest("fullName does not equals fname",
+    public void test760SearchUsersWithRightHandReferencedPath() {
+        assertThatThrownBy(
+                () -> searchUsersTest(
+                        "comparing nested timestamps",
                         f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                                 .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                        user1Oid, user2Oid, user3Oid, user4Oid))
+                        user1Oid, user2Oid, user3Oid, user4Oid),
+                "right-hand side nesting into multivalue container is not supported")
                 .isInstanceOf(SystemException.class);
-        // Should fail because right-hand side nesting into multivalue container is not supported
     }
+    // endregion
+
+    // region reference search
+    @Test
+    public void test800SearchReference() throws SchemaException {
+        when("searching role membership references to roles with specified relation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, relation2)
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("operation is success and expected refs are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(2)
+                .anyMatch(r -> refMatches(r, user1Oid, roleOtherOid, relation2))
+                .anyMatch(r -> refMatches(r, user3Oid, roleAvIOid, relation2));
+        // TODO metadata check
+    }
+
+    @Test
+    public void test801SearchReferenceWithImpliedDefaultRelation() throws SchemaException {
+        when("searching role membership references to roles with default relation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE) // no relation => default
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected ref is returned");
+        assertThat(result)
+                .hasSize(1)
+                .anyMatch(r -> refMatches(r, user4Oid, roleOneMoreOid, ORG_DEFAULT));
+    }
+
+    @Test
+    public void test802SearchReferenceWithAnyRelation() throws SchemaException {
+        when("searching role membership references to roles with any relation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, Q_ANY) // any relation
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected refs are returned");
+        assertThat(result)
+                .hasSize(3)
+                .anyMatch(r -> refMatches(r, user1Oid, roleOtherOid, relation2))
+                .anyMatch(r -> refMatches(r, user3Oid, roleAvIOid, relation2))
+                .anyMatch(r -> refMatches(r, user4Oid, roleOneMoreOid, ORG_DEFAULT));
+    }
+
+    @Test
+    public void test805SearchLinkRefs() throws SchemaException {
+        when("searching link references (pure owned-by filter)");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected ref is returned");
+        assertThat(result)
+                .hasSize(1)
+                .anyMatch(r -> refMatches(r, user3Oid, shadow1Oid, ORG_DEFAULT));
+    }
+
+    @Test
+    public void test819ReferenceQueryFailsOnWrongTopLevelPath() {
+        assertThatThrownBy(
+                () -> prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                        .or()
+                        .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid") // this fails
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
+    }
+
+    // TODO test wrong ref type
+    // TODO test multiple owned-by (failing)
     // endregion
 
     // region special cases
@@ -2903,4 +3009,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .containsExactly(user2Oid, user3Oid, user1Oid, creatorOid, modifierOid, user4Oid);
     }
     // endregion
+
+    private boolean refMatches(ObjectReferenceType ref,
+            @Nullable String ownerOid, String targetOid, QName relation) {
+        PrismObject<?> parentObject = PrismValueUtil.getParentObject(ref.asReferenceValue());
+        return (ownerOid == null || parentObject != null && parentObject.getOid().equals(ownerOid))
+                && ref.getOid().equals(targetOid)
+                && QNameUtil.match(ref.getRelation(), relation);
+    }
 }

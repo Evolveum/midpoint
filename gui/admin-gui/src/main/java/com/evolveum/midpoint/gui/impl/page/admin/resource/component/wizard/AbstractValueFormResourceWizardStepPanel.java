@@ -138,6 +138,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
+        target.add(getFeedback());
         getValuePanel().visitChildren(
                 VerticalFormPrismPropertyValuePanel.class,
                 (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel) component).updateFeedbackPanel(target));

@@ -225,6 +225,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             return true;
         }
 
+
+
         return WebComponentUtil.getElementVisibility(config.getVisibility()) && isVisibleForAddApply(config);
     }
 

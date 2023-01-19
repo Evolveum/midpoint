@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
-
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.SequenceUtil;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -57,6 +56,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -135,6 +135,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
     }
 
+    // region getObject/getVersion
     @Override
     public @NotNull <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
@@ -281,9 +282,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             registerOperationFinish(opHandle);
         }
     }
+    // endregion
 
-    // Add/modify/delete
-
+    // region Add/modify/delete
     @Override
     @NotNull
     public <T extends ObjectType> String addObject(
@@ -818,6 +819,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
+    // endregion
 
     // region Counting/searching
     @Override
@@ -1270,6 +1272,81 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return sqlQueryExecutor.list(queryContext, query, options);
         } finally {
             registerOperationFinish(opHandle);
+        }
+    }
+
+    public SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) {
+        // TODO cleanup, op-result and other ceremonies
+        try {
+            ObjectFilter filter = query.getFilter();
+            if (!(filter instanceof OwnedByFilter || filter instanceof LogicalFilter)) {
+                throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
+                        + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
+            }
+
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(filter);
+            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
+                    SqaleQueryContext.from(
+                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
+            return sqlQueryExecutor.list(queryContext, query, options);
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @NotNull
+    private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
+        OwnedByFilter ownedByFilter;
+        if (filter instanceof OwnedByFilter) {
+            ownedByFilter = (OwnedByFilter) filter;
+        } else if (filter instanceof LogicalFilter) {
+            ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
+        } else {
+            throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
+                    + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
+        }
+
+        ComplexTypeDefinition type = ownedByFilter.getType();
+        ItemPath path = ownedByFilter.getPath();
+        QReferenceMapping<?, ?, ?, ?> refMapping =
+                QReferenceMapping.getByOwnerTypeAndPath(type.getCompileTimeClass(), path);
+        if (refMapping == null) {
+            throw new QueryException(
+                    "Reference search is not supported for " + type + " and item path " + path);
+        }
+        return refMapping;
+    }
+
+    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter, ObjectFilter originalFilter)
+            throws QueryException {
+        if (filter instanceof OwnedByFilter) {
+            return (OwnedByFilter) filter;
+        } else if (filter instanceof UnaryLogicalFilter) {
+            return extractOwnedByFilterForReferenceSearch(((UnaryLogicalFilter) filter).getFilter(), originalFilter);
+        } else if (filter instanceof NaryLogicalFilter) {
+            OwnedByFilter ownedByFilter = null;
+            for (ObjectFilter condition : ((NaryLogicalFilter) filter).getConditions()) {
+                if (condition instanceof OwnedByFilter) {
+                    if (ownedByFilter != null) {
+                        throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                                + " for reference search, but multiple found. Filter: " + originalFilter);
+                    }
+                    ownedByFilter = (OwnedByFilter) condition;
+                }
+            }
+            if (ownedByFilter == null) {
+                throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                        + " for reference search, but none found. Filter: " + originalFilter);
+            }
+            return ownedByFilter;
+        } else {
+            throw new QueryException("Invalid filter for reference search: " + originalFilter
+                    + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
         }
     }
     // endregion
