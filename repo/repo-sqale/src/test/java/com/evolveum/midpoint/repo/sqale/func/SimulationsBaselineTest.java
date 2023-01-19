@@ -35,6 +35,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
         SimulationResultType obj = new SimulationResultType()
                 .name("Test Simulation Result")
+                .rootTaskRef(TEST_TAG_1, TaskType.COMPLEX_TYPE)
                 .processedObject(new SimulationResultProcessedObjectType()
                     .oid("00000000-0000-0000-0000-000000000001")
                     .name("System Configuration")

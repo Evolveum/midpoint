@@ -9,7 +9,9 @@ import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
@@ -42,6 +44,17 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
                 QProcessedObjectMapping.initProcessedResultMapping(repositoryContext),
                 joinOn((o, processed) -> o.oid.eq(processed.ownerOid)));
         addItemMapping(F_USE_OWN_PARTITION_FOR_PROCESSED_OBJECTS, booleanMapper(q -> q.partitioned));
+
+        // startTimestamp
+        addItemMapping(F_START_TIMESTAMP, timestampMapper(q -> q.startTimestamp));
+        addItemMapping(F_END_TIMESTAMP, timestampMapper(q -> q.endTimestamp));
+
+        // endTimestamp
+        addRefMapping(F_ROOT_TASK_REF,
+                q -> q.rootTaskRefTargetOid,
+                q -> q.rootTaskRefTargetType,
+                q -> q.rootTaskRefRelationId,
+                QTaskMapping::get);
     }
 
     @Override
@@ -55,7 +68,16 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
             JdbcSession jdbcSession) {
         MSimulationResult row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
-        //row.partitioned = schemaObject.isUseOwnPartitionForProcessedObjects();
+        if (schemaObject.getDefinition() != null) {
+            row.partitioned = schemaObject.getDefinition().isUseOwnPartitionForProcessedObjects();
+        }
+
+        row.startTimestamp = MiscUtil.asInstant(schemaObject.getStartTimestamp());
+        row.endTimestamp = MiscUtil.asInstant(schemaObject.getEndTimestamp());
+        setReference(schemaObject.getRootTaskRef(),
+                o -> row.rootTaskRefTargetOid = o,
+                t -> row.rootTaskRefTargetType = t,
+                r -> row.rootTaskRefRelationId = r);
         return row;
     }
 
