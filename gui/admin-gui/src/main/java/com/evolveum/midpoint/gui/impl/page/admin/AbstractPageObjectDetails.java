@@ -344,6 +344,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected void setUseWizardForCreating() {
+        getFeedbackPanel().setVisible(false);
         isAddedByWizard = true;
     }
 
