@@ -6,6 +6,7 @@
  */
 
 @use "sass:math";
+@use "sass:color";
 
 // simple width, mainly usable for table columns. Bootstrap has only w-* for 25%, 50%, 75%, 100%
 @each $breakpoint in map-keys($grid-breakpoints) {
@@ -47,4 +48,18 @@
       }
     }
   }
+}
+
+.rounded-xl {
+  border-radius: .5rem !important;
+}
+
+.trend-success {
+  background: ligthen($green, -20%);
+  color: $green;
+}
+
+.trend-danger {
+  background-color: ligthen($red, 20%);
+  color: $red;
 }
