@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
@@ -43,8 +44,8 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
         addContainerTableMapping(F_PROCESSED_OBJECT,
                 QProcessedObjectMapping.initProcessedResultMapping(repositoryContext),
                 joinOn((o, processed) -> o.oid.eq(processed.ownerOid)));
-        // FIXME does not compile
-        //addItemMapping(F_USE_OWN_PARTITION_FOR_PROCESSED_OBJECTS, booleanMapper(q -> q.partitioned));
+        addNestedMapping(F_DEFINITION, SimulationDefinitionType.class)
+            .addItemMapping(SimulationDefinitionType.F_USE_OWN_PARTITION_FOR_PROCESSED_OBJECTS, booleanMapper(q -> q.partitioned));
 
         // startTimestamp
         addItemMapping(F_START_TIMESTAMP, timestampMapper(q -> q.startTimestamp));

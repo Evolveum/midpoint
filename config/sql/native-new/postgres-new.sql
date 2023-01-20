@@ -1899,7 +1899,7 @@ CREATE TABLE m_simulation_result_processed_object (
     -- Owner does not have to be the direct parent of the container.
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ownerOid UUID NOT NULL REFERENCES m_simulation_result(oid) ON DELETE CASCADE,
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.

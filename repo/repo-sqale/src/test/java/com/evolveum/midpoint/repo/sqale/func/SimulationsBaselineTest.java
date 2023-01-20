@@ -27,7 +27,6 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     @Test
     public void test100CreateSimulation() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
-
         given("simulation result with a dummy system configuration object");
         SystemConfigurationType systemConfiguration = new SystemConfigurationType()
                 .name("System Configuration")
@@ -36,6 +35,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         SimulationResultType obj = new SimulationResultType()
                 .name("Test Simulation Result")
                 .rootTaskRef(TEST_TAG_1, TaskType.COMPLEX_TYPE)
+                .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
                 .processedObject(new SimulationResultProcessedObjectType()
                     .oid("00000000-0000-0000-0000-000000000001")
                     .name("System Configuration")
@@ -80,8 +80,12 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
         and("can be parsed");
         // TODO this should work, shouldn't it?
-        //ObjectType objectBefore = processedObjects.get(0).getBefore();
-        //assertThat(objectBefore).as("'object before' from result").isEqualTo(systemConfiguration);
+        ObjectType objectBefore = processedObjects.get(0).getBefore();
+        assertThat(objectBefore).as("'object before' from result").isEqualTo(systemConfiguration);
+    }
+
+    protected boolean getPartitioned() {
+        return false;
     }
 
     @Test
