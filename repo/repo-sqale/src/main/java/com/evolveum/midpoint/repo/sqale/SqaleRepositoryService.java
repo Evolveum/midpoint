@@ -1275,10 +1275,56 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
+    public int countReferences(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_COUNT_REFERENCES)
+                .addParam("query", query)
+                .build();
+
+        try {
+            logSearchInputParameters(ObjectReferenceType.class, query, "Count references");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return 0;
+            }
+
+            return executeCountReferences(query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    public int executeCountReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+        long opHandle = registerOperationStart(OP_COUNT_REFERENCES, ObjectReferenceType.class);
+        try {
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
+            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
+                    SqaleQueryContext.from(
+                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
+            return sqlQueryExecutor.count(queryContext, query, options);
+        } finally {
+            registerOperationFinish(opHandle);
+        }
+    }
+
     public SearchResultList<ObjectReferenceType> searchReferences(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
+        Objects.requireNonNull(query, "Query must be provided for reference search");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_REFERENCES)
@@ -1309,13 +1355,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws SchemaException, RepositoryException {
         long opHandle = registerOperationStart(OP_SEARCH_REFERENCES, ObjectReferenceType.class);
         try {
-            ObjectFilter filter = query.getFilter();
-            if (!(filter instanceof OwnedByFilter || filter instanceof LogicalFilter)) {
-                throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
-                        + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
-            }
-
-            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(filter);
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
             SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
                     SqaleQueryContext.from(
                             refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);

@@ -2472,7 +2472,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .hasSize(2)
                 .anyMatch(r -> refMatches(r, user1Oid, roleOtherOid, relation2))
                 .anyMatch(r -> refMatches(r, user3Oid, roleAvIOid, relation2));
-        // TODO metadata check
+
+        and("value metadata is returned in references that have them");
+        assertThat(result)
+                .filteredOn(r -> r.getOid().equals(roleOtherOid))
+                .singleElement()
+                .extracting(r -> r.asReferenceValue().getValueMetadata())
+                // A bit of a train-wreck... but it should work.
+                .matches(m -> m.getRealValue(ValueMetadataType.class).getProvenance()
+                        .getAcquisition().get(0).getChannel().equals("acquisition-channel"));
     }
 
     @Test
@@ -2511,7 +2519,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test805SearchLinkRefs() throws SchemaException {
+    public void test810SearchLinkRefs() throws SchemaException {
         when("searching link references (pure owned-by filter)");
         OperationResult operationResult = createOperationResult();
         ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
@@ -2522,6 +2530,22 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .hasSize(1)
                 .anyMatch(r -> refMatches(r, user3Oid, shadow1Oid, ORG_DEFAULT));
+    }
+
+    @Test
+    public void test811CountLinkRefs() throws SchemaException {
+        when("counting link references (pure owned-by filter)");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext
+                .queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
+                .build();
+        queryRecorder.clearBufferAndStartRecording();
+        int result = repositoryService.countReferences(refQuery, null, operationResult);
+        display(queryRecorder.dumpQueryBuffer());
+
+        then("expected ref count returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).isEqualTo(1);
     }
 
     @Test
@@ -2538,6 +2562,28 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // TODO test wrong ref type
     // TODO test multiple owned-by (failing)
+
+    @Test
+    public void test890ReferenceSearchWithNullQueryFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(null, operationResult, null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Query must be provided for reference search");
+    }
+
+    @Test
+    public void test891ReferenceSearchWithNullFilterFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(
+                        // The type for the query does not affect the search directly.
+                        // This is not how to construct real query for reference search, of course.
+                        prismContext.queryFor(UserType.class).build(),
+                        operationResult, null))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Invalid filter for reference search: null");
+    }
     // endregion
 
     // region special cases
