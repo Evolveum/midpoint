@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
@@ -134,7 +133,7 @@ public class QReferenceMapping<
                     TableRelationResolver.usingJoin(ownerMappingSupplier, ownerJoin));
 
             // This supports REF(.) used in reference searches.
-            addItemMapping(ItemName.SELF_NAME, new DefaultItemSqlMapper<>(
+            addItemMapping(PrismConstants.T_SELF, new DefaultItemSqlMapper<>(
                     ctx -> new RefItemFilterProcessor(ctx,
                             q -> q.targetOid,
                             q -> q.targetType,

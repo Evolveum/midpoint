@@ -2497,7 +2497,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
                 .and()
-                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, Q_ANY) // any relation
+                // T_SELF must work the same as SELF_PATH (but SELF_PATH is preferred)
+                .item(T_SELF).ref(null, RoleType.COMPLEX_TYPE, Q_ANY) // any relation
                 .build();
         SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
 

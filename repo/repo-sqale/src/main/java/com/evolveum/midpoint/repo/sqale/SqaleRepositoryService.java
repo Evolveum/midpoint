@@ -1276,10 +1276,38 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     public SearchResultList<ObjectReferenceType> searchReferences(
-            @NotNull ObjectQuery query,
+            @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull OperationResult parentResult) {
-        // TODO cleanup, op-result and other ceremonies
+            @NotNull OperationResult parentResult) throws SchemaException {
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_REFERENCES)
+                .addParam("query", query)
+                .build();
+
+        try {
+            logSearchInputParameters(ObjectReferenceType.class, query, "Search references");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
+            return executeSearchReferences(query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    public SearchResultList<ObjectReferenceType> executeSearchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, RepositoryException {
+        long opHandle = registerOperationStart(OP_SEARCH_REFERENCES, ObjectReferenceType.class);
         try {
             ObjectFilter filter = query.getFilter();
             if (!(filter instanceof OwnedByFilter || filter instanceof LogicalFilter)) {
@@ -1292,29 +1320,20 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(
                             refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
             return sqlQueryExecutor.list(queryContext, query, options);
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+        } finally {
+            registerOperationFinish(opHandle);
         }
     }
 
     @NotNull
     private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
-        OwnedByFilter ownedByFilter;
-        if (filter instanceof OwnedByFilter) {
-            ownedByFilter = (OwnedByFilter) filter;
-        } else if (filter instanceof LogicalFilter) {
-            ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
-        } else {
-            throw new UnsupportedOperationException("Invalid filter for reference search: " + filter
-                    + "\nReference search filter should be OWNED-BY filter or a logical filter with it.");
-        }
+        OwnedByFilter ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
 
         ComplexTypeDefinition type = ownedByFilter.getType();
         ItemPath path = ownedByFilter.getPath();
         QReferenceMapping<?, ?, ?, ?> refMapping =
                 QReferenceMapping.getByOwnerTypeAndPath(type.getCompileTimeClass(), path);
+
         if (refMapping == null) {
             throw new QueryException(
                     "Reference search is not supported for " + type + " and item path " + path);
