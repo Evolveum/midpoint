@@ -127,6 +127,13 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public @NotNull SearchResultList<ObjectReferenceType> searchReferences(@NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult)
+            throws SchemaException {
+        return searchOpHandler.searchReferences(query, options, parentResult);
+    }
+
+    @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
@@ -137,6 +144,12 @@ public class RepositoryCache implements RepositoryService, Cache {
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         return searchOpHandler.countContainers(type, query, options, parentResult);
+    }
+
+    @Override
+    public int countReferences(@Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+        return searchOpHandler.countReferences(query, options, parentResult);
     }
     //endregion
 

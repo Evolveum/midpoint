@@ -1275,10 +1275,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
+    @Override
     public int countReferences(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull OperationResult parentResult) throws SchemaException {
+            @NotNull OperationResult parentResult) {
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
@@ -1320,8 +1321,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    public SearchResultList<ObjectReferenceType> searchReferences(
-            @Nullable ObjectQuery query,
+    @Override
+    public @NotNull SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
         Objects.requireNonNull(query, "Query must be provided for reference search");

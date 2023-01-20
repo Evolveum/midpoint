@@ -344,10 +344,31 @@ public interface RepositoryService {
 
     /**
      * Search for "sub-object" structures, i.e. containers.
-     * Currently, only one type of search is available: certification case search.
      */
     <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+
+    /**
+     * Reference count - currently supporting roleMembershipRef and linkRef search.
+     *
+     * @param query mandatory query that has to have exactly one root OWNER-BY and additional REF filters
+     */
+    int countReferences(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult);
+
+    /**
+     * Reference search - currently supporting roleMembershipRef and linkRef search.
+     * This returns reference objects extracted from the actual object(s) that own them,
+     * but selection of which (and cardinality of the result list) is based on a repository search.
+     *
+     * @param query mandatory query that has to have exactly one root OWNER-BY and additional REF filters
+     */
+    @NotNull SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
      * <p>Search for objects in the repository.</p>
