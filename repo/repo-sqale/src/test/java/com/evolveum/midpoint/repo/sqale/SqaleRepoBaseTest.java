@@ -562,12 +562,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
             throws SchemaException {
-        try {
-            displayQuery(query);
-        } catch (SchemaException e) {
-            // TODO fix problem with parsing . path and remove this catch
-            display("Cannot parse query? " + e);
-        }
+        displayQuery(query);
         boolean record = !queryRecorder.isRecording();
         if (record) {
             queryRecorder.clearBufferAndStartRecording();
