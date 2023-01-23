@@ -173,15 +173,6 @@ public class PageError extends PageBase {
         return "PageError.message";
     }
 
-    private String getUrlForLogout() {
-        ModuleAuthentication moduleAuthentication = AuthUtil.getAuthenticatedModule();
-
-        if (moduleAuthentication == null) {
-            return SecurityUtils.DEFAULT_LOGOUT_PATH;
-        }
-        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication.getPrefix());
-    }
-
     @Override
     protected void createBreadcrumb() {
         //don't create breadcrumb for error page

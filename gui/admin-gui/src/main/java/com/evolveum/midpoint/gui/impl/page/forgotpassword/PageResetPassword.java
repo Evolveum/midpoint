@@ -89,7 +89,6 @@ public class PageResetPassword extends PageBase {
 
                 if (result.getStatus() == OperationResultStatus.SUCCESS) {
                     result.setMessage(getString("PageResetPassword.reset.successful"));
-                    setResponsePage(new RedirectPage("/"));
 
                     PrismObject<? extends FocusType> focus = getPrincipalFocus().asPrismObject();
                     if (focus == null) {
@@ -114,6 +113,7 @@ public class PageResetPassword extends PageBase {
                     showResult(result);
                     target.add(getFeedbackPanel());
                     AuthUtil.clearMidpointAuthentication();
+                    setResponsePage(getMidpointApplication().getHomePage());
                 } else if (showFeedback) {
                     showResult(result);
                 }
