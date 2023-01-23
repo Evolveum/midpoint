@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
+import static com.evolveum.midpoint.repo.api.RepositoryService.OP_COUNT_REFERENCES;
+import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_REFERENCES;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
@@ -28,10 +30,7 @@ import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObjectsTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Handler for searchObjects/searchObjectsIterative operations.
@@ -337,7 +336,9 @@ public class SearchOpHandler extends CachedOpHandler {
         }
     }
 
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
         OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
@@ -368,6 +369,42 @@ public class SearchOpHandler extends CachedOpHandler {
         Long startTime = repoOpStart();
         try {
             return repositoryService.countContainers(type, query, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public SearchResultList<ObjectReferenceType> searchReferences(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_SEARCH_REFERENCES)
+                .addParam("query", query)
+                .addArbitraryObjectAsParam("options", options)
+                .build();
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.searchReferences(query, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public int countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(OP_COUNT_REFERENCES)
+                .addParam("query", query)
+                .addArbitraryObjectCollectionAsParam("options", options)
+                .build();
+        MonitoringUtil.log("Cache: PASS countReferences ({})", false, ObjectReferenceType.class.getSimpleName());
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.countReferences(query, options, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
