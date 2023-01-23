@@ -201,7 +201,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public File getObject() {
-                String home = getPageBase().getMidpointConfiguration().getMidpointHome();
+                String home = getPageAdminLTE().getMidpointConfiguration().getMidpointHome();
                 File f = new File(home, "result");
                 try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))) {
                     dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
