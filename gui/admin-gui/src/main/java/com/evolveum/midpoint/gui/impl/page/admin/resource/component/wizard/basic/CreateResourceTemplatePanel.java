@@ -9,8 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.TemplateType;
@@ -52,7 +52,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
 
 
-    private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
+    private LoadableDetachableModel<Search<? extends AssignmentHolderType>> searchModel;
 
     private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
@@ -71,11 +71,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         if (searchModel == null) {
             searchModel = new LoadableDetachableModel<>() {
                 @Override
-                protected Search<AssignmentHolderType> load() {
+                protected Search<? extends AssignmentHolderType> load() {
                     PageStorage storage = getStorage();
-                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(templateType.getObject().getType())) {
-                        Search<AssignmentHolderType> search
-                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
+                    TemplateType template = templateType.getObject();
+                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(template.getType())) {
+                        SearchBuilder<? extends AssignmentHolderType> searchBuilder = new SearchBuilder<>(template.getType())
+                                .modelServiceLocator(getPageBase());
+
+                        Search<? extends AssignmentHolderType> search = searchBuilder.build();
                         storage.setSearch(search);
                         return search;
                     }
@@ -156,7 +159,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
     }
 
     private SearchPanel<AssignmentHolderType> initSearch() {
-        return new SearchPanel<>(ID_SEARCH, searchModel) {
+        return new SearchPanel<>(ID_SEARCH, (IModel) searchModel) {
 
             @Override
             public void searchPerformed(AjaxRequestTarget target) {

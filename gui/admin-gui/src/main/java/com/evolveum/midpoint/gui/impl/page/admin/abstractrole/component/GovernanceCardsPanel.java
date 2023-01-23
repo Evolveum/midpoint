@@ -11,14 +11,12 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -35,6 +33,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,7 +43,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -53,7 +51,6 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -91,9 +88,33 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         searchModel = new LoadableDetachableModel<>() {
             @Override
             protected Search<FocusType> load() {
-                return createMemberSearch(FocusType.class);
+
+                SearchBuilder<FocusType> searchBuilder = new SearchBuilder<>(FocusType.class)
+                        .collectionView(getObjectCollectionView())
+                        .additionalSearchContext(createAdditionalSearchContext())
+                        .modelServiceLocator(getPageBase());
+
+                Search<FocusType> search = searchBuilder.build();
+                MemberPanelStorage storage = getMemberPanelStorage();
+                storage.setSearch(search);
+                return search;
             }
         };
+    }
+
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
+        return ctx;
+    }
+
+    private CompiledObjectCollectionView getObjectCollectionView() {
+        ContainerPanelConfigurationType config = getPanelConfiguration();
+        if (config == null) {
+            return null;
+        }
+        GuiObjectListViewType listViewType = config.getListView();
+        return WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
     }
 
     @Override
@@ -103,10 +124,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             return AbstractRoleType.COMPLEX_TYPE;
         }
         return type;
-    }
-
-    protected List<QName> getSupportedRelations() {
-        return getSupportedGovernanceTabRelations();
     }
 
     @Override
@@ -233,6 +250,11 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     protected IModel<Search<? extends ObjectType>> createSearchModel() {
                         return (IModel) searchModel;
                     }
+
+                    @Override
+                    protected boolean isSelectedItemsPanelVisible() {
+                        return false;
+                    }
                 };
         memberContainer.add(tilesTable);
     }
@@ -342,12 +364,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
         target.add(getMemberTileTable());
     }
-
-    @Override
-    protected boolean isVisibleAdvanceSearchItem() {
-        return false;
-    }
-
     protected TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>> getMemberTileTable() {
         return (TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>>)
                 get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));

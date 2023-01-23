@@ -10,10 +10,8 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,19 +13,9 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.io.*;
-import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.cases.api.CaseManager;
-
-import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.util.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -37,20 +27,20 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -63,16 +53,27 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -86,11 +87,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -800,6 +801,112 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         return count;
+    }
+
+    @Override
+    public SearchResultList<ObjectReferenceType> searchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        ModelImplUtils.validatePaging(query.getPaging());
+
+        final OperationResult operationResult = parentResult.subresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+
+        // TODO try/finally for operationResult should probably start here
+
+        options = preProcessOptionsSecurity(options, task, operationResult);
+        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+        query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+        if (isFilterNone(query, operationResult)) {
+            return new SearchResultList<>(new ArrayList<>());
+        }
+
+        SearchResultList<ObjectReferenceType> list;
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+        try {
+            logQuery(query);
+
+            try {
+                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                }
+                list = cacheRepositoryService.searchReferences(query, options, operationResult);
+            } catch (SchemaException | RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+                operationResult.close();
+                operationResult.cleanup();
+            }
+        } finally {
+            exitModelMethod();
+        }
+
+        // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
+        // Also, reconsider the order/nesting of enter/exitModelMethod and operationResult.close().
+        // Should we do this out of op-result try/finally? How are exceptions handled here?
+        return list;
+    }
+
+    @Override
+    public Integer countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        final OperationResult operationResult = parentResult.subresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+        // TODO try/finally for operationResult should probably start here
+
+        options = preProcessOptionsSecurity(options, task, operationResult);
+        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+        query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+        if (isFilterNone(query, operationResult)) {
+            return 0;
+        }
+
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+        int count;
+        try {
+            logQuery(query);
+
+            try {
+                count = cacheRepositoryService.countReferences(query, options, operationResult);
+            } catch (RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                operationResult.close();
+                operationResult.cleanup();
+            }
+        } finally {
+            exitModelMethod();
+        }
+
+        return count;
+    }
+
+    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult options) {
+        // TODO:
+        // 1. extract owner object type from OWNED-BY query (if it's a container type, follow up to the object type)
+        // 2. use it for securityEnforcer.preProcessObjectFilter()
+        // 3. add filters to the owned-by filter as necessary
+        return query;
     }
 
     // See MID-6323 in Jira
@@ -2173,7 +2280,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.computeStatus();
             return deltas;
 
-        } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException |
+                ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException |
+                RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         } finally {

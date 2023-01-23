@@ -127,7 +127,7 @@ public class SqaleServiceBase {
         return registerOperationStart(kind, object.getCompileTimeClass());
     }
 
-    protected <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
+    protected long registerOperationStart(String kind, Class<?> type) {
         return performanceMonitor != null
                 ? performanceMonitor.registerOperationStart(opNamePrefix + kind, type)
                 : -1;

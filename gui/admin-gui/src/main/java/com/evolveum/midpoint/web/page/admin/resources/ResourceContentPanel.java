@@ -9,9 +9,10 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -130,6 +130,22 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     public QName getObjectClass() {
         return objectClass;
+    }
+
+    ResourceObjectDefinition createAttributeSearchItemWrappers() {
+        try {
+            if (getKind() != null) {
+                return getDefinitionByKind();
+            }
+
+            if (getObjectClass() != null) {
+                return getDefinitionByObjectClass();
+
+            }
+        } catch (SchemaException | ConfigurationException e) {
+            warn("Could not determine object definition");
+        }
+        return null;
     }
 
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
@@ -227,8 +243,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
 
             @Override
-            protected Search createSearch(Class<ShadowType> type) {
-                return ResourceContentPanel.this.createSearch();
+            protected SearchContext createAdditionalSearchContext() {
+                SearchContext searchContext = new SearchContext();
+                searchContext.setResourceObjectDefinition(createAttributeSearchItemWrappers());
+                searchContext.setPanelType(searchMode == SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT ? CollectionPanelType.REPO_SHADOW : CollectionPanelType.RESOURCE_SHADOW);
+                return searchContext;
             }
 
             @Override
@@ -507,8 +526,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         }
         return baseQuery;
     }
-
-    protected abstract Search createSearch();
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()

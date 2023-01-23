@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -102,6 +102,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     // options stored to modify select clause and also to affect mapping
     protected Collection<SelectorOptions<GetOperationOptions>> options;
 
+    private final Set<String> usedAliases;
+
     /** Constructor for root query context. */
     protected SqlQueryContext(
             Q entityPath,
@@ -113,6 +115,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         this.sqlRepoContext = sqlRepoContext;
         this.sqlQuery = query;
         this.parent = null;
+        this.usedAliases = new HashSet<>();
     }
 
     /** Constructor for derived context or sub-context, e.g. JOIN, EXISTS, etc. */
@@ -126,6 +129,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         this.sqlRepoContext = parentContext.repositoryContext();
         this.sqlQuery = sqlQuery;
         this.parent = parentContext;
+        this.usedAliases = null;
     }
 
     public Q root() {
@@ -418,19 +422,21 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     SqlQueryContext<TS, TQ, TR> newSubcontext(
             TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query);
 
+    /** Adjusts the alias name to make it unique and registers the name as used. */
     public String uniqueAliasName(String baseAliasName) {
-        Set<String> joinAliasNames =
-                sqlQuery.getMetadata().getJoins().stream()
-                        .map(j -> j.getTarget().toString())
-                        .collect(Collectors.toSet());
+        if (parent != null) {
+            // We always want to use root context to make the names unique for the whole query.
+            return parent.uniqueAliasName(baseAliasName);
+        }
 
-        // number the alias if not unique (starting with 2, implicit 1 is without number)
+        // Number the alias if not unique (starting with 2, implicit 1 is without number).
         String aliasName = baseAliasName;
         int sequence = 1;
-        while (joinAliasNames.contains(aliasName)) {
+        while (usedAliases.contains(aliasName)) {
             sequence += 1;
             aliasName = baseAliasName + sequence;
         }
+        usedAliases.add(aliasName);
         return aliasName;
     }
 

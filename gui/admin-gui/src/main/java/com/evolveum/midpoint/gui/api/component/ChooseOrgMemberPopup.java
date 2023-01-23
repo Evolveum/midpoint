@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -30,8 +31,8 @@ import java.util.List;
 public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseOrgMemberPopup(String id, RelationSearchItemConfigurationType relationCofig){
-        super(id, relationCofig, null); //todo
+    public ChooseOrgMemberPopup(String id, Search search){
+        super(id, search, null); //todo
     }
 
     @Override
@@ -44,7 +45,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, relationsConfig, getArchetypeRefList()){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, search, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override

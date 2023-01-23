@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
-
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.SequenceUtil;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -57,6 +56,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -135,6 +135,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
     }
 
+    // region getObject/getVersion
     @Override
     public @NotNull <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
@@ -151,8 +152,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_GET_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .setMinor()
-                .addParam("type", type.getName())
-                .addParam("oid", oid)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_OID, oid)
                 .build();
 
         PrismObject<T> object = null;
@@ -240,8 +241,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_GET_VERSION)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("oid", oid)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_OID, oid)
                 .build();
 
         try {
@@ -281,9 +282,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             registerOperationFinish(opHandle);
         }
     }
+    // endregion
 
-    // Add/modify/delete
-
+    // region Add/modify/delete
     @Override
     @NotNull
     public <T extends ObjectType> String addObject(
@@ -301,8 +302,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_ADD_OBJECT)
                 .addQualifier(object.asObjectable().getClass().getSimpleName())
-                .addParam("object", object)
-                .addParam("options", options.toString())
+                .addParam(OperationResult.PARAM_OBJECT, object)
+                .addParam(OperationResult.PARAM_OPTIONS, options.toString())
                 .build();
 
         try {
@@ -447,9 +448,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_MODIFY_OBJECT)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("oid", oid)
-                .addParam("options", String.valueOf(options))
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_OID, oid)
+                .addParam(OperationResult.PARAM_OPTIONS, String.valueOf(options))
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
@@ -507,10 +508,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_MODIFY_OBJECT_DYNAMICALLY)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
                 .addParam("getOptions", String.valueOf(getOptions))
                 .addParam("modifyOptions", String.valueOf(modifyOptions))
-                .addParam("oid", oid)
+                .addParam(OperationResult.PARAM_OID, oid)
                 .build();
 
         ModifyObjectResult<T> rv = null;
@@ -764,8 +765,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_DELETE_OBJECT)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("oid", oid)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_OID, oid)
                 .build();
         try {
             return executeDeleteObject(type, oid, oidUuid);
@@ -818,6 +819,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
+    // endregion
 
     // region Counting/searching
     @Override
@@ -829,8 +831,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_COUNT_OBJECTS)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("query", query)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
                 .build();
 
         try {
@@ -879,9 +881,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_OBJECTS)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("query", query)
-                .addParam("options", String.valueOf(options))
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .addParam(OperationResult.PARAM_OPTIONS, String.valueOf(options))
                 .build();
 
         try {
@@ -935,8 +937,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_OBJECTS_ITERATIVE)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("query", query)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
                 .build();
 
         try {
@@ -1187,8 +1189,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         OperationResult operationResult =
                 parentResult.subresult(opNamePrefix + OP_COUNT_CONTAINERS)
                         .addQualifier(type.getSimpleName())
-                        .addParam("type", type.getName())
-                        .addParam("query", query)
+                        .addParam(OperationResult.PARAM_TYPE, type.getName())
+                        .addParam(OperationResult.PARAM_QUERY, query)
                         .build();
         try {
             logSearchInputParameters(type, query, "Count containers");
@@ -1236,8 +1238,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
-                .addParam("type", type.getName())
-                .addParam("query", query)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
                 .build();
 
         try {
@@ -1270,6 +1272,140 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return sqlQueryExecutor.list(queryContext, query, options);
         } finally {
             registerOperationFinish(opHandle);
+        }
+    }
+
+    @Override
+    public int countReferences(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) {
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_COUNT_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+
+        try {
+            logSearchInputParameters(ObjectReferenceType.class, query, "Count references");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return 0;
+            }
+
+            return executeCountReferences(query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    public int executeCountReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+        long opHandle = registerOperationStart(OP_COUNT_REFERENCES, ObjectReferenceType.class);
+        try {
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
+            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
+                    SqaleQueryContext.from(
+                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
+            return sqlQueryExecutor.count(queryContext, query, options);
+        } finally {
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    @Override
+    public @NotNull SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+
+        try {
+            logSearchInputParameters(ObjectReferenceType.class, query, "Search references");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
+            return executeSearchReferences(query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    public SearchResultList<ObjectReferenceType> executeSearchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, RepositoryException {
+        long opHandle = registerOperationStart(OP_SEARCH_REFERENCES, ObjectReferenceType.class);
+        try {
+            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
+            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
+                    SqaleQueryContext.from(
+                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
+            return sqlQueryExecutor.list(queryContext, query, options);
+        } finally {
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    @NotNull
+    private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
+        OwnedByFilter ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
+
+        ComplexTypeDefinition type = ownedByFilter.getType();
+        ItemPath path = ownedByFilter.getPath();
+        QReferenceMapping<?, ?, ?, ?> refMapping =
+                QReferenceMapping.getByOwnerTypeAndPath(type.getCompileTimeClass(), path);
+
+        if (refMapping == null) {
+            throw new QueryException(
+                    "Reference search is not supported for " + type + " and item path " + path);
+        }
+        return refMapping;
+    }
+
+    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter, ObjectFilter originalFilter)
+            throws QueryException {
+        if (filter instanceof OwnedByFilter) {
+            return (OwnedByFilter) filter;
+        } else if (filter instanceof AndFilter) {
+            OwnedByFilter ownedByFilter = null;
+            for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+                if (condition instanceof OwnedByFilter) {
+                    if (ownedByFilter != null) {
+                        throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                                + " for reference search, but multiple found. Filter: " + originalFilter);
+                    }
+                    ownedByFilter = (OwnedByFilter) condition;
+                }
+            }
+            if (ownedByFilter == null) {
+                throw new QueryException("Exactly one main OWNED-BY filter must be used"
+                        + " for reference search, but none found. Filter: " + originalFilter);
+            }
+            return ownedByFilter;
+        } else {
+            throw new QueryException("Invalid filter for reference search: " + originalFilter
+                    + "\nReference search filter should be OWNED-BY filter or an AND filter containing it.");
         }
     }
     // endregion
@@ -1343,7 +1479,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         logger.debug("Advancing sequence {}", oid);
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_ADVANCE_SEQUENCE)
-                .addParam("oid", oid)
+                .addParam(OperationResult.PARAM_OID, oid)
                 .build();
 
         try {
@@ -1393,7 +1529,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         OperationResult operationResult =
                 parentResult.subresult(opNamePrefix + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE)
-                        .addParam("oid", oid)
+                        .addParam(OperationResult.PARAM_OID, oid)
                         .build();
 
         if (unusedValues == null || unusedValues.isEmpty()) {
@@ -1854,7 +1990,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_HAS_CONFLICT)
                 .setMinor()
-                .addParam("oid", watcher.getOid())
+                .addParam(OperationResult.PARAM_OID, watcher.getOid())
                 .addParam("watcherClass", watcher.getClass().getName())
                 .build();
 
@@ -1888,8 +2024,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         OperationResult operationResult =
                 parentResult.subresult(opNamePrefix + OP_ADD_DIAGNOSTIC_INFORMATION)
                         .addQualifier(type.getSimpleName())
-                        .addParam("type", type)
-                        .addParam("oid", oid)
+                        .addParam(OperationResult.PARAM_TYPE, type)
+                        .addParam(OperationResult.PARAM_OID, oid)
                         .build();
         try {
             PrismObject<T> object = getObject(type, oid, null, operationResult);

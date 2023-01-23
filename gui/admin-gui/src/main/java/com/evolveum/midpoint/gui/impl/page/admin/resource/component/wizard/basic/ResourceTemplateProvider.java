@@ -48,8 +48,8 @@ public class ResourceTemplateProvider
 
     private final IModel<TemplateType> type;
 
-    public ResourceTemplateProvider(Component component, IModel<Search<AssignmentHolderType>> search, IModel<TemplateType> type) {
-        super(component, search);
+    public ResourceTemplateProvider(Component component, IModel<Search<? extends AssignmentHolderType>> search, IModel<TemplateType> type) {
+        super(component, (IModel) search);
         this.type = type;
     }
 
@@ -57,13 +57,13 @@ public class ResourceTemplateProvider
         TEMPLATE(ResourceType.class),
         CONNECTOR(ConnectorType.class);
 
-        private final Class<AssignmentHolderType> type;
+        private final Class<? extends AssignmentHolderType> type;
 
         TemplateType(Class<? extends AssignmentHolderType> type) {
-            this.type = (Class<AssignmentHolderType>) type;
+            this.type = type;
         }
 
-        public Class<AssignmentHolderType> getType() {
+        public Class<? extends AssignmentHolderType> getType() {
             return type;
         }
     }

@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import java.util.Collection;
+
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -12,17 +16,13 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
-
 @PanelType(name = "roleWizard-access-application")
 @PanelInstance(identifier = "roleWizard-access-application",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.application", icon = "fa fa-list"),
         containerPath = "empty")
-public class AccessApplicationStepPanel extends SelectTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {
+public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {
 
     public static final String PANEL_TYPE = "roleWizard-access-application";
 
@@ -34,6 +34,7 @@ public class AccessApplicationStepPanel extends SelectTileWizardStepPanel<Servic
     protected ItemPath getPathForValueContainer() {
         return RoleType.F_INDUCEMENT;
     }
+
 
     @Override
     protected ItemPath getPathForTargetReference() {

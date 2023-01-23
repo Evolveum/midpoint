@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Resolver that knows how to traverse to the specified target query type.
- * By default EXISTS subquery is used which is better for multi-value table stored items
+ * By default, EXISTS subquery is used which is better for multi-value table stored items
  * to avoid result multiplication.
  * The resolver supports mapping supplier to avoid call cycles during mapping initialization.
  *
@@ -34,13 +34,8 @@ public class TableRelationResolver<
         implements ItemRelationResolver<Q, R, TQ, TR> {
 
     protected final Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier;
-    protected final BiFunction<Q, TQ, Predicate> correlationPredicate;
+    protected final BiFunction<Q, TQ, Predicate> correlationPredicateFunction;
     private final boolean useSubquery;
-
-
-    public BiFunction<Q, TQ, Predicate> getCorrelationPredicate() {
-        return correlationPredicate;
-    }
 
     public Supplier<QueryTableMapping<TS, TQ, TR>> getTargetMappingSupplier() {
         return targetMappingSupplier;
@@ -49,8 +44,8 @@ public class TableRelationResolver<
     public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     TableRelationResolver<Q, R, TS, TQ, TR> usingSubquery(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        return new TableRelationResolver<>(targetMapping, correlationPredicate);
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
+        return new TableRelationResolver<>(targetMapping, correlationPredicateFunction);
     }
 
     /**
@@ -62,8 +57,8 @@ public class TableRelationResolver<
     public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     TableRelationResolver<Q, R, TS, TQ, TR> usingJoin(
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        return new TableRelationResolver<>(targetMappingSupplier, correlationPredicate);
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
+        return new TableRelationResolver<>(targetMappingSupplier, correlationPredicateFunction);
     }
 
     /**
@@ -72,9 +67,9 @@ public class TableRelationResolver<
      */
     protected TableRelationResolver(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
         this.targetMappingSupplier = () -> targetMapping;
-        this.correlationPredicate = correlationPredicate;
+        this.correlationPredicateFunction = correlationPredicateFunction;
         this.useSubquery = true;
     }
 
@@ -86,9 +81,9 @@ public class TableRelationResolver<
      */
     private TableRelationResolver(
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicateFunction) {
         this.targetMappingSupplier = targetMappingSupplier;
-        this.correlationPredicate = correlationPredicate;
+        this.correlationPredicateFunction = correlationPredicateFunction;
         this.useSubquery = false;
     }
 
@@ -103,32 +98,32 @@ public class TableRelationResolver<
         if (useSubquery) {
             SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
             SQLQuery<?> subquery = subcontext.sqlQuery();
-            subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
+            subquery.where(correlationPredicateFunction.apply(context.path(), subcontext.path()));
 
             return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
         } else {
             SqlQueryContext<TS, TQ, TR> subcontext = context.leftJoin(
-                    targetMappingSupplier.get(), correlationPredicate);
+                    targetMappingSupplier.get(), correlationPredicateFunction);
             return new ResolutionResult<>(subcontext, subcontext.mapping());
         }
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public TableRelationResolver<Q, R, TS, TQ, TR> replaceTable(QueryTableMapping<? extends TS, TQ, TR> target) {
         // FIXME: Add check
 
-        return new TableRelationResolver(() -> target, correlationPredicate);
+        return new TableRelationResolver(() -> target, correlationPredicateFunction);
     }
 
-    public TableRelationResolver<Q, R, TS, TQ, TR>  withSubquery() {
-
-        return usingSubquery(targetMappingSupplier.get(), correlationPredicate);
+    public TableRelationResolver<Q, R, TS, TQ, TR> withSubquery() {
+        return usingSubquery(targetMappingSupplier.get(), correlationPredicateFunction);
     }
 
     public <AQ extends FlexibleRelationalPathBase<AR>, AS, AR>
     TableRelationResolver<TQ, TR, AS, AQ, AR> reverse(
             @NotNull QueryTableMapping<AS, AQ, AR> targetMapping) {
         //noinspection unchecked
-        return new TableRelationResolver<>(targetMapping, (t, a) -> correlationPredicate.apply((Q) a, t));
+        return new TableRelationResolver<>(targetMapping, (t, a) -> correlationPredicateFunction.apply((Q) a, t));
     }
 
     public QueryTableMapping<TS, TQ, TR> mapping() {

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construct
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionOutboundMappingsStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionResourceStepPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -44,6 +46,7 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     }
 
     protected void initLayout() {
+        getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
     }
 
@@ -67,15 +70,16 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSavePerformed(target);
         if (!result.isError()) {
-            WebComponentUtil.createToastForCreateObject(target, this, RoleType.COMPLEX_TYPE);
+            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
+        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
         showChoiceFragment(
                 target,
-                new ApplicationRoleWizardPreviewPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
+                new RoleWizardPreviewPanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
                     @Override
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {
@@ -205,8 +209,21 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         });
     }
 
-    protected OperationResult onSavePerformed(AjaxRequestTarget target) {
-        return null;
-    }
+    enum PreviewTileType implements TileEnum {
 
+        CONFIGURE_GOVERNANCE_MEMBERS("fa fa-users"),
+        CONFIGURE_MEMBERS("fa fa-users"),
+        CONFIGURE_CONSTRUCTION("fa fa-retweet");
+
+        private final String icon;
+
+        PreviewTileType(String icon) {
+            this.icon = icon;
+        }
+
+        @Override
+        public String getIcon() {
+            return icon;
+        }
+    }
 }

@@ -221,7 +221,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(PrismContext.get(), options,
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(PrismContext.get(), getOptions(),
                     null);
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
@@ -274,7 +274,25 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        if (getCompiledObjectCollectionView() != null && getCompiledObjectCollectionView().getOptions() != null
+                && !getCompiledObjectCollectionView().getOptions().isEmpty()) {
+            return getCompiledObjectCollectionView().getOptions();
+        }
+
+        Collection<SelectorOptions<GetOperationOptions>> options = this.options;
+
+        if (options == null) {
+            if (ResourceType.class.equals(getType())) {
+                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+            }
+        } else {
+            if (ResourceType.class.equals(getType())) {
+                GetOperationOptions root = SelectorOptions.findRootOptions(options);
+                root.setNoFetch(Boolean.TRUE);
+            }
+        }
         return options;
+
     }
 
     public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -75,8 +76,8 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
     private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
             ItemPath path, ValueFilter<?, ?> filter, RightHandProcessor right) throws RepositoryException {
         // isSingleName/asSingleName or firstName don't work for T_ID (OID)
-        if (path.size() == 1) {
-            QName itemName = path.firstToQName();
+        if (path.size() <= 1) {
+            QName itemName = path.isEmpty() ? PrismConstants.T_SELF : path.firstToQName();
             ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
                     mapping.itemMapper(itemName)
                             .createFilterProcessor(context);

@@ -13,13 +13,16 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.visit.ClassVisitFilter;
 
 /**
  * @author lskublik
@@ -43,6 +46,20 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Focus
         getDetailsModel().getObjectWrapper().setShowEmpty(false, false);
         getDetailsModel().getObjectWrapper().getValues().forEach(valueWrapper -> valueWrapper.setShowEmpty(false));
         super.onInitialize();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        visitParents(Form.class, (form, visit) -> {
+            form.setMultiPart(true);
+            visit.stop();
+        }, new ClassVisitFilter(Form.class) {
+            @Override
+            public boolean visitObject(Object object) {
+                return super.visitObject(object) && "mainForm".equals(((Form)object).getId());
+            }
+        });
+        super.onBeforeRender();
     }
 
     protected String getPanelType() {
@@ -70,7 +87,7 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Focus
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(ResourceType.F_NAME)) {
+        if (itemWrapper.getItemName().equals(RoleType.F_NAME)) {
             return true;
         }
         return itemWrapper.isMandatory();

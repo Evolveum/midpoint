@@ -63,6 +63,8 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
     private final Class<? extends Objectable> objectType;
     private final ItemPath path;
 
+    private QName targetTypeOverride;
+
     private transient List<PrismContainerValueWrapper<AssignmentType>> newData;
 
     public RepoAssignmentListProvider(Component component, @NotNull IModel<Search<AssignmentType>> search, IModel<List<PrismContainerValueWrapper<AssignmentType>>> model,
@@ -261,18 +263,18 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
                 .build();
     }
 
-    private QName determineTargetRefType() {
-        var searchOverride = getSearchModel().getObject().getContainerDefinitionOverride();
-        if (searchOverride == null) {
-            return null;
-        }
-        var targetRefDef = searchOverride.findReferenceDefinition(AssignmentType.F_TARGET_REF);
-        QName targetType = targetRefDef.getTargetTypeName();
-        if (targetType != null && !Objects.equals(AssignmentHolderType.COMPLEX_TYPE, targetType)) {
-            // target type was overriden
-            return targetType;
-        }
-
+    protected QName determineTargetRefType() {
+//        var searchOverride = getSearchModel().getObject().getContainerDefinitionOverride();
+//        if (searchOverride == null) {
+//            return null;
+//        }
+//        var targetRefDef = searchOverride.findReferenceDefinition(AssignmentType.F_TARGET_REF);
+//        QName targetType = targetRefDef.getTargetTypeName();
+//        if (targetType != null && !Objects.equals(AssignmentHolderType.COMPLEX_TYPE, targetType)) {
+//            // target type was overriden
+//            return targetType;
+//        }
+//
 
         return null;
     }

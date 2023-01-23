@@ -9,9 +9,13 @@ package com.evolveum.midpoint.web.component.search;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +39,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -347,18 +350,17 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return new LoadableModel<List<Property>>() {
             @Override
             protected List<Property> load() {
-                Class<?> type = getType();
+                Class<? extends Containerable> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
-                    PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
-                    List<SearchItemDefinition> availableDefs =
-                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
-                    List<Property> propertiesList = new ArrayList<>();
-                    availableDefs.forEach(searchItemDef -> {
-                        if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
-                            propertiesList.add(new Property(searchItemDef.getDef(), searchItemDef.getPath()));
-                        }
-                    });
+                    Map<ItemPath, ItemDefinition<?>> availableDefs = new SearchableItemsDefinitions(type, getPageBase())
+                            .createAvailableSearchItems();
+                    List<Property> propertiesList = availableDefs.entrySet()
+                            .stream()
+                            .filter(searchItemDef -> !isPropertyAlreadyAdded(searchItemDef.getKey()))
+                            .map(searchItemDef -> new Property(searchItemDef.getValue(), searchItemDef.getKey()))
+                            .collect(Collectors.toList());
+
                     return propertiesList;
                 }
                 if (AuditEventRecordType.class.isAssignableFrom(type)) {

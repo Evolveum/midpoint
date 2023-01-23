@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -205,17 +203,13 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
                 ValueChoosePanel.this.choosePerformed(target, object);
             }
 
-            @Override
-            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-                return ValueChoosePanel.this.getSpecialSearchItemWrappers();
-            }
         };
 
         getPageBase().showMainPopup(objectBrowserPanel, target);
 
     }
 
-    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+    protected Set<SearchItemType> getSpecialSearchItem() {
         return Collections.emptySet();
     }
 

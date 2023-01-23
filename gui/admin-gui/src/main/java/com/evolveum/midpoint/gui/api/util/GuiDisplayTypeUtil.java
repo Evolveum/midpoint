@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -275,5 +276,22 @@ public class GuiDisplayTypeUtil {
             return !display.getIcon().getCssClass().contains(iconCss);
         }
         return true;
+    }
+
+    public static DisplayType createDisplayTypeWith(String labelOrg, String labelKey, String helpKey) {
+        DisplayType display = new DisplayType();
+
+        PolyStringType label = new PolyStringType(labelOrg);
+        PolyStringTranslationType translationLabel = new PolyStringTranslationType();
+        translationLabel.setKey(labelKey);
+        label.setTranslation(translationLabel);
+        display.setLabel(label);
+
+        PolyStringType help = new PolyStringType("");
+        PolyStringTranslationType translationHelp = new PolyStringTranslationType();
+        translationHelp.setKey(helpKey);
+        help.setTranslation(translationHelp);
+        display.setHelp(help);
+        return display;
     }
 }

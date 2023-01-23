@@ -6,17 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -87,5 +93,38 @@ public class BasicConstructionStepPanel extends AbstractValueFormResourceWizardS
             }
             return false;
         };
+    }
+
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        if (isNotFoundResourceObjectDefinition()) {
+            String key = "BasicConstructionStepPanel.unknownResourceObjectType";
+            String text = PageBase.createStringResourceStatic(key + ".text").getString();
+            new Toast()
+                    .error()
+                    .title(PageBase.createStringResourceStatic(key).getString())
+                    .icon("fas fa-circle-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(text)
+                    .show(target);
+
+            getPageBase().error(text);
+            target.add(getFeedback());
+        } else {
+            super.onNextPerformed(target);
+        }
+        return false;
+    }
+
+    private boolean isNotFoundResourceObjectDefinition() {
+        ResourceObjectDefinition resourceObjectDef = null;
+        try {
+            resourceObjectDef =
+                    WebComponentUtil.getResourceObjectDefinition(valueModel.getObject().getRealValue(), getPageBase());
+        } catch (CommonException e) {
+            //ignore it, we handle null object
+        }
+        return resourceObjectDef == null;
     }
 }

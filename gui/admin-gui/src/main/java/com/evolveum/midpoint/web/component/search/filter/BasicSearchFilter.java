@@ -51,27 +51,6 @@ public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> 
         }
     }
 
-//    public ObjectFilter convertToObjectFilter() {
-//        if (CollectionUtils.isEmpty(getSearchFilterItems())) {
-//            return null;
-//        }
-//        List<ObjectFilter> subFilterList = new ArrayList<>();
-//        getSearchFilterItems().forEach(searchFilterItem -> {
-//            subFilterList.add(((ValueSearchFilterItem) searchFilterItem).buildObjectFilter());
-//        });
-//        if (logicalFilterItem == null && subFilterList.size() == 1) {
-//            return subFilterList.get(0);
-//        }
-//        if (logicalFilterItem == null) {
-//            logicalFilterItem = getPrismContext().queryFactory().createAnd();
-//        }
-//        if (logicalFilterItem instanceof OrSearchFilterItem) {
-//            return getPrismContext().queryFactory().createOr(subFilterList);
-//        } else {
-//            return getPrismContext().queryFactory().createAnd(subFilterList);
-//        }
-//    }
-
     protected void initSearchFilterItems(ObjectFilter baseFilter) {
         if (baseFilter == null) {
             return;
@@ -116,11 +95,4 @@ public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> 
         });
     }
 
-    public LogicalFilterValue getLogicalFilterValue() {
-        return logicalFilterValue;
-    }
-
-    public void setLogicalFilterValue(LogicalFilterValue logicalFilterValue) {
-        this.logicalFilterValue = logicalFilterValue;
-    }
 }

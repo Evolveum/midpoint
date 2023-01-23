@@ -35,19 +35,16 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,7 +63,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
@@ -82,13 +78,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
-    protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
+
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
     private Class<? extends Objectable> objectType;
     private String objectOid;
-    private PrismContainerDefinition<AssignmentType> searchDefinition;
+//    private PrismContainerDefinition<AssignmentType> searchDefinition;
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
@@ -541,6 +537,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             public ObjectQuery getCustomizeContentQuery() {
                 return AbstractAssignmentTypePanel.this.getCustomizeQuery();
             }
+
+            @Override
+            public PrismContainerDefinition<AssignmentType> getDefinition() {
+                return getTypeDefinitionForSearch();
+            }
         });
     }
 
@@ -586,86 +587,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected abstract UserProfileStorage.TableId getTableId();
-
     @Override
-    protected Search createSearch(Class<AssignmentType> type) {
-        Search search = super.createSearch(type);
-        search.setContainerDefinition(getTypeDefinitionForSearch());
-        if (isRepositorySearchEnabled()) {
-            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
-            try {
-                FullTextSearchConfigurationType config = getPageBase().getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
-                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(getAssignmentType() == null ? AbstractRoleType.COMPLEX_TYPE : getAssignmentType()))) {
-                    search.getSearchConfigurationWrapper().addAllowedMode(SearchBoxModeType.FULLTEXT);
-                    search.setSearchMode(SearchBoxModeType.FULLTEXT);
-                }
-            } catch (Exception e) {
-                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
-            }
-        }
-        return search;
-    }
-
-    @Override
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        return createSearchableItems(containerDef);
-    }
-
-    @Override
-    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-        return createSearchableItemWrappers(containerDef);
-    }
-
-    @Deprecated
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
-        addSpecificSearchableItems(containerDef, defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
-        return defs;
-
-    }
-
-    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-
-        addSpecificSearchableItemWrappers(containerDef, defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                defs, getPageBase());
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-                defs, getPageBase());
-
-        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
-
-        if (getAssignmentType() != null) {
-            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
-            var objectExt = SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
-            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
-            defs.addAll(objectExt);
-        }
-        return defs;
-
-    }
-
-    @Override
-    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
-        if (searchDefinition != null) {
-            return searchDefinition;
-        }
-        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
-        if (getAssignmentType() == null) {
-            searchDefinition = orig;
-        } else {
-            // We have more concrete assignment type, we should replace targetRef definition
-            // with one with concrete assignment type.
-            searchDefinition = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, getAssignmentType());
-        }
-
-        return searchDefinition;
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setAssignmentTargetType(getAssignmentType());
+        ctx.setDefinitionOverride(getTypeDefinitionForSearch());
+        return ctx;
     }
 
     @Override
@@ -674,10 +601,22 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return getTypeDefinitionForSearch();
     }
 
-    @Deprecated
-    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
+        QName targetType = getAssignmentType();
+        PrismContainerDefinition<AssignmentType> definitionOverwrite;
+        PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+        if (targetType == null) {
+            definitionOverwrite = orig;
+        } else {
+            // We have more concrete assignment type, we should replace targetRef definition
+            // with one with concrete assignment type.
+            definitionOverwrite = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
+        }
+        return definitionOverwrite;
+    }
 
-    protected abstract void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super AbstractSearchItemWrapper> defs);
+    protected abstract void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super FilterableSearchItemWrapper> defs);
 
     protected <AH extends AssignmentHolderType> boolean isNewObjectButtonVisible(PrismObject<AH> focusObject) {
         try {

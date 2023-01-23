@@ -107,44 +107,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         };
     }
 
-//    @Override
-//    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
-//        if (changeExecutor instanceof ObjectChangesExecutorImpl
-//                && (isEditObject() || !result.isSuccess())) {
-//            showResult(result);
-//        }
-//    }
-//
-//    @Override
-//    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
-//        if (isEditObject()) {
-//            super.postProcessResult(result, executedDeltas, target);
-//            return;
-//        }
-//        if (!result.isError()) {
-//            if (executedDeltas != null) {
-//                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
-//                if (resourceOid != null) {
-//                    Task task = createSimpleTask("load resource after save");
-//                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(
-//                            ResourceType.class,
-//                            resourceOid,
-//                            PageResource.this,
-//                            task,
-//                            task.getResult());
-//                    if (resource != null) {
-//                        getObjectDetailsModels().reset();
-//                        getObjectDetailsModels().reloadPrismObjectModel(resource);
-//                    }
-//                }
-//            }
-//
-//            result.computeStatusIfUnknown();
-//        } else {
-//            target.add(getFeedbackPanel());
-//        }
-//    }
-
     @Override
     protected Panel createSummaryPanel(String id, IModel<ResourceType> summaryModel) {
         return new ResourceSummaryPanel(id,
@@ -222,6 +184,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
             Class<? extends AbstractWizardPanel> clazz) {
+        getFeedbackPanel().setVisible(false);
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
@@ -268,6 +231,8 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             replacePanel(defaultConfig, target);
         }
         target.add(detailsFragment);
+
+        getFeedbackPanel().setVisible(true);
     }
 
 //    @Override

@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -20,7 +21,7 @@ import java.util.List;
 
 public abstract class MultiSelectTileTablePanel<E extends Serializable, O extends ObjectType> extends SingleSelectTileTablePanel<O> {
 
-    private static final String ID_SELECTED_ITEMS_CONTAINER = "selectedItemsContainer";
+    protected static final String ID_SELECTED_ITEMS_CONTAINER = "selectedItemsContainer";
     private static final String ID_SELECTED_ITEM_CONTAINER = "selectedItemContainer";
     private static final String ID_SELECTED_ITEM = "selectedItem";
     private static final String ID_DESELECT_BUTTON = "deselectButton";
@@ -40,6 +41,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     private void initLayout(){
         WebMarkupContainer selectedItemsContainer = new WebMarkupContainer(ID_SELECTED_ITEMS_CONTAINER);
         selectedItemsContainer.setOutputMarkupId(true);
+        selectedItemsContainer.add(new VisibleBehaviour(() -> isSelectedItemsPanelVisible()));
         add(selectedItemsContainer);
 
         ListView<E> selectedContainer = new ListView<>(
@@ -65,10 +67,18 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         selectedItemsContainer.add(selectedContainer);
     }
 
+    protected boolean isSelectedItemsPanelVisible() {
+        return true;
+    }
+
     @Override
     public void refresh(AjaxRequestTarget target) {
         super.refresh(target);
-        target.add(get(ID_SELECTED_ITEMS_CONTAINER));
+        target.add(getSelectedItemPanel());
+    }
+
+    protected Component getSelectedItemPanel() {
+        return get(ID_SELECTED_ITEMS_CONTAINER);
     }
 
     protected abstract void deselectItem(E entry);
@@ -92,7 +102,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
                 getModelObject().getValue().setSelected(getModelObject().isSelected());
 
                 processSelectOrDeselectItem(getModelObject());
-                target.add(MultiSelectTileTablePanel.this.get(ID_SELECTED_ITEMS_CONTAINER));
+                target.add(getSelectedItemPanel());
             }
         };
     }
