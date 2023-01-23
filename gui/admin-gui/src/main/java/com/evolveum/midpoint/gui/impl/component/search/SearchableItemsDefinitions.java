@@ -210,7 +210,8 @@ public class SearchableItemsDefinitions {
 
         SHADOW_SEARCHABLE_ITEMS.put(CollectionPanelType.DEBUG,
                 Arrays.asList(
-                        ItemPath.create(ShadowType.F_DEAD),
+                        ItemPath.create(ShadowType.F_OBJECT_CLASS),
+                        ItemPath.create(ShadowType.F_RESOURCE_REF),
                         ItemPath.create(ShadowType.F_INTENT),
                         ItemPath.create(ShadowType.F_KIND),
                         ItemPath.create(ShadowType.F_EXISTS),

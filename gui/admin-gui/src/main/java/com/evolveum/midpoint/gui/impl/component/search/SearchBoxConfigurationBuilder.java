@@ -139,13 +139,20 @@ public class SearchBoxConfigurationBuilder {
         for (ItemPath path : availableDefinitions.keySet()) {
             SearchItemType searchItem = new SearchItemType();
             searchItem.setPath(new ItemPathType(path));
-            if (isFixedItem(type, path)) {
+            if (isFixedItem(type, path) || isDeadItemForProjections(path) ) {
                 searchItem.setVisibleByDefault(true);
             }
             searchItems.add(searchItem);
         }
 
         return searchItems;
+    }
+
+    private boolean isDeadItemForProjections(ItemPath path) {
+        if (CollectionPanelType.PROJECTION_SHADOW != collectionPanelType) {
+            return false;
+        }
+        return ItemPath.create(ShadowType.F_DEAD).equivalent(path);
     }
 
     private List<SearchItemType> createReportSearchItems(ObjectCollectionReportEngineConfigurationType reportCollection) {
