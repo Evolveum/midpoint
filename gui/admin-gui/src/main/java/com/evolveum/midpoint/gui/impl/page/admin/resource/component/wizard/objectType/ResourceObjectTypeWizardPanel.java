@@ -260,42 +260,39 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
     private <C extends Containerable> IModel<PrismContainerValueWrapper<C>> refreshValueModel(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         ItemPath path = valueModel.getObject().getPath();
-        if (!path.isEmpty() && ItemPath.isId(path.last())) {
-            valueModel.detach();
-            return new LoadableDetachableModel<>() {
-                @Override
-                protected PrismContainerValueWrapper<C> load() {
-                    try {
-                        return getAssignmentHolderModel().getObjectWrapper().findContainerValue(path);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                                getAssignmentHolderModel().getObjectWrapper(), path);
-                    }
-                    return null;
-                }
-            };
-        } else {
-            valueModel.detach();
-            return getValueWrapperWitLastId(path);
-        }
-    }
+        valueModel.detach();
 
-    private <C extends Containerable> IModel<PrismContainerValueWrapper<C>> getValueWrapperWitLastId(ItemPath itemPath) {
         return new LoadableDetachableModel<>() {
 
             private ItemPath pathWithId;
 
             @Override
             protected PrismContainerValueWrapper<C> load() {
-                if (!itemPath.isEmpty() && ItemPath.isId(itemPath.last())) {
-                    pathWithId = itemPath;
+                ItemPath usedPath = path;
+                if (pathWithId == null) {
+                    if (!usedPath.isEmpty() && ItemPath.isId(usedPath.last())) {
+                        try {
+                            PrismContainerValueWrapper<C> newValue = getAssignmentHolderModel().getObjectWrapper().findContainerValue(usedPath);
+                            if (newValue != null) {
+                                return newValue;
+                            }
+                            usedPath = path.subPath(0, path.size() - 1);
+                        } catch (SchemaException e) {
+                            LOGGER.debug("Template was probably used for creating new resource. Cannot find container value wrapper, \nparent: {}, \npath: {}",
+                                    getAssignmentHolderModel().getObjectWrapper(), usedPath);
+                        }
+                    }
+                }
+
+                if (pathWithId == null && !usedPath.isEmpty() && ItemPath.isId(usedPath.last())) {
+                    pathWithId = usedPath;
                 }
 
                 try {
                     if (pathWithId != null) {
                         return getAssignmentHolderModel().getObjectWrapper().findContainerValue(pathWithId);
                     }
-                    PrismContainerWrapper<C> container = getAssignmentHolderModel().getObjectWrapper().findContainer(itemPath);
+                    PrismContainerWrapper<C> container = getAssignmentHolderModel().getObjectWrapper().findContainer(usedPath);
                     PrismContainerValueWrapper<C> ret = null;
                     for (PrismContainerValueWrapper<C> value : container.getValues()) {
                         if (ret == null || ret.getNewValue().getId() == null
