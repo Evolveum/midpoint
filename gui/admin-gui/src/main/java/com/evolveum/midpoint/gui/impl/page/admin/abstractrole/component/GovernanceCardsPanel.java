@@ -11,17 +11,12 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -48,7 +43,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -57,7 +51,6 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -96,12 +89,12 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             @Override
             protected Search<FocusType> load() {
 
-                SearchFactory<FocusType> searchFactory = new SearchFactory<>(FocusType.class)
+                SearchBuilder<FocusType> searchBuilder = new SearchBuilder<>(FocusType.class)
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
 
-                Search<FocusType> search = searchFactory.createSearch();
+                Search<FocusType> search = searchBuilder.build();
                 MemberPanelStorage storage = getMemberPanelStorage();
                 storage.setSearch(search);
                 return search;
@@ -111,7 +104,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
-        ctx.setPanelType(PredefinedSearchableItems.PanelType.CARDS_GOVERNANCE);
+        ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
         return ctx;
     }
 

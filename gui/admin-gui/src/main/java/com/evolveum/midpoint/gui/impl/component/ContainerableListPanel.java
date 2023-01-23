@@ -206,7 +206,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private Search<C> createSearch() {
-        SearchFactory<C> searchFactory = new SearchFactory<>(getType())
+        SearchBuilder<C> searchBuilder = new SearchBuilder<>(getType())
                 .collectionView(getObjectCollectionView())
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
@@ -214,7 +214,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .isViewForDashboard(isCollectionViewPanelForWidget())
                 .additionalSearchContext(createAdditionalSearchContext());
 
-        return searchFactory.createSearch();
+        return searchBuilder.build();
     }
 
     protected SearchContext createAdditionalSearchContext() {
@@ -623,7 +623,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return null;
         }
 
-        List<ItemPath> searchablePaths = getSearchablePaths(getType());
+        Collection<ItemPath> searchablePaths = getSearchablePaths(getType());
 
         for (ItemPath searchablePath : searchablePaths) {
             if (searchablePath.size() > 1) {
@@ -639,27 +639,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private List<ItemPath> getSearchablePaths(Class<C> type) {
-        List<ItemPath> availablePaths = PredefinedSearchableItems.getSearchableItemsFor(type);
-        if (CollectionUtils.isEmpty(availablePaths)) {
-            availablePaths = new ArrayList<>();
-        }
-        List<ItemPath> typePaths = new ArrayList<>(availablePaths);
-        return addSuperSearchablePaths(type, typePaths);
-    }
-
-    private List<ItemPath> addSuperSearchablePaths(Class<?> type, List<ItemPath> typePaths) {
-        Class<?> superClass = type.getSuperclass();
-        if (superClass == null) {
-            return typePaths;
-        }
-
-        List<ItemPath> superPaths = PredefinedSearchableItems.getSearchableItemsFor(superClass);
-        if (CollectionUtils.isNotEmpty(superPaths)) {
-            typePaths.addAll(superPaths);
-        }
-
-        return addSuperSearchablePaths(superClass, typePaths);
+    private Set<ItemPath> getSearchablePaths(Class<C> type) {
+        return new SearchableItemsDefinitions(type, getPageBase())
+                .additionalSearchContext(createAdditionalSearchContext())
+                .createAvailableSearchItems()
+                .keySet();
     }
 
     protected IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {

@@ -11,9 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -149,8 +148,8 @@ public class TreeTablePanel extends BasePanel<String> {
         com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel =
                 new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, panelConfig) {
                     @Override
-                    protected PredefinedSearchableItems.PanelType getPanelType() {
-                        return PredefinedSearchableItems.PanelType.MEMBER_ORGANIZATION;
+                    protected CollectionPanelType getPanelType() {
+                        return CollectionPanelType.MEMBER_ORGANIZATION;
                     }
 
         };

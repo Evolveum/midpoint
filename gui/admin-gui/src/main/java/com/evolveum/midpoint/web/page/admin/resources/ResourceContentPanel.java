@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -146,18 +146,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             warn("Could not determine object definition");
         }
         return null;
-
-//        if (ocDef == null) {
-//            return itemsList;
-//        }
-//
-//        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-////            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
-////                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
-////                    def, null, getPageBase()));
-//        }
-//
-//        return itemsList;
     }
 
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
@@ -258,7 +246,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext searchContext = new SearchContext();
                 searchContext.setResourceObjectDefinition(createAttributeSearchItemWrappers());
-                searchContext.setPanelType(searchMode == SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT ? PredefinedSearchableItems.PanelType.REPO_SHADOW : PredefinedSearchableItems.PanelType.RESOURCE_SHADOW);
+                searchContext.setPanelType(searchMode == SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT ? CollectionPanelType.REPO_SHADOW : CollectionPanelType.RESOURCE_SHADOW);
                 return searchContext;
             }
 

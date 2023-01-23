@@ -38,10 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
-public class SearchFactory<C extends Containerable> {
+public class SearchBuilder<C extends Containerable> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchFactory.class);
-    private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(SearchBuilder.class);
+    private static final String DOT_CLASS = SearchBuilder.class.getName() + ".";
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
 
     private Class<C> type;
@@ -58,51 +58,47 @@ public class SearchFactory<C extends Containerable> {
 
     private SearchContext additionalSearchContext;
 
-    public SearchFactory(Class<C> type) {
+    public SearchBuilder(Class<C> type) {
         this.type = type;
     }
 
-    public SearchFactory<C> type(Class<C> type) {
+    public SearchBuilder<C> type(Class<C> type) {
         this.type = type;
         return this;
     }
 
-    public SearchFactory<C> collectionView(CompiledObjectCollectionView collectionView) {
+    public SearchBuilder<C> collectionView(CompiledObjectCollectionView collectionView) {
         this.collectionView = collectionView;
         return this;
     }
-    public SearchFactory<C> modelServiceLocator(ModelServiceLocator modelServiceLocator) {
+    public SearchBuilder<C> modelServiceLocator(ModelServiceLocator modelServiceLocator) {
         this.modelServiceLocator = modelServiceLocator;
         return this;
     }
-    public SearchFactory<C> nameSearch(String nameSearch) {
+    public SearchBuilder<C> nameSearch(String nameSearch) {
         this.nameSearch = nameSearch;
         return this;
     }
-    public SearchFactory isPreview(boolean isPreview) {
+    public SearchBuilder isPreview(boolean isPreview) {
         this.isPreview = isPreview;
         return this;
     }
 
-    public SearchFactory<C> isViewForDashboard(boolean isViewForDashboard) {
+    public SearchBuilder<C> isViewForDashboard(boolean isViewForDashboard) {
         this.isViewForDashboard = isViewForDashboard;
         return this;
     }
 
-    public SearchFactory<C> additionalSearchContext(SearchContext additionalSearchContext) {
+    public SearchBuilder<C> additionalSearchContext(SearchContext additionalSearchContext) {
         this.additionalSearchContext = additionalSearchContext;
         return this;
     }
 
-    public Search<C> createSearch() {
-        PredefinedSearchableItems predefinedSearchableItems = new PredefinedSearchableItems(type, modelServiceLocator);
-        if (additionalSearchContext != null) {
-            predefinedSearchableItems = predefinedSearchableItems.resourceObjectDefinition(additionalSearchContext.getResourceObjectDefinition())
-                    .assignmentTargetType(additionalSearchContext.getAssignmentTargetType())
-                    .panelType(additionalSearchContext.getPanelType())
-                    .containerDefinition(additionalSearchContext.getDefinitionOverride());
-        }
-        allSearchableItems =  predefinedSearchableItems.createAvailableSearchItems();
+    public Search<C> build() {
+        SearchableItemsDefinitions searchableItemsDefinitions =
+                new SearchableItemsDefinitions(type, modelServiceLocator)
+                        .additionalSearchContext(additionalSearchContext);
+        allSearchableItems =  searchableItemsDefinitions.createAvailableSearchItems();
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration();
 
         SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(mergedConfig);
@@ -168,7 +164,7 @@ public class SearchFactory<C extends Containerable> {
     }
 
     private void initAssociationWrapperIfNeeded(Search<C> search) {
-        if (PredefinedSearchableItems.PanelType.ASSOCIABLE_SHADOW.equals(additionalSearchContext.getPanelType())) {
+        if (CollectionPanelType.ASSOCIABLE_SHADOW.equals(additionalSearchContext.getPanelType())) {
             AssociationSearchItemWrapper wrapper = new AssociationSearchItemWrapper(additionalSearchContext.getResourceObjectDefinition());
             search.getItems().add(0, wrapper);
         }

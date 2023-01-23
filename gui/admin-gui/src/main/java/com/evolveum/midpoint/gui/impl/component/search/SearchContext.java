@@ -19,7 +19,7 @@ public class SearchContext {
     private ResourceObjectDefinition resourceObjectDefinition;
     private PrismContainerDefinition<? extends Containerable> definitionOverride;
 
-    private PredefinedSearchableItems.PanelType panelType;
+    private CollectionPanelType collectionPanelType;
 
     private QName assignmentTargetType;
     private ObjectCollectionReportEngineConfigurationType reportCollection;
@@ -32,12 +32,12 @@ public class SearchContext {
         this.resourceObjectDefinition = resourceObjectDefinition;
     }
 
-    public PredefinedSearchableItems.PanelType getPanelType() {
-        return panelType;
+    public CollectionPanelType getPanelType() {
+        return collectionPanelType;
     }
 
-    public void setPanelType(PredefinedSearchableItems.PanelType panelType) {
-        this.panelType = panelType;
+    public void setPanelType(CollectionPanelType collectionPanelType) {
+        this.collectionPanelType = collectionPanelType;
     }
 
     public QName getAssignmentTargetType() {

@@ -34,10 +34,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -79,7 +76,7 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private Class<? extends Containerable> type;
-    private PredefinedSearchableItems.PanelType panelType;
+    private CollectionPanelType collectionPanelType;
     private ModelServiceLocator modelServiceLocator;
     private Map<ItemPath, ItemDefinition<?>> availableDefinitions;
     private SearchContext additionalSearchContext;
@@ -92,7 +89,7 @@ public class SearchBoxConfigurationBuilder {
     public SearchBoxConfigurationBuilder additionalSearchContext(SearchContext additionalSearchContext) {
         this.additionalSearchContext = additionalSearchContext;
         if (additionalSearchContext != null) {
-            this.panelType = additionalSearchContext.getPanelType();
+            this.collectionPanelType = additionalSearchContext.getPanelType();
         }
         return this;
     }
@@ -230,7 +227,7 @@ public class SearchBoxConfigurationBuilder {
     private ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration() {
         ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
         objectTypeItem.setDefaultValue(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-        objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(panelType));
+        objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(collectionPanelType));
         objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         return objectTypeItem;
     }
@@ -248,7 +245,7 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private boolean isMemberPanel() {
-        return panelType != null && panelType.isMemberPanel();
+        return collectionPanelType != null && collectionPanelType.isMemberPanel();
     }
 
     private RelationSearchItemConfigurationType createRelationSearchItemConfigurationType() {
@@ -294,17 +291,17 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private boolean isGovernanceCards() {
-        return PredefinedSearchableItems.PanelType.CARDS_GOVERNANCE == panelType;
+        return CollectionPanelType.CARDS_GOVERNANCE == collectionPanelType;
     }
     private boolean isOrgMemberPanel() {
-        return panelType == PredefinedSearchableItems.PanelType.ORG_MEMBER_MEMBER
-                || panelType == PredefinedSearchableItems.PanelType.ORG_MEMBER_GOVERNANCE
-                || panelType == PredefinedSearchableItems.PanelType.MEMBER_ORGANIZATION;
+        return collectionPanelType == CollectionPanelType.ORG_MEMBER_MEMBER
+                || collectionPanelType == CollectionPanelType.ORG_MEMBER_GOVERNANCE
+                || collectionPanelType == CollectionPanelType.MEMBER_ORGANIZATION;
     }
 
     private boolean isRoleMemberPanel() {
-        return panelType == PredefinedSearchableItems.PanelType.ROLE_MEMBER_MEMBER
-                || panelType == PredefinedSearchableItems.PanelType.ROLE_MEMBER_GOVERNANCE;
+        return collectionPanelType == CollectionPanelType.ROLE_MEMBER_MEMBER
+                || collectionPanelType == CollectionPanelType.ROLE_MEMBER_GOVERNANCE;
     }
     private static QName getDefaultRelationAllowAny(List<QName> availableRelationList) {
         if (availableRelationList != null && availableRelationList.size() == 1) {
@@ -314,11 +311,11 @@ public class SearchBoxConfigurationBuilder {
     }
 
     public List<QName> getSupportedRelations() {
-        if (panelType == null) {
+        if (collectionPanelType == null) {
             return null;
         }
 
-        switch (panelType) {
+        switch (collectionPanelType) {
             case MEMBER_ORGANIZATION:
                 return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, modelServiceLocator);
             case ROLE_MEMBER_GOVERNANCE:
@@ -349,11 +346,11 @@ public class SearchBoxConfigurationBuilder {
         return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
     }
 
-    public static List<QName> getSupportedObjectTypes(PredefinedSearchableItems.PanelType panelType) {
-        if (panelType == null) {
+    public static List<QName> getSupportedObjectTypes(CollectionPanelType collectionPanelType) {
+        if (collectionPanelType == null) {
             return new ArrayList<>();
         }
-        switch (panelType) {
+        switch (collectionPanelType) {
             case ROLE_MEMBER_MEMBER:
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_MEMBER:

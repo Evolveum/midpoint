@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -251,7 +251,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected SearchContext createAdditionalSearchContext() {
                         SearchContext ctx = new SearchContext();
-                        ctx.setPanelType(PredefinedSearchableItems.PanelType.PROJECTION_SHADOW);
+                        ctx.setPanelType(CollectionPanelType.PROJECTION_SHADOW);
                         return ctx;
                     }
                 };

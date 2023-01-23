@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -38,7 +40,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
@@ -299,9 +300,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return ctx;
     }
 
-    protected PredefinedSearchableItems.PanelType getPanelType() {
+    protected CollectionPanelType getPanelType() {
         String panelId = getPanelConfiguration().getIdentifier();
-        return PredefinedSearchableItems.PanelType.getPanelType(panelId);
+        return CollectionPanelType.getPanelType(panelId);
     }
 
     protected List<Component> createToolbarButtonList(String buttonId, List<Component> defaultToolbarList) {

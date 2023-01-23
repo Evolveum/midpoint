@@ -12,23 +12,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -37,48 +29,40 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class PredefinedSearchableItems {
-    private static final Trace LOGGER = TraceManager.getTrace(PredefinedSearchableItems.class);
-    private static final String DOT_CLASS = PredefinedSearchableItems.class.getName() + ".";
+import org.jetbrains.annotations.NotNull;
+
+public class SearchableItemsDefinitions {
+    private static final Trace LOGGER = TraceManager.getTrace(SearchableItemsDefinitions.class);
+    private static final String DOT_CLASS = SearchableItemsDefinitions.class.getName() + ".";
     private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
 
 
     private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
-    private static final Map<PanelType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
+    private static final Map<CollectionPanelType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
     private static final Map<QName, List<ItemPath>> SEARCHABLE_ASSIGNMENT_ITEMS = new HashMap<>();
 
     private Class<? extends Containerable> type;
     private ResourceShadowCoordinates coordinates;
     private ModelServiceLocator modelServiceLocator;
-    private PanelType panelType;
+    private CollectionPanelType collectionPanelType;
     private QName assignmentTargetType;
     private PrismContainerDefinition<? extends Containerable> containerDefinition;
 
     private ResourceObjectDefinition resourceObjectDefinition;
 
-    private SearchContext additionalSearchContext;
-
-    public PredefinedSearchableItems(Class<? extends Containerable> type, ModelServiceLocator modelServiceLocator) {
+    public SearchableItemsDefinitions(Class<? extends Containerable> type, ModelServiceLocator modelServiceLocator) {
         this.type = type;
         this.modelServiceLocator = modelServiceLocator;
     }
-    public PredefinedSearchableItems panelType(PanelType panelType) {
-        this.panelType = panelType;
-        return this;
-    }
-    public PredefinedSearchableItems assignmentTargetType(QName assignmentTargetType) {
-        this.assignmentTargetType = assignmentTargetType;
-        return this;
-    }
 
-
-    public PredefinedSearchableItems resourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
-        this.resourceObjectDefinition = resourceObjectDefinition;
-        return this;
-    }
-
-    public PredefinedSearchableItems containerDefinition(PrismContainerDefinition<? extends Containerable> containerDefinition) {
-        this.containerDefinition = containerDefinition;
+    public SearchableItemsDefinitions additionalSearchContext(SearchContext ctx) {
+        if (ctx == null) {
+            return this;
+        }
+        this.resourceObjectDefinition = ctx.getResourceObjectDefinition();
+        this.containerDefinition = ctx.getDefinitionOverride();
+        this.assignmentTargetType = ctx.getAssignmentTargetType();
+        this.collectionPanelType = ctx.getPanelType();
         return this;
     }
 
@@ -206,7 +190,7 @@ public class PredefinedSearchableItems {
     }
 
     static {
-        SHADOW_SEARCHABLE_ITEMS.put(PanelType.PROJECTION_SHADOW,
+        SHADOW_SEARCHABLE_ITEMS.put(CollectionPanelType.PROJECTION_SHADOW,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_OBJECT_CLASS),
                         ItemPath.create(ShadowType.F_RESOURCE_REF),
@@ -216,7 +200,7 @@ public class PredefinedSearchableItems {
                         ItemPath.create(ShadowType.F_EXISTS),
                         ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
 
-        SHADOW_SEARCHABLE_ITEMS.put(PanelType.REPO_SHADOW,
+        SHADOW_SEARCHABLE_ITEMS.put(CollectionPanelType.REPO_SHADOW,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_DEAD),
                         ItemPath.create(ShadowType.F_INTENT),
@@ -224,7 +208,7 @@ public class PredefinedSearchableItems {
                         ItemPath.create(ShadowType.F_EXISTS),
                         ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
 
-        SHADOW_SEARCHABLE_ITEMS.put(PanelType.DEBUG,
+        SHADOW_SEARCHABLE_ITEMS.put(CollectionPanelType.DEBUG,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_DEAD),
                         ItemPath.create(ShadowType.F_INTENT),
@@ -232,7 +216,7 @@ public class PredefinedSearchableItems {
                         ItemPath.create(ShadowType.F_EXISTS),
                         ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
 
-        SHADOW_SEARCHABLE_ITEMS.put(PanelType.ASSOCIABLE_SHADOW,
+        SHADOW_SEARCHABLE_ITEMS.put(CollectionPanelType.ASSOCIABLE_SHADOW,
                 Arrays.asList(
                         ItemPath.create(ShadowType.F_DEAD),
                         ItemPath.create(ShadowType.F_EXISTS),
@@ -257,77 +241,15 @@ public class PredefinedSearchableItems {
     }
 
 
-    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass) {
-        return getSearchableItemsFor(typeClass, PanelType.PROJECTION_SHADOW);
-    }
-
-    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, PanelType shadowSearchType) {
+    private static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, CollectionPanelType shadowSearchType) {
         if (ShadowType.class.equals(typeClass)) {
             return SHADOW_SEARCHABLE_ITEMS.get(shadowSearchType);
         }
 
-        return PredefinedSearchableItems.SEARCHABLE_OBJECTS.get(typeClass);
+        return SearchableItemsDefinitions.SEARCHABLE_OBJECTS.get(typeClass);
     }
 
-
-    public enum PanelType {
-        ROLE_MEMBER_GOVERNANCE(true, "roleGovernance", true, FocusType.COMPLEX_TYPE),
-        ROLE_MEMBER_MEMBER(true, "roleMembers", true, FocusType.COMPLEX_TYPE),
-        SERVICE_MEMBER_GOVERNANCE(true, "serviceGovernance", true, FocusType.COMPLEX_TYPE),
-        SERVICE_MEMBER_MEMBER(true, "serviceMembers", true, FocusType.COMPLEX_TYPE),
-        ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance", true, FocusType.COMPLEX_TYPE),
-        ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers", true, AssignmentHolderType.COMPLEX_TYPE),
-        ORG_MEMBER_GOVERNANCE(true, "orgGovernance", true, FocusType.COMPLEX_TYPE),
-        ORG_MEMBER_MEMBER(true, "orgMembers", true, AssignmentType.COMPLEX_TYPE),
-        MEMBER_ORGANIZATION(true, null, true, AssignmentHolderType.COMPLEX_TYPE),
-        CARDS_GOVERNANCE(true, null, true, FocusType.COMPLEX_TYPE),
-        MEMBER_WIZARD(true, null, false, UserType.COMPLEX_TYPE),
-        RESOURCE_SHADOW(false, null, false, null),
-        REPO_SHADOW(false, null, false, null),
-        ASSOCIABLE_SHADOW(false, null, false, null),
-        PROJECTION_SHADOW(false, null, false, null),
-        DEBUG(false, null, false, null),
-        ASSIGNABLE(false, null, false, null);
-
-        private boolean memberPanel;
-        private String panelInstance;
-
-        private boolean isAllowAllTypeSearch;
-        private QName typeForNull;
-
-        PanelType(boolean memberPanel, String panelInstance, boolean isAllowAllTypeSearch, QName typeForNull) {
-            this.memberPanel = memberPanel;
-            this.panelInstance = panelInstance;
-            this.isAllowAllTypeSearch = isAllowAllTypeSearch;
-            this.typeForNull = typeForNull;
-        }
-
-        public boolean isMemberPanel() {
-            return memberPanel;
-        }
-
-        public static PanelType getPanelType(String panelInstance) {
-            if (panelInstance == null) {
-                return null;
-            }
-            for (PanelType panelType : PanelType.values()) {
-                if (panelInstance.equals(panelType.panelInstance)) {
-                    return panelType;
-                }
-            }
-            return null;
-        }
-
-        public QName getTypeForNull() {
-            return typeForNull;
-        }
-
-        public boolean isAllowAllTypeSearch() {
-            return isAllowAllTypeSearch;
-        }
-    }
-
-    public Map<ItemPath, ItemDefinition<?>> createAvailableSearchItems() {
+    @NotNull public Map<ItemPath, ItemDefinition<?>> createAvailableSearchItems() {
 
         Collection<ItemPath> extensionPaths = createExtensionPaths();
 
@@ -345,7 +267,7 @@ public class PredefinedSearchableItems {
     }
 
     private boolean isUseSuperclassDefinition() {
-        return !ShadowType.class.equals(type) || PanelType.RESOURCE_SHADOW != panelType;
+        return !ShadowType.class.equals(type) || CollectionPanelType.RESOURCE_SHADOW != collectionPanelType;
 
     }
 
@@ -397,7 +319,7 @@ public class PredefinedSearchableItems {
             return;
         }
 
-        if (PanelType.RESOURCE_SHADOW == panelType) {
+        if (CollectionPanelType.RESOURCE_SHADOW == collectionPanelType) {
             return;
         }
 
@@ -409,14 +331,14 @@ public class PredefinedSearchableItems {
                 return;
             }
             Map<ItemPath, ItemDefinition<?>> extensionItems = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
-                    .filter(PredefinedSearchableItems::isNotContainerAndIsIndexed)
+                    .filter(SearchableItemsDefinitions::isNotContainerAndIsIndexed)
                     .collect(Collectors.toMap(d -> ItemPath.create(path, d.getItemName()), d -> d));
             searchableItems.putAll(extensionItems);
         }
     }
 
     private <C extends Containerable> void collectionNonExtensionDefinitions(PrismContainerDefinition<C> containerDef, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass) {
-        if (PanelType.RESOURCE_SHADOW == panelType) {
+        if (CollectionPanelType.RESOURCE_SHADOW == collectionPanelType) {
             return;
         }
         Class<C> typeClass = containerDef.getCompileTimeClass();
@@ -447,7 +369,7 @@ public class PredefinedSearchableItems {
     }
 
     private List<ItemPath> getAvailableSearchableItems(Class<? extends Containerable> typeClass) {
-        List<ItemPath> items = getSearchableItemsFor(typeClass, panelType);//SEARCHABLE_OBJECTS.get(typeClass);
+        List<ItemPath> items = getSearchableItemsFor(typeClass, collectionPanelType);
         if (AuditEventRecordType.class.equals(typeClass)) {
             SystemConfigurationType systemConfigurationType;
             try {
@@ -472,7 +394,7 @@ public class PredefinedSearchableItems {
             return;
         }
 
-        if (PanelType.RESOURCE_SHADOW != panelType) {
+        if (CollectionPanelType.RESOURCE_SHADOW != collectionPanelType) {
             return;
         }
 

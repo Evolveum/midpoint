@@ -16,12 +16,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -67,7 +66,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -468,15 +466,10 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
             // TODO add containerable option too
-            //noinspection unchecked
-            //createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()),
-            Search<?> search = storage.getSearch() != null ? storage.getSearch() : new SearchFactory(request.getType()).modelServiceLocator(this).createSearch();//createSearch(request.getType(),  this);
-            AdvancedQueryWrapper wrapper = new AdvancedQueryWrapper();
-            wrapper.setAdvancedQuery(filterAsString);
-//            search.setAdvancedQuery(filterAsString);
+            Search<?> search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(this).build();
             search.addAllowedModelType(SearchBoxModeType.ADVANCED);
             search.setSearchMode(SearchBoxModeType.ADVANCED);
-//            search.setSearchType(SearchBoxModeType.ADVANCED);
+            search.setAdvancedQuery(filterAsString);
 
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed

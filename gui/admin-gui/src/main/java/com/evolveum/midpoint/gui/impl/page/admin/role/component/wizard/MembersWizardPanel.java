@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,7 +20,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,8 +60,8 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
                 return getConfiguration() == null ? PANEL_TYPE : super.getStorageKeyTabSuffix();
             }
             @Override
-            protected PredefinedSearchableItems.PanelType getPanelType() {
-                return PredefinedSearchableItems.PanelType.MEMBER_WIZARD;
+            protected CollectionPanelType getPanelType() {
+                return CollectionPanelType.MEMBER_WIZARD;
             }
 
             @Override

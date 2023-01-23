@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -331,10 +331,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected Search<? extends ObjectType> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
 
-                SearchFactory<? extends ObjectType> factory = new SearchFactory<>(type)
+                SearchBuilder<? extends ObjectType> searchBuilder = new SearchBuilder<>(type)
                         .modelServiceLocator(page);
 
-                return factory.createSearch();
+                return searchBuilder.build();
             }
         };
 
@@ -605,10 +605,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         Search search = searchModel.getObject();
         if (!Objects.equals(search.getTypeClass(), query.getType())) {
-            SearchFactory factory = new SearchFactory(query.getType())
+            SearchBuilder searchBuilder = new SearchBuilder(query.getType())
                     .modelServiceLocator(page);
 
-            searchModel.setObject(factory.createSearch());
+            searchModel.setObject(searchBuilder.build());
         }
 
         target.add(get(ID_TILES));

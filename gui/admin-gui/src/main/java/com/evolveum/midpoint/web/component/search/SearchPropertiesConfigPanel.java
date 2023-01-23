@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -353,7 +353,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 Class<? extends Containerable> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
-                    Map<ItemPath, ItemDefinition<?>> availableDefs = new PredefinedSearchableItems(type, getPageBase())
+                    Map<ItemPath, ItemDefinition<?>> availableDefs = new SearchableItemsDefinitions(type, getPageBase())
                             .createAvailableSearchItems();
                     List<Property> propertiesList = availableDefs.entrySet()
                             .stream()

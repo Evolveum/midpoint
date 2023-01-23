@@ -9,13 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.TemplateType;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.ResourceTemplate;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -76,11 +75,10 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                     PageStorage storage = getStorage();
                     TemplateType template = templateType.getObject();
                     if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(template.getType())) {
-                        SearchFactory<? extends AssignmentHolderType> factory = new SearchFactory<>(template.getType())
+                        SearchBuilder<? extends AssignmentHolderType> searchBuilder = new SearchBuilder<>(template.getType())
                                 .modelServiceLocator(getPageBase());
 
-                        Search<? extends AssignmentHolderType> search = factory.createSearch();
-//                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
+                        Search<? extends AssignmentHolderType> search = searchBuilder.build();
                         storage.setSearch(search);
                         return search;
                     }

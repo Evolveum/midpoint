@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.*;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -38,10 +40,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.Containerable;
@@ -150,11 +148,11 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private Search<? extends ObjectType> createSearch(Class<? extends ObjectType> type) {
-        SearchFactory<? extends ObjectType> factory = new SearchFactory<>(type)
+        SearchBuilder<? extends ObjectType> searchBuilder = new SearchBuilder<>(type)
                 .additionalSearchContext(createAdditionalSearchContext())
                 .modelServiceLocator(PageDebugList.this);
 
-        Search<? extends ObjectType> search = factory.createSearch();
+        Search<? extends ObjectType> search = searchBuilder.build();
         //TODO axiom?
         search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
         return search;
@@ -162,7 +160,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
-        ctx.setPanelType(PredefinedSearchableItems.PanelType.DEBUG);
+        ctx.setPanelType(CollectionPanelType.DEBUG);
         return ctx;
     }
 

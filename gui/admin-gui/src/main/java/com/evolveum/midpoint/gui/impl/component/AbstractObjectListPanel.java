@@ -15,11 +15,6 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public abstract class AbstractObjectListPanel<O extends ObjectType> extends MainObjectListPanel<O> {
 
     private final ObjectDetailsModels<O> objectDetailsModel;
@@ -50,7 +45,7 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
     @Override
     protected SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
-        ctx.setPanelType(PredefinedSearchableItems.PanelType.ASSIGNABLE);
+        ctx.setPanelType(CollectionPanelType.ASSIGNABLE);
         return ctx;
     }
 
