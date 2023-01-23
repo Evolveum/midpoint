@@ -126,7 +126,6 @@ public interface RepositoryService {
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
     String OP_GET_OBJECT = "getObject";
-    String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
@@ -152,7 +151,6 @@ public interface RepositoryService {
     String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT_DYNAMICALLY;
     String GET_VERSION = CLASS_NAME_WITH_DOT + OP_GET_VERSION;
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
-    String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + OP_SEARCH_SHADOW_OWNER;
     String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + OP_ADVANCE_SEQUENCE;
     String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE;
     String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
@@ -350,8 +348,9 @@ public interface RepositoryService {
 
     /**
      * Reference count - currently supporting roleMembershipRef and linkRef search.
+     * See {@link #searchReferences(ObjectQuery, Collection, OperationResult)} for more details.
      *
-     * @param query mandatory query that has to have exactly one root OWNER-BY and additional REF filters
+     * @param query mandatory query
      */
     int countReferences(
             @Nullable ObjectQuery query,
@@ -363,7 +362,12 @@ public interface RepositoryService {
      * This returns reference objects extracted from the actual object(s) that own them,
      * but selection of which (and cardinality of the result list) is based on a repository search.
      *
-     * @param query mandatory query that has to have exactly one root OWNER-BY and additional REF filters
+     * Query must not be null and its filter must be:
+     *
+     * * either a OWNER-BY filter,
+     * * or AND filter containing exactly one OWNER-BY filter and optionally one or more REF filters with empty path (self).
+     *
+     * @param query mandatory query with exactly one root OWNER-BY and additional REF filters
      */
     @NotNull SearchResultList<ObjectReferenceType> searchReferences(
             @NotNull ObjectQuery query,
