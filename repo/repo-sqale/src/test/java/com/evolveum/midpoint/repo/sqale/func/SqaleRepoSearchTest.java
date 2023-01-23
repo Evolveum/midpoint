@@ -2533,7 +2533,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test811CountLinkRefs() throws SchemaException {
+    public void test811CountLinkRefs() {
         when("counting link references (pure owned-by filter)");
         OperationResult operationResult = createOperationResult();
         ObjectQuery refQuery = prismContext
@@ -2549,19 +2549,26 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test819ReferenceQueryFailsOnWrongTopLevelPath() {
-        assertThatThrownBy(
-                () -> prismContext
-                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
-                        .or()
-                        .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid") // this fails
-                        .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
+    public void test820SearchReferenceCanBeOrderedByTargetItem() throws SchemaException {
+        when("searching role membership references ordered by the target name");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .ref(ItemPath.SELF_PATH)
+                .item(F_NAME).eq(PolyString.fromOrig("role-one-more"), PolyString.fromOrig("role-other")).matchingOrig()
+                .desc(ItemPath.create(T_OBJECT_REFERENCE, F_NAME))
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected refs are returned in the required order");
+        assertThat(result)
+                .extracting(r -> r.getOid())
+                .containsExactly(roleOtherOid, roleOneMoreOid);
     }
 
     // TODO test wrong ref type
     // TODO test multiple owned-by (failing)
+    // TODO test non AND filter (OR and NOT on the top level have no meaning, this needs fixing in repo too)
 
     @Test
     public void test890ReferenceSearchWithNullQueryFails() {
@@ -2583,6 +2590,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         operationResult, null))
                 .isInstanceOf(SystemException.class)
                 .hasMessageStartingWith("Invalid filter for reference search: null");
+    }
+
+    @Test
+    public void test892ReferenceQueryFailsOnWrongTopLevelPath() {
+        assertThatThrownBy(
+                () -> prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                        .or()
+                        .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid") // this fails
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
     }
     // endregion
 

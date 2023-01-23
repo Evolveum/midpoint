@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.function.Supplier;
 
-import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -49,18 +48,26 @@ public class RefTableTargetResolver<
     @Override
     public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
         /*
-        Technically JOIN seems nicer as we are already inside EXISTS subquery for the reference
-        table, but the EXPLAIN plan doesn't seem to be any better, so we leave nested EXISTS here.
-        This may be revisited with big volume DB, but this is probably non-critical overall.
-        SqlQueryContext<?, TQ, TR> subcontext = context.leftJoin(
-                targetMappingSupplier.get(), context.path().targetOid.eq(subcontext.path().oid));
-        return new ResolutionResult<>(subcontext, subcontext.mapping());
+        Currently, the JOIN does not reuse existing alias for the same mapping - which would be better for targetOid.
+        Also, this is used for ordering instructions, but not for WHERE clauses where EXISTS subquery is still used.
+        See also: com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor#targetFilterPredicate()
         */
+        SqlQueryContext<?, TQ, TR> subcontext = context.leftJoin(
+                targetMappingSupplier.get(), (q, p) -> q.targetOid.eq(p.oid));
+        return new ResolutionResult<>(subcontext, subcontext.mapping());
+
+        /*
+        EXISTS is also possible - and perhaps even preferable for WHERE, but does not allow
+        to use the target of the reference for ordering.
+        Ordering by the ref target is not possible for multi-value refs with object/container search.
+        It is possible for reference search, as each ref has its own role and a single target, so
+        LEFT JOIN is actually beneficial there.
 
         SqlQueryContext<?, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
         SQLQuery<?> subquery = subcontext.sqlQuery();
         subquery.where(context.path().targetOid.eq(subcontext.path().oid));
 
         return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
+        */
     }
 }
