@@ -550,7 +550,9 @@ export default class MidPointTheme {
     }
 
     createSparkline(id, options, data) {
-        var chart = new Sparkline($(id)[0], options)
-        chart.draw(data)
+        $(function () {
+            var chart = new Sparkline($(id)[0], options)
+            chart.draw(data)
+        });
     }
 }

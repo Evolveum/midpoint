@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
+import java.util.Collections;
+import java.util.stream.Collectors;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -15,10 +19,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerWidgetDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,22 +54,27 @@ public class ContainerWidgetPanel extends WidgetPanel<ContainerWidgetType> {
     }
 
     private void initLayout() {
-        add(AttributeModifier.prepend("class", "d-flex gap-3"));
-
-        add(AttributeModifier.append("class", () -> {
+        add(AttributeModifier.prepend("class", () -> {
             ContainerWidgetDirectionType direction = getModelObject().getDirection();
 
-            return direction == ContainerWidgetDirectionType.COLUMN ? "flex-column" : "flex-row";
+            String directionCss = direction == ContainerWidgetDirectionType.COLUMN ? "flex-column" : "flex-row";
+
+            return "d-flex gap-3 " + directionCss;
         }));
 
         Label title = new Label(ID_TITLE);  // todo model
         add(title);
 
-        ListView<? extends WidgetType> widgets = new ListView<>(ID_WIDGETS) { // todo model
+        ListView<WidgetType> widgets = new ListView<>(ID_WIDGETS, () -> {
+            WidgetsType ws = getModelObject().getWidgets();
+            return ws != null ?
+                    ws.getWidget().stream().map(je -> je.getValue()).collect(Collectors.toUnmodifiableList())
+                    : Collections.emptyList();
+        }) { // todo model
 
             @Override
             protected void populateItem(ListItem<WidgetType> item) {
-                WidgetPanel<? extends WidgetType> widget = createWidgetPanel(ID_WIDGET, item.getModel());
+                Component widget = createWidgetPanel(ID_WIDGET, item.getModel());
 
                 if (widget != null) {
                     item.add(widget);
@@ -78,7 +84,7 @@ public class ContainerWidgetPanel extends WidgetPanel<ContainerWidgetType> {
         add(widgets);
     }
 
-    private WidgetPanel<? extends WidgetType> createWidgetPanel(String id, IModel<WidgetType> model) {
+    public static Component createWidgetPanel(String id, IModel<WidgetType> model) {
         WidgetType w = model.getObject();
 
         // todo fix via some widget factory...
@@ -87,7 +93,7 @@ public class ContainerWidgetPanel extends WidgetPanel<ContainerWidgetType> {
         } else if (w instanceof SimulationMetricWidgetType) {
             return new SimulationMetricWidgetPanel(id, () -> (SimulationMetricWidgetType) model.getObject());
         } else {
-            return null;
+            return new Label(id, () -> model.getObject().getIdentifier());
         }
     }
 }

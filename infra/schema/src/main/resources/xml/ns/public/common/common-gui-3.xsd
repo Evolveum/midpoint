@@ -2975,7 +2975,7 @@
                     </xsd:element>
                     <!-- TODO: viliam remove and find a way to make it backward compatible -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element ref="tns:widgets" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element ref="tns:widgets" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
