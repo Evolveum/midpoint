@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
@@ -78,6 +80,11 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
+                    protected SearchContext getAdditionalSearchContext() {
+                        return MultiSelectTileWizardStepPanel.this.getAdditionalSearchContext();
+                    }
+
+                    @Override
                     protected ContainerPanelConfigurationType getContainerConfiguration() {
                         return MultiSelectTileWizardStepPanel.this.getContainerConfiguration(getPanelType());
                     }
@@ -100,6 +107,10 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
                 };
         add(tilesTable);
+    }
+
+    protected SearchContext getAdditionalSearchContext() {
+        return new SearchContext();
     }
 
     protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<O>> tile) {

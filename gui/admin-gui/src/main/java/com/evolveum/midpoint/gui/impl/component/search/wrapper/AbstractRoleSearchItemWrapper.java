@@ -84,9 +84,8 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         List<QName> relations = relationSearchItemWrapper.getRelationsForSearch();
 
         ObjectFilter filter;
-        Boolean indirect = indirectSearchItemWrapper.getValue().getValue();
 
-        if(BooleanUtils.isTrue(indirect)) {
+        if(isIndirect()) {
             filter = prismContext.queryFor(type)
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(ref, relations))
                     .buildFilter();
@@ -245,6 +244,9 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public boolean isIndirect() {
+        if (indirectSearchItemWrapper == null) {
+            return false;
+        }
         return BooleanUtils.isTrue(indirectSearchItemWrapper.getValue().getValue());
     }
 

@@ -115,9 +115,14 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             protected Search<O> load() {
                 return new SearchFactory<>(getType())
                         .modelServiceLocator(getPageBase())
+                        .additionalSearchContext(getAdditionalSearchContext())
                         .createSearch();//SearchFactory.createSearch(createSearchConfigWrapper(getType()), getPageBase());
             }
         };
+    }
+
+    protected SearchContext getAdditionalSearchContext() {
+        return new SearchContext();
     }
 
     protected Class<O> getType() {

@@ -18,17 +18,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -117,6 +113,8 @@ public class SearchFactory<C extends Containerable> {
 
         initSearchByNameIfNeeded(search);
 
+        initAssociationWrapperIfNeeded(search);
+
         // technically, it should not be here. but for now, we can live with it
         initTimestampForAudit(search);
 
@@ -166,6 +164,13 @@ public class SearchFactory<C extends Containerable> {
                 && !isViewForDashboard && !isPreview) {
             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+        }
+    }
+
+    private void initAssociationWrapperIfNeeded(Search<C> search) {
+        if (PredefinedSearchableItems.PanelType.ASSOCIABLE_SHADOW.equals(additionalSearchContext.getPanelType())) {
+            AssociationSearchItemWrapper wrapper = new AssociationSearchItemWrapper(additionalSearchContext.getResourceObjectDefinition());
+            search.getItems().add(0, wrapper);
         }
     }
 

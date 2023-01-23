@@ -203,7 +203,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return null;
     }
 
-    protected IModel<Search<? extends ObjectType>> getSearchModel() {
+    public IModel<Search<? extends ObjectType>> getSearchModel() {
         return searchModel;
     }
 

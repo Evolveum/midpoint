@@ -400,32 +400,38 @@ public final class WebComponentUtil {
             return null;
         }
 
-        ObjectQuery query = prismContext.queryFactory().createQuery();
         try {
             ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
             ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
-            if (oc == null) {
-                return null;
-            }
-            Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
-
-            for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
-                if (association != null && !resourceAssociationDefinition.getName().equivalent(association)) {
-                    continue;
-                }
-                S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
-                List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                resourceAssociationDefinition.getIntents()
-                        .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-                OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
-
-                AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
-                        .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-                filter.addCondition(intentFilter);
-                query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
-            }
+            return getShadowTypeFilterForAssociation(oc, association);
         } catch (SchemaException | ConfigurationException ex) {
             LOGGER.error("Couldn't create query filter for ShadowType for association: {}", ex.getErrorTypeMessage());
+        }
+        return null;
+    }
+
+    public static ObjectFilter getShadowTypeFilterForAssociation(ResourceObjectDefinition oc, ItemName association) {
+        PrismContext prismContext = PrismContext.get();
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        if (oc == null) {
+            return null;
+        }
+        Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
+
+        for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
+            if (association != null && !resourceAssociationDefinition.getName().equivalent(association)) {
+                continue;
+            }
+            S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
+            List<ObjectFilter> orFilterClauses = new ArrayList<>();
+            resourceAssociationDefinition.getIntents()
+                    .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+            OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
+
+            AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
+                    .item(ShadowType.F_RESOURCE_REF).ref(oc.getResourceOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+            filter.addCondition(intentFilter);
+            query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
         }
         return query.getFilter();
     }
@@ -604,6 +610,7 @@ public final class WebComponentUtil {
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
+
     public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
         PrismContainerDefinition<C> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
         if (def == null) {
@@ -3654,16 +3661,23 @@ public final class WebComponentUtil {
             ResourceObjectDefinition oc = getResourceObjectDefinition(construction, pageBase);
             if (oc == null) {
                 LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
-                return null;
-            }
-            associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-            if (CollectionUtils.isEmpty(associationDefinitions)) {
-                LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
                 return associationDefinitions;
             }
+            return getRefinedAssociationDefinition(oc);
         } catch (Exception ex) {
             LOGGER.error("Association for {} not supported by resource {}: {}", construction, resource, ex.getLocalizedMessage());
+        }
+        return associationDefinitions;
+    }
+
+    public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
+        List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+        associationDefinitions.addAll(oc.getAssociationDefinitions());
+
+        if (CollectionUtils.isEmpty(associationDefinitions)) {
+            LOGGER.debug("Association not supported by resource object definition {}", oc);
+            return associationDefinitions;
         }
         return associationDefinitions;
     }
@@ -3707,12 +3721,7 @@ public final class WebComponentUtil {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
                 return associationDefinitions;
             }
-            associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-            if (CollectionUtils.isEmpty(associationDefinitions)) {
-                LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                return associationDefinitions;
-            }
+            return getRefinedAssociationDefinition(oc);
         } catch (Exception ex) {
             LOGGER.error("Association for {}/{} not supported by resource {}: {}", kind, intent, resource, ex.getLocalizedMessage());
         }
@@ -5216,6 +5225,7 @@ public final class WebComponentUtil {
         StringValue stringValue = getCollectionNameParameterValue(pageBase);
         return stringValue == null ? null : stringValue.toString();
     }
+
     public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
         PageParameters parameters = pageBase.getPageParameters();
         return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);

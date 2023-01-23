@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -100,7 +101,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
 
-                return searchFactory.createSearch();
+                Search<FocusType> search = searchFactory.createSearch();
+                MemberPanelStorage storage = getMemberPanelStorage();
+                storage.setSearch(search);
+                return search;
             }
         };
     }

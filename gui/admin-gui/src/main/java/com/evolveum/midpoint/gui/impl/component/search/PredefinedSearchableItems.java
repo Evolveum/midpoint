@@ -232,6 +232,12 @@ public class PredefinedSearchableItems {
                         ItemPath.create(ShadowType.F_EXISTS),
                         ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
 
+        SHADOW_SEARCHABLE_ITEMS.put(PanelType.ASSOCIABLE_SHADOW,
+                Arrays.asList(
+                        ItemPath.create(ShadowType.F_DEAD),
+                        ItemPath.create(ShadowType.F_EXISTS),
+                        ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
+
     }
 
     static {
@@ -278,6 +284,7 @@ public class PredefinedSearchableItems {
         MEMBER_WIZARD(true, null, false, UserType.COMPLEX_TYPE),
         RESOURCE_SHADOW(false, null, false, null),
         REPO_SHADOW(false, null, false, null),
+        ASSOCIABLE_SHADOW(false, null, false, null),
         PROJECTION_SHADOW(false, null, false, null),
         DEBUG(false, null, false, null),
         ASSIGNABLE(false, null, false, null);
