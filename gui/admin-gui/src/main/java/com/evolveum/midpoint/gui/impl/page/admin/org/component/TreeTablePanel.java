@@ -145,8 +145,7 @@ public class TreeTablePanel extends BasePanel<String> {
         if (pc.isPresent()) {
             panelConfig = pc.get();
         }
-        com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel =
-                new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, panelConfig) {
+        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, panelConfig) {
                     @Override
                     protected CollectionPanelType getPanelType() {
                         return CollectionPanelType.MEMBER_ORGANIZATION;
