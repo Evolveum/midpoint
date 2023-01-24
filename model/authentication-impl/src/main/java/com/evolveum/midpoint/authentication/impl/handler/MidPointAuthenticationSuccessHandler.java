@@ -136,7 +136,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         }
         AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
-        return processingSequence.getModule().size() != sequence.getModule().size();
+        return sequence != null && processingSequence.getModule().size() != sequence.getModule().size();
     }
 
     private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {
