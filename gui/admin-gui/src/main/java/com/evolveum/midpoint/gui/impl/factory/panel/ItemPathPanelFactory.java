@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -82,7 +84,10 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
             formComponent.add(panelCtx.getVisibleEnableBehavior());
         }
 
-        panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
+        ExpressionValidator ev = panelCtx.getExpressionValidator();
+        if (ev != null) {
+            panel.getValidatableComponent().add(ev);
+        }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
     }
 }

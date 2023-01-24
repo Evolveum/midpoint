@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.org.component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -136,15 +138,19 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel createMemberPanel() {
         FocusDetailsModels focusDetailsModels = new FocusDetailsModels(createOrgModel(), getPageBase());
-        com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel =
-                new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, null) {
+        Optional<ContainerPanelConfigurationType> pc = focusDetailsModels.getPanelConfigurations()
+                .stream()
+                .filter(c -> "orgMembers".equals(((ContainerPanelConfigurationType) c).getIdentifier())).findFirst();
+        ContainerPanelConfigurationType panelConfig = null;
+        if (pc.isPresent()) {
+            panelConfig = pc.get();
+        }
+        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, panelConfig) {
+                    @Override
+                    protected CollectionPanelType getPanelType() {
+                        return CollectionPanelType.MEMBER_ORGANIZATION;
+                    }
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<QName> getSupportedRelations() {
-                return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase());
-            }
         };
         memberPanel.setOutputMarkupId(true);
         return memberPanel;

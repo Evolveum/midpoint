@@ -22,7 +22,6 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
 
     private static final long serialVersionUID = 1L;
     private List<ValueSearchFilterItem> valueSearchFilterItems = new ArrayList<>();
-//    private LogicalSearchFilterItem logicalSearchFilterItem;
     PageBase pageBase;
     private ObjectFilter baseFilter;
     Class<C> type;
@@ -33,7 +32,6 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
     }
 
     public SearchFilter(PageBase pageBase, ObjectFilter baseFilter, Class<C> type){
-//        this.prismContext = prismContext;
         this.pageBase = pageBase;
         this.baseFilter = baseFilter;
         this.type = type;

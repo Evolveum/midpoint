@@ -1,24 +1,36 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.MultiSelectTileWizardStepPanel;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -28,22 +40,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 @PanelType(name = "roleWizard-construction-group")
 @PanelInstance(identifier = "roleWizard-construction-group",
@@ -62,7 +62,6 @@ public class ConstructionGroupStepPanel
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
-    private IModel<SearchValue<ItemName>> associationRef = Model.of();
 
     public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
@@ -130,7 +129,7 @@ public class ConstructionGroupStepPanel
 
     @Override
     protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<ShadowType>> tile) {
-        if (associationRef.getObject() == null) {
+        if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }
 
@@ -141,13 +140,22 @@ public class ConstructionGroupStepPanel
                     new AssociationWrapper(
                             shadow.getOid(),
                             WebComponentUtil.getDisplayNameOrName(shadow.asPrismObject()),
-                            associationRef.getObject().getValue(),
-                            associationRef.getObject().getLabel()));
+                            getAssociationRef().getValue(),
+                            getAssociationRef().getLabel()));
         } else {
             selectedItems.getObject().removeIf(
                     association -> association.oid.equals(shadow.getOid())
-                            && QNameUtil.match(association.associationName, associationRef.getObject().getValue()));
+                            && QNameUtil.match(association.associationName, getAssociationRef().getValue()));
         }
+    }
+
+    private DisplayableValue<ItemName> getAssociationRef() {
+        Optional<FilterableSearchItemWrapper> wrapper = getTable().getSearchModel().getObject().getItems().stream()
+                .filter(item -> item instanceof AssociationSearchItemWrapper).findFirst();
+        if (wrapper.isEmpty()) {
+            return null;
+        }
+        return wrapper.get().getValue();
     }
 
     @Override
@@ -249,70 +257,34 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper(Class<ShadowType> type) {
-        SearchConfigurationWrapper<ShadowType> config =
-                SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-        List<DisplayableValue<ItemName>> values = new ArrayList<>();
-
-        config.getItemsList().removeIf(item ->
-                (item instanceof ReferenceSearchItemWrapper
-                    && ShadowType.F_RESOURCE_REF.equivalent(((ReferenceSearchItemWrapper<?>) item).getDef().getItemName()))
-                        || item instanceof ObjectClassSearchItemWrapper);
-
-        List<ResourceAssociationDefinition> associations =
-                WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
-        associations.forEach(association -> values.add(
-                new SearchValue<>(
-                        association.getName(),
-                        WebComponentUtil.getAssociationDisplayName(association))));
-        if (!values.isEmpty()) {
-            associationRef.setObject((SearchValue<ItemName>) values.get(0));
+    protected SearchContext getAdditionalSearchContext() {
+        SearchContext searchContext = new SearchContext();
+        searchContext.setPanelType(CollectionPanelType.ASSOCIABLE_SHADOW);
+        try {
+            ResourceObjectDefinition oc = WebComponentUtil.getResourceObjectDefinition(
+                    getValueModel().getObject().getRealValue(), getPageBase());
+            searchContext.setResourceObjectDefinition(oc);
+        } catch (Exception ex) {
+            LOGGER.debug(
+                    "Association for {} not supported by resource: {}",
+                    getValueModel().getObject().getRealValue(),
+                    ex.getLocalizedMessage());
         }
+        return searchContext;
+    }
 
-        config.addSearchItem(new ChoicesSearchItemWrapper<>(ItemPath.EMPTY_PATH, values) {
-            @Override
-            public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-                IModel<PrismContainerValueWrapper<ConstructionType>> valueModel = getValueModel();
-                ConstructionType construction = valueModel.getObject().getRealValue();
-                return WebComponentUtil.getShadowTypeFilterForAssociation(
-                        construction, (ItemName)getValue().getValue(), "load resource", getPageBase());
-            }
+    @Override
+    protected void customizeTile(SelectableBean<ShadowType> object, TemplateTile<SelectableBean<ShadowType>> tile) {
+        object.setSelected(false);
+        tile.setSelected(false);
 
-            @Override
-            public String getName() {
-                return getPageBase().createStringResource("ConstructionType.association").getString();
-            }
-
-            @Override
-            public boolean isVisible() {
-                return !getAvailableValues().isEmpty() || getAvailableValues().size() != 1;
-            }
-
-            @Override
-            public void setValue(DisplayableValue value) {
-                super.setValue(value);
-                associationRef.setObject((SearchValue<ItemName>) value);
-            }
-
-            @Override
-            public DisplayableValue getDefaultValue() {
-                if (!getAvailableValues().isEmpty()) {
-                    return getAvailableValues().get(0);
-                }
-                return super.getDefaultValue();
-            }
-
-            @Override
-            public boolean allowNull() {
-                return false;
-            }
-
-            @Override
-            public boolean canRemoveSearchItem() {
-                return false;
+        getSelectedItemsModel().getObject().forEach(association -> {
+            if (association.oid.equals(object.getValue().getOid())
+                    && association.associationName.equivalent(getAssociationRef().getValue())) {
+                object.setSelected(true);
+                tile.setSelected(true);
             }
         });
-        return config;
     }
 
     public class AssociationWrapper implements Serializable {

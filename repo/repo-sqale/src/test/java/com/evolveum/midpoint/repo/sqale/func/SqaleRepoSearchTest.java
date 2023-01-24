@@ -1402,6 +1402,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test448SearchUserByAssignmentTargetRef() throws SchemaException {
         searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                // TODO if AbstractRoleType.COMPLEX_TYPE is used, nothing is matched, because currently the repo
+                //  does not "understand" the hierarchy and will not expand the type to IN (subtypes...) condition.
                 f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
                                 RoleType.COMPLEX_TYPE, relation2)
                         .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
@@ -2472,7 +2474,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .hasSize(2)
                 .anyMatch(r -> refMatches(r, user1Oid, roleOtherOid, relation2))
                 .anyMatch(r -> refMatches(r, user3Oid, roleAvIOid, relation2));
-        // TODO metadata check
+
+        and("value metadata is returned in references that have them");
+        assertThat(result)
+                .filteredOn(r -> r.getOid().equals(roleOtherOid))
+                .singleElement()
+                .extracting(r -> r.asReferenceValue().getValueMetadata())
+                // A bit of a train-wreck... but it should work.
+                .matches(m -> m.getRealValue(ValueMetadataType.class).getProvenance()
+                        .getAcquisition().get(0).getChannel().equals("acquisition-channel"));
     }
 
     @Test
@@ -2497,7 +2507,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
                 .and()
-                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, Q_ANY) // any relation
+                // T_SELF must work the same as SELF_PATH (but SELF_PATH is preferred)
+                .item(T_SELF).ref(null, RoleType.COMPLEX_TYPE, Q_ANY) // any relation
                 .build();
         SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
 
@@ -2510,7 +2521,28 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test805SearchLinkRefs() throws SchemaException {
+    public void test803SearchReferenceWithAnyOfTwoRelationsUsingNestedOr() throws SchemaException {
+        when("searching role membership references to roles with any relation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .block()
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, relation1)
+                .or()
+                .item(ItemPath.SELF_PATH).ref(null, RoleType.COMPLEX_TYPE, relation2)
+                .endBlock()
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected refs are returned (none found for relation1, that's OK)");
+        assertThat(result)
+                .hasSize(2)
+                .anyMatch(r -> refMatches(r, user1Oid, roleOtherOid, relation2))
+                .anyMatch(r -> refMatches(r, user3Oid, roleAvIOid, relation2));
+    }
+
+    @Test
+    public void test810SearchLinkRefs() throws SchemaException {
         when("searching link references (pure owned-by filter)");
         OperationResult operationResult = createOperationResult();
         ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
@@ -2524,18 +2556,114 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test819ReferenceQueryFailsOnWrongTopLevelPath() {
+    public void test811CountLinkRefs() {
+        when("counting link references (pure owned-by filter)");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext
+                .queryForReferenceOwnedBy(UserType.class, UserType.F_LINK_REF)
+                .build();
+        queryRecorder.clearBufferAndStartRecording();
+        int result = repositoryService.countReferences(refQuery, null, operationResult);
+        display(queryRecorder.dumpQueryBuffer());
+
+        then("expected ref count returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).isEqualTo(1);
+    }
+
+    @Test
+    public void test820SearchReferenceCanBeOrderedByTargetItem() throws SchemaException {
+        when("searching role membership references ordered by the target name");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery refQuery = prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .and()
+                .ref(ItemPath.SELF_PATH)
+                .item(F_NAME).eq(PolyString.fromOrig("role-one-more"), PolyString.fromOrig("role-other")).matchingOrig()
+                .desc(ItemPath.create(T_OBJECT_REFERENCE, F_NAME))
+                .build();
+        SearchResultList<ObjectReferenceType> result = searchReferences(refQuery, operationResult, null);
+
+        then("expected refs are returned in the required order");
+        assertThat(result)
+                .extracting(r -> r.getOid())
+                .containsExactly(roleOtherOid, roleOneMoreOid);
+    }
+
+    @Test
+    public void test890ReferenceSearchWithNullQueryFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(null, operationResult, null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Query must be provided for reference search");
+    }
+
+    @Test
+    public void test891ReferenceSearchWithNullFilterFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(
+                        // The type for the query does not affect the search directly.
+                        // This is not how to construct real query for reference search, of course.
+                        prismContext.queryFor(UserType.class).build(),
+                        operationResult, null))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Invalid filter for reference search: null");
+    }
+
+    @Test
+    public void test892ReferenceQueryFailsOnWrongTopLevelPath() {
         assertThatThrownBy(
                 () -> prismContext
                         .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
-                        .or()
+                        .and()
                         .item(UserType.F_ROLE_MEMBERSHIP_REF).ref("target-oid") // this fails
                         .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Reference search only supports REF filter with SELF path (.) on the top level.");
     }
 
-    // TODO test wrong ref type
+    @Test
+    public void test893ReferenceSearchFailsOnInvalidTopLevelLogicalFilter() {
+        OperationResult operationResult = createOperationResult();
+        // OR doesn't make much sense, we want to specify OWNED-BY AND REF filter(s).
+        // OR can be nested deeper though, that's not a problem.
+        assertThatThrownBy(
+                () -> searchReferences(prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                        .or() // this fails on filter check in the repo
+                        .item(ItemPath.SELF_PATH).ref(roleOtherOid)
+                        .build(), operationResult, null))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Invalid filter for reference search")
+                .hasMessageEndingWith("Reference search filter should be OWNED-BY filter or an AND filter containing it.");
+    }
+
+    @Test
+    public void test895ReferenceSearchForUnsupportedRefFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_INFLUENCE_REF)
+                        .build(), operationResult, null))
+                .isInstanceOf(SystemException.class)
+                .hasMessageMatching("Reference search is not supported for.*roleInfluenceRef");
+    }
+
+    @Test
+    public void test897ReferenceSearchWithMultipleOwnedByFails() {
+        OperationResult operationResult = createOperationResult();
+        assertThatThrownBy(
+                () -> searchReferences(prismContext
+                        .queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_INFLUENCE_REF)
+                        .and()
+                        .ownedBy(UserType.class, UserType.F_ROLE_INFLUENCE_REF)
+                        .build(), operationResult, null))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith(
+                        "Exactly one main OWNED-BY filter must be used for reference search, but multiple found.");
+    }
+
     // TODO test multiple owned-by (failing)
     // endregion
 

@@ -7,20 +7,17 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-
-import com.evolveum.midpoint.web.session.GenericPageStorage;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -30,6 +27,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -39,12 +37,12 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -72,10 +70,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.ObjectTypeSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -83,6 +77,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -112,7 +107,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private LoadableModel<Search<? extends ObjectType>> searchModel = null;
+    private LoadableDetachableModel<Search<? extends ObjectType>> searchModel = null;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
@@ -129,16 +124,20 @@ public class PageDebugList extends PageAdminConfiguration {
         searchDto.setType(SystemConfigurationType.class);
         confDialogModel = Model.of(searchDto);
 
-        searchModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+        searchModel = new LoadableDetachableModel<>() {
 
             @Override
             protected Search<? extends ObjectType> load() {
                 GenericPageStorage storage = getSessionStorage().getConfiguration();
                 Search search = storage.getSearch();
 
-                if (search == null) {
-                    search = SearchFactory.createSearch(createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
+                if (search == null || search.isForceReload()) {
+                    Class<? extends ObjectType> type = getType();
+
+
+                    search = createSearch(type);
+
+
                     storage.setSearch(search);
                 }
                 return search;
@@ -148,20 +147,21 @@ public class PageDebugList extends PageAdminConfiguration {
         initLayout();
     }
 
-    private <C extends Containerable> SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type, QName defaultValue) {
-        SearchConfigurationWrapper<C> searchConfigurationWrapper = new SearchConfigurationWrapper<C>(type, PageDebugList.this);
-        searchConfigurationWrapper.addAllowedMode(SearchBoxModeType.BASIC)
-                .addAllowedMode(SearchBoxModeType.ADVANCED)
-                .addAllowedMode(SearchBoxModeType.OID);
-        searchConfigurationWrapper.getAllowedTypeList().addAll(getAllowedTypes());
-        return searchConfigurationWrapper;
+    private Search<? extends ObjectType> createSearch(Class<? extends ObjectType> type) {
+        SearchBuilder<? extends ObjectType> searchBuilder = new SearchBuilder<>(type)
+                .additionalSearchContext(createAdditionalSearchContext())
+                .modelServiceLocator(PageDebugList.this);
+
+        Search<? extends ObjectType> search = searchBuilder.build();
+        //TODO axiom?
+        search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+        return search;
     }
 
-    private List<Class<ObjectType>> getAllowedTypes() {
-        List<Class<ObjectType>> choices = new ArrayList<>();
-        WebComponentUtil.createObjectTypesList().stream()
-                .forEach(type -> choices.add(type.getClassDefinition()));
-        return choices;
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setPanelType(CollectionPanelType.DEBUG);
+        return ctx;
     }
 
     private void initLayout() {
@@ -331,7 +331,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
@@ -495,18 +495,18 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private <C extends Containerable> void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-        if (searchModel.getObject().isTypeChanged()) {
-            ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
-            Class<? extends Containerable> type =
-                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
-            Search search = SearchFactory.createSearch(createSearchConfigWrapper(type, objectType.getValue().getValue()), PageDebugList.this);
-//            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
-            searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
-//            configureSearch(search);
-            table.getDataTable().getColumns().clear();
-            //noinspection unchecked
-            table.getDataTable().getColumns().addAll(createColumns());
+
+
+        Search<? extends ObjectType> search = searchModel.getObject();
+        if (search.isForceReload()) {
+            Class<? extends ObjectType> type = search.getTypeClass();
+
+            Search<? extends ObjectType> newSearch = createSearch(type);
+                        searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
+                        table.getDataTable().getColumns().clear();
+                        table.getDataTable().getColumns().addAll(createColumns());
         }
+
 
         // save object type category to session storage, used by back button
         GenericPageStorage storage = getSessionStorage().getConfiguration();
@@ -515,55 +515,6 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }
-
-//    private void configureSearch(@NotNull Search search) {
-//        if (search.isTypeChanged() && !search.isOidSearchMode()) {
-//            search.setCanConfigure(true);
-//            if (ShadowType.class.equals(getType())) {
-//                search.addSpecialItem(createObjectClassSearchItem(search));
-//                search.addSpecialItem(createResourceRefSearchItem(search));
-//            }
-//            search.searchWasReload();
-//        }
-//    }
-//
-//    private PropertySearchItem createObjectClassSearchItem(Search search) {
-//        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-//                .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-//        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
-//                new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
-//
-//            @Override
-//            protected boolean canRemoveSearchItem() {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return resourceReferenceIsNotEmpty();
-//            }
-//
-//            @Override
-//            public boolean isApplyFilter() {
-//                return isEnabled();
-//            }
-//        };
-//    }
-//
-//    private PropertySearchItem createResourceRefSearchItem(Search search) {
-//        PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-//                .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
-//        PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new SearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
-//            @Override
-//            protected boolean canRemoveSearchItem() {
-//                return false;
-//            }
-//        };
-//        ObjectReferenceType ref = new ObjectReferenceType();
-//        ref.setType(ResourceType.COMPLEX_TYPE);
-//        item.setValue(new SearchValue<>(ref));
-//        return item;
-//    }
 
     private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {
         PageParameters parameters = new PageParameters();
@@ -785,7 +736,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         for (DebugObjectItem bean : items) {
-            WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), executeOptions().raw(),
+            WebModelServiceUtils.deleteObject(bean.getType(), bean.getOid(), executeOptions().raw(),
                     result, this);
         }
         result.computeStatusIfUnknown();
@@ -827,7 +778,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private ObjectReferenceType getResourceRefFromSearch() {
         Search search = searchModel.getObject();
-        AbstractSearchItemWrapper searchItem = search.findPropertyItemByPath(ShadowType.F_RESOURCE_REF);
+        FilterableSearchItemWrapper searchItem = search.findPropertyItemByPath(ShadowType.F_RESOURCE_REF);
         DisplayableValue<ObjectReferenceType> displayableValue = searchItem.getValue();
         if (displayableValue != null) {
             return displayableValue.getValue();

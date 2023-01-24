@@ -10,7 +10,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,8 +31,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
@@ -163,20 +160,6 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     @Override
     protected boolean isUseObjectCounting() {
         return true;
-    }
-
-    @Override
-    protected Search createSearch() {
-        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
-    }
-
-    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
-        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-        config
-                .removePropertySearchItem(ShadowType.F_RESOURCE_REF)
-                .removePropertySearchItem(ShadowType.F_OBJECT_CLASS)
-                .removePropertySearchItem(ShadowType.F_INTENT);
-        return config;
     }
 
     @Override

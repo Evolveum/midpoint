@@ -9,6 +9,10 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -117,6 +121,8 @@ public interface ContainerValueDataProviderFactory<T extends Containerable, C ex
         List<PrismContainerValueWrapper<T>> postFilter(List<PrismContainerValueWrapper<T>> assignmentList);
 
         ObjectQuery getCustomizeContentQuery();
+
+        PrismContainerDefinition<AssignmentType> getDefinition();
     }
 
 

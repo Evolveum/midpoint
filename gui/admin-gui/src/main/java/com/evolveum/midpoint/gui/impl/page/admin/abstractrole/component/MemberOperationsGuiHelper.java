@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
@@ -28,29 +30,24 @@ public class MemberOperationsGuiHelper {
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes) {
-        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, true);
+            Search search, List<QName> objectTypes) {
+        assignMembers(pageBase, targetRefObject, target, search, objectTypes, true);
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
-        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
+            Search search, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
+        assignMembers(pageBase, targetRefObject, target, search, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
     }
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
+            Search search, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
 
-        ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig, null) {
+        ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<>(pageBase.getMainPopupBodyId(), search, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected R getAssignmentTargetRefObject(){
                 return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
             }
 
             @Override
@@ -68,19 +65,14 @@ public class MemberOperationsGuiHelper {
     }
 
     public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
-            RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig) {
+            Search search, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<>(pageBase.getMainPopupBodyId(), search) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected OrgType getAssignmentTargetRefObject(){
                 return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
             }
 
             @Override
@@ -94,19 +86,14 @@ public class MemberOperationsGuiHelper {
     }
 
     public static <O extends AssignmentHolderType> void assignArchetypeMembers(PageBase pageBase, ArchetypeType targetRefObject, AjaxRequestTarget target,
-            RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig) {
+            Search search, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<>(pageBase.getMainPopupBodyId(), search) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ArchetypeType getAssignmentTargetRefObject(){
                 return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
             }
 
             @Override

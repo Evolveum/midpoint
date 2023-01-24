@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.panel.ReferenceValueSearchPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;

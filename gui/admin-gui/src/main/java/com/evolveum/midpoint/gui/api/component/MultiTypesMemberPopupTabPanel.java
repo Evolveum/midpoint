@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -38,8 +39,8 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     private ObjectTypes defaultObjectType = ObjectTypes.OBJECT_COLLECTION;
 
-    public MultiTypesMemberPopupTabPanel(String id, RelationSearchItemConfigurationType relationConfig, List<ObjectReferenceType> archetypeReferenceList){
-        super(id, relationConfig, archetypeReferenceList);
+    public MultiTypesMemberPopupTabPanel(String id, Search search, List<ObjectReferenceType> archetypeReferenceList){
+        super(id, search, archetypeReferenceList);
     }
 
     @Override

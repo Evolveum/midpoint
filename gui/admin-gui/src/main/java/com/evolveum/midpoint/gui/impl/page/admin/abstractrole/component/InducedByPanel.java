@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.impl.component.AbstractObjectListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -15,8 +14,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.Arrays;
 
 @PanelType(name = "inducedBy")
 @PanelInstance(identifier = "inducedBy",
@@ -38,20 +35,6 @@ public class InducedByPanel<AR extends AbstractRoleType> extends AbstractObjectL
         return PrismContext.get().queryFor(AbstractRoleType.class)
                 .item(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF))
                 .ref(getObjectDetailsModel().getObjectWrapper().getOid()).build();
-    }
-
-    protected SearchConfigurationWrapper<AR> createSearchBoxConfigurationWrapper() {
-        SearchConfigurationWrapper<AR> searchWrapper = super.createSearchBoxConfigurationWrapper();
-        if (searchWrapper.getAllowedTypeList().isEmpty()) {
-            searchWrapper.getAllowedTypeList()
-                    .addAll(Arrays.asList(
-                            AbstractRoleType.class,
-                            OrgType.class,
-                            ArchetypeType.class,
-                            RoleType.class,
-                            ServiceType.class));
-        }
-        return searchWrapper;
     }
 
     @Override
