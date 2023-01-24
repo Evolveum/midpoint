@@ -253,10 +253,10 @@ public class SecurityHelper implements ModelAuditRecorder {
             return null;
         }
         if (topLevelSecurityPolicy == null) {
-            return lowLevelSecurityPolicy.clone();
+            return lowLevelSecurityPolicy.cloneWithoutId();
         }
         if (lowLevelSecurityPolicy == null) {
-            return topLevelSecurityPolicy.clone();
+            return topLevelSecurityPolicy.cloneWithoutId();
         }
         PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
         return mergedSecurityPolicy != null ? mergedSecurityPolicy.asObjectable() : null;
@@ -281,7 +281,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         if (lowLevelSecurityPolicy == null) {
             return topLevelSecurityPolicy.clone();
         }
-        SecurityPolicyType mergedSecurityPolicy = lowLevelSecurityPolicy.asObjectable().clone();
+        SecurityPolicyType mergedSecurityPolicy = lowLevelSecurityPolicy.asObjectable().cloneWithoutId();
         AuthenticationsPolicyType mergedAuthentication = mergeSecurityPolicyAuthentication(lowLevelSecurityPolicy.asObjectable().getAuthentication(),
                 topLevelSecurityPolicy.asObjectable().getAuthentication());
         mergedSecurityPolicy.setAuthentication(mergedAuthentication);
@@ -297,12 +297,12 @@ public class SecurityHelper implements ModelAuditRecorder {
             return null;
         }
         if (lowLevelAuthentication == null) {
-            return topLevelAuthentication.clone();
+            return topLevelAuthentication.cloneWithoutId();
         }
         if (topLevelAuthentication == null) {
-            return lowLevelAuthentication.clone();
+            return lowLevelAuthentication.cloneWithoutId();
         }
-        AuthenticationsPolicyType mergedAuthentication = lowLevelAuthentication.clone();
+        AuthenticationsPolicyType mergedAuthentication = lowLevelAuthentication.cloneWithoutId();
         mergeAuthenticationModules(mergedAuthentication, topLevelAuthentication.getModules());
         mergeSequences(mergedAuthentication, topLevelAuthentication.getSequence());
         if (CollectionUtils.isEmpty(mergedAuthentication.getIgnoredLocalPath())) {
@@ -332,6 +332,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSaml2(), modules.getSaml2());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSecurityQuestionsForm(), modules.getSecurityQuestionsForm());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getAttributeVerification(), modules.getAttributeVerification());
     }
 
     private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProcess) {
@@ -339,7 +340,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             return;
         }
         if (CollectionUtils.isEmpty(mergedList)) {
-            listToProcess.forEach(i -> mergedList.add((AM) i.clone()));
+            listToProcess.forEach(i -> mergedList.add((AM) i.cloneWithoutId()));
             return;
         }
         listToProcess.forEach(itemToProcess -> {
@@ -361,7 +362,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             return;
         }
         if (CollectionUtils.isEmpty(mergedAuthentication.getSequence())) {
-            sequences.forEach(s -> mergedAuthentication.getSequence().add(s.clone()));
+            sequences.forEach(s -> mergedAuthentication.getSequence().add(s.cloneWithoutId()));
             return;
         }
         sequences.forEach(sequenceToProcess -> {
@@ -374,7 +375,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 }
             }
             if (!exist) {
-                mergedAuthentication.getSequence().add(sequenceToProcess.clone());
+                mergedAuthentication.getSequence().add(sequenceToProcess.cloneWithoutId());
             }
         });
     }
@@ -392,11 +393,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         if (CollectionUtils.isNotEmpty(sequenceToProcess.getModule())) {
             if (CollectionUtils.isEmpty(sequence.getModule())) {
-                sequenceToProcess.getModule().forEach(m -> sequence.getModule().add(m.clone()));
+                sequenceToProcess.getModule().forEach(m -> sequence.getModule().add(m.cloneWithoutId()));
             } else {
                 sequenceToProcess.getModule().forEach(sequenceModule -> {
                     if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) == null) {
-                        sequence.getModule().add(sequenceModule.clone());
+                        sequence.getModule().add(sequenceModule.cloneWithoutId());
                     }
                 });
             }
@@ -428,28 +429,28 @@ public class SecurityHelper implements ModelAuditRecorder {
             return null;
         }
         if (lowLevelCredentialsPolicy == null) {
-            return topLevelCredentialsPolicy.clone();
+            return topLevelCredentialsPolicy.cloneWithoutId();
         }
         CredentialsPolicyType mergedPolicy = new CredentialsPolicyType();
         if (lowLevelCredentialsPolicy.getPassword() != null) {
-            mergedPolicy.setPassword(lowLevelCredentialsPolicy.getPassword().clone());
+            mergedPolicy.setPassword(lowLevelCredentialsPolicy.getPassword().cloneWithoutId());
         } else if (topLevelCredentialsPolicy.getPassword() != null) {
-            mergedPolicy.setPassword(topLevelCredentialsPolicy.getPassword().clone());
+            mergedPolicy.setPassword(topLevelCredentialsPolicy.getPassword().cloneWithoutId());
         }
         if (lowLevelCredentialsPolicy.getSecurityQuestions() != null) {
-            mergedPolicy.setSecurityQuestions(lowLevelCredentialsPolicy.getSecurityQuestions().clone());
+            mergedPolicy.setSecurityQuestions(lowLevelCredentialsPolicy.getSecurityQuestions().cloneWithoutId());
         } else if (topLevelCredentialsPolicy.getSecurityQuestions() != null) {
-            mergedPolicy.setSecurityQuestions(topLevelCredentialsPolicy.getSecurityQuestions().clone());
+            mergedPolicy.setSecurityQuestions(topLevelCredentialsPolicy.getSecurityQuestions().cloneWithoutId());
         }
         if (CollectionUtils.isNotEmpty(lowLevelCredentialsPolicy.getNonce())) {
-            lowLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.clone()));
+            lowLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.cloneWithoutId()));
         } else if (topLevelCredentialsPolicy.getNonce() != null) {
-            topLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.clone()));
+            topLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.cloneWithoutId()));
         }
         if (lowLevelCredentialsPolicy.getDefault() != null) {
-            mergedPolicy.setDefault(lowLevelCredentialsPolicy.getDefault().clone());
+            mergedPolicy.setDefault(lowLevelCredentialsPolicy.getDefault().cloneWithoutId());
         } else if (topLevelCredentialsPolicy.getDefault() != null) {
-            mergedPolicy.setDefault(topLevelCredentialsPolicy.getDefault().clone());
+            mergedPolicy.setDefault(topLevelCredentialsPolicy.getDefault().cloneWithoutId());
         }
         return mergedPolicy;
     }
@@ -460,7 +461,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         //todo do we want to merge credentials reset attributes separately? e.g. if identifiers are the same, then merge every
         //single attribute with the rule that lowLevelCredentialsReset attribute overrides topLevelCredentialsReset attribute
-        return lowLevelCredentialsReset != null ? lowLevelCredentialsReset.clone() : topLevelCredentialsReset.clone();
+        return lowLevelCredentialsReset != null ? lowLevelCredentialsReset.cloneWithoutId() : topLevelCredentialsReset.cloneWithoutId();
     }
 
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,
