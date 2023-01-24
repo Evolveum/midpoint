@@ -5565,6 +5565,10 @@ public final class WebComponentUtil {
     }
 
     public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
+        if (listViewType == null) {
+            return null;
+        }
+
         Task task = pageBase.createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
         try {

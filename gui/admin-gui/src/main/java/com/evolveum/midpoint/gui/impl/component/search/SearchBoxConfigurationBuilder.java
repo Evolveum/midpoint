@@ -363,6 +363,7 @@ public class SearchBoxConfigurationBuilder {
             case SERVICE_MEMBER_MEMBER:
             case SERVICE_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
+            case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
                 return WebComponentUtil.createFocusTypeList();
             case ORG_MEMBER_MEMBER:
