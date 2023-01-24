@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
@@ -100,10 +101,17 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     @Override
                     protected TemplateTile<SelectableBean<O>> createTileObject(SelectableBean<O> object) {
                         TemplateTile<SelectableBean<O>> tile = super.createTileObject(object);
-                        MultiSelectTileWizardStepPanel.this.customizeTile(tile);
+                        MultiSelectTileWizardStepPanel.this.customizeTile(object, tile);
                         return tile;
                     }
+
+                    @Override
+                    public void refresh(AjaxRequestTarget target) {
+                        super.refresh(target);
+                        target.add(this);
+                    }
                 };
+        tilesTable.setOutputMarkupId(true);
         add(tilesTable);
     }
 
@@ -125,7 +133,7 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
         return false;
     }
 
-    protected void customizeTile(TemplateTile<SelectableBean<O>> tile) {
+    protected void customizeTile(SelectableBean<O> object, TemplateTile<SelectableBean<O>> tile) {
     }
 
     protected SelectableBeanObjectDataProvider<O> createProvider(SelectableBeanObjectDataProvider<O> defaultProvider) {
