@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -171,10 +170,6 @@ public class ProcessingCoordinator<I> {
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
             subtask.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
             subtask.setExecutionMode(activityRun.getTaskExecutionMode());
-            ObjectProcessingListener processingListener = activityRun.getSimulationObjectProcessingListener();
-            if (processingListener != null) {
-                subtask.setSimulationObjectProcessingListener(processingListener);
-            }
             subtask.startLightweightHandler();
             LOGGER.trace("Worker subtask {} created", subtask);
         }

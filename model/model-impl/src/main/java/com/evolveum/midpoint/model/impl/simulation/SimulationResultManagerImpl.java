@@ -8,10 +8,15 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-
 import com.evolveum.midpoint.model.common.TagManager;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
+
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +49,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class SimulationResultManagerImpl implements SimulationResultManager, SystemConfigurationChangeListener {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SimulationResultManagerImpl.class);
+
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
     @Autowired private Clock clock;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private TagManager tagManager;
+    @Autowired private OpenResultTransactionsHolder openResultTransactionsHolder;
+    @Autowired private PrismContext prismContext;
 
     /** Global definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
@@ -55,7 +64,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     /** Global metric definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
 
-    /** TODO (updated on result close) */
+    /** TODO update more efficiently and precisely */
     @NotNull private volatile Collection<TagType> allEventTags = new ArrayList<>();
 
     /** Primitive way of checking we do not write to closed results. */
@@ -91,7 +100,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public @NotNull SimulationResultContext newSimulationResult(
+    public @NotNull SimulationResultContext openNewSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @Nullable String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
@@ -169,29 +178,106 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
+    public void closeSimulationResult(@NotNull String simulationResulOid, Task task, OperationResult result)
             throws ObjectNotFoundException {
         try {
-            allEventTags = tagManager.getAllEventTags(result);
-
-            String oid = Objects.requireNonNull(simulationResultRef.getOid(), "No oid in simulationResultRef");
-            closedResultsChecker.markClosed(oid);
+            closedResultsChecker.markClosed(simulationResulOid);
+            // Note that all transactions should be already committed and thus deleted from the holder.
+            // So this is just the housekeeping for unusual situations.
+            openResultTransactionsHolder.removeSimulationResult(simulationResulOid);
             repository.modifyObject(
                     SimulationResultType.class,
-                    oid,
+                    simulationResulOid,
                     PrismContext.get().deltaFor(SimulationResultType.class)
                             .item(SimulationResultType.F_END_TIMESTAMP)
                             .replace(clock.currentTimeXMLGregorianCalendar())
-                            .item(SimulationResultType.F_METRIC)
-                            .replaceRealValues(
-                                    AggregatedMetricsComputation.computeAll(oid, this, task, result))
                             .asItemDeltas(),
                     result);
         } catch (ObjectNotFoundException e) {
             throw e;
         } catch (CommonException e) {
             // TODO do we want to propagate some of these exceptions upwards in their original form?
-            throw new SystemException("Couldn't close simulation result " + simulationResultRef + ": " + e.getMessage(), e);
+            throw new SystemException("Couldn't close simulation result " + simulationResulOid + ": " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void openSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
+
+        LOGGER.trace("Opening simulation result transaction {}:{}", simulationResultOid, transactionId);
+
+        deleteTransactionIfPresent(simulationResultOid, transactionId, result);
+
+        openResultTransactionsHolder.removeTransaction(simulationResultOid, transactionId);
+
+        // TODO implement more precisely and efficiently
+        allEventTags = tagManager.getAllEventTags(result);
+    }
+
+    /**
+     * Removes all processed object records from this transaction - if there are any.
+     *
+     * If they exist, they were probably left there from the previously suspended (and now resumed) execution.
+     */
+    private void deleteTransactionIfPresent(String simulationResultOid, String transactionId, OperationResult result) {
+        // TODO implement
+    }
+
+    @Override
+    public void commitSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
+        try {
+            LOGGER.trace("Committing simulation result transaction {}:{}", simulationResultOid, transactionId);
+
+            repository.modifyObjectDynamically(
+                    SimulationResultType.class,
+                    simulationResultOid,
+                    null,
+                    oldResult ->
+                        prismContext.deltaFor(SimulationResultType.class)
+                                .item(SimulationResultType.F_METRIC)
+                                .replaceRealValues(
+                                        computeUpdatedMetricsValues(simulationResultOid, oldResult.getMetric(), transactionId))
+                                .asItemDeltas(),
+                    null,
+                    result);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "when committing simulation result transaction");
+        }
+
+        openResultTransactionsHolder.removeTransaction(simulationResultOid, transactionId);
+    }
+
+    /**
+     * Adds current in-memory metric values for the transaction being committed to the (aggregated) metrics values
+     * that will go to the result.
+     */
+    private List<SimulationMetricValuesType> computeUpdatedMetricsValues(
+            String simulationResultOid, List<SimulationMetricValuesType> old, String transactionId) {
+        List<SimulationMetricValuesType> current =
+                openResultTransactionsHolder.getMetricsValues(simulationResultOid, transactionId);
+        List<SimulationMetricValuesType> sum = SimulationMetricComputer.add(old, current);
+        LOGGER.trace("Computed updated metrics for {}:{}:\n OLD:\n{}\n CURRENT:\n{}\n SUM:\n{}",
+                simulationResultOid, transactionId,
+                DebugUtil.debugDumpLazily(old), DebugUtil.debugDumpLazily(current), DebugUtil.debugDumpLazily(sum));
+        dumpXml("old", old);
+        dumpXml("current", current);
+        dumpXml("sum", sum);
+        return sum;
+    }
+
+    private void dumpXml(String name, List<SimulationMetricValuesType> values) {
+        try {
+            for (SimulationMetricValuesType value : values) {
+                LOGGER.error("ZZZZ {}\n{}", name,
+                        prismContext
+                                .xmlSerializer()
+                                .root(SchemaConstants.C_VALUE)
+                                .serializeRealValue(value));
+            }
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when serializing");
         }
     }
 
@@ -215,21 +301,36 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     void storeProcessedObject(
-            @NotNull String oid, @NotNull ProcessedObjectImpl<?> processedObject, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            @NotNull String oid,
+            @NotNull String transactionId,
+            @NotNull ProcessedObjectImpl<?> processedObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         try {
-            SimulationResultProcessedObjectType processedObjectBean = processedObject.toBean();
-            processedObjectBean.getMetricValue().addAll(
-                    ObjectMetricsComputation.computeAll(processedObject, metricDefinitions, task, result));
+            LOGGER.trace("Storing processed object into {}:{}: {}", oid, transactionId, processedObject);
             closedResultsChecker.checkNotClosed(oid);
+            SimulationResultProcessedObjectType processedObjectBean = processedObject.toBean();
+            setTransactionIdSafely(processedObjectBean, transactionId);
             List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                     .item(SimulationResultType.F_PROCESSED_OBJECT)
                     .add(processedObjectBean.asPrismContainerValue())
                     .asItemDeltas();
             repository.modifyObject(SimulationResultType.class, oid, modifications, result);
+            openResultTransactionsHolder.addProcessedObject(oid, transactionId, processedObject, task, result);
         } catch (CommonException e) {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
+        }
+    }
+
+    private void setTransactionIdSafely(SimulationResultProcessedObjectType processedObject, String newValue) {
+        String existingValue = processedObject.getTransactionId();
+        if (existingValue != null) {
+            stateCheck(existingValue.equals(newValue),
+                    "Attempted to overwrite transaction ID (%s -> %s) in %s",
+                    existingValue, newValue, processedObject);
+        } else {
+            processedObject.setTransactionId(newValue);
         }
     }
 
@@ -261,18 +362,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @NotNull Collection<TagType> getAllEventTags() {
         return allEventTags;
-    }
-
-    @Override
-    public ProcessedObject.Factory getProcessedObjectsFactory() {
-        return new ProcessedObject.Factory() {
-            @Override
-            public <O extends ObjectType> ProcessedObject<O> create(
-                    @Nullable O stateBefore, @Nullable ObjectDelta<O> simulatedDelta, @NotNull Collection<String> eventTags)
-                    throws SchemaException {
-                return ProcessedObjectImpl.create(stateBefore, simulatedDelta, eventTags);
-            }
-        };
     }
 
     /**

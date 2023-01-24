@@ -49,6 +49,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * - `test1xx` deal with creation, modification, and deletion of user objects
  * - `test2xx` deal with importing single accounts from source resources
  * - `test3xx` deal with simulated archetypes, roles, assignments/inducements, mappings
+ *
+ * *On native repo only!*
  */
 public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimulationsTest {
 
@@ -81,27 +83,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-
-        assertTest100SimulationResult(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest100SimulationResult(simResult, true);
-        }
-
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-        assertUserPrimaryAndSecondaryDeltas(modelContext);
-    }
-
-    private void assertTest100SimulationResult(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult); // TODO some asserts here
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .single()
                     .assertState(ObjectProcessingStateType.ADDED)
@@ -122,6 +108,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                                     .assertEffectiveStatus(ActivationStatusType.ENABLED)
                                     .assertEnableTimestampPresent();
         // @formatter:on
+
+        // This is a little bit out of scope for this test, but let's keep it here for now (same for all tests in this class)
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        assertUserPrimaryAndSecondaryDeltas(modelContext);
     }
 
     private void assertUserPrimaryAndSecondaryDeltas(ModelContext<?> modelContext) {
@@ -186,16 +178,39 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
+        assertSimulationResultAfter(simResult);
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
-        assertTest11xSimulationResult(name, target, accountShouldExist, simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest11xSimulationResult(name, target, accountShouldExist, simResult, true);
+        // @formatter:off
+        assertProcessedObjectsAfter(simResult)
+                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
+                    .assertEventTags(TAG_USER_ADD)
+                    .delta()
+                    .objectToAdd()
+                        .assertName(name)
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertLastProvisioningTimestampPresent(accountShouldExist)
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .end()
+                        .asFocus()
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent()
+                            .end()
+                            .assertLiveLinks(accountShouldExist ? 1 : 0)
+                        .end()
+                    .end();
+        // @formatter:on
+
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult);
+        if (accountShouldExist) {
+            assertAccountAdded(name, target, processedObjects);
+        } else {
+            assertProcessedObjects(processedObjects, "processed objects")
+                    .assertSize(1); // user only
         }
 
         and("the model context is OK");
@@ -228,43 +243,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             ShadowType.F_LIFECYCLE_STATE); // "proposed" - hopefully this one will go away one day
         } else {
             assertThat(projectionContext.getSecondaryDelta()).as("projection secondary delta").isNull();
-        }
-        // @formatter:on
-    }
-
-    private void assertTest11xSimulationResult(
-            String name, DummyTestResource target, boolean accountShouldExist,
-            SimulationResult simResult, boolean persistentOverride)
-            throws CommonException {
-        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
-        // @formatter:off
-        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
-                .display()
-                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
-                    .assertEventTags(TAG_USER_ADD)
-                    .delta()
-                    .objectToAdd()
-                        .assertName(name)
-                        .objectMetadata()
-                            .assertRequestTimestampPresent()
-                            .assertCreateTimestampPresent()
-                            .assertLastProvisioningTimestampPresent(accountShouldExist)
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
-                        .end()
-                        .asFocus()
-                            .activation()
-                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                                .assertEnableTimestampPresent()
-                            .end()
-                            .assertLiveLinks(accountShouldExist ? 1 : 0)
-                        .end()
-                    .end();
-
-        if (accountShouldExist) {
-            assertAccountAdded(name, target, processedObjects);
-        } else {
-            assertProcessedObjects(processedObjects, "processed objects")
-                    .assertSize(1); // user only
         }
         // @formatter:on
     }
@@ -312,34 +290,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // simulated shadows?
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
-        assertTest12xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest12xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
-        }
-
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-        // Only basic assertions this time. We hope that everything is OK there.
-        assertThat(modelContext.getFocusContext()).as("focus context").isNotNull();
-        assertThat(modelContext.getProjectionContexts()).as("projection contexts").hasSize(1);
-    }
-
-    private void assertTest12xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist,
-            SimulationResult simResult, boolean persistentOverride)
-            throws CommonException {
-        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
-                .display()
+        assertProcessedObjectsAfter(simResult)
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .delta()
                     .objectToAdd()
@@ -363,13 +319,22 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertLiveLinks(accountShouldExist ? 1 : 0)
                         .end()
                     .end();
+        // @formatter:on
+
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult);
         if (accountShouldExist) {
             assertAccountAdded(name, target, processedObjects);
         } else {
             assertProcessedObjects(processedObjects, "")
                     .assertSize(1); // user delta only
         }
-        // @formatter:on
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // Only basic assertions this time. We hope that everything is OK there.
+        assertThat(modelContext.getFocusContext()).as("focus context").isNotNull();
+        assertThat(modelContext.getProjectionContexts()).as("projection contexts").hasSize(1);
     }
 
     /**
@@ -409,33 +374,15 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
+        assertSimulationResultAfter(simResult);
+
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
-        assertTest13xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest13xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
-        }
-
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-        // some asserts here (are these interesting, after all?)
-    }
-
-    private void assertTest13xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist,
-            SimulationResult simResult, boolean persistentOverride)
-            throws CommonException {
-
         // @formatter:off
         if (accountShouldExist) {
-            Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
-            assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
+            Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult );
+            assertProcessedObjects(processedObjects, "processed objects")
                     .display()
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
                         .assertEventTags()
@@ -446,7 +393,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end();
             assertAccountAdded(name, target, processedObjects);
         } else {
-            assertProcessedObjects(simResult, persistentOverride)
+            assertProcessedObjects(simResult)
                     .display()
                     .by().objectType(UserType.class).find()
                         .assertState(ObjectProcessingStateType.UNMODIFIED)
@@ -454,6 +401,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertSize(1);
         }
         // @formatter:on
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // some asserts here (are these interesting, after all?)
     }
 
     /**
@@ -493,30 +445,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
+        assertSimulationResultAfter(simResult);
+
+        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult);
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
-        assertTest14xUserAndAccountDeltas(name, target, accountShouldExist, simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest14xUserAndAccountDeltas(name, target, accountShouldExist, simResult, true);
-        }
-
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-        // some asserts here (are these interesting, after all?)
-    }
-
-    private void assertTest14xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist,
-            SimulationResult simResult, boolean persistentOverride)
-            throws CommonException {
-
-        Collection<? extends ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, "objects")
                 .display()
@@ -543,6 +477,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertSize(1); // user delta only
         }
         // @formatter:on
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // some asserts here (are these interesting, after all?)
     }
 
     private void assertAccountAdded(
@@ -599,21 +538,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest150UserDeltas(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest150UserDeltas(simResult, true);
-        }
-    }
-
-    private void assertTest150UserDeltas(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertEventTags(TAG_FOCUS_ENABLED)
@@ -647,31 +576,17 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest20xSimulationResult("test200", simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest20xSimulationResult("test200", simResult, true);
-        }
-
-        and("shadow should not have full sync info set");
-        assertTest20xShadow("test200", task, result);
-    }
-
-    private void assertTest20xSimulationResult(String name, SimulationResult simResult, boolean persistent)
-            throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .assertEventTags(TAG_USER_ADD)
                     .delta()
                         .objectToAdd()
-                            .assertName(name)
+                            .assertName("test200")
                             .objectMetadata()
                                 .assertRequestTimestampPresent()
                                 .assertCreateTimestampPresent()
@@ -697,6 +612,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             ShadowType.F_METADATA)
                 .end();
         // @formatter:on
+
+        and("shadow should not have full sync info set");
+        assertTest20xShadow("test200", task, result);
     }
 
     /**
@@ -723,7 +641,40 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
         and("processed objects are OK");
-        assertTest20xSimulationResult("test205", getTaskSimResult(taskOid, result), true);
+        SimulationResult simResult = getTaskSimResult(taskOid, result);
+        // @formatter:off
+        assertProcessedObjects(simResult)
+                .display()
+                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
+                    .assertEventTags(TAG_USER_ADD)
+                    .delta()
+                        .objectToAdd()
+                            .assertName("test205")
+                            .objectMetadata()
+                                .assertRequestTimestampPresent()
+                                .assertCreateTimestampPresent()
+                                .assertLastProvisioningTimestampPresent()
+                                .assertCreateChannel(CHANNEL_IMPORT_URI)
+                            .end()
+                            .asFocus()
+                                .activation()
+                                    .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                    .assertEnableTimestampPresent()
+                                .end()
+                                .assertLiveLinks(1)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
+                    .assertEventTags()
+                    .delta()
+                    .assertModifiedExclusive(
+                            ShadowType.F_ITERATION,
+                            ShadowType.F_ITERATION_TOKEN,
+                            ShadowType.F_METADATA)
+                .end();
+        // @formatter:on
 
         and("shadow should not have full sync info set");
         assertTest20xShadow("test205", task, result);
@@ -787,21 +738,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest300UserDeltas(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest300UserDeltas(simResult, true);
-        }
-    }
-
-    private void assertTest300UserDeltas(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        FocusType user = assertProcessedObjects(simResult, persistent)
+        UserType userAfter = (UserType) assertProcessedObjects(simResult)
                 .display()
                 .single()
                 .assertEventTags(TAG_USER_ADD)
@@ -823,7 +764,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .getObjectable();
         // @formatter:on
 
-        Set<String> orgs = ((UserType) user).getOrganization().stream()
+        Set<String> orgs = userAfter.getOrganization().stream()
                 .map(PolyStringType::getOrig)
                 .collect(Collectors.toSet());
         if (isDevelopmentConfiguration()) {

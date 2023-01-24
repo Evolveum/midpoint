@@ -1023,7 +1023,11 @@ public interface MidpointFunctions {
      */
     boolean isCurrentProjectionBeingDisabled();
 
-    <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
+    /**
+     * Returns `true` if `focus` has a `assignment` with `targetRef.OID` being equal to `targetOid`.
+     * No other conditions are checked (e.g. validity, assignment condition, lifecycle states, and so on).
+     */
+    <F extends FocusType> boolean isDirectlyAssigned(F focus, String targetOid);
 
     boolean isDirectlyAssigned(String targetOid);
 

@@ -71,21 +71,11 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest800Deltas(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest800Deltas(simResult, true);
-        }
-    }
-
-    private void assertTest800Deltas(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertEventTags(TAG_FOCUS_DISABLED)
@@ -138,21 +128,11 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest810Deltas(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest810Deltas(simResult, true);
-        }
-    }
-
-    private void assertTest810Deltas(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertEventTags(TAG_FOCUS_NAME_CHANGED)
@@ -195,21 +175,11 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("simulation result is OK");
-        assertTest820Deltas(simResult, false);
-        if (isNativeRepository()) {
-            closeSimulationResult(simResult, task, result);
-            assertSimulationResult(simResult, "after")
-                    .display();
-            assertTest820Deltas(simResult, true);
-        }
-    }
-
-    private void assertTest820Deltas(SimulationResult simResult, boolean persistent) throws CommonException {
+        assertSimulationResultAfter(simResult);
         // @formatter:off
-        assertProcessedObjects(simResult, persistent)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertEventTags()

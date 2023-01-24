@@ -14,8 +14,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.state.counters.CountersIncrementOperation;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
@@ -39,6 +41,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
@@ -305,16 +308,24 @@ public abstract class ActivityState implements DebugDumpable {
         }
     }
 
-    public void setSimulationResultRef(ObjectReferenceType simResultRef) throws ActivityRunException {
-        setItemRealValues(SIMULATION_RESULT_REF_PATH, simResultRef);
+    public void setSimulationResultOid(String oid) throws ActivityRunException {
+        if (oid != null) {
+            setItemRealValues(SIMULATION_RESULT_REF_PATH, ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SIMULATION_RESULT));
+        } else {
+            setItemRealValues(SIMULATION_RESULT_REF_PATH);
+        }
     }
 
     public void setSimulationResultCreated() throws ActivityRunException {
         setItemRealValues(SIMULATION_RESULT_CREATED_PATH, true);
     }
 
-    public ObjectReferenceType getSimulationResultRef() {
+    public @Nullable ObjectReferenceType getSimulationResultRef() {
         return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
+    }
+
+    public @Nullable String getSimulationResultOid() {
+        return getOid(getSimulationResultRef());
     }
 
     public boolean isSimulationResultCreated() {

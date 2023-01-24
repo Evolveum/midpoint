@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.simulation;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -38,31 +39,35 @@ import java.util.List;
  *
  * @see AggregatedMetricsComputation
  */
-class ObjectMetricsComputation {
+class ObjectMetricsComputation<O extends ObjectType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectMetricsComputation.class);
 
     @NotNull private final ModelCommonBeans beans = ModelCommonBeans.get();
 
-    @NotNull private final ProcessedObject<?> processedObject;
+    @NotNull private final ProcessedObject<O> processedObject;
+    @NotNull private final LensElementContext<O> elementContext;
     @NotNull private final List<SimulationMetricDefinitionType> metricDefinitions;
     @NotNull private final Task task;
 
     private ObjectMetricsComputation(
-            @NotNull ProcessedObject<?> processedObject,
+            @NotNull ProcessedObject<O> processedObject,
+            @NotNull LensElementContext<O> elementContext,
             @NotNull List<SimulationMetricDefinitionType> metricDefinitions,
             @NotNull Task task) {
         this.processedObject = processedObject;
+        this.elementContext = elementContext;
         this.metricDefinitions = metricDefinitions;
         this.task = task;
     }
 
-    static List<SimulationProcessedObjectMetricValueType> computeAll(
-            ProcessedObject<?> processedObject,
+    static <O extends ObjectType> List<SimulationProcessedObjectMetricValueType> computeAll(
+            ProcessedObject<O> processedObject,
+            LensElementContext<O> elementContext,
             List<SimulationMetricDefinitionType> metricDefinitions,
             Task task,
             OperationResult result) throws CommonException {
-        return new ObjectMetricsComputation(processedObject, metricDefinitions, task)
+        return new ObjectMetricsComputation<>(processedObject, elementContext, metricDefinitions, task)
                 .computeAll(result);
     }
 
@@ -102,6 +107,8 @@ class ObjectMetricsComputation {
         VariablesMap variables = new VariablesMap();
         variables.put(
                 ExpressionConstants.VAR_PROCESSED_OBJECT, processedObject, ProcessedObjectImpl.class);
+        variables.put(
+                ExpressionConstants.VAR_MODEL_ELEMENT_CONTEXT, elementContext, LensElementContext.class);
         try {
             PrismPropertyValue<BigDecimal> value = ExpressionUtil.evaluateExpression(
                     variables,

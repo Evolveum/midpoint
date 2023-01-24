@@ -20,10 +20,16 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
+
 import java.io.File;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+/**
+ * On native repository only.
+ */
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
     private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
@@ -79,15 +85,22 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "6d8ba4fd-95ee-4d98-80c2-3a194b566f89",
             "simple-development-source");
 
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (repositoryService.supportsTags()) {
-            CommonInitialObjects.addTags(this, initTask, initResult);
-            repoAdd(TAG_USER_ADD, initResult);
-            repoAdd(TAG_USER_DELETE, initResult);
+        if (!isNativeRepository()) {
+            return; // No method will run anyway
         }
+
+        CommonInitialObjects.addTags(this, initTask, initResult);
+        repoAdd(TAG_USER_ADD, initResult);
+        repoAdd(TAG_USER_DELETE, initResult);
 
         repoAdd(ROLE_PERSON, initResult);
         repoAdd(ROLE_PERSON_DEV, initResult);

@@ -7,9 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
+import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
@@ -22,16 +30,19 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationImpl;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.repo.common.activity.run.AdvancedActivityRunSupport;
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemPreprocessor;
 import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSource;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -39,22 +50,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 @Component
 public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSupport {
@@ -145,29 +149,40 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public @NotNull ObjectReferenceType createSimulationResult(
+    public @NotNull String openNewSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @NotNull String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             OperationResult result)
             throws ConfigurationException {
         return simulationResultManager
-                .newSimulationResult(definition, rootTaskOid, configurationSpecification, result)
-                .getResultRef();
+                .openNewSimulationResult(definition, rootTaskOid, configurationSpecification, result)
+                .getResultOid();
     }
 
     @Override
-    public @NotNull ObjectProcessingListener getObjectProcessingListener(
-            @NotNull ObjectReferenceType simulationResultRef) {
+    public @NotNull SimulationProcessedObjectListener getSimulationProcessedObjectListener(
+            @NotNull String simulationResultOid, @NotNull String transactionId) {
         return simulationResultManager
-                .newSimulationContext(Objects.requireNonNull(simulationResultRef.getOid(), "no result OID"))
-                .objectProcessingListener();
+                .newSimulationContext(simulationResultOid)
+                .getSimulationProcessedObjectListener(transactionId);
     }
 
     @Override
-    public void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
+    public void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result)
             throws ObjectNotFoundException {
-        simulationResultManager
-                .closeSimulationResult(simulationResultRef, task, result);
+        simulationResultManager.closeSimulationResult(simulationResultOid, task, result);
+    }
+
+    @Override
+    public void openSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
+        simulationResultManager.openSimulationResultTransaction(simulationResultOid, transactionId, result);
+    }
+
+    @Override
+    public void commitSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
+        simulationResultManager.commitSimulationResultTransaction(simulationResultOid, transactionId, result);
     }
 }

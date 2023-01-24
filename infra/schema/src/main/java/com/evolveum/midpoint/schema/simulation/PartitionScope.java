@@ -7,12 +7,20 @@
 
 package com.evolveum.midpoint.schema.simulation;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.util.SimulationMetricPartitionScopeTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionScopeType;
 
+import com.google.common.collect.Sets;
+
 import javax.xml.namespace.QName;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionScopeType.*;
 
 /**
  * Parsed form of {@link SimulationMetricPartitionScopeType}.
@@ -25,23 +33,36 @@ public class PartitionScope {
     private final String resourceOid;
     private final ShadowKindType kind;
     private final String intent;
+    private final Set<QName> allDimensions;
 
-    public PartitionScope(QName objectType, String resourceOid, ShadowKindType kind, String intent) {
+    public PartitionScope(QName objectType, String resourceOid, ShadowKindType kind, String intent, Set<QName> allDimensions) {
         this.objectType = objectType;
         this.resourceOid = resourceOid;
         this.kind = kind;
         this.intent = intent;
+        this.allDimensions = new HashSet<>(allDimensions);
     }
 
-    public static PartitionScope fromBean(SimulationMetricPartitionScopeType scope) {
+    public static PartitionScope fromBean(SimulationMetricPartitionScopeType scope, Set<QName> availableDimensions) {
         if (scope == null) {
-            return new PartitionScope(null, null, null, null);
+            return new PartitionScope(null, null, null, null, availableDimensions);
         } else {
             return new PartitionScope(
-                    scope.getTypeName(),
-                    scope.getResourceOid(),
-                    scope.getKind(),
-                    scope.getIntent());
+                    ifAvailable(scope.getTypeName(), availableDimensions, F_TYPE_NAME),
+                    ifAvailable(scope.getResourceOid(), availableDimensions, F_RESOURCE_OID),
+                    ifAvailable(scope.getKind(), availableDimensions, F_KIND),
+                    ifAvailable(scope.getIntent(), availableDimensions, F_INTENT),
+                    Sets.intersection(
+                            SimulationMetricPartitionScopeTypeUtil.getDimensions(scope),
+                            availableDimensions));
+        }
+    }
+
+    private static <T> T ifAvailable(T value, Set<QName> availableDimensions, ItemName dimensionName) {
+        if (value != null && availableDimensions.contains(dimensionName)) {
+            return value;
+        } else {
+            return null;
         }
     }
 
@@ -57,7 +78,8 @@ public class PartitionScope {
         return Objects.equals(objectType, that.objectType)
                 && Objects.equals(resourceOid, that.resourceOid)
                 && kind == that.kind
-                && Objects.equals(intent, that.intent);
+                && Objects.equals(intent, that.intent)
+                && Objects.equals(allDimensions, that.allDimensions);
     }
 
     @Override
@@ -66,24 +88,23 @@ public class PartitionScope {
     }
 
     public SimulationMetricPartitionScopeType toBean() {
-        // FIXME fill nullDimensions correctly
         SimulationMetricPartitionScopeType bean = new SimulationMetricPartitionScopeType()
                 .typeName(objectType)
                 .resourceOid(resourceOid)
                 .kind(kind)
                 .intent(intent);
         List<QName> nullDimensions = bean.getNullDimensions();
-        if (objectType == null) {
-            nullDimensions.add(SimulationMetricPartitionScopeType.F_TYPE_NAME);
+        if (objectType == null && allDimensions.contains(F_TYPE_NAME)) {
+            nullDimensions.add(F_TYPE_NAME);
         }
-        if (resourceOid == null) {
-            nullDimensions.add(SimulationMetricPartitionScopeType.F_RESOURCE_OID);
+        if (resourceOid == null && allDimensions.contains(F_RESOURCE_OID)) {
+            nullDimensions.add(F_RESOURCE_OID);
         }
-        if (kind == null) {
-            nullDimensions.add(SimulationMetricPartitionScopeType.F_KIND);
+        if (kind == null && allDimensions.contains(F_KIND)) {
+            nullDimensions.add(F_KIND);
         }
-        if (intent == null) {
-            nullDimensions.add(SimulationMetricPartitionScopeType.F_INTENT);
+        if (intent == null && allDimensions.contains(F_INTENT)) {
+            nullDimensions.add(F_INTENT);
         }
         return bean;
     }

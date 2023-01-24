@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.math.BigDecimal;
@@ -15,7 +17,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.schema.simulation.PartitionScope;
+
+import com.evolveum.midpoint.task.api.SimulationProcessedObject;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +31,6 @@ import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -52,7 +57,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Parsed analogy of {@link SimulationResultProcessedObjectType}.
  */
-public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
+public class ProcessedObjectImpl<O extends ObjectType>
+        implements ProcessedObject<O>, SimulationProcessedObject {
 
     private final String oid; // TODO may be null?
     @NotNull private final Class<O> type;
@@ -62,8 +68,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @NotNull private final ObjectProcessingStateType state;
     @NotNull private final Collection<String> eventTags;
 
-    /** Present only when parsed from the bean. */
+    /** Parsed equivalent of {@link #metricValuesBeans} */
     @NotNull private final Map<String, BigDecimal> metricValues;
+
+    /** Serialized form of {@link #metricValues}. */
+    @NotNull private final List<SimulationProcessedObjectMetricValueType> metricValuesBeans = new ArrayList<>();
 
     /** Complete information on the tags (optional) */
     private Map<String, TagType> eventTagsMap;
@@ -72,12 +81,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @Nullable private final O after;
     @Nullable private final ObjectDelta<O> delta;
 
-    /**
-     * Sometimes, it is convenient to have the original (bean) form accessible as well.
-     *
-     * FIXME this approach is a bit fragile and unsafe; but let us keep it for the time being
-     */
-    @Nullable private final SimulationResultProcessedObjectType originalBean;
+    private SimulationResultProcessedObjectType cachedBean;
 
     private ProcessedObjectImpl(
             String oid,
@@ -89,8 +93,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull Map<String, BigDecimal> metricValues,
             @Nullable O before,
             @Nullable O after,
-            @Nullable ObjectDelta<O> delta,
-            @Nullable SimulationResultProcessedObjectType originalBean) {
+            @Nullable ObjectDelta<O> delta) {
         this.oid = oid;
         this.type = type;
         this.typeName = ObjectTypes.getObjectType(type).getTypeQName();
@@ -102,7 +105,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.before = before;
         this.after = after;
         this.delta = delta;
-        this.originalBean = originalBean;
     }
 
     public static <O extends ObjectType> ProcessedObjectImpl<O> parse(@NotNull SimulationResultProcessedObjectType bean)
@@ -117,18 +119,30 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
                 getEventTagsOids(bean),
-                getMetricValues(bean),
+                parseMetricValues(bean.getMetricValue()),
                 (O) bean.getBefore(),
                 (O) bean.getAfter(),
-                DeltaConvertor.createObjectDeltaNullable(bean.getDelta()),
-                bean);
+                DeltaConvertor.createObjectDeltaNullable(bean.getDelta())
+        );
     }
 
-    private static Map<String, BigDecimal> getMetricValues(SimulationResultProcessedObjectType bean) {
-        return bean.getMetricValue().stream()
-                .collect(Collectors.toMap(
-                        SimulationProcessedObjectMetricValueType::getIdentifier,
-                        SimulationProcessedObjectMetricValueType::getValue));
+    private static Map<String, BigDecimal> parseMetricValues(List<SimulationProcessedObjectMetricValueType> beans) {
+        Map<String, BigDecimal> map = new HashMap<>();
+        beans.forEach(bean -> map.put(bean.getIdentifier(), bean.getValue()));
+        return map;
+    }
+
+    private void setMetricValuesBeans(@NotNull List<SimulationProcessedObjectMetricValueType> newValues) {
+        metricValuesBeans.clear();
+        metricValuesBeans.addAll(newValues);
+        metricValues.clear();
+        metricValues.putAll(
+                parseMetricValues(newValues));
+        cachedBean = null;
+    }
+
+    public @NotNull List<SimulationProcessedObjectMetricValueType> getMetricValuesBeans() {
+        return Collections.unmodifiableList(metricValuesBeans);
     }
 
     private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
@@ -138,38 +152,46 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 .collect(Collectors.toSet());
     }
 
-    public static <O extends ObjectType> ProcessedObjectImpl<O> create(
-            O stateBefore, ObjectDelta<O> delta, Collection<String> eventTags) throws SchemaException {
+    public static <O extends ObjectType> @Nullable SimulationProcessedObject create(
+            LensElementContext<O> elementContext, Task task, OperationResult result) throws CommonException {
 
-        Class<O> type;
-        if (stateBefore != null) {
-            //noinspection unchecked
-            type = (Class<O>) stateBefore.getClass();
-        } else if (delta != null) {
-            type = delta.getObjectTypeClass();
-        } else {
+        Class<O> type = elementContext.getObjectTypeClass();
+        @Nullable O stateBefore = asObjectable(elementContext.getObjectOldOrCurrent());
+        @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
+        @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
+        @Nullable ObjectDelta<O> delta = elementContext.getSummaryExecutedDelta();
+        if (anyState == null || stateBefore == null && delta == null) {
+            // Nothing to report on here. Note that for shadows it's possible that stateBefore and delta are null but
+            // stateAfter is "PCV(null)" - due to the way of computation of objectNew for shadows
             return null;
         }
 
-        @Nullable O stateAfter = computeStateAfter(stateBefore, delta);
-        @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
-
         // We may consider returning null if anyState is null (meaning that the delta is MODIFY/DELETE with null stateBefore)
 
-        return new ProcessedObjectImpl<>(
-                determineOid(anyState, delta),
+        var processedObject = new ProcessedObjectImpl<>(
+                elementContext.getOid(),
                 type,
                 determineShadowDiscriminator(anyState),
-                anyState != null ? anyState.getName() : null,
+                anyState.getName(),
                 delta != null ?
                         ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()) :
                         ObjectProcessingStateType.UNMODIFIED,
-                eventTags,
-                Map.of(),
+                elementContext.getEventTags(),
+                new HashMap<>(),
                 stateBefore,
                 stateAfter,
-                delta,
-                null);
+                delta
+        );
+
+        processedObject.setMetricValuesBeans(
+                ObjectMetricsComputation.computeAll(
+                        processedObject,
+                        elementContext,
+                        ModelBeans.get().simulationResultManager.getMetricDefinitions(),
+                        task,
+                        result));
+
+        return processedObject;
     }
 
     private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
@@ -256,41 +278,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return delta;
     }
 
-    private static <O extends ObjectType> O computeStateAfter(O stateBefore, ObjectDelta<O> delta) throws SchemaException {
-        if (stateBefore == null) {
-            if (delta == null) {
-                return null;
-            } else if (delta.isAdd()) {
-                return delta.getObjectToAdd().asObjectable();
-            } else {
-                // We may relax this before release - we may still store the delta
-                throw new IllegalStateException("No initial state and MODIFY/DELETE delta? Delta: " + delta);
-            }
-        } else if (delta != null) {
-            //noinspection unchecked
-            PrismObject<O> clone = (PrismObject<O>) stateBefore.asPrismObject().clone();
-            delta.applyTo(clone);
-            return clone.asObjectable();
-        } else {
-            return stateBefore;
-        }
-    }
-
-    private static <O extends ObjectType> @Nullable String determineOid(O anyState, ObjectDelta<O> delta) {
-        if (anyState != null) {
-            String oid = anyState.getOid();
-            if (oid != null) {
-                return oid;
-            }
-        }
-        if (delta != null) {
-            return delta.getOid();
-        }
-        return null;
-    }
-
     public SimulationResultProcessedObjectType toBean() throws SchemaException {
-        SimulationResultProcessedObjectType processedObject = new SimulationResultProcessedObjectType()
+        if (cachedBean != null) {
+            return cachedBean;
+        }
+        SimulationResultProcessedObjectType bean = new SimulationResultProcessedObjectType()
                 .oid(oid)
                 .type(
                         PrismContext.get().getSchemaRegistry().determineTypeForClass(type))
@@ -300,16 +292,17 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 .before(prepareObjectForStorage(before))
                 .after(prepareObjectForStorage(after))
                 .delta(DeltaConvertor.toObjectDeltaType(delta));
-        List<ObjectReferenceType> eventTagRef = processedObject.getEventTagRef();
+        List<ObjectReferenceType> eventTagRef = bean.getEventTagRef();
         eventTags.forEach(
                 oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
-        List<SimulationProcessedObjectMetricValueType> metricValues = processedObject.getMetricValue();
+        List<SimulationProcessedObjectMetricValueType> metricValues = bean.getMetricValue();
         this.metricValues.forEach(
                 (id, value) -> metricValues.add(
                         new SimulationProcessedObjectMetricValueType()
                                 .identifier(id)
                                 .value(value)));
-        return processedObject;
+        cachedBean = bean;
+        return bean;
     }
 
     private ObjectType prepareObjectForStorage(@Nullable O original) {
@@ -474,10 +467,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     private boolean matchesFilter(@NotNull SearchFilterType filterBean) throws SchemaException {
-        stateCheck(originalBean != null,
-                "Trying to evaluate a filter but the original bean is not present: %s", this);
         //noinspection unchecked
-        PrismContainerValue<SimulationResultProcessedObjectType> originalPcv = originalBean.asPrismContainerValue();
+        PrismContainerValue<SimulationResultProcessedObjectType> originalPcv = toBean().asPrismContainerValue();
         ObjectFilter filter =
                 PrismContext.get().getQueryConverter().parseFilter(filterBean, SimulationResultProcessedObjectType.class);
         return filter.match(originalPcv, SchemaService.get().matchingRuleRegistry());
@@ -504,6 +495,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      *
      * In other words, if the determination from attached policy rules is insufficient (e.g. there are other rules elsewhere),
      * the administrator is obliged to specify the domain explicitly.
+     *
+     * TODO we can have a look at all considered domains in the element context instead
+     *  (but this will not work - later - for audit records)
      */
     boolean isInDomainOf(TagType eventTag, Task task, OperationResult result) throws CommonException {
         SimulationObjectPredicateType domain = TagTypeUtil.getSimulationDomain(eventTag);
@@ -518,6 +512,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     PartitionScope partitionScope() {
-        return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent());
+        return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
     }
 }

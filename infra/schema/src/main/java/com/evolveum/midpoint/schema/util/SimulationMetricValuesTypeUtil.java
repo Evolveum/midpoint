@@ -15,14 +15,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeCollectionUtil.selectPartitions;
 
 /**
  * Util for {@link SimulationMetricValuesType}.
@@ -42,15 +43,19 @@ public class SimulationMetricValuesTypeUtil {
         return ref != null && tagOid.equals(getOid(ref.getEventTagRef()));
     }
 
-    public static BigDecimal getValue(SimulationMetricValuesType mv) {
-        return MiscUtil.extractSingletonRequired(
-                        findOrComputePartitions(mv, Set.of()))
-                .getValue();
+    public static BigDecimal getValue(@Nullable SimulationMetricValuesType mv) {
+        if (mv != null) {
+            return MiscUtil.extractSingletonRequired(
+                            findOrComputePartitions(mv, Set.of()))
+                    .getValue();
+        } else {
+            return BigDecimal.ZERO;
+        }
     }
 
     public static @NotNull List<SimulationMetricPartitionType> findOrComputePartitions(
             @NotNull SimulationMetricValuesType mv, @NotNull Set<QName> dimensions) {
-        List<SimulationMetricPartitionType> partitions = selectPartitions(mv, dimensions);
+        List<SimulationMetricPartitionType> partitions = selectPartitions(mv.getPartition(), dimensions);
         if (!partitions.isEmpty()) {
             return partitions;
         } else {
@@ -58,11 +63,18 @@ public class SimulationMetricValuesTypeUtil {
         }
     }
 
-    public static List<SimulationMetricPartitionType> selectPartitions(
-            @NotNull SimulationMetricValuesType mv,
-            @NotNull Set<QName> dimensions) {
-        return mv.getPartition().stream()
-                .filter(p -> SimulationMetricPartitionTypeUtil.matches(p, dimensions))
-                .collect(Collectors.toList());
+    // TODO better name
+    public static @NotNull SimulationMetricValuesType rescale(
+            @NotNull SimulationMetricValuesType originalMetric, @NotNull Set<QName> dimensions) {
+        List<SimulationMetricPartitionType> originalPartitions = selectPartitions(originalMetric.getPartition(), dimensions);
+        if (!originalPartitions.isEmpty()) {
+            return originalMetric;
+        } else {
+            SimulationMetricValuesType clonedMetric = originalMetric.clone();
+            clonedMetric.getPartition().clear();
+            clonedMetric.getPartition().addAll(
+                    SimulationMetricComputer.computePartitions(originalMetric, dimensions));
+            return clonedMetric;
+        }
     }
 }

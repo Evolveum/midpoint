@@ -13,6 +13,8 @@ import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 
+import com.evolveum.midpoint.model.impl.simulation.SimulationResultManagerImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -140,4 +142,5 @@ public class ModelBeans {
     @Autowired public ArchetypeManager archetypeManager;
     @Autowired public AuditHelper auditHelper;
     @Autowired public ModelController modelController;
+    @Autowired public SimulationResultManagerImpl simulationResultManager;
 }

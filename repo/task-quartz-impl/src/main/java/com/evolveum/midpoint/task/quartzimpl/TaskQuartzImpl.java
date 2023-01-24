@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,11 +106,8 @@ public class TaskQuartzImpl implements Task {
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
-    /** TODO */
-    @NotNull private final Collection<ObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
-
-    /** TODO */
-    private volatile ObjectProcessingListener simulationObjectProcessingListener;
+    /** Obtains information about objects processed by the currently executing simulation. */
+    private volatile SimulationProcessedObjectListener simulationProcessedObjectListener;
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -2321,43 +2317,24 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
-        objectProcessingListeners.add(listener);
+    public SimulationProcessedObjectListener setSimulationProcessedObjectListener(SimulationProcessedObjectListener listener) {
+        SimulationProcessedObjectListener old = simulationProcessedObjectListener;
+        simulationProcessedObjectListener = listener;
+        return old;
     }
 
     @Override
-    public void setSimulationObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
-        simulationObjectProcessingListener = listener;
+    public boolean hasSimulationProcessedObjectListener() {
+        return simulationProcessedObjectListener != null;
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
-        objectProcessingListeners.remove(listener);
-    }
-
-    @Override
-    public void unsetSimulationObjectProcessingListener() {
-        simulationObjectProcessingListener = null;
-    }
-
-    @Override
-    public boolean hasSimulationObjectProcessingListener() {
-        return simulationObjectProcessingListener != null;
-    }
-
-    @Override
-    public <O extends ObjectType> void onObjectProcessed(
-            @Nullable O stateBefore,
-            @Nullable ObjectDelta<O> executedDelta,
-            @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull Collection<String> eventTags,
-            @NotNull OperationResult result) throws SchemaException {
-        for (ObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, this, result);
-        }
-        ObjectProcessingListener listener = simulationObjectProcessingListener;
+    public void onObjectProcessedBySimulation(
+            @NotNull SimulationProcessedObject processedObject, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException {
+        SimulationProcessedObjectListener listener = simulationProcessedObjectListener;
         if (listener != null) {
-            listener.onObjectProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, this, result);
+            listener.onObjectProcessedBySimulation(processedObject, task, result);
         }
     }
     //endregion

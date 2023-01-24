@@ -15,11 +15,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
@@ -254,6 +256,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
         return state.getArchivedSecondaryDeltas();
+    }
+
+    public ObjectDelta<O> getSummaryExecutedDelta() throws SchemaException {
+        List<ObjectDelta<O>> executedDeltasPlain = executedDeltas.stream()
+                .map(odo -> odo.getObjectDelta())
+                .collect(Collectors.toList());
+        return ObjectDeltaCollectionsUtil.summarize(executedDeltasPlain);
     }
 
     public String getObjectReadVersion() {

@@ -199,7 +199,7 @@ public class SynchronizationRequest {
     @SuppressWarnings("WeakerAccess")
     public SimulationResult executeOnForegroundSimulated(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
-        stateCheck(!taskExecutionMode.isPersistent(), "No simulation? Mode = %s", taskExecutionMode);
+        stateCheck(taskExecutionMode.isSimulation(), "No simulation? Mode = %s", taskExecutionMode);
         return test.executeInSimulationMode(
                 taskExecutionMode,
                 simulationDefinition,

@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,6 +35,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.SimulationProcessedObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -64,8 +61,9 @@ public class ClockworkAuditHelper {
 
     // "overallResult" covers the whole clockwork run
     // while "result" is - most of the time - related to the current clockwork click
-    <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result,
-            OperationResult overallResult) throws SchemaException {
+    <F extends ObjectType> void audit(
+            LensContext<F> context, AuditEventStage stage, Task task, OperationResult result, OperationResult overallResult)
+            throws SchemaException {
         if (context.isLazyAuditRequest()) {
             if (stage == AuditEventStage.REQUEST) {
                 // We skip auditing here, we will do it before execution
@@ -369,8 +367,7 @@ public class ClockworkAuditHelper {
      *
      * Temporary code.
      */
-    <F extends ObjectType> void submitSimulationDeltas(LensContext<F> context, Task task, OperationResult result)
-            throws SchemaException {
+    <F extends ObjectType> void submitSimulationDeltas(LensContext<F> context, Task task, OperationResult result) {
         if (task.isPersistentExecution()) {
             return;
         }
@@ -394,20 +391,19 @@ public class ClockworkAuditHelper {
      * may be misleading.
      */
     private <E extends ObjectType> void submitElementSimulationDelta(
-            LensElementContext<E> elementContext, Task task, OperationResult result) throws SchemaException {
-        task.onObjectProcessed(
-                asObjectable(elementContext.getObjectOld()),
-                null, // maybe will be filled-in later
-                getSummaryExecutedDelta(elementContext),
-                elementContext.getEventTags(),
-                result);
-    }
-
-    private static <E extends ObjectType> ObjectDelta<E> getSummaryExecutedDelta(LensElementContext<E> elementContext)
-            throws SchemaException {
-        List<ObjectDelta<E>> executedDeltas = elementContext.getExecutedDeltas().stream()
-                .map(odo -> odo.getObjectDelta())
-                .collect(Collectors.toList());
-        return ObjectDeltaCollectionsUtil.summarize(executedDeltas);
+            LensElementContext<E> elementContext, Task task, OperationResult result) {
+        if (task.hasSimulationProcessedObjectListener()) {
+            try {
+                SimulationProcessedObject processedObject = ProcessedObjectImpl.create(elementContext, task, result);
+                if (processedObject != null) {
+                    task.onObjectProcessedBySimulation(processedObject, task, result);
+                }
+            } catch (CommonException e) {
+                // TODO do we need more precise error reporting here?
+                //  Or should we conceal some of these exceptions? (Probably not.)
+                throw new SystemException(
+                        "Couldn't process or store the simulation object processing record: " + e.getMessage(), e);
+            }
+        }
     }
 }

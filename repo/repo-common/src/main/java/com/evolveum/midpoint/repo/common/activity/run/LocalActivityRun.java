@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -83,18 +83,18 @@ public abstract class LocalActivityRun<
         RunningTask runningTask = getRunningTask();
         TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
 
-        // We will not create our own processing listener if there's any.
-        ObjectProcessingListener processingListener =
-                runningTask.hasSimulationObjectProcessingListener() ? null : getSimulationObjectProcessingListener();
-
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
+
+        // Actually, this listener should not be used. It may (later) be used to catch processed objects that belong
+        // to no bucket (emitted e.g. during search processing). The "real" listener is created by the item processing
+        // gatekeeper. TODO reconsider this; it may cause simulation in some of the tasks not functioning
+        SimulationProcessedObjectListener oldSimulationListener =
+                runningTask.setSimulationProcessedObjectListener(
+                        getSimulationObjectProcessingListener());
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
-            if (processingListener != null) {
-                runningTask.setSimulationObjectProcessingListener(processingListener);
-            }
             runResult = runLocally(localResult);
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
@@ -102,9 +102,7 @@ public abstract class LocalActivityRun<
             localResult.close();
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
-            if (processingListener != null) {
-                runningTask.unsetSimulationObjectProcessingListener();
-            }
+            runningTask.setSimulationProcessedObjectListener(oldSimulationListener);
         }
 
         updateStateOnRunEnd(localResult, runResult, result);
@@ -124,8 +122,8 @@ public abstract class LocalActivityRun<
         }
     }
 
-    public ObjectProcessingListener getSimulationObjectProcessingListener() {
-        return simulationSupport.getObjectProcessingListener();
+    public SimulationProcessedObjectListener getSimulationObjectProcessingListener() {
+        return simulationSupport.getSimulationProcessedObjectListener();
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */

@@ -99,6 +99,7 @@
     <logger name="com.evolveum.midpoint.wf" level="DEBUG" />
     <logger name="com.evolveum.midpoint.cases" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.correlator.idmatch" level="TRACE" /> <!-- temporary -->
+    <logger name="com.evolveum.midpoint.model.impl.simulation" level="TRACE" /> <!-- temporary -->
 
     <root level="INFO">
         <appender-ref ref="X" />

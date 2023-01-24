@@ -591,7 +591,7 @@ public abstract class AbstractActivityRun<
         // The simulation result is created for the whole activity realization.
         // When the activity execution is suspended and resumed, the result should stay the same.
         // The "processed object" records in resumed execution will be appended to it.
-        simulationSupport.createSimulationResult(result);
+        simulationSupport.getOrCreateSimulationResult(result);
     }
 
     /**
@@ -604,6 +604,6 @@ public abstract class AbstractActivityRun<
      */
     @SuppressWarnings({ "WeakerAccess", "unused" })
     protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
-        simulationSupport.closeSimulationResult(result);
+        simulationSupport.closeSimulationResultIfOpenedHere(result);
     }
 }

@@ -8,9 +8,10 @@
 package com.evolveum.midpoint.schema.simulation;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,9 +19,18 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricAggregationFunctionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType;
 
+import javax.xml.namespace.QName;
+
 public class SimulationMetricPartitions {
 
-    @NotNull private final Map<PartitionScope, SimulationMetricPartition> partitions = new HashMap<>();
+    /** Dimensions according to which we want to aggregate the partitions. */
+    @NotNull private final Set<QName> dimensions;
+
+    @NotNull private final Map<PartitionScope, SimulationMetricPartition> partitions = new ConcurrentHashMap<>();
+
+    public SimulationMetricPartitions(@NotNull Set<QName> dimensions) {
+        this.dimensions = dimensions;
+    }
 
     public List<SimulationMetricPartitionType> toPartitionBeans(@NotNull SimulationMetricAggregationFunctionType function) {
         return partitions.entrySet().stream()
@@ -35,9 +45,9 @@ public class SimulationMetricPartitions {
     }
 
     void addPartition(SimulationMetricPartitionType sourcePartitionBean) {
-        PartitionScope key = PartitionScope.fromBean(sourcePartitionBean.getScope());
+        PartitionScope key = PartitionScope.fromBean(sourcePartitionBean.getScope(), dimensions);
         partitions
                 .computeIfAbsent(key, (k) -> new SimulationMetricPartition())
-                .addPartition(sourcePartitionBean);
+                .addOtherPartition(sourcePartitionBean);
     }
 }

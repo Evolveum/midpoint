@@ -47,6 +47,10 @@ public class TaskExecutionMode implements Serializable {
         return persistent;
     }
 
+    public boolean isSimulation() {
+        return !persistent;
+    }
+
     /**
      * What configuration should the actions take into account? Production or "development" one?
      *

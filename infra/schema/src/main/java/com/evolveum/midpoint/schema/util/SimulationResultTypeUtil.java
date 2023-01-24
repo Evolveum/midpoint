@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import static com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil.getValue;
-
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
+import static com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil.*;
 
 /**
  * Utilities for {@link SimulationResultType}.
@@ -47,5 +49,15 @@ public class SimulationResultTypeUtil {
             @NotNull SimulationResultType simulationResult, @NotNull String tagOid) {
         return getValue(
                 getAggregatedMetricValuesByEventTagOid(simulationResult, tagOid));
+    }
+
+    public static SimulationResultType collapseDimensions(SimulationResultType originalResult) {
+        SimulationResultType collapsedResult = originalResult.clone();
+        List<SimulationMetricValuesType> collapsedMetrics = collapsedResult.getMetric();
+        collapsedMetrics.clear();
+        for (SimulationMetricValuesType originalMetric : originalResult.getMetric()) {
+            collapsedMetrics.add(rescale(originalMetric, Set.of()));
+        }
+        return collapsedResult;
     }
 }

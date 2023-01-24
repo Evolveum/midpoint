@@ -96,7 +96,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="metric" type="tns:SimulationMetricValuesType" maxOccurs="unbounded">
+                    <xsd:element name="metric" type="tns:SimulationMetricValuesType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Aggregated values of individual metrics for this simulation. For example, the number of users
@@ -110,7 +110,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" maxOccurs="unbounded">
+                    <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Information about individual objects that were processed by this simulation.
@@ -892,6 +892,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="transactionId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The transaction this object belongs to.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="oid" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -938,6 +945,18 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
                         <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="consideredEventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event tag or tags that were considered regarding this operation.
+                        (The processed object belongs to the domain of each of them.)
+                        TRANSIENT. This information is not stored into repository as the list may be quite large.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

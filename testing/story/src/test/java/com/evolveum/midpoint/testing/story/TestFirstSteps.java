@@ -49,6 +49,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.ObjectsCounter;
@@ -147,6 +148,11 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseManager caseManager;
+
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
 
     private static CsvResource createHrResource(String fileName) {
         return new CsvResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
@@ -323,7 +329,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
         then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
-        assertTest130SimulationResult(simResult2, false);
+        assertTest130SimulationResult(simResult2);
 
         when("single account is imported (on background, simulated development execution)");
         String taskOid = importHrAccountRequest("1")
@@ -333,19 +339,17 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertTask(taskOid, "simulated development")
                 .display();
 
-        if (isNativeRepository()) {
-            then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
-            assertTest130SimulationResult(
-                    getTaskSimResult(taskOid, result), true);
-        }
+        then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
+        assertTest130SimulationResult(
+                getTaskSimResult(taskOid, result));
 
         and("no new focus objects are there");
         focusCounter.assertNoNewObjects(result);
     }
 
-    private void assertTest130SimulationResult(SimulationResult simResult, boolean persistentOverride) throws CommonException {
+    private void assertTest130SimulationResult(SimulationResult simResult) throws CommonException {
         // @formatter:off
-        assertProcessedObjects(simResult, persistentOverride)
+        assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
                     .assertState(ObjectProcessingStateType.ADDED)
@@ -1143,6 +1147,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
         then("the user name should change (simulated)");
+        assertSimulationResultAfter(simResult);
         // @formatter:off
         assertProcessedObjects(simResult, "single account simulated import")
                 .display()
@@ -1192,42 +1197,40 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(5);
         // @formatter:on
 
-        if (isNativeRepository()) {
-            and("there is exactly one simulation result");
-            Task simTask = taskManager.getTaskPlain(simTaskOid, result);
-            Set<String> simulationResultOids =
-                    new HashSet<>(
-                            List.of(
-                                    getSimulationResultOid(simTask, ActivityPath.empty()),
-                                    getSimulationResultOid(simTask, RECONCILIATION_OPERATION_COMPLETION_PATH),
-                                    getSimulationResultOid(simTask, RECONCILIATION_RESOURCE_OBJECTS_PATH),
-                                    getSimulationResultOid(simTask, RECONCILIATION_REMAINING_SHADOWS_PATH)));
-            assertThat(simulationResultOids)
-                    .as("simulation result OIDs in root activity and sub-activities")
-                    .hasSize(1);
+        and("there is exactly one simulation result");
+        Task simTask = taskManager.getTaskPlain(simTaskOid, result);
+        Set<String> simulationResultOids =
+                new HashSet<>(
+                        List.of(
+                                getSimulationResultOid(simTask, ActivityPath.empty()),
+                                getSimulationResultOid(simTask, RECONCILIATION_OPERATION_COMPLETION_PATH),
+                                getSimulationResultOid(simTask, RECONCILIATION_RESOURCE_OBJECTS_PATH),
+                                getSimulationResultOid(simTask, RECONCILIATION_REMAINING_SHADOWS_PATH)));
+        assertThat(simulationResultOids)
+                .as("simulation result OIDs in root activity and sub-activities")
+                .hasSize(1);
 
-            and("there are no simulation deltas");
-            SimulationResult taskSimResult = getTaskSimResult(simTaskOid, result);
-            SimulationResultType simResultBean = taskSimResult.getSimulationResultBean(result);
-            long simStartTs = XmlTypeConverter.toMillis(simResultBean.getStartTimestamp());
-            assertSimulationResult(simResultBean, "after")
-                    .display()
-                    .assertStartTimestampBetween(before, after)
-                    .assertEndTimestampBetween(simStartTs, after)
-                    .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, BigDecimal.valueOf(4));
-                    // TODO other metrics, also classified ones
+        and("there are is a simulation result but no deltas");
+        SimulationResult taskSimResult = getTaskSimResult(simTaskOid, result);
+        SimulationResultType simResultBean = taskSimResult.getSimulationResultBean(result);
+        long simStartTs = XmlTypeConverter.toMillis(simResultBean.getStartTimestamp());
+        assertSimulationResult(simResultBean, "after")
+                .display()
+                .assertStartTimestampBetween(before, after)
+                .assertEndTimestampBetween(simStartTs, after)
+                .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_NAME_CHANGED.oid, BigDecimal.valueOf(4));
+        // TODO other metrics, also classified ones
 
-            // @formatter:off
-            assertProcessedObjects(taskSimResult, "simulation deltas")
-                    .display()
-                    .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4).end()
-                    .by().objectType(UserType.class).state(UNMODIFIED).find()
-                        .assertName("jsmith1")
-                    .end()
-                    .by().objectType(ShadowType.class).assertCount(10).end() // 5 source, 5 target
-                    .assertSize(15);
-            // @formatter:on
-        }
+        // @formatter:off
+        assertProcessedObjects(taskSimResult, "simulation deltas")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4).end()
+                .by().objectType(UserType.class).state(UNMODIFIED).find()
+                .assertName("jsmith1")
+                .end()
+                .by().objectType(ShadowType.class).assertCount(10).end() // 5 source, 5 target
+                .assertSize(15);
+        // @formatter:on
 
         when("executing the all-accounts reconciliation");
         reconcileAllOpenDjAccountsRequest().execute(result);

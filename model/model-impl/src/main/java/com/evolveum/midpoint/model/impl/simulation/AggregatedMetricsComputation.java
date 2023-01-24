@@ -16,8 +16,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMet
 import java.math.BigDecimal;
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.util.SimulationMetricPartitionDimensionsTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil;
+
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,11 +48,7 @@ class AggregatedMetricsComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedMetricsComputation.class);
 
-    private final String oid;
-    private final SimulationResultManagerImpl simulationResultManager;
-    private final Task task;
-
-    @NotNull private final Collection<TagType> allEventTags;
+    private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
 
     /** Key: Tag OID, Value: Object where the data are aggregated. */
     private final Map<String, DefaultEventTagAggregation> eventTagAggregations = new HashMap<>();
@@ -57,31 +56,21 @@ class AggregatedMetricsComputation {
     /** Key: Metric ID (original or aggregated), Value: Object where data are aggregated. */
     private final Map<String, MetricAggregation> metricAggregations = new HashMap<>();
 
-    private AggregatedMetricsComputation(String oid, SimulationResultManagerImpl simulationResultManager, Task task) {
-        this.oid = oid;
-        this.simulationResultManager = simulationResultManager;
-        this.allEventTags = simulationResultManager.getAllEventTags();
-        this.task = task;
+    private AggregatedMetricsComputation() {
     }
 
-    static Collection<?> computeAll(
-            String oid, SimulationResultManagerImpl simulationResultManager, Task task, OperationResult result)
-            throws CommonException {
-        return new AggregatedMetricsComputation(oid, simulationResultManager, task)
-                .computeAll(result);
-    }
-
-    /** TODO implement on bucket close, iteratively */
-    private Collection<SimulationMetricValuesType> computeAll(OperationResult result)
-            throws CommonException {
-        initializeMetricComputations();
-        for (ProcessedObjectImpl<?> processedObject : simulationResultManager.getStoredProcessedObjects(oid, result)) {
-            processObject(processedObject, result);
+    static AggregatedMetricsComputation create() {
+        try {
+            var computation = new AggregatedMetricsComputation();
+            computation.initialize();
+            return computation;
+        } catch (ConfigurationException e) {
+            // TODO reconsider the error handling
+            throw new SystemException("Couldn't initialize part metrics: " + e.getMessage(), e);
         }
-        return createBeans();
     }
 
-    private void initializeMetricComputations() throws ConfigurationException {
+    private void initialize() throws ConfigurationException {
         List<SimulationMetricDefinitionType> definitions = simulationResultManager.getMetricDefinitions();
         LOGGER.trace("Processing {} global metric definitions", definitions.size());
         for (SimulationMetricDefinitionType definition : definitions) {
@@ -104,6 +93,7 @@ class AggregatedMetricsComputation {
         }
         LOGGER.trace("Pre-processed {} metrics", metricAggregations.size());
 
+        Collection<TagType> allEventTags = simulationResultManager.getAllEventTags();
         LOGGER.trace("Processing {} event tags", allEventTags.size());
         for (TagType eventTag : allEventTags) {
             eventTagAggregations.put(eventTag.getOid(), new DefaultEventTagAggregation(eventTag));
@@ -111,17 +101,17 @@ class AggregatedMetricsComputation {
         LOGGER.trace("Pre-processed {} event tags", eventTagAggregations.size());
     }
 
-    private void processObject(ProcessedObjectImpl<?> processedObject, OperationResult result) throws CommonException {
+    void addProcessedObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result) throws CommonException {
         LOGGER.trace("Summarizing {}", processedObject);
         for (DefaultEventTagAggregation tagAggregation : eventTagAggregations.values()) {
-            tagAggregation.addObject(processedObject, result);
+            tagAggregation.addObject(processedObject, task, result);
         }
         for (MetricAggregation metricAggregation : metricAggregations.values()) {
-            metricAggregation.addObject(processedObject, result);
+            metricAggregation.addObject(processedObject, task, result);
         }
     }
 
-    private List<SimulationMetricValuesType> createBeans() {
+    List<SimulationMetricValuesType> toBeans() {
         List<SimulationMetricValuesType> aggregatedMetricBeans = new ArrayList<>();
         eventTagAggregations.forEach(
                 (tagOid, aggregation) ->
@@ -135,7 +125,7 @@ class AggregatedMetricsComputation {
 
     private abstract static class AbstractAggregation {
 
-        @NotNull final SimulationMetricPartitions partitions = new SimulationMetricPartitions();
+        @NotNull final SimulationMetricPartitions partitions = new SimulationMetricPartitions(ALL_DIMENSIONS);
         @NotNull private final SimulationMetricAggregationFunctionType function;
         @NotNull private final SimulationMetricReferenceType ref;
 
@@ -173,7 +163,8 @@ class AggregatedMetricsComputation {
             this.tagOid = tag.getOid();
         }
 
-        public void addObject(ProcessedObjectImpl<?> processedObject, OperationResult result) throws CommonException {
+        public void addObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result)
+                throws CommonException {
             if (!processedObject.isInDomainOf(tag, task, result)) {
                 return;
             }
@@ -206,7 +197,7 @@ class AggregatedMetricsComputation {
                     configNonNull(aggregationDefinition.getSource(), () -> "no source in the definition of '" + identifier + "'");
         }
 
-        public void addObject(ProcessedObjectImpl<?> processedObject, OperationResult result) throws CommonException {
+        public void addObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result) throws CommonException {
             BigDecimal sourceMetricValue = processedObject.getMetricValue(sourceRef);
             if (sourceMetricValue == null) {
                 // The processed object may be out of domain of the original metric.

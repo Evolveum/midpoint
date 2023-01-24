@@ -77,6 +77,15 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      */
     PrismObject<O> getObjectNewOrCurrentOrOld();
 
+    default PrismObject<O> getObjectOldOrCurrent() {
+        PrismObject<O> old = getObjectOld();
+        if (old != null) {
+            return old;
+        } else {
+            return getObjectCurrent();
+        }
+    }
+
     /**
      * @return OID of the object. If not determined yet, it is obtained from available sources, like
      * object old, current, new, or primary delta.

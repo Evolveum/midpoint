@@ -17,7 +17,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 /**
  * Parsed form of {@link SimulationMetricPartitionType}.
  *
- * Created for fast and simple aggregation.
+ * Created for fast, simple, and thread-safe aggregation.
  */
 public class SimulationMetricPartition {
 
@@ -32,7 +32,7 @@ public class SimulationMetricPartition {
     private BigDecimal domainMaxValue;
 
     @SuppressWarnings("DuplicatedCode")
-    public void addObject(BigDecimal sourceMetricValue, boolean inSelection) {
+    public synchronized void addObject(BigDecimal sourceMetricValue, boolean inSelection) {
         if (domainMinValue == null || sourceMetricValue.compareTo(domainMinValue) < 0) {
             domainMinValue = sourceMetricValue;
         }
@@ -54,7 +54,7 @@ public class SimulationMetricPartition {
         }
     }
 
-    void addPartition(SimulationMetricPartitionType other) {
+    synchronized void addOtherPartition(SimulationMetricPartitionType other) {
         BigDecimal otherDomainMinValue = other.getDomainMinValue();
         if (domainMinValue == null || otherDomainMinValue != null && otherDomainMinValue.compareTo(domainMinValue) < 0) {
             domainMinValue = otherDomainMinValue;
@@ -78,7 +78,8 @@ public class SimulationMetricPartition {
         selectionTotalValue = selectionTotalValue.add(or0(other.getSelectionTotalValue()));
     }
 
-    public SimulationMetricPartitionType toBean(PartitionScope key, SimulationMetricAggregationFunctionType function) {
+    public synchronized SimulationMetricPartitionType toBean(
+            PartitionScope key, SimulationMetricAggregationFunctionType function) {
         var bean = toBean(key);
         bean.setValue(
                 SimulationMetricComputer.computeValue(bean, function, null));

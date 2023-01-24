@@ -253,12 +253,14 @@ public final class ReportDataCreationActivityRun
     }
 
     @Override
-    public void beforeBucketProcessing(OperationResult result) {
+    public void beforeBucketProcessing(OperationResult result) throws ActivityRunException, CommonException {
+        super.beforeBucketProcessing(result);
         controller.beforeBucketExecution(bucket.getSequentialNumber(), result);
     }
 
     @Override
-    public void afterBucketProcessing(OperationResult result) throws CommonException {
+    public void afterBucketProcessing(OperationResult result) throws CommonException, ActivityRunException {
+        super.afterBucketProcessing(result);
         controller.afterBucketExecution(bucket.getSequentialNumber(), getRunningTask(), result);
     }
 

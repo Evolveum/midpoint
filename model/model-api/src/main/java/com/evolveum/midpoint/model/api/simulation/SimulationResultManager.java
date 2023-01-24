@@ -12,7 +12,6 @@ import java.util.List;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +22,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 public interface SimulationResultManager {
 
     /**
@@ -31,12 +32,24 @@ public interface SimulationResultManager {
      * @param definition Definition to use. If null, the default one is used.
      * @see #defaultDefinition()
      */
-    @NotNull SimulationResultContext newSimulationResult(
+    @NotNull SimulationResultContext openNewSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @Nullable String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException;
+
+    /** Closes the simulation result, e.g. computes the metrics. No "processed object" records should be added afterwards. */
+    void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result)
+            throws ObjectNotFoundException;
+
+    /** TODO */
+    void openSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result);
+
+    /** TODO */
+    void commitSimulationResultTransaction(
+            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result);
 
     /** TODO better name */
     SimulationResultContext newSimulationContext(@NotNull String resultOid);
@@ -49,13 +62,7 @@ public interface SimulationResultManager {
     /**
      * Fetches and parses all stored processed objects from given {@link SimulationResultType}.
      */
+    @VisibleForTesting
     @NotNull List<? extends ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException;
-
-    /** Closes the simulation result, e.g. computes the metrics. No "processed object" records should be added afterwards. */
-    void closeSimulationResult(@NotNull ObjectReferenceType simulationResultRef, Task task, OperationResult result)
-            throws ObjectNotFoundException;
-
-    /** TODO */
-    ProcessedObject.Factory getProcessedObjectsFactory();
 }

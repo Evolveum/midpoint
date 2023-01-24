@@ -127,7 +127,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
@@ -6914,6 +6914,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
+        assert isNativeRepository();
         return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationDefinition, task, result);
     }
 
@@ -6923,20 +6924,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      */
     protected SimulationResult executeDeltasInDevelopmentSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
+        assert isNativeRepository();
         return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
     }
 
     protected SimulationResult executeInSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull TaskExecutionMode mode,
-            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
+        assert isNativeRepository();
         return executeInSimulationMode(
                 mode,
                 simulationDefinition,
@@ -6953,6 +6956,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
+        assert isNativeRepository();
         return executeInProductionSimulationMode(deltas, null, task, result);
     }
 
@@ -6962,6 +6966,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected SimulationResult executeInProductionSimulationMode(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
+        assert isNativeRepository();
         return executeInSimulationMode(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
                 simulationDefinition,
@@ -6975,70 +6980,45 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         void execute(SimulationResult simResult) throws CommonException;
     }
 
+    /**
+     * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
+     */
     public SimulationResult executeInSimulationMode(
-            TaskExecutionMode mode,
-            SimulationDefinitionType simulationDefinition,
-            Task task,
-            OperationResult result,
-            SimulatedProcedureCall simulatedCall)
+            @NotNull TaskExecutionMode mode,
+            @NotNull SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        String simulationResultOid;
-        ObjectProcessingListener simulationObjectProcessingListener;
-        if (simulationDefinition != null) {
-            SimulationResultContext simulationResultContext =
-                    simulationResultManager.newSimulationResult(
-                            simulationDefinition, null, mode.toConfigurationSpecification(), result);
-            simulationResultOid = simulationResultContext.getResultOid();
-            simulationObjectProcessingListener = simulationResultContext.objectProcessingListener();
-        } else {
-            simulationResultOid = null;
-            simulationObjectProcessingListener = null;
-        }
+        assert isNativeRepository();
+        SimulationResultContext simulationResultContext =
+                simulationResultManager.openNewSimulationResult(
+                        simulationDefinition, null, mode.toConfigurationSpecification(), result);
+        String simulationResultOid = simulationResultContext.getResultOid();
+        simulationResultManager.openSimulationResultTransaction(
+                simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
+
+        SimulationProcessedObjectListener simulationObjectProcessingListener =
+                simulationResultContext.getSimulationProcessedObjectListener(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
 
         SimulationResult simulationResult = new SimulationResult(simulationResultOid);
-        ObjectProcessingListener testObjectProcessingListener =
-                simulationResult.objectProcessingListener(simulationResultManager.getProcessedObjectsFactory());
-        DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         try {
-            dummyAuditService.addEventListener(auditEventListener);
-            task.addObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.setSimulationObjectProcessingListener(simulationObjectProcessingListener);
-            }
+            task.setSimulationProcessedObjectListener(simulationObjectProcessingListener);
             simulatedCall.execute(simulationResult);
         } finally {
-            task.removeObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.unsetSimulationObjectProcessingListener();
-            }
-            dummyAuditService.removeEventListener(auditEventListener);
+            task.setSimulationProcessedObjectListener(null);
             task.setExecutionMode(oldMode);
+            simulationResultManager.commitSimulationResultTransaction(
+                    simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
+            simulationResultManager.closeSimulationResult(simulationResultOid, task, result);
         }
         return simulationResult;
     }
 
     protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
-        if (isNativeRepository()) {
-            return simulationResultManager.defaultDefinition();
-        } else {
-            return null; // No simulation storage in old repo
-        }
-    }
-
-    protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
-            throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
-                        .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
-        ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
-        return simulationResultManager
-                .newSimulationContext(simResultRef.getOid())
-                .getStoredDeltas(result);
+        return simulationResultManager.defaultDefinition();
     }
 
     /** Returns {@link SimulationResult} based on the information stored in the task (activity state containing result ref) */
@@ -7071,49 +7051,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 desc);
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws CommonException {
-        return assertProcessedObjects(simResult, (Boolean) null);
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjectsAfter(SimulationResult simResult) throws CommonException {
+        return assertProcessedObjects(simResult, "after")
+                .display();
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws CommonException {
-        return assertProcessedObjects(simResult, null, desc);
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult)
+            throws CommonException {
+        return assertProcessedObjects(simResult, "processed objects");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc)
             throws CommonException {
         return assertProcessedObjects(
-                simResult,
-                persistentOverride,
-                getProcessedObjectsDesc(simResult, persistentOverride));
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
-            SimulationResult simResult, Boolean persistentOverride, String desc)
-            throws CommonException {
-        return assertProcessedObjects(
-                getProcessedObjects(simResult, persistentOverride),
+                getProcessedObjects(simResult),
                 desc);
     }
 
-    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
+    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(SimulationResult simResult)
             throws CommonException {
-        OperationResult result = getTestOperationResult();
-        if (persistentOverride == null) {
-            return simResult.getProcessedObjects(result);
-        } else if (persistentOverride) {
-            return simResult.getPersistentProcessedObjects(result);
-        } else {
-            return simResult.getTransientProcessedObjects(result);
-        }
-    }
-
-    protected String getProcessedObjectsDesc(SimulationResult simResult, Boolean persistentOverride) {
-        boolean persistent = Objects.requireNonNullElseGet(persistentOverride, simResult::isPersistent);
-        if (persistent) {
-            return "processed objects in persistent storage";
-        } else {
-            return "processed objects in transient storage";
-        }
+        return simResult.getProcessedObjects(
+                getTestOperationResult());
     }
 
     protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
@@ -7122,10 +7080,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    protected void closeSimulationResult(SimulationResult simResult, Task task, OperationResult result)
-            throws ObjectNotFoundException {
-        simulationResultManager.closeSimulationResult(
-                simResult.getSimulationResultRef(), task, result);
+    protected SimulationResultAsserter<Void> assertSimulationResultAfter(SimulationResult simResult)
+            throws SchemaException, ObjectNotFoundException {
+        return assertSimulationResult(simResult, "after")
+                .display();
     }
 
     protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResult simResult, String desc)

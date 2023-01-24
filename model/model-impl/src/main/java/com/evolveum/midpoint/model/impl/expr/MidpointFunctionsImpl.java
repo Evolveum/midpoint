@@ -426,8 +426,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
-        for (AssignmentType assignment : focusType.getAssignment()) {
+    public <F extends FocusType> boolean isDirectlyAssigned(F focus, String targetOid) {
+        for (AssignmentType assignment : focus.getAssignment()) {
             ObjectReferenceType targetRef = assignment.getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(targetOid)) {
                 return true;
