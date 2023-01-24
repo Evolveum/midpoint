@@ -16,10 +16,10 @@ In configuring the object collections for reports you might want to keep in mind
 *tl;dr* noFetch=false in collections might end up in large heap consumption and OOMs.
 ====
 
-In case you are using the option *noFetch *set to *false* then this might lead to higher consumption heap space.
+In case you are using the option *noFetch* set to *false* then this might lead to higher consumption heap space.
 The reason is that midpoint is trying to fetch the whole representation of the object as currently present on the resource.
 In case of some resources as CSVs with a couple of columns this might be no problem, but directory services for instance Active Directory might store really large objects.
-These might contains a lot of parameters with a lot of data.
+These might contain a lot of parameters with a lot of data.
 
 [source,xml]
 ----
@@ -57,9 +57,9 @@ def tmpFullShadow = midpoint.getObject(ShadowType.class, object.getOid(), null)
 *tl;dr* We often might need error handling to report expression scripts.
 ====
 
-We dont have an option yet to let the tasks continue on errors which might occur on evaluation.
-Additionally, we might want to react to some of the errors in some kind of way (e.g. error message in report column, row in report will not be printed, etc.). A good example is a situation when a collection lists account shadows but a concurrent process removes them from the repository, in this case we might end with an error because the object was not found.
-We then might want to react in for instance not printing the row in the report because we dont need to report on already deleted objects.
+We don't have an option yet to let the tasks continue on errors which might occur on evaluation.
+Additionally, we might want to react to some errors in some kind of way (e.g. error message in report column, row in report will not be printed, etc.). A good example is a situation when a collection lists account shadows but a concurrent process removes them from the repository, in this case we might end with an error because the object was not found.
+We then might want to react in for instance not printing the row in the report because we don't need to report on already deleted objects.
 
 [source,xml]
 ----
