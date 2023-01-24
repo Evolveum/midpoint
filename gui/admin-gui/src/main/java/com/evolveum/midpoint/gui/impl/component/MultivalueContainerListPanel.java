@@ -296,15 +296,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     @Override
-    protected C getRowRealValue(PrismContainerValueWrapper<C> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-
-        return rowModelObject.getRealValue();
-    }
-
-    @Override
     public List<C> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
     }

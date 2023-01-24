@@ -141,7 +141,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         ItemPath itemPath = WebComponentUtil.getPath(customColumn);
 
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
-                itemPath, expression, getPageBase(), itemPath == null) {
+                customColumn, expression, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -163,15 +163,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
     }
-
-    @Override
-    protected O getRowRealValue(SelectableBean<O> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
-    }
-
     @Override
     protected IColumn<SelectableBean<O>, String> createIconColumn() {
         return ColumnUtils.createIconColumn(getPageBase());
