@@ -136,7 +136,7 @@ public class PageUsers extends PageAdmin {
 
                     @Override
                     protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
-                        return PageUsers.this.getTable().getSelectedObjectsCount() > 0;
+                        return PageUsers.this.isShowConfirmationDialog(action);
                     }
 
                     @Override
@@ -190,7 +190,7 @@ public class PageUsers extends PageAdmin {
 
             @Override
             public boolean showConfirmationDialog() {
-                return getTable().getSelectedObjectsCount() > 0;
+                return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
             }
 
             @Override
@@ -243,6 +243,11 @@ public class PageUsers extends PageAdmin {
             }
         });
         return menu;
+    }
+
+    private boolean isShowConfirmationDialog(ColumnMenuAction action){
+        return action.getRowModel() != null ||
+                getTable().getSelectedObjectsCount() > 0;
     }
 
     private MainObjectListPanel<UserType> getTable() {

@@ -92,7 +92,7 @@ public class PageRoles extends PageAdmin {
                     private static final long serialVersionUID = 1L;
 
                     protected boolean isShowConfirmationDialog(ColumnMenuAction action){
-                        return PageRoles.this.getObjectListPanel().getSelectedObjectsCount() > 0;
+                        return PageRoles.this.isShowConfirmationDialog(action);
                     }
 
                     protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
@@ -113,5 +113,10 @@ public class PageRoles extends PageAdmin {
 
     private MainObjectListPanel<RoleType> getObjectListPanel() {
         return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
+
+    private boolean isShowConfirmationDialog(ColumnMenuAction action){
+        return action.getRowModel() != null ||
+                getObjectListPanel().getSelectedObjectsCount() > 0;
     }
 }
