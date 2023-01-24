@@ -407,32 +407,38 @@ public final class WebComponentUtil {
             return null;
         }
 
-        ObjectQuery query = prismContext.queryFactory().createQuery();
         try {
             ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
             ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
-            if (oc == null) {
-                return null;
-            }
-            Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
-
-            for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
-                if (association != null && !resourceAssociationDefinition.getName().equivalent(association)) {
-                    continue;
-                }
-                S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
-                List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                resourceAssociationDefinition.getIntents()
-                        .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-                OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
-
-                AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
-                        .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-                filter.addCondition(intentFilter);
-                query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
-            }
+            return getShadowTypeFilterForAssociation(oc, association);
         } catch (SchemaException | ConfigurationException ex) {
             LOGGER.error("Couldn't create query filter for ShadowType for association: {}", ex.getErrorTypeMessage());
+        }
+        return null;
+    }
+
+    public static ObjectFilter getShadowTypeFilterForAssociation(ResourceObjectDefinition oc, ItemName association) {
+        PrismContext prismContext = PrismContext.get();
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        if (oc == null) {
+            return null;
+        }
+        Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
+
+        for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
+            if (association != null && !resourceAssociationDefinition.getName().equivalent(association)) {
+                continue;
+            }
+            S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
+            List<ObjectFilter> orFilterClauses = new ArrayList<>();
+            resourceAssociationDefinition.getIntents()
+                    .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+            OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
+
+            AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
+                    .item(ShadowType.F_RESOURCE_REF).ref(oc.getResourceOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+            filter.addCondition(intentFilter);
+            query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
         }
         return query.getFilter();
     }
@@ -610,6 +616,14 @@ public final class WebComponentUtil {
 
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
+    public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
+        PrismContainerDefinition<C> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
+        if (def == null) {
+            return null;
+        }
+        return def.getTypeClass();
     }
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
@@ -1141,6 +1155,10 @@ public final class WebComponentUtil {
         return getTranslatedPolyString(PolyString.toPolyString(value));
     }
 
+    public static String getTranslatedPolyString(PolyStringType value, ModelServiceLocator modelServiceLocator) {
+        return getTranslatedPolyString(PolyString.toPolyString(value), modelServiceLocator.getLocalizationService());
+    }
+
     public static String getTranslatedPolyString(PolyString value) {
         MidPointApplication application = MidPointApplication.get();
         return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);
@@ -1333,6 +1351,9 @@ public final class WebComponentUtil {
     }
 
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def) {
+        if (def == null) {
+            return null;
+        }
         String name = getItemDefinitionDisplayName(def);
         if (StringUtils.isNotEmpty(name)) {
             return name;
@@ -2616,6 +2637,26 @@ public final class WebComponentUtil {
         return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
+    public static Class<? extends ObjectType> getObjectTypeForDetailsPage(PageBase pageType) {
+        var objectDetailsPages = OBJECT_DETAILS_PAGE_MAP.entrySet();
+        for (Map.Entry<Class<? extends ObjectType>, Class<? extends PageBase>> detailsPage : objectDetailsPages) {
+            if (detailsPage.getValue().equals(pageType.getPageClass())) {
+                return detailsPage.getKey();
+            }
+        }
+
+        return null;
+    }
+
+    public static String getPanelIdentifierFromParams(PageParameters pageParameters) {
+        StringValue panelIdentifierParam = pageParameters.get(AbstractPageObjectDetails.PARAM_PANEL_ID);
+        String panelIdentifier = null;
+        if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
+            panelIdentifier = panelIdentifierParam.toString();
+        }
+        return panelIdentifier;
+    }
+
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
 //        if (ResourceType.class.equals(type)) {
 //            return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
@@ -3627,16 +3668,23 @@ public final class WebComponentUtil {
             ResourceObjectDefinition oc = getResourceObjectDefinition(construction, pageBase);
             if (oc == null) {
                 LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
-                return null;
-            }
-            associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-            if (CollectionUtils.isEmpty(associationDefinitions)) {
-                LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
                 return associationDefinitions;
             }
+            return getRefinedAssociationDefinition(oc);
         } catch (Exception ex) {
             LOGGER.error("Association for {} not supported by resource {}: {}", construction, resource, ex.getLocalizedMessage());
+        }
+        return associationDefinitions;
+    }
+
+    public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
+        List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+        associationDefinitions.addAll(oc.getAssociationDefinitions());
+
+        if (CollectionUtils.isEmpty(associationDefinitions)) {
+            LOGGER.debug("Association not supported by resource object definition {}", oc);
+            return associationDefinitions;
         }
         return associationDefinitions;
     }
@@ -3680,12 +3728,7 @@ public final class WebComponentUtil {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
                 return associationDefinitions;
             }
-            associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-            if (CollectionUtils.isEmpty(associationDefinitions)) {
-                LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                return associationDefinitions;
-            }
+            return getRefinedAssociationDefinition(oc);
         } catch (Exception ex) {
             LOGGER.error("Association for {}/{} not supported by resource {}: {}", kind, intent, resource, ex.getLocalizedMessage());
         }
@@ -5185,6 +5228,11 @@ public final class WebComponentUtil {
         return allowedValues;
     }
 
+    public static String getCollectionNameParameterValueAsString(PageBase pageBase) {
+        StringValue stringValue = getCollectionNameParameterValue(pageBase);
+        return stringValue == null ? null : stringValue.toString();
+    }
+
     public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
         PageParameters parameters = pageBase.getPageParameters();
         return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
@@ -5523,8 +5571,31 @@ public final class WebComponentUtil {
         return application.getLocalizationService().translate(msg, getCurrentLocale());
     }
 
+    public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
+        if (listViewType == null) {
+            return null;
+        }
+
+        Task task = pageBase.createSimpleTask("Compile collection");
+        OperationResult result = task.getResult();
+        try {
+            CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            pageBase.getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
+            return compiledCollectionViewFromPanelConfiguration;
+        } catch (Throwable e) {
+            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
+            result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
+            pageBase.showResult(result);
+        }
+        return null;
+    }
+
     public static ItemPath getPath(GuiObjectColumnType column) {
         if (column == null) {
+            return null;
+        }
+
+        if (column.getPath() == null) {
             return null;
         }
 

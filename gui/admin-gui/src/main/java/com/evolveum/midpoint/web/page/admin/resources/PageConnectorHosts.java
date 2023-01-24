@@ -86,12 +86,12 @@ public class PageConnectorHosts extends PageAdmin {
 
     public PageConnectorHosts(boolean clearSessionPaging, String searchText) {
 
-        searchModel = new LoadableModel<Search>(false) {
+        searchModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected Search load() {
-                return SearchFactory.createSearch(ConnectorHostType.class, PageConnectorHosts.this);
+                return new SearchBuilder<>(ConnectorHostType.class).modelServiceLocator(PageConnectorHosts.this).build();
             }
         };
     }

@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -75,13 +73,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    @Override
-    protected Search createSearch(Class<O> type) {
-        String collectionName = isCollectionViewPanelForCompiledView() ?
-                WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
-        return SearchFactory.createSearch(type, collectionName, getPageBase());
-    }
-
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
@@ -116,7 +107,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
-        provider.setOptions(createOptions());
+        provider.setOptions(getOptions());
         return provider;
     }
 

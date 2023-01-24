@@ -42,26 +42,11 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
     }
 
     @Override
-    protected List<QName> getSupportedRelations() {
-        return Arrays.asList(SchemaConstants.ORG_DEFAULT);
-    }
-
-    @Override
-    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
-        return WebComponentUtil.createAssignmentHolderTypeQnamesList();
-    }
-
-    @Override
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
         createAssignMemberRowAction(menu);
         createRecomputeMemberRowAction(menu);
         return menu;
-    }
-
-    @Override
-    protected <AH extends AssignmentHolderType> Class<AH> getChoiceForAllTypes() {
-        return (Class<AH>) AssignmentHolderType.class;
     }
 
     @Override

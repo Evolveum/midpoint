@@ -102,8 +102,23 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         if (!getShadowDeltas().isEmpty()) {
             objectDelta.addModifications(getShadowDeltas());
         }
-
+        objectDelta.getModifications().forEach(item -> {
+            if (item.isAdd()) {
+                item.getValuesToAdd().forEach(value -> removeIdFromContainerValue(value));
+            }
+        });
         return objectDelta;
+    }
+
+    private void removeIdFromContainerValue(PrismValue value) {
+        if (value instanceof PrismObjectValue) {
+            return;
+        }
+        if (value instanceof PrismContainerValue) {
+            ((PrismContainerValue) value).setId(null);
+            ((PrismContainerValue) value).getItems().forEach(
+                    item -> ((Item) item).getValues().forEach(itemValue -> removeIdFromContainerValue((PrismValue) itemValue)));
+        }
     }
 
     private Collection<ItemDelta<PrismValue, ItemDefinition>> processModifyDeltas(
@@ -203,6 +218,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         boolean isItemFound = false;
         if (valueOfExistingDelta != null) {
             ItemPath subPath = origParentValue.getPath().rest(valueOfExistingDelta.getPath().size());
+            if (subPath.startsWithId()) {
+                subPath = subPath.subPath(1, subPath.size());
+            }
             if (valueOfExistingDelta.find(subPath) != null) {
                 isItemFound = true;
                 newContainer = (PrismContainer) valueOfExistingDelta.find(subPath);

@@ -6,23 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -32,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.ContainerWidgetPanel;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -56,6 +41,25 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author skublik
@@ -147,40 +151,64 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private void initInfoBoxes() {
         add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
+
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                IModel<DashboardWidgetDto> widgetModel = loadWidgetData(item.getModel());
-
-                SmallBox box = new SmallBox(ID_WIDGET, () -> {
-                    DashboardWidgetDto widget = widgetModel.getObject();
-
-                    SmallBoxData data = new SmallBoxData();
-                    data.setTitle(widget.getNumberLabel());
-                    data.setDescription(widget.getMessage());
-                    data.setIcon(widget.getIconCssClass());
-
-                    return data;
-                }) {
-
-                    @Override
-                    protected boolean isLinkVisible() {
-                        return existLinkRef(item.getModelObject());
-                    }
-
-                    @Override
-                    protected void onClickLink(AjaxRequestTarget target) {
-                        navigateToPage(item.getModelObject());
-                    }
-                };
-                box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
-                box.add(AttributeAppender.append("style", () -> StringUtils.join(
-                        widgetModel.getObject().getStyleColor(),
-                        " ",
-                        widgetModel.getObject().getStyleCssStyle())));
-
-                item.add(box);
+                item.add(populateDashboardWidget(item.getModel()));
             }
         });
+
+        add(new ListView<WidgetType>("widgetsNew", () -> {
+            WidgetsType widgets = dashboardModel.getObject().getWidgets();
+            return widgets != null ?
+                    widgets.getWidget().stream().map(je -> je.getValue()).collect(Collectors.toUnmodifiableList())
+                    : Collections.emptyList();
+        }) {
+
+            @Override
+            protected void populateItem(ListItem<WidgetType> item) {
+                WidgetType wt = item.getModelObject();
+                if (wt instanceof DashboardWidgetType) {
+                    item.add(populateDashboardWidget((IModel) item.getModel()));
+                    return;
+                }
+
+                item.add(ContainerWidgetPanel.createWidgetPanel("widgetNew", item.getModel()));
+            }
+        });
+    }
+
+    private Component populateDashboardWidget(IModel<DashboardWidgetType> model) {
+        IModel<DashboardWidgetDto> widgetModel = loadWidgetData(model);
+
+        SmallBox box = new SmallBox(ID_WIDGET, () -> {
+            DashboardWidgetDto widget = widgetModel.getObject();
+
+            SmallBoxData data = new SmallBoxData();
+            data.setTitle(widget.getNumberLabel());
+            data.setDescription(widget.getMessage());
+            data.setIcon(widget.getIconCssClass());
+
+            return data;
+        }) {
+
+            @Override
+            protected boolean isLinkVisible() {
+                return existLinkRef(model.getObject());
+            }
+
+            @Override
+            protected void onClickLink(AjaxRequestTarget target) {
+                navigateToPage(model.getObject());
+            }
+        };
+        box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(model.getObject().getVisibility())));
+        box.add(AttributeAppender.append("style", () -> StringUtils.join(
+                widgetModel.getObject().getStyleColor(),
+                " ",
+                widgetModel.getObject().getStyleCssStyle())));
+
+        return box;
     }
 
     private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {

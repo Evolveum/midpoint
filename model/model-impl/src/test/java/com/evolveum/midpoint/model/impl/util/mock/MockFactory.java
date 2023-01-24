@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,14 +7,6 @@
 package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,11 +24,16 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 @SuppressWarnings({ "ConstantConditions" })
 public class MockFactory {
@@ -169,7 +166,8 @@ public class MockFactory {
             }
 
             @Override
-            public @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult) {
+            public @Nullable ResourceSchema fetchSchema(
+                    @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult) {
                 return null;
             }
 
@@ -308,7 +306,8 @@ public class MockFactory {
         return new RepositoryService() {
             @Override
             @NotNull
-            public <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+            public <O extends ObjectType> PrismObject<O> getObject(Class<O> type,
+                    String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
                 throw new UnsupportedOperationException();
             }
 
@@ -318,34 +317,55 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-                return 0;
+            public <T extends ObjectType> @NotNull String addObject(
+                    @NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult) {
+                return UUID.randomUUID().toString();
             }
 
             @Override
-            public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult) {
-                return UUID.randomUUID().toString();
+            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+                return 0;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
-                return new SearchResultList<>(new ArrayList<>(0));
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+                    @NotNull Class<T> type, ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+                return new SearchResultList<>(List.of());
             }
 
             @Override
-            public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-                return new SearchResultList<>(new ArrayList<>(0));
-            }
-
-            @Override
-            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential, OperationResult parentResult) {
-                return null;
-            }
-
-            @Override
-            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+            public <T extends Containerable> int countContainers(Class<T> type,
+                    ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
                 return 0;
+            }
+
+            @Override
+            public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
+                    ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+                return new SearchResultList<>(List.of());
+            }
+
+            @Override
+            public int countReferences(@Nullable ObjectQuery query,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+                return 0;
+            }
+
+            @Override
+            public @NotNull SearchResultList<ObjectReferenceType> searchReferences(@NotNull ObjectQuery query,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+                return new SearchResultList<>(List.of());
+            }
+
+            @Override
+            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
+                    Class<T> type, ObjectQuery query, ResultHandler<T> handler,
+                    Collection<SelectorOptions<GetOperationOptions>> options,
+                    boolean strictlySequential, OperationResult parentResult) {
+                return null;
             }
 
             @Override
@@ -389,7 +409,8 @@ public class MockFactory {
 
             @NotNull
             @Override
-            public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) {
+            public <T extends ObjectType> DeleteObjectResult deleteObject(
+                    Class<T> type, String oid, OperationResult parentResult) {
                 return null;
             }
 
@@ -399,7 +420,8 @@ public class MockFactory {
             }
 
             @Override
-            public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) {
+            public void returnUnusedValuesToSequence(
+                    String oid, Collection<Long> unusedValues, OperationResult parentResult) {
 
             }
 
@@ -429,12 +451,15 @@ public class MockFactory {
             }
 
             @Override
-            public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
+            public RepositoryQueryDiagResponse executeQueryDiagnostics(
+                    RepositoryQueryDiagRequest request, OperationResult result) {
                 return null;
             }
 
             @Override
-            public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) {
+            public <O extends ObjectType> boolean selectorMatches(
+                    ObjectSelectorType objectSelector, PrismObject<O> object,
+                    ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) {
                 return false;
             }
 
@@ -469,7 +494,8 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult) {
+            public <T extends ObjectType> void addDiagnosticInformation(Class<T> type,
+                    String oid, DiagnosticInformationType information, OperationResult parentResult) {
 
             }
 

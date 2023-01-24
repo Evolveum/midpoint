@@ -94,6 +94,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
                 rootPath, rootMapping, sqlRepoContext, query, objectLoader);
     }
 
+    /** Constructor for the root context. */
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
@@ -103,6 +104,9 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         super(entityPath, mapping, sqlRepoContext, query);
         this.objectLoader = objectLoader;
         this.queryMapping = mapping;
+        // We want to register the initial FROM alias just in case the same mapping is needed again.
+        // This can happen with ref target dereferencing or with referenced-by filters.
+        uniqueAliasName(mapping.defaultAliasName());
     }
 
     private SqaleQueryContext(

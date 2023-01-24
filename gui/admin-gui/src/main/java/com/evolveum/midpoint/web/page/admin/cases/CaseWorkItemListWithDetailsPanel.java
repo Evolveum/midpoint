@@ -23,14 +23,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -133,11 +131,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     @Override
     protected boolean isButtonPanelVisible() {
         return false;
-    }
-
-    @Override
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseWorkItemType> containerDef) {
-        return new ArrayList<>();
     }
 
     @Override

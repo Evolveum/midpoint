@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.UUID;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
+import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -678,11 +681,25 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         assertLookupRow(tableContainer, "ja_JA", "ja", "Jabber");
         assertLookupRow(tableContainer, "ja_MJ", "ja", "Mumbojumbo");
         assertLookupRow(tableContainer, "en_PR", "en1", "English (pirate1)");
+    }
 
+    @Test
+    public void test200DeleteLookupTableDeletesAllRelatedDbRows() throws ObjectNotFoundException {
+        given("there are some rows in the lookup table");
+        QLookupTableRow q = QLookupTableRowMapping.get().defaultAlias();
+        assertThat(select(q, q.ownerOid.eq(UUID.fromString(LOOKUP_LANGUAGES_OID))))
+                .isNotEmpty();
+
+        when("lookup table is deleted");
+        OperationResult result = createOperationResult();
+        repositoryService.deleteObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, result);
+
+        then("result is good, and no dangling rows are left");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(select(q, q.ownerOid.eq(UUID.fromString(LOOKUP_LANGUAGES_OID)))).isEmpty();
     }
 
     private void checkLookupResult(PrismObject<LookupTableType> lookup, String[]... tuples) {
-
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
         PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
@@ -694,8 +711,8 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         }
     }
 
-    private void assertLookupRow(PrismContainer<LookupTableRowType> tableContainer, String key, String value,
-            String label) {
+    private void assertLookupRow(
+            PrismContainer<LookupTableRowType> tableContainer, String key, String value, String label) {
         for (PrismContainerValue<LookupTableRowType> row : tableContainer.getValues()) {
             LookupTableRowType rowType = row.asContainerable();
             if (key.equals(rowType.getKey())) {

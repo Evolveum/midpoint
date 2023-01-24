@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -23,9 +22,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -69,7 +65,7 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
 
     @Override
     protected QName getAssignmentType() {
-        return null;
+        return PolicyRuleType.COMPLEX_TYPE;
     }
 
     @Override
@@ -98,39 +94,6 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
     protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_POLICY_RULE).build();
-    }
-
-    @Override
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
-        SearchFactory.addSearchRefDef(containerDef,
-                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
-                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
-        return defs;
-    }
-
-    @Override
-    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                defs, getPageBase());
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-                defs, getPageBase());
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME),
-                defs, "AssignmentPanel.search.policyRule.name", getPageBase());
-        SearchFactory.addSearchRefWrapper(containerDef,
-                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
-                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
-
-        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
-        return defs;
     }
 
     @Override

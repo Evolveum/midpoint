@@ -17,7 +17,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;

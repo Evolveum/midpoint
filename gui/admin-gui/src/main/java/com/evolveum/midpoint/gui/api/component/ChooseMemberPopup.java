@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -69,15 +71,15 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_COMPOSITED_BUTTONS = "compositedButtons";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    protected RelationSearchItemConfigurationType relationsConfig;
+    protected Search search;
     private IModel<MultiFunctinalButtonDto> compositedButtonsModel;
     private boolean isCompositedButtonsPanelVisible;
     private List<ITab> tabs;
 
-    public ChooseMemberPopup(String id, RelationSearchItemConfigurationType relationsConfig,
+    public ChooseMemberPopup(String id, Search search,
             IModel<MultiFunctinalButtonDto> compositedButtonsModel){
         super(id);
-        this.relationsConfig = relationsConfig;
+        this.search = search;
         this.compositedButtonsModel = compositedButtonsModel;
         isCompositedButtonsPanelVisible = compositedButtonsModel != null && compositedButtonsModel.getObject() != null &&
                 !CollectionUtils.isEmpty(compositedButtonsModel.getObject().getAdditionalButtons());
@@ -181,7 +183,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<UserType>(panelId, relationsConfig, archetypeRefList){
+                return new MemberPopupTabPanel<UserType>(panelId, search, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -214,7 +216,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<RoleType>(panelId, relationsConfig, archetypeRefList){
+                return new MemberPopupTabPanel<RoleType>(panelId, search, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -248,7 +250,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<OrgType>(panelId, relationsConfig, archetypeRefList){
+                        return new MemberPopupTabPanel<OrgType>(panelId, search, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -289,7 +291,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new OrgTreeMemberPopupTabPanel(panelId, relationsConfig, archetypeRefList) {
+                    return new OrgTreeMemberPopupTabPanel(panelId, search, archetypeRefList) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -325,7 +327,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<ServiceType>(panelId, relationsConfig, archetypeRefList){
+                        return new MemberPopupTabPanel<ServiceType>(panelId, search, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -355,8 +357,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return tabs;
     }
 
-    protected List<QName> getAvailableObjectTypes(){
-        return null;
+    protected final List<QName> getAvailableObjectTypes(){
+        return search.getAllowedTypeList();
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList(){

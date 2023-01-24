@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -121,6 +121,10 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             throws RepositoryException {
         targetType = targetType != null ? targetType : ObjectType.COMPLEX_TYPE;
         var targetClass = context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
+        // TODO: This works fine, but LEFT JOIN should be considered for cases when the query is ordered by the target item.
+        // This is relevant for referenceSearch. When only where is used, subquery (AKA semi-join) is fine, often even preferable.
+        // But when ordering is added, we end up with both EXISTS subquery and LEFT JOIN for the order.
+        // See also: com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver#resolve()
         var subquery = context.subquery(context.repositoryContext().getMappingBySchemaType(targetClass));
         var targetPath = subquery.path(QObject.class);
         subquery.sqlQuery().where(oidPath.eq(targetPath.oid));

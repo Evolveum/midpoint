@@ -25,7 +25,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
@@ -203,7 +203,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return null;
     }
 
-    protected IModel<Search<? extends ObjectType>> getSearchModel() {
+    public IModel<Search<? extends ObjectType>> getSearchModel() {
         return searchModel;
     }
 

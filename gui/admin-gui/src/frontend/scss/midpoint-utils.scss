@@ -54,12 +54,17 @@
   border-radius: .5rem !important;
 }
 
+.trend {
+  width: fit-content;
+  font-weight: normal;
+}
+
 .trend-success {
-  background: ligthen($green, -20%);
+  background: rgba($green, .2);
   color: $green;
 }
 
 .trend-danger {
-  background-color: ligthen($red, 20%);
+  background-color:rgba($red, .2);
   color: $red;
 }
