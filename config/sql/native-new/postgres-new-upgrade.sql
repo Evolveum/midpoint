@@ -230,6 +230,7 @@ CREATE TABLE m_simulation_result_processed_object (
     fullObject BYTEA,
     objectBefore BYTEA,
     objectAfter BYTEA,
+    transactionId TEXT,
 
    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
