@@ -471,7 +471,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             search.setSearchMode(SearchBoxModeType.ADVANCED);
             search.setAdvancedQuery(filterAsString);
 
-            if (!search.isAdvancedQueryValid(getPrismContext())) {
+            if (!search.isAdvancedQueryValid(PageRepositoryQuery.this)) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
                 target.add(getFeedbackPanel());

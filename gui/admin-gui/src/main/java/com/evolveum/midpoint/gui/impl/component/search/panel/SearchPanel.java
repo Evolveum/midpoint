@@ -447,6 +447,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private void searchBoxTypeUpdated(AjaxRequestTarget target) {
         refreshSearchForm(target);
+        searchPerformed(target);
     }
 
     protected abstract void searchPerformed(AjaxRequestTarget target);

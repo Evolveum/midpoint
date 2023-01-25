@@ -1,14 +1,10 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.OidSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
-import com.evolveum.midpoint.prism.Containerable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.BasicQueryWrapper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -19,12 +15,14 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchConfigurationWrapper<C>> {
+public class BasicSearchPanel<C extends Containerable> extends BasePanel<BasicQueryWrapper<C>> {
 
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
@@ -33,7 +31,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
     private LoadableDetachableModel<List<FilterableSearchItemWrapper>> basicSearchItemsModel;
     private LoadableDetachableModel<List<FilterableSearchItemWrapper>> morePopupModel;
 
-    public BasicSearchPanel(String id, IModel<SearchConfigurationWrapper<C>> model) {
+    public BasicSearchPanel(String id, IModel<BasicQueryWrapper<C>> model) {
         super(id, model);
     }
 

@@ -76,10 +76,10 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
 
         ScopeSearchItemWrapper scope = getScopeSearchItemWrapper();
         if (scope != null && SearchBoxScopeType.SUBTREE.equals(scope.getValue().getValue())) {
-            return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
+            return PrismContext.get().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
         }
 
-        PrismContext prismContext = pageBase.getPrismContext();
+        PrismContext prismContext = PrismContext.get();
 
         List<QName> relations = relationSearchItemWrapper.getRelationsForSearch();
 

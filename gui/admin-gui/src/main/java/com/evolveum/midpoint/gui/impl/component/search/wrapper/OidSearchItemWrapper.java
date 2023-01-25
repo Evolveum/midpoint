@@ -8,15 +8,19 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.panel.OidSearchItemPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> {
+public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> implements QueryWrapper {
 
     @Override
     public Class<OidSearchItemPanel> getSearchItemPanelClass() {
@@ -66,5 +70,25 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> {
     @Override
     public boolean isVisible() {
         return true;
+    }
+
+    @Override
+    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variables) throws SchemaException {
+        if (StringUtils.isEmpty(getValue().getValue())) {
+            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
+        }
+        return pageBase.getPrismContext().queryFor(ObjectType.class)
+                .id(getValue().getValue())
+                .build();
+    }
+
+    @Override
+    public String getAdvancedError() {
+        return null;
+    }
+
+    @Override
+    public void setAdvancedError(String advancedError) {
+        
     }
 }

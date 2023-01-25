@@ -1,27 +1,28 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
-
-public class AxiomQueryWrapper<C extends Containerable> implements Serializable {
+public class AxiomQueryWrapper<C extends Containerable> extends AbstractQueryWrapper {
 
     public static final String F_DSL_QUERY = "dslQuery";
     private String dslQuery;
-    private Class<C> typeClass;
+    //TODO
     private PrismContainerDefinition<C> containerDefinitionOverride;
 
-    public ObjectQuery createQuery(PrismContext ctx) throws SchemaException {
+    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
         if (StringUtils.isEmpty(dslQuery)) {
             return null;
         }
+        PrismContext ctx = PrismContext.get();
         var parser = ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes());
         if (containerDefinitionOverride  == null) {
             ObjectFilter filter = parser.parseFilter(typeClass, dslQuery);
