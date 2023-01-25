@@ -355,7 +355,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 }
             }
             if (!exist) {
-                mergedList.add(itemToProcess);
+                mergedList.add(itemToProcess.cloneWithoutId());
             }
         });
     }
