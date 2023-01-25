@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0001-000000000300">
+    <name>User accesses</name>
+    <type>ObjectReferenceType</type>
+    <filter>
+        <q:and>
+            <q:ownedBy>
+                <q:type>c:UserType</q:type>
+                <q:path>c:roleMembershipRef</q:path>
+            </q:ownedBy>
+        </q:and>
+    </filter>
+    <!--
+    <defaultView>
+        <column>
+            <name>timestampColumn</name>
+            <path>timestamp</path>
+        </column>
+        <column>
+            <name>initiatorColumn</name>
+            <path>initiatorRef</path>
+            <previousColumn>timestampColumn</previousColumn>
+        </column>
+        <column>
+            <name>eventTypeColumn</name>
+            <path>eventType</path>
+            <previousColumn>initiatorColumn</previousColumn>
+        </column>
+        <column>
+            <name>eventStageColumn</name>
+            <path>eventStage</path>
+            <previousColumn>eventTypeColumn</previousColumn>
+        </column>
+        <column>
+            <name>targetColumn</name>
+            <path>targetRef</path>
+            <previousColumn>eventStageColumn</previousColumn>
+        </column>
+        <column>
+            <name>outcomeColumn</name>
+            <path>outcome</path>
+            <previousColumn>targetColumn</previousColumn>
+        </column>
+        <column>
+            <name>messageColumn</name>
+            <path>message</path>
+            <previousColumn>outcomeColumn</previousColumn>
+        </column>
+        <column>
+            <name>deltaColumn</name>
+            <path>delta</path>
+            <previousColumn>messageColumn</previousColumn>
+            <export>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.schema.DeltaConvertor;
+                            import com.evolveum.midpoint.report.impl.ReportUtils;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+
+                            ret = new ArrayList();
+                            for (ObjectDeltaOperationType deltaType : input) {
+                                delta = DeltaConvertor.createObjectDeltaOperation(deltaType, prismContext);
+                                ret.add(ReportUtils.printDelta(delta));
+                            }
+                            return ret
+                        </code>
+                    </script>
+                </expression>
+            </export>
+        </column>
+    </defaultView>
+    -->
+</objectCollection>
