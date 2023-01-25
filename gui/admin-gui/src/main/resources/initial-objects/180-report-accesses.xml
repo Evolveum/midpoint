@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-000000000180">
+    <name>Accesses report</name>
+    <description>TODO</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
+    <objectCollection>
+        <collection>
+            <baseCollectionRef>
+                <collectionRef oid="00000000-0000-0000-0001-000000000300" type="ObjectCollectionType"/>
+            </baseCollectionRef>
+        </collection>
+        <!-- parameters? conditions? view? -->
+        <view>
+            <type>c:ObjectReferenceType</type>
+            <column>
+                <name>test</name>
+            </column>
+        </view>
+    </objectCollection>
+</report>
