@@ -71,7 +71,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
     private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
 
-        Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object[]) null));
+        Label header = new Label(ID_HEADER, getPageAdminLTE().getString(groupName, (Object[]) null));
         add(header);
 
         RepeatingView itemView = new RepeatingView(ID_PROPERTY);
@@ -80,7 +80,8 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         for (AbstractFormItemType formItem : formItems) {
 
             if (formItem instanceof FormFieldGroupType) {
-                DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+                DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(),
+                        formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageAdminLTE());
                 dynamicFieldGroupPanel.setOutputMarkupId(true);
                 itemView.add(dynamicFieldGroupPanel);
                 continue;
@@ -89,7 +90,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             ItemWrapper<?, ?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
             try {
-                Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
+                Panel panel = getPageAdminLTE().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
                 panel.setOutputMarkupId(true);
                 itemView.add(panel);
             } catch (SchemaException e) {
@@ -116,7 +117,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         if (path == null) {
             getSession().error("Bad form item definition. It has to contain reference to the real attribute");
             LOGGER.error("Bad form item definition. It has to contain reference to the real attribute");
-            throw new RestartResponseException(getPageBase());
+            throw new RestartResponseException(getPageAdminLTE());
         }
 
         ItemWrapper<?, ?> itemWrapper;
@@ -125,13 +126,13 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         } catch (SchemaException e) {
             getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
             LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-            throw new RestartResponseException(getPageBase());
+            throw new RestartResponseException(getPageAdminLTE());
         }
 
         if (itemWrapper == null) {
             getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
             LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-            throw new RestartResponseException(getPageBase());
+            throw new RestartResponseException(getPageAdminLTE());
         }
         return itemWrapper;
     }

@@ -142,11 +142,11 @@ public class BasePanel<T> extends Panel {
     }
 
     public PrismContext getPrismContext() {
-        return getPageBase().getPrismContext();
+        return getPageAdminLTE().getPrismContext();
     }
 
     public SchemaService getSchemaService() {
-        return getPageBase().getSchemaService();
+        return getPageAdminLTE().getSchemaService();
     }
 
     protected String createComponentPath(String... components) {

@@ -132,7 +132,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
             result.recordSuccess();
         } catch (SchemaException e) {
             result.recordFatalError(createStringResource("DynamicFormPanel.message.createObjectWrapper.fatalError", e.getMessage()).getString());
-            getPageBase().showResult(result);
+            getPageAdminLTE().showResult(result);
 
         }
         return objectWrapper;

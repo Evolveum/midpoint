@@ -110,7 +110,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     protected LoadableDetachableModel<String> getLabelModel() {
-        return getPageBase().createStringResource("${displayName}", getModel());
+        return getPageAdminLTE().createStringResource("${displayName}", getModel());
     }
 
     @Override
@@ -225,19 +225,19 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void prepareNewContainers(AjaxRequestTarget target, List<PrismContainerDefinition<?>> containers) {
-        Task task = getPageBase().createSimpleTask("Create child containers");
+        Task task = getPageAdminLTE().createSimpleTask("Create child containers");
         WrapperContext ctx = new WrapperContext(task, task.getResult());
         ctx.setCreateIfEmpty(true);
         containers.forEach(container -> {
             try {
-                ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
+                ItemWrapper iw = getPageAdminLTE().createItemWrapper(container, getModelObject(), ctx);
                 if (iw != null) {
                     getModelObject().addItem(iw);
                 }
             } catch (SchemaException e) {
                 OperationResult result = ctx.getResult();
                 result.recordFatalError(createStringResource("PrismContainerValuePanel.message.prepareNewContainers.fatalError", container).getString(), e);
-                getPageBase().showResult(ctx.getResult());
+                getPageAdminLTE().showResult(ctx.getResult());
             }
         });
 
@@ -254,7 +254,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         wrapper.setSorted(!wrapper.isSorted());
         target.add(getValuePanel());
         target.add(getSortButton());
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(getPageAdminLTE().getFeedbackPanel());
     }
 
     private ToggleIconButton<Void> getSortButton() {
@@ -263,7 +263,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     public void refreshPanel(AjaxRequestTarget target) {
         target.add(PrismContainerValuePanel.this);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(getPageAdminLTE().getFeedbackPanel());
     }
 
     protected ToggleIconButton<?> createExpandCollapseButton() {
