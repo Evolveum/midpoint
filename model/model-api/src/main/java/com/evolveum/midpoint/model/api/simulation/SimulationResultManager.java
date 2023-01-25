@@ -9,20 +9,22 @@ package com.evolveum.midpoint.model.api.simulation;
 
 import java.util.List;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-
-import org.jetbrains.annotations.VisibleForTesting;
 
 public interface SimulationResultManager {
 
@@ -65,4 +67,20 @@ public interface SimulationResultManager {
     @VisibleForTesting
     @NotNull List<? extends ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException;
+
+    /**
+     * See {@link ModelInteractionService#executeInSimulationMode(TaskExecutionMode, SimulationDefinitionType, Task,
+     * OperationResult, SimulatedFunctionCall)}.
+     */
+    <X> X executeInSimulationMode(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedFunctionCall<X> functionCall)
+                    throws CommonException;
+
+    interface SimulatedFunctionCall<X> {
+        X execute() throws CommonException;
+    }
 }

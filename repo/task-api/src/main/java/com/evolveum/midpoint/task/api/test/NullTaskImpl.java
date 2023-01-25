@@ -784,6 +784,15 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public String getSimulationResultOid() {
+        return null;
+    }
+
+    @Override
+    public void setSimulationResultOid(String oid) {
+    }
+
+    @Override
     public void onObjectProcessedBySimulation(
             @NotNull SimulationProcessedObject processedObject, @NotNull Task task, @NotNull OperationResult result) {
     }

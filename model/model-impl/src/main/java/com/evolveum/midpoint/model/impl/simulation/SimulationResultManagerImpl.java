@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.SIMULATION_RESULT_DEFAULT_TRANSACTION_ID;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
@@ -8,6 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -328,6 +333,42 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @NotNull List<SimulationMetricDefinitionType> getMetricDefinitions() {
         return metricDefinitions;
+    }
+
+    @Override
+    public <X> X executeInSimulationMode(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedFunctionCall<X> functionCall)
+            throws CommonException {
+
+        argCheck(mode.isSimulation(),
+                "Requested an execution in simulation mode, but the mode provided is not a simulation one: %s", mode);
+        argCheck(task.isTransient(), "Not supported for persistent tasks: %s", task);
+        SimulationResultContext simulationResultContext =
+                openNewSimulationResult(
+                        simulationDefinition, null, mode.toConfigurationSpecification(), result);
+        String simulationResultOid = simulationResultContext.getResultOid();
+        task.setSimulationResultOid(simulationResultOid);
+        openSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
+
+        SimulationProcessedObjectListener simulationObjectProcessingListener =
+                simulationResultContext.getSimulationProcessedObjectListener(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
+
+        TaskExecutionMode oldMode = task.setExecutionMode(mode);
+        X returnValue;
+        try {
+            task.setSimulationProcessedObjectListener(simulationObjectProcessingListener);
+            returnValue = functionCall.execute();
+        } finally {
+            task.setSimulationProcessedObjectListener(null);
+            task.setExecutionMode(oldMode);
+            commitSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
+            closeSimulationResult(simulationResultOid, task, result);
+        }
+        return returnValue;
     }
 
     /**

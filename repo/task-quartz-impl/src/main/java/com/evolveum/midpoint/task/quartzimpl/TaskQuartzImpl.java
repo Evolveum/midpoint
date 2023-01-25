@@ -106,9 +106,6 @@ public class TaskQuartzImpl implements Task {
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
-    /** Obtains information about objects processed by the currently executing simulation. */
-    private volatile SimulationProcessedObjectListener simulationProcessedObjectListener;
-
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
 
@@ -195,6 +192,12 @@ public class TaskQuartzImpl implements Task {
     /** ConnId operations listeners. */
     @Experimental
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
+
+    /** Obtains information about objects processed by the currently executing simulation. */
+    private volatile SimulationProcessedObjectListener simulationProcessedObjectListener;
+
+    /** TODO */
+    private String simulationResultOid;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -2326,6 +2329,16 @@ public class TaskQuartzImpl implements Task {
     @Override
     public boolean hasSimulationProcessedObjectListener() {
         return simulationProcessedObjectListener != null;
+    }
+
+    @Override
+    public String getSimulationResultOid() {
+        return simulationResultOid;
+    }
+
+    @Override
+    public void setSimulationResultOid(String simulationResultOid) {
+        this.simulationResultOid = simulationResultOid;
     }
 
     @Override

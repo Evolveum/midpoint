@@ -6983,7 +6983,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
      */
-    public SimulationResult executeInSimulationMode(
+    public @NotNull SimulationResult executeInSimulationMode(
             @NotNull TaskExecutionMode mode,
             @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -6992,29 +6992,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws CommonException {
 
         assert isNativeRepository();
-        SimulationResultContext simulationResultContext =
-                simulationResultManager.openNewSimulationResult(
-                        simulationDefinition, null, mode.toConfigurationSpecification(), result);
-        String simulationResultOid = simulationResultContext.getResultOid();
-        simulationResultManager.openSimulationResultTransaction(
-                simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
 
-        SimulationProcessedObjectListener simulationObjectProcessingListener =
-                simulationResultContext.getSimulationProcessedObjectListener(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
-
-        SimulationResult simulationResult = new SimulationResult(simulationResultOid);
-        TaskExecutionMode oldMode = task.setExecutionMode(mode);
-        try {
-            task.setSimulationProcessedObjectListener(simulationObjectProcessingListener);
+        Holder<SimulationResult> simulationResultHolder = new Holder<>();
+        simulationResultManager.executeInSimulationMode(mode, simulationDefinition, task, result, () -> {
+            SimulationResult simulationResult = new SimulationResult(task.getSimulationResultOid());
             simulatedCall.execute(simulationResult);
-        } finally {
-            task.setSimulationProcessedObjectListener(null);
-            task.setExecutionMode(oldMode);
-            simulationResultManager.commitSimulationResultTransaction(
-                    simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
-            simulationResultManager.closeSimulationResult(simulationResultOid, task, result);
-        }
-        return simulationResult;
+            simulationResultHolder.setValue(simulationResult);
+            return null;
+        });
+        return Objects.requireNonNull(
+                simulationResultHolder.getValue(),
+                "No simulation result after execution?");
     }
 
     protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {

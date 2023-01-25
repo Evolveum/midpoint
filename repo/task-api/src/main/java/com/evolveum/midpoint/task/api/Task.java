@@ -1033,5 +1033,17 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     // FIXME this is a temporary code
     boolean hasSimulationProcessedObjectListener();
+
+    /**
+     * Returns the OID of the last simulation result produced by running the `executeInSimulationMode` method with this task.
+     *
+     * I.e. does NOT apply to all tasks, in particular not to the persistent ones.
+     *
+     * FIXME this is a temporary code - probably will be changed
+     */
+    String getSimulationResultOid();
+
+    // FIXME this is a temporary code
+    void setSimulationResultOid(String oid);
     //endregion
 }

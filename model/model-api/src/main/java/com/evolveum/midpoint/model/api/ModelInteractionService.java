@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager.SimulatedFunctionCall;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -584,4 +587,20 @@ public interface ModelInteractionService {
      */
     PrismContainerDefinition<AssignmentType> assignmentTypeDefinitionWithConcreteTargetRefType(
             PrismContainerDefinition<AssignmentType> orig, QName targetType);
+
+    /**
+     * Executes the code in `functionCall` parameter ({@link SimulatedFunctionCall}) in the simulation mode (`mode` parameter),
+     * with the provided simulation result definition.
+     *
+     * The task must not be persistent. (This limitation can be lifted in the future, if needed.)
+     *
+     * Requires the native repository.
+     */
+    <X> X executeInSimulationMode(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedFunctionCall<X> functionCall)
+            throws CommonException;
 }
