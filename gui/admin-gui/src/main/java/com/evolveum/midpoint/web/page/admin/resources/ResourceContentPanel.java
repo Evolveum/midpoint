@@ -89,7 +89,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private final QName objectClass;
 
     private String searchMode;
-    private SelectableBeanObjectDataProvider<ShadowType> provider;
+//    private SelectableBeanObjectDataProvider<ShadowType> provider;
 
     IModel<PrismObject<ResourceType>> resourceModel;
 
@@ -235,7 +235,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             protected ISelectableDataProvider createProvider() {
-                provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
+                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);

@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
+import com.evolveum.midpoint.web.component.data.column.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,9 +77,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -260,43 +259,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private IColumn<PrismContainerValueWrapper<ShadowType>, String> createProjectionNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        if (expression != null) {
-            return new AjaxLinkColumn<>(displayModel) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                    ItemPath itemPath = WebComponentUtil.getPath(customColumn);
-
-                    return new LoadableModel<>() {
-                        @Override
-                        protected String load() {
-                            Collection<String> evaluatedValues = getMultivalueContainerListPanel().loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-                            if (CollectionUtils.isEmpty(evaluatedValues)) {
-                                return "";
-                            }
-                            if (evaluatedValues.size() == 1) {
-                                return evaluatedValues.iterator().next();
-                            }
-                            return String.join(", ", evaluatedValues);
-                        }
-                    };
-                }
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                    getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-                    target.add(getPageBase().getFeedbackPanel());
-                }
-            };
-        }
-
-        IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
-        return new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
-            private static final long serialVersionUID = 1L;
+        return new ContainerableNameColumn<>(displayModel, null, customColumn, expression, getPageBase()) {
 
             @Override
-            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+            protected IModel<String> getContainerName(PrismContainerValueWrapper<ShadowType> rowModel) {
+                ShadowType value = rowModel.getRealValue();
+                return Model.of(value == null ? "" : WebComponentUtil.getName(value, true));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel rowModel) {
                 getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
                 target.add(getPageBase().getFeedbackPanel());
             }

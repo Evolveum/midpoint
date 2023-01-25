@@ -2101,15 +2101,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
+    public <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
             QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
             Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
-        SearchSpec<C> searchSpec = new SearchSpec<>();
+        SearchSpec<T> searchSpec = new SearchSpec<>();
 
-        Class<C> type;
+        Class<T> type;
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         } else {
@@ -2233,7 +2233,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return compiledCollection.getOptions();
     }
 
-    private <C extends Containerable> Class<C> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+    private <T> Class<T> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
                 LOGGER.error("Type of objects is null");

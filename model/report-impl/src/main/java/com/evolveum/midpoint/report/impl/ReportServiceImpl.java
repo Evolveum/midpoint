@@ -244,7 +244,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         if (compiledCollection.getColumns().isEmpty()) {
-            Class<Containerable> type = resolveTypeForReport(compiledCollection);
+            Class<?> type = resolveTypeForReport(compiledCollection);
             getModelInteractionService().applyView(
                     compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
         }
@@ -288,7 +288,7 @@ public class ReportServiceImpl implements ReportService {
 
         if (compiledCollection.getColumns().isEmpty()) {
             if (useDefaultView) {
-                Class<Containerable> type = resolveTypeForReport(compiledCollection);
+                Class<?> type = resolveTypeForReport(compiledCollection);
                 getModelInteractionService().applyView(
                         compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
             } else {
@@ -298,13 +298,15 @@ public class ReportServiceImpl implements ReportService {
         return compiledCollection;
     }
 
-    public Class<Containerable> resolveTypeForReport(CompiledObjectCollectionView compiledCollection) {
+    public Class<?> resolveTypeForReport(CompiledObjectCollectionView compiledCollection) {
         QName type = compiledCollection.getContainerType();
         ComplexTypeDefinition def = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def != null) {
             Class<?> clazz = def.getCompileTimeClass();
-            if (clazz != null && Containerable.class.isAssignableFrom(clazz)) {
-                return (Class<Containerable>) clazz;
+            if (clazz != null &&
+                    (Containerable.class.isAssignableFrom(clazz)
+                            || ObjectReferenceType.class.isAssignableFrom(clazz))) {
+                return clazz;
             }
         }
         throw new IllegalArgumentException("Couldn't define type for QName " + type);

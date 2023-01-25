@@ -129,7 +129,7 @@ public class DefaultColumnUtils {
         return OBJECT_COLUMNS_DEF;
     }
 
-    public static <C extends Containerable> GuiObjectListViewType getDefaultView(Class<? extends C> type) {
+    public static GuiObjectListViewType getDefaultView(Class<?> type) {
         if (type == null) {
             return getDefaultObjectView();
         }
@@ -334,7 +334,7 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<Containerable> type, SchemaService schemaService) {
+            Class<?> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }

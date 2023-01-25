@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1077,18 +1078,22 @@ public class ColumnUtils {
         return rowModel.getObject().getRealValue();
     }
 
-    private static <C extends Containerable, S extends SelectableRow<C>> C unwrapSelectableRowModel(IModel<S> rowModel) {
+    public static <C extends Containerable, S extends SelectableRow<C>> C unwrapSelectableRowModel(IModel<S> rowModel) {
         if (rowModel == null) {
             return null;
         }
         S rowValue = rowModel.getObject();
+        return unwrapRowRealValue(rowValue);
+    }
+
+    public static <T extends Serializable, S extends SelectableRow<T>> T unwrapRowRealValue(S rowValue) {
         if (rowValue == null) {
             return null;
         }
         if (rowValue instanceof SelectableBean) {
-            return (C) ((SelectableBean<?>) rowValue).getValue();
+            return (T) ((SelectableBean<?>) rowValue).getValue();
         } else if (rowValue instanceof PrismValueWrapper) {
-            return (C) ((PrismValueWrapper<?>) rowValue).getRealValue();
+            return (T) ((PrismValueWrapper<?>) rowValue).getRealValue();
         }
 
         return null;

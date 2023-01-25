@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.activity.ClassicCollectionReportExportActivityRun;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -78,7 +79,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
     /**
      * Definition of records that are processed. Initialized along with the data source.
      */
-    protected PrismContainerDefinition<C> recordDefinition;
+    protected ItemDefinition<?> recordDefinition;
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
@@ -153,14 +154,17 @@ public class CollectionExportController<C extends Containerable> implements Expo
 
     protected void initializeDataSource(RunningTask task, OperationResult result) throws CommonException {
 
-        Class<Containerable> type = reportService.resolveTypeForReport(compiledCollection);
+        Class<?> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(type, schemaService);
 
-        ModelInteractionService.SearchSpec<C> searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
+        ModelInteractionService.SearchSpec searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
                 compiledCollection, compiledCollection.getContainerType(), defaultOptions, parameters, task, result);
 
         recordDefinition = requireNonNull(
-                schemaRegistry.findContainerDefinitionByCompileTimeClass(searchSpec.type),
+                Referencable.class.isAssignableFrom(searchSpec.type)
+                        ? schemaRegistry.findReferenceDefinitionByElementName(SchemaConstantsGenerated.C_OBJECT_REF)
+                        : schemaRegistry.findItemDefinitionByCompileTimeClass(searchSpec.type, ItemDefinition.class),
+//                schemaRegistry.findContainerDefinitionByCompileTimeClass(searchSpec.type), // before ref support
                 () -> "No definition for " + searchSpec.type + " found");
 
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
