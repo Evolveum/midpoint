@@ -54,7 +54,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
         // addItemMapping(F_OBJECT_TYPE, ));
-
+        addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
         addRefMapping(F_EVENT_TAG_REF, QProcessedObjectEventTagReferenceMapping.init(repositoryContext));
     }
@@ -109,7 +109,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         row.state = object.getState();
 
         row.fullObject = createFullObject(object);
-
+        row.transactionId = object.getTransactionId();
         // Before / After not serialized
         insert(row, jdbcSession);
         // We store event tags

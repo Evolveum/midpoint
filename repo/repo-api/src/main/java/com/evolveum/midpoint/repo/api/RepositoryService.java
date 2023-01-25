@@ -335,6 +335,12 @@ public interface RepositoryService {
      */
     @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
+
+    @Experimental
+    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) {
+        throw new UnsupportedOperationException("Not supported yet");
+    }
+
     // Counting/searching
 
     <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
@@ -551,6 +557,7 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong OID format
      * @deprecated TODO: we want to remove this in midScale
      */
+    @Deprecated
     default <F extends FocusType> PrismObject<F> searchShadowOwner(
             String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         ObjectQuery query = PrismContext.get()
