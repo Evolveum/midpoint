@@ -205,7 +205,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected SearchContext createAdditionalSearchContext() {
-        return new SearchContext();
+        return null;
     }
 
     private void initLayout() {

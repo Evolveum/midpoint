@@ -132,8 +132,8 @@ public class SearchBoxConfigurationBuilder {
     private List<SearchItemType> createSearchItemList() {
         List<SearchItemType> searchItems = new ArrayList<>();
 
-        if (additionalSearchContext.getReportCollection() != null) {
-            return createReportSearchItems(additionalSearchContext.getReportCollection());
+        if (getReportCollection() != null) {
+            return createReportSearchItems(getReportCollection());
         }
 
         for (ItemPath path : availableDefinitions.keySet()) {
@@ -146,6 +146,13 @@ public class SearchBoxConfigurationBuilder {
         }
 
         return searchItems;
+    }
+
+    private ObjectCollectionReportEngineConfigurationType getReportCollection(){
+        if (additionalSearchContext == null) {
+            return null;
+        }
+        return additionalSearchContext.getReportCollection();
     }
 
     private boolean isDeadItemForProjections(ItemPath path) {
