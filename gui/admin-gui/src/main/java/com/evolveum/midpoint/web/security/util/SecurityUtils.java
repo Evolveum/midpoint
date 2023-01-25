@@ -151,7 +151,7 @@ public class SecurityUtils {
         Validate.notBlank(name, "Name for searching of sequence is blank");
         for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
             if (sequence != null) {
-                if (name.equals(sequence.getName())) {
+                if (name.equals(sequence.getName()) || name.equals(sequence.getIdentifier())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }

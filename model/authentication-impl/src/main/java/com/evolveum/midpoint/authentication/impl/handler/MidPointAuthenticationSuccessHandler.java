@@ -135,13 +135,15 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             return false;
         }
         AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
-        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy,
+                AuthSequenceUtil.getAuthSequenceIdentifier(processingSequence));
         return sequence != null && processingSequence.getModule().size() != sequence.getModule().size();
     }
 
     private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {
         AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
-        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy, processingSequence.getIdentifier());
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy,
+                AuthSequenceUtil.getAuthSequenceIdentifier(processingSequence));
         mpAuthentication.setSequence(sequence);
         List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
                 authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),

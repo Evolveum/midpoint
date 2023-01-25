@@ -236,13 +236,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean sequenceIdentifiersMatch(AuthenticationSequenceType seq1, AuthenticationSequenceType seq2) {
-        if (seq1.getIdentifier() != null && seq2.getIdentifier() != null) {
-            return seq1.getIdentifier().equals(seq2.getIdentifier());
-        }
-        if (seq1.getName() != null && seq2.getName() != null) {
-            return seq1.getName().equals(seq2.getIdentifier());
-        }
-        return false;
+        String seqIdentifier1 = StringUtils.isNotEmpty(seq1.getIdentifier()) ? seq1.getIdentifier() : seq1.getName();
+        String seqIdentifier2 = StringUtils.isNotEmpty(seq2.getIdentifier()) ? seq2.getIdentifier() : seq2.getName();
+        return seqIdentifier1 != null && StringUtils.equals(seqIdentifier1, seqIdentifier2);
     }
 
     private void initAuthenticationModule(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {

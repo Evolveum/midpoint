@@ -346,7 +346,10 @@ public class SecurityHelper implements ModelAuditRecorder {
         listToProcess.forEach(itemToProcess -> {
             boolean exist = false;
             for (AM item : mergedList) {
-                if (StringUtils.equals(item.getIdentifier(), itemToProcess.getIdentifier())) {
+                String itemIdentifier = StringUtils.isNotEmpty(item.getIdentifier()) ? item.getIdentifier() : item.getName();
+                String itemToProcessIdentifier = StringUtils.isNotEmpty(itemToProcess.getIdentifier()) ?
+                        itemToProcess.getIdentifier() : itemToProcess.getName();
+                if (itemIdentifier != null && StringUtils.equals(itemIdentifier, itemToProcessIdentifier)) {
                     exist = true;
                     break;
                 }
@@ -368,7 +371,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         sequences.forEach(sequenceToProcess -> {
             boolean exist = false;
             for (AuthenticationSequenceType sequence : mergedAuthentication.getSequence()) {
-                if (StringUtils.equals(sequenceToProcess.getIdentifier(), sequence.getIdentifier())) {
+                if (sequencesIdentifiersMatch(sequence, sequenceToProcess)) {
                     mergeSequence(sequence, sequenceToProcess);
                     exist = true;
                     break;
@@ -381,8 +384,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     private void mergeSequence(AuthenticationSequenceType sequence, AuthenticationSequenceType sequenceToProcess) {
-        if (sequence == null || sequenceToProcess == null || sequence.getIdentifier() == null
-                || !sequence.getIdentifier().equals(sequenceToProcess.getIdentifier())) {
+        if (sequence == null || sequenceToProcess == null || !sequencesIdentifiersMatch(sequence, sequenceToProcess)) {
             return;
         }
         if (sequence.getChannel() == null) {
@@ -409,6 +411,12 @@ public class SecurityHelper implements ModelAuditRecorder {
                 && CollectionUtils.isEmpty(sequence.getRequireAssignmentTarget())) {
             sequence.getRequireAssignmentTarget().addAll(sequenceToProcess.getRequireAssignmentTarget());
         }
+    }
+
+    private boolean sequencesIdentifiersMatch(AuthenticationSequenceType sequence1, AuthenticationSequenceType sequence2) {
+        String identifier1 = StringUtils.isNotEmpty(sequence1.getIdentifier()) ? sequence1.getIdentifier() : sequence1.getName();
+        String identifier2 = StringUtils.isNotEmpty(sequence2.getIdentifier()) ? sequence2.getIdentifier() : sequence2.getName();
+        return identifier1 != null && StringUtils.equals(identifier1, identifier2);
     }
 
     private AuthenticationSequenceModuleType findSequenceModuleByIdentifier(List<AuthenticationSequenceModuleType> sequenceModules,

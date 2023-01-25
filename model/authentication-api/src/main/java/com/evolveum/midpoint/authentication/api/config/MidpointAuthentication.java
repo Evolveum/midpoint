@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -175,7 +176,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean allAuthenticationModulesExist() {
         return sequence.getModule()
                 .stream()
-                .allMatch(m -> getAuthenticationByIdentifier(m.getIdentifier()) != null);
+                .allMatch(m -> getAuthenticationByIdentifier(m) != null);
     }
 
     private boolean getAuthenticationModuleNecessityDecision() {
@@ -199,13 +200,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean atLeastOneSuccessfulModuleExists() {
         return sequence.getModule()
                 .stream()
-                .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+                .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
     }
 
     private boolean allModulesStateMatch(AuthenticationModuleState... states) {
         return sequence.getModule()
                 .stream()
-                .allMatch(m -> Arrays.stream(states).anyMatch(s -> s.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState())));
+                .allMatch(m -> Arrays.stream(states).anyMatch(s -> s.equals(getAuthenticationByIdentifier(m).getState())));
     }
 
     private boolean getRequiredModulesDecision() {
@@ -229,7 +230,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
                 || sequence.getModule()
                 .stream()
                 .anyMatch(m -> AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(m.getNecessity())
-                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
     }
 
     private boolean getOptionalModulesDecision() {
@@ -239,13 +240,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
                 || sequence.getModule()
                 .stream()
                 .anyMatch(m -> AuthenticationSequenceModuleNecessityType.OPTIONAL.equals(m.getNecessity())
-                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
     }
 
     private boolean allModulesAreSuccessful() {
         return sequence.getModule()
                 .stream()
-                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
     }
 
 
@@ -261,11 +262,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         return modules.stream()
                 .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
-                        && (getAuthenticationByIdentifier(m.getIdentifier()) == null
-                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState())));
+                        && (getAuthenticationByIdentifier(m) == null
+                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState())));
     }
 
-    public ModuleAuthentication getAuthenticationByIdentifier(String moduleIdentifier) {
+    public ModuleAuthentication getAuthenticationByIdentifier(AuthenticationSequenceModuleType module) {
+        if (module == null) {
+            return null;
+        }
+        String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;

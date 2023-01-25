@@ -156,7 +156,7 @@ public class SecurityPolicyUtil {
                 .getAuthentication()
                 .getSequence()
                 .stream()
-                .filter(s -> s.getIdentifier().equals(identifier))
+                .filter(s -> identifier.equals(s.getIdentifier()) || identifier.equals(s.getName()))
                 .findFirst()
                 .orElse(null);
     }

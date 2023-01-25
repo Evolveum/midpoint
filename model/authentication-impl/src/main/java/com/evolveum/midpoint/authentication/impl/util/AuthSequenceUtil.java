@@ -290,16 +290,16 @@ public class AuthSequenceUtil {
                     sharedObjects, authenticationModulesType, credentialPolicy);
         }
 
-        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
+        Validate.notEmpty(sequence.getModule(), "Sequence " +
+                (StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName()) + " don't contains authentication modules");
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
-                AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModule.getIdentifier(), authenticationModulesType);
-                if (module == null) {
-                    module = getModuleByName(sequenceModule.getName(), authenticationModulesType);  //just to support old config with name attribute
-                }
+                String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
+                        sequenceModule.getIdentifier() : sequenceModule.getName();
+                AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
                         sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
@@ -395,7 +395,8 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            if (StringUtils.equals(module.getIdentifier(), identifier)) {
+            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+            if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
                 return module;
             }
         }
