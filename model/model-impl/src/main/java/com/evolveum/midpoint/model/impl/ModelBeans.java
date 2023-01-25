@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.common.TagManager;
 import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
@@ -143,4 +144,5 @@ public class ModelBeans {
     @Autowired public AuditHelper auditHelper;
     @Autowired public ModelController modelController;
     @Autowired public SimulationResultManagerImpl simulationResultManager;
+    @Autowired public TagManager tagManager;
 }

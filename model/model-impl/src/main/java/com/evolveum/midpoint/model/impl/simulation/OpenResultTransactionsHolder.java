@@ -42,7 +42,7 @@ public class OpenResultTransactionsHolder {
             @NotNull OperationResult result) throws CommonException {
         transactions.computeIfAbsent(
                         new GlobalTxKey(resultOid, transactionId),
-                        (k) -> AggregatedMetricsComputation.create())
+                        (k) -> AggregatedMetricsComputation.create(result))
                 .addProcessedObject(processedObject, task, result);
     }
 

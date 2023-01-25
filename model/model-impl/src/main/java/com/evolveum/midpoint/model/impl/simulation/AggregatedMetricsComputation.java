@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMet
 import java.math.BigDecimal;
 import java.util.*;
 
+import com.evolveum.midpoint.model.common.TagManager;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.util.SimulationMetricPartitionDimensionsTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil;
@@ -49,6 +50,7 @@ class AggregatedMetricsComputation {
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedMetricsComputation.class);
 
     private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
+    private final TagManager tagManager = ModelBeans.get().tagManager;
 
     /** Key: Tag OID, Value: Object where the data are aggregated. */
     private final Map<String, DefaultEventTagAggregation> eventTagAggregations = new HashMap<>();
@@ -59,10 +61,10 @@ class AggregatedMetricsComputation {
     private AggregatedMetricsComputation() {
     }
 
-    static AggregatedMetricsComputation create() {
+    static AggregatedMetricsComputation create(@NotNull OperationResult result) {
         try {
             var computation = new AggregatedMetricsComputation();
-            computation.initialize();
+            computation.initialize(result);
             return computation;
         } catch (ConfigurationException e) {
             // TODO reconsider the error handling
@@ -70,7 +72,7 @@ class AggregatedMetricsComputation {
         }
     }
 
-    private void initialize() throws ConfigurationException {
+    private void initialize(@NotNull OperationResult result) throws ConfigurationException {
         List<SimulationMetricDefinitionType> definitions = simulationResultManager.getMetricDefinitions();
         LOGGER.trace("Processing {} global metric definitions", definitions.size());
         for (SimulationMetricDefinitionType definition : definitions) {
@@ -93,7 +95,7 @@ class AggregatedMetricsComputation {
         }
         LOGGER.trace("Pre-processed {} metrics", metricAggregations.size());
 
-        Collection<TagType> allEventTags = simulationResultManager.getAllEventTags();
+        Collection<TagType> allEventTags = tagManager.getAllEventTags(result);
         LOGGER.trace("Processing {} event tags", allEventTags.size());
         for (TagType eventTag : allEventTags) {
             eventTagAggregations.put(eventTag.getOid(), new DefaultEventTagAggregation(eventTag));

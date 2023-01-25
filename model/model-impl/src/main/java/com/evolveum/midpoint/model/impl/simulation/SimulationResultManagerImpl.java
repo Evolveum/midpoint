@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
@@ -7,16 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.model.common.TagManager;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,10 +31,13 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.merger.simulation.SimulationDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
@@ -54,7 +48,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
     @Autowired private Clock clock;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
-    @Autowired private TagManager tagManager;
     @Autowired private OpenResultTransactionsHolder openResultTransactionsHolder;
     @Autowired private PrismContext prismContext;
 
@@ -63,9 +56,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     /** Global metric definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
-
-    /** TODO update more efficiently and precisely */
-    @NotNull private volatile Collection<TagType> allEventTags = new ArrayList<>();
 
     /** Primitive way of checking we do not write to closed results. */
     @VisibleForTesting
@@ -116,8 +106,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                 .definition(expandedDefinition.clone())
                 .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(now))
                 .rootTaskRef(
-                        rootTaskOid != null ?
-                                ObjectTypeUtil.createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
+                        rootTaskOid != null ? createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
                 .configurationUsed(
                         configurationSpecification != null ? configurationSpecification.clone() : null);
 
@@ -132,7 +121,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         return new SimulationResultContextImpl(this, storedOid);
     }
 
-    /** TODO improve this method (e.g. by formatting the timestamp? by configuring the name?) */
+    /** TODO improve this method (e.g. by formatting the timestamp? by configuring the name? i18n?) */
     private String getResultName(SimulationDefinitionType expandedDefinition, long now) {
         String identifier = expandedDefinition.getIdentifier();
         String timeInfo = String.valueOf(now);
@@ -210,9 +199,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         deleteTransactionIfPresent(simulationResultOid, transactionId, result);
 
         openResultTransactionsHolder.removeTransaction(simulationResultOid, transactionId);
-
-        // TODO implement more precisely and efficiently
-        allEventTags = tagManager.getAllEventTags(result);
     }
 
     /**
@@ -258,27 +244,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         List<SimulationMetricValuesType> current =
                 openResultTransactionsHolder.getMetricsValues(simulationResultOid, transactionId);
         List<SimulationMetricValuesType> sum = SimulationMetricComputer.add(old, current);
+        // TODO consider removal of the following logging call (too verbose)
         LOGGER.trace("Computed updated metrics for {}:{}:\n OLD:\n{}\n CURRENT:\n{}\n SUM:\n{}",
                 simulationResultOid, transactionId,
                 DebugUtil.debugDumpLazily(old), DebugUtil.debugDumpLazily(current), DebugUtil.debugDumpLazily(sum));
-        dumpXml("old", old);
-        dumpXml("current", current);
-        dumpXml("sum", sum);
         return sum;
-    }
-
-    private void dumpXml(String name, List<SimulationMetricValuesType> values) {
-        try {
-            for (SimulationMetricValuesType value : values) {
-                LOGGER.error("ZZZZ {}\n{}", name,
-                        prismContext
-                                .xmlSerializer()
-                                .root(SchemaConstants.C_VALUE)
-                                .serializeRealValue(value));
-            }
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "when serializing");
-        }
     }
 
     @Override
@@ -358,10 +328,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @NotNull List<SimulationMetricDefinitionType> getMetricDefinitions() {
         return metricDefinitions;
-    }
-
-    @NotNull Collection<TagType> getAllEventTags() {
-        return allEventTags;
     }
 
     /**
