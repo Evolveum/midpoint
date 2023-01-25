@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1868,5 +1869,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean hasResource() {
         return resource != null;
+    }
+
+    public boolean isAdministrativeStatusSupported() throws SchemaException, ConfigurationException {
+        return resource != null
+                && CapabilityUtil.isActivationStatusCapabilityEnabled(resource, getStructuralObjectDefinition());
     }
 }

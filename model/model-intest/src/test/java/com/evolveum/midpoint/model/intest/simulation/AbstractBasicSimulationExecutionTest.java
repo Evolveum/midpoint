@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest.simulation;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.TAG_FOCUS_ASSIGNMENT_CHANGED;
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.TAG_FOCUS_ENABLED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Collection;
@@ -91,7 +91,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .display()
                 .single()
                     .assertState(ObjectProcessingStateType.ADDED)
-                    .assertEventTags(TAG_USER_ADD)
+                    .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
                     .assertType(UserType.class)
                     .delta()
                         .assertAdd()
@@ -185,7 +185,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         // @formatter:off
         assertProcessedObjectsAfter(simResult)
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
-                    .assertEventTags(TAG_USER_ADD)
+                    .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
                     .delta()
                     .objectToAdd()
                         .assertName(name)
@@ -297,6 +297,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         // @formatter:off
         assertProcessedObjectsAfter(simResult)
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
+                    .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
                     .delta()
                     .objectToAdd()
                         .assertName(name)
@@ -488,7 +489,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects) {
         assertProcessedObjects(processedObjects, "objects")
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
-                    .assertEventTags()
+                    .assertEventTags(TAG_PROJECTION_ACTIVATED)
                     .delta()
                     .objectToAdd()
                         .assertNoName() // currently, there is no object name there
@@ -545,7 +546,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_FOCUS_ENABLED)
+                    .assertEventTags(TAG_FOCUS_ACTIVATED)
                 .end()
                 .assertSize(1);
         // @formatter:on
@@ -583,7 +584,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertProcessedObjects(simResult)
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
-                    .assertEventTags(TAG_USER_ADD)
+                    .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
                     .delta()
                         .objectToAdd()
                             .assertName("test200")
@@ -646,7 +647,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertProcessedObjects(simResult)
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
-                    .assertEventTags(TAG_USER_ADD)
+                    .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
                     .delta()
                         .objectToAdd()
                             .assertName("test205")
@@ -745,8 +746,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         UserType userAfter = (UserType) assertProcessedObjects(simResult)
                 .display()
                 .single()
-                .assertEventTags(TAG_USER_ADD)
-                    .delta()
+                .assertEventTags(TAG_USER_ADD, TAG_FOCUS_ACTIVATED)
+                .delta()
                     .assertAdd()
                     .assertObjectTypeClass(UserType.class)
                     .objectToAdd()

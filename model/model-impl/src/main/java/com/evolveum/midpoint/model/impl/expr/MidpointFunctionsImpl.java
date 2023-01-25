@@ -37,6 +37,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
@@ -147,6 +148,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private CorrelationCaseManager correlationCaseManager;
     @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private ContextLoader contextLoader;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -423,6 +425,93 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private static @Nullable ActivationStatusType getAdministrativeStatus(ShadowType shadow) {
         ActivationType activationNew = shadow.getActivation();
         return activationNew != null ? activationNew.getAdministrativeStatus() : null;
+    }
+
+    @Override
+    public boolean isCurrentProjectionActivated()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return !wasCurrentProjectionActive() && willCurrentProjectionBeActive();
+    }
+
+    @Override
+    public boolean isCurrentProjectionDeactivated()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return wasCurrentProjectionActive() && !willCurrentProjectionBeActive();
+    }
+
+    private boolean wasCurrentProjectionActive()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        LensProjectionContext projCtx = getCurrentProjectionContextRequired();
+        if (projCtx.isAdministrativeStatusSupported()) {
+            ensureActivationInformationAvailable(projCtx);
+            ShadowType objectCurrent = asObjectable(projCtx.getObjectCurrent());
+            return objectCurrent != null && isShadowEnabled(objectCurrent);
+        } else {
+            // No need to load the shadow, as the administrative status is not relevant here
+            return projCtx.getObjectCurrent() != null;
+        }
+    }
+
+    private boolean willCurrentProjectionBeActive()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        LensProjectionContext projCtx = getCurrentProjectionContextRequired();
+        if (projCtx.isAdministrativeStatusSupported()) {
+            ensureActivationInformationAvailable(projCtx);
+            ShadowType objectNew = asObjectable(projCtx.getObjectNew());
+            return objectNew != null && isShadowEnabled(objectNew);
+        } else {
+            // No need to load the shadow, as the administrative status is not relevant here
+            return projCtx.getObjectNew() != null;
+        }
+    }
+
+    private static boolean isShadowEnabled(@NotNull ShadowType shadow) {
+        ActivationStatusType status = getAdministrativeStatus(shadow);
+        return status == null || status == ActivationStatusType.ENABLED;
+    }
+
+    private void ensureActivationInformationAvailable(LensProjectionContext projCtx)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!projCtx.isFullShadow()) {
+            LOGGER.trace("Will load full shadow in order to determine the activation status: {}", projCtx);
+            contextLoader.loadFullShadowNoDiscovery(
+                    projCtx, "projection activation determination", getCurrentTaskRequired(), getCurrentResult());
+        }
+    }
+
+    private @NotNull LensProjectionContext getCurrentProjectionContextRequired() {
+        return (LensProjectionContext) ModelExpressionThreadLocalHolder.getProjectionContextRequired();
+    }
+
+    @Override
+    public boolean isFocusActivated() {
+        return !wasFocusActive() && willFocusBeActive();
+    }
+
+    @Override
+    public boolean isFocusDeactivated() {
+        return wasFocusActive() && !willFocusBeActive();
+    }
+
+    private boolean wasFocusActive() {
+        return isEffectivelyEnabled(
+                asObjectable(
+                        getFocusContextRequired().getObjectOld()));
+    }
+
+    private boolean willFocusBeActive() {
+        return isEffectivelyEnabled(
+                asObjectable(
+                        getFocusContextRequired().getObjectNew()));
+    }
+
+    @NotNull private static <O extends ObjectType> LensFocusContext<O> getFocusContextRequired() {
+        return (LensFocusContext<O>) ModelExpressionThreadLocalHolder.getLensContextRequired().getFocusContextRequired();
     }
 
     @Override
@@ -852,7 +941,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // functions working with ModelContext
 
     @Override
-    public ModelContext unwrapModelContext(LensContextType lensContextType)
+    public ModelContext<?> unwrapModelContext(LensContextType lensContextType)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         return LensContext.fromLensContextBean(lensContextType, getCurrentTask(),

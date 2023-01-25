@@ -78,10 +78,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_FOCUS_DISABLED)
+                    .assertEventTags(TAG_FOCUS_DEACTIVATED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_PROJECTION_DISABLED)
+                    .assertEventTags(TAG_PROJECTION_DEACTIVATED)
                 .end()
                 .assertSize(2);
         // @formatter:on
@@ -135,10 +135,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_FOCUS_NAME_CHANGED)
+                    .assertEventTags(TAG_FOCUS_RENAMED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_PROJECTION_NAME_CHANGED, TAG_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventTags(TAG_PROJECTION_RENAMED, TAG_PROJECTION_IDENTIFIER_CHANGED)
                 .end()
                 .assertSize(2);
         // @formatter:on

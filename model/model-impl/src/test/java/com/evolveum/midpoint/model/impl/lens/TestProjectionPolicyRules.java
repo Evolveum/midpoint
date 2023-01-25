@@ -13,10 +13,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.testng.annotations.Test;
 
@@ -92,7 +89,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_DISABLED} and {@link SystemObjectsType#TAG_PROJECTION_ENABLED}
+     * Check that {@link SystemObjectsType#TAG_PROJECTION_DEACTIVATED} and {@link SystemObjectsType#TAG_PROJECTION_ACTIVATED}
      * are set correctly.
      */
     @Test
@@ -113,11 +110,11 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:off
         assertModelContext(disableContext, "disable context")
                 .focusContext()
-                    .assertEventTags(TAG_FOCUS_DISABLED)
+                    .assertEventTags(TAG_FOCUS_DEACTIVATED)
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventTags(TAG_PROJECTION_DISABLED);
+                        .assertEventTags(TAG_PROJECTION_DEACTIVATED);
 
         when("user and account are enabled");
         ObjectDelta<UserType> enableDelta = deltaFor(UserType.class)
@@ -129,11 +126,11 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:off
         assertModelContext(enableContext, "enable context")
                 .focusContext()
-                    .assertEventTags(TAG_FOCUS_ENABLED)
+                    .assertEventTags(TAG_FOCUS_ACTIVATED)
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventTags(TAG_PROJECTION_ENABLED);
+                        .assertEventTags(TAG_PROJECTION_ACTIVATED);
         // @formatter:on
     }
 
@@ -148,7 +145,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_FOCUS_NAME_CHANGED} and {@link SystemObjectsType#TAG_PROJECTION_NAME_CHANGED}
+     * Check that {@link SystemObjectsType#TAG_FOCUS_RENAMED} and {@link SystemObjectsType#TAG_PROJECTION_RENAMED}
      * are set correctly.
      */
     @Test
@@ -170,11 +167,11 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags(TAG_FOCUS_NAME_CHANGED)
+                        .assertEventTags(TAG_FOCUS_RENAMED)
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(TAG_PROJECTION_NAME_CHANGED, TAG_PROJECTION_IDENTIFIER_CHANGED);
+                            .assertEventTags(TAG_PROJECTION_RENAMED, TAG_PROJECTION_IDENTIFIER_CHANGED);
             // @formatter:on
         }
     }

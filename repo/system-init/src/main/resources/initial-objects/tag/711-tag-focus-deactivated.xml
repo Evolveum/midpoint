@@ -6,29 +6,28 @@
   -->
 
 <tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000730">
-    <name>Projection enabled</name>
-    <description>Operation that made the projection enabled</description>
+    oid="00000000-0000-0000-0000-000000000711">
+    <name>Focus deactivated</name>
+    <description>Operation that deactivated the focus</description>
     <documentation>
-        This is an operation that switched the administrative status of a projection to the enabled state.
-        TODO we may or may not be able to assess the original value
+        This is an operation that deleted or effectively disabled the focus.
+        (So, previously it existed and was effectively enabled.)
     </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <policyRule>
-        <name>projection-enabled</name>
+        <name>focus-deactivated</name>
         <policyConstraints>
             <custom>
-                <name>$projection-enabled</name>
+                <name>$focus-deactivated</name>
                 <expression>
                     <script>
-                        <code>midpoint.isCurrentProjectionBeingEnabled()</code>
+                        <code>midpoint.focusDeactivated</code>
                     </script>
                 </expression>
             </custom>
         </policyConstraints>
-        <evaluationTarget>projection</evaluationTarget>
         <focusSelector>
             <type>FocusType</type>
         </focusSelector>
