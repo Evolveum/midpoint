@@ -22,6 +22,10 @@ public class SimulationMetricReferenceTypeUtil {
 
     // TEMPORARY CODE, just to make prototype GUI code compile
     public static String getDisplayableIdentifier(SimulationMetricReferenceType reference) {
+        if (reference == null) {
+            return null;
+        }
+
         String identifier = reference.getIdentifier();
         if (identifier != null) {
             return identifier;
