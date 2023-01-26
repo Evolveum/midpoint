@@ -6,11 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -94,6 +99,8 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import static com.evolveum.midpoint.util.MiscUtil.sleepWatchfully;
 
 @PanelType(name = "members")
 @PanelInstance(identifier = "roleMembers",
@@ -522,6 +529,35 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
+    }
+
+    protected void waitWhileTaskFinish(Task task, AjaxRequestTarget target) {
+        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
+                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
+
+        AtomicReference<OperationResult> result = new AtomicReference<>();
+        long until = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
+        sleepWatchfully( until, 100, () -> {
+            try {
+                result.set(getPageBase().getTaskManager().getTaskWithResult(
+                        task.getOid(), new OperationResult("reload task")).getResult());
+            } catch (Throwable e) {
+                //ignore exception
+            }
+            return result.get() == null ? false : result.get().isInProgress();
+        });
+        if (!result.get().isSuccess() && !result.get().isInProgress()) {
+            getPageBase().showResult(result.get());
+        } else if (result.get().isInProgress()) {
+            getPageBase().showResult(task.getResult());
+        } else {
+            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
+            showedResult.setStatus(result.get().getStatus());
+            getPageBase().showResult(showedResult);
+        }
+
+        refreshTable(target);
+        target.add(getFeedback());
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
@@ -1121,11 +1157,15 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         } catch (Throwable e) {
             result.recordFatalError("Cannot delete object" + object + ", " + e.getMessage(), e);
             LOGGER.error("Error while deleting object {}, {}", object, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getFeedback());
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
         refreshTable(target);
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        return getPageBase().getFeedbackPanel();
     }
 
     protected void executeRecompute(AssignmentHolderType object, AjaxRequestTarget target) {
@@ -1136,7 +1176,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         } catch (Throwable e) {
             result.recordFatalError("Cannot recompute object" + object + ", " + e.getMessage(), e);
             LOGGER.error("Error while recomputing object {}, {}", object, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getFeedback());
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
@@ -1164,7 +1204,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 subResult.recomputeStatus();
                 subResult.recordFatalError("Cannot unassign object" + object + ", " + e.getMessage(), e);
                 LOGGER.error("Error while unassigned object {}, {}", object, e.getMessage(), e);
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(getFeedback());
             }
         }
         result.computeStatusComposite();
@@ -1236,7 +1276,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     if (type == null) {
                         getSession().warn("No type was selected. Cannot create member");
                         target.add(this);
-                        target.add(getPageBase().getFeedbackPanel());
+                        target.add(getFeedback());
                         return;
                     }
                     if (checkRelationNotSelected(relations, "No relation was selected. Cannot create member", target)) {
@@ -1305,7 +1345,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         getSession().warn(message);
         target.add(this);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(getFeedback());
         return true;
     }
 
