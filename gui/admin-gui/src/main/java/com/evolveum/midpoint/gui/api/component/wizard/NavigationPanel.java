@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evfxolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).

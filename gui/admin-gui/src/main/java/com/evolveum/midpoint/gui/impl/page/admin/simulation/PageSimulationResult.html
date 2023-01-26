@@ -15,29 +15,15 @@
             <div class="card">
                 <div class="card-header d-flex gap-2 align-items-center">
                     <i class="mr-1 fa-solid fa-circle-question"></i>
-                    <h5 class="mb-0"><wicket:message key="PageSimulationResult.details"/></h5>
+                    <h5 class="mb-0">
+                        <wicket:message key="PageSimulationResult.details"/>
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     <table class="table">
-                        <tr>
-                            <td><wicket:message key="PageSimulationResult.startTimestamp"/></td>
-                            <td>2023-01-26T17:32:43+01:00</td>
-                        </tr>
-                        <tr>
-                            <td>End timestamp</td>
-                            <td>2023-01-26T17:32:43+01:00</td>
-                        </tr>
-                        <tr>
-                            <td>Finished in</td>
-                            <td>21 minutes 32 seconds</td>
-                        </tr>
-                        <tr>
-                            <td>Task reference</td>
-                            <td><a href="#">Some reconciliation task</a></td>
-                        </tr>
-                        <tr>
-                            <td>Configuration used</td>
-                            <td><span class="badge badge-success">Production</span></td>
+                        <tr wicket:id="details">
+                            <td wicket:id="label"/>
+                            <td><span wicket:id="value"/></td>
                         </tr>
                     </table>
                 </div>
