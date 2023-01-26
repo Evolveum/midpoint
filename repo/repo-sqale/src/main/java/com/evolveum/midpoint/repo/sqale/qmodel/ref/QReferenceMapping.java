@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
@@ -67,7 +68,7 @@ public class QReferenceMapping<
     public static void registerByOwnerTypeAndPath(
             Class<?> ownerType, ItemPath itemPath, QReferenceMapping<?, ?, ?, ?> mapping) {
         Map<ItemPath, QReferenceMapping<?, ?, ?, ?>> ownerSubmap =
-                MAPPING_BY_OWNER_TYPE_AND_PATH.computeIfAbsent(ownerType, k -> new HashMap<>());
+                MAPPING_BY_OWNER_TYPE_AND_PATH.computeIfAbsent(ownerType, k -> new PathKeyedMap<>());
         ownerSubmap.put(itemPath, mapping);
     }
 

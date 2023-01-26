@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,6 +77,11 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
 
             protected String getTileCssClasses() {
                 return "col-xs-5i col-sm-5i col-md-5i col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+            }
+
+            @Override
+            protected WebMarkupContainer getFeedback() {
+                return GovernanceMembersWizardPanel.this.getFeedback();
             }
         };
         table.setOutputMarkupId(true);

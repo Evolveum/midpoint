@@ -11,16 +11,21 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -78,6 +83,28 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
                 button.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
                 button.showTitleAsLabel(true);
                 return button;
+            }
+
+            @Override
+            protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
+                waitWhileTaskFinish(task, target);
+            }
+
+            @Override
+            protected WebMarkupContainer getFeedback() {
+                return MembersWizardPanel.this.getFeedback();
+            }
+
+            @Override
+            protected void unassignMembersPerformed(IModel rowModel, QName type, QueryScope scope, Collection relations, AjaxRequestTarget target) {
+                super.unassignMembersPerformed(rowModel, type, scope, relations, target);
+                target.add(getFeedback());
+            }
+
+            @Override
+            protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
+                super.executeUnassign(object, target);
+                target.add(getFeedback());
             }
         };
         table.setOutputMarkupId(true);

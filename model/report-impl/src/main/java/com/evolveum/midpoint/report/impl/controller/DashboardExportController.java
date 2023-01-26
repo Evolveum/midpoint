@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityRun;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -18,13 +23,8 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * Controls the process of exporting dashboard-based reports.
@@ -38,13 +38,13 @@ import java.util.stream.Collectors;
  *
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
- * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
+ * 3. {@link #handleDataRecord(int, Object, RunningTask, OperationResult)} that processes given prism object,
  * to be aggregated.
  *
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class DashboardExportController<C extends Containerable> extends CollectionExportController<C> {
+public class DashboardExportController<C> extends CollectionExportController<C> {
 
     /**
      * Identifier of widget.
@@ -52,12 +52,13 @@ public class DashboardExportController<C extends Containerable> extends Collecti
     private final String widgetIdentifier;
 
     public DashboardExportController(@NotNull ReportDataSource<C> dataSource,
-            @NotNull ReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> dataWriter,
+            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,
             CompiledObjectCollectionView compiledCollection,
             @NotNull String widgetIdentifier,
             ReportParameterType reportParameters) {
+        //noinspection unchecked,rawtypes
         super(dataSource, (ReportDataWriter) dataWriter, report, reportService, compiledCollection, reportParameters);
         this.widgetIdentifier = widgetIdentifier;
     }
@@ -77,7 +78,7 @@ public class DashboardExportController<C extends Containerable> extends Collecti
 
     /**
      * Called before bucket of data is executed, i.e. before data start flowing to
-     * {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} method.
+     * {@link #handleDataRecord(int, Object, RunningTask, OperationResult)} method.
      *
      * We have to prepare for collecting the data.
      */
