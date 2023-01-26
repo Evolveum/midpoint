@@ -17,9 +17,8 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.BehaviourDelegator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evfxolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
