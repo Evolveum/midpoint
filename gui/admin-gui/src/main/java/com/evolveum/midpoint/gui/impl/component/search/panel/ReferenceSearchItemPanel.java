@@ -61,7 +61,7 @@ public class ReferenceSearchItemPanel extends PropertySearchItemPanel<ReferenceS
                 ReferenceSearchItemPanel.this.updateSearchPanel(ort, target);
             }
 
-            private Class<? extends Containerable> getSearchType() {
+            private Class<?> getSearchType() {
                 return ReferenceSearchItemPanel.this.getModelObject().getSearchType();
             }
         };

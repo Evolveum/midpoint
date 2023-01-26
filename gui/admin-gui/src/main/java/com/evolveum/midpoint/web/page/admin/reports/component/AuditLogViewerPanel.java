@@ -155,7 +155,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     @Override
     protected ISelectableDataProvider<SelectableBean<AuditEventRecordType>> createProvider() {
         PageStorage pageStorage = getPageStorage();
-        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<>(
+        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                 AuditLogViewerPanel.this, getSearchModel(), null, false) {
 
             @Override

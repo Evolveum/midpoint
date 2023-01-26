@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
 
 import static java.util.Objects.requireNonNull;
@@ -59,13 +58,13 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * </p>
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
- * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
+ * 3. {@link #handleDataRecord(int, Object, RunningTask, OperationResult)} that processes given prism object,
  * to be aggregated.
  *
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class CollectionExportController<C extends Containerable> implements ExportController<C> {
+public class CollectionExportController<C> implements ExportController<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CollectionExportController.class);
 
@@ -157,14 +156,13 @@ public class CollectionExportController<C extends Containerable> implements Expo
         Class<?> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(type, schemaService);
 
-        ModelInteractionService.SearchSpec searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
+        ModelInteractionService.SearchSpec<C> searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
                 compiledCollection, compiledCollection.getContainerType(), defaultOptions, parameters, task, result);
 
         recordDefinition = requireNonNull(
                 Referencable.class.isAssignableFrom(searchSpec.type)
                         ? schemaRegistry.findReferenceDefinitionByElementName(SchemaConstantsGenerated.C_OBJECT_REF)
                         : schemaRegistry.findItemDefinitionByCompileTimeClass(searchSpec.type, ItemDefinition.class),
-//                schemaRegistry.findContainerDefinitionByCompileTimeClass(searchSpec.type), // before ref support
                 () -> "No definition for " + searchSpec.type + " found");
 
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
@@ -173,6 +171,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
     protected void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) {
         VariablesMap parameters = new VariablesMap();
         if (reportParameters != null) {
+            //noinspection unchecked
             PrismContainerValue<ReportParameterType> reportParamsValue = reportParameters.asPrismContainerValue();
             @NotNull Collection<Item<?, ?>> items = reportParamsValue.getItems();
             for (Item<?, ?> item : items) {
@@ -211,7 +210,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
 
     /**
      * Called before bucket of data is executed, i.e. before data start flowing to
-     * {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} method.
+     * {@link #handleDataRecord(int, Object, RunningTask, OperationResult)} method.
      * </p>
      * We have to prepare for collecting the data.
      */
@@ -292,7 +291,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
             return false;
         }
 
-        TypedValue value = map.get(param.getName());
+            TypedValue<?> value = map.get(param.getName());
         if (value == null || value.getValue() == null) {
             return false;
         }
@@ -302,9 +301,9 @@ public class CollectionExportController<C extends Containerable> implements Expo
         VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
 
-        List rows = new ArrayList();
+            List<Object> rows = new ArrayList<>();
         if (obj instanceof Collection) {
-            rows.addAll((Collection) obj);
+                rows.addAll((Collection<?>) obj);
         } else {
             rows.add(obj);
         }
@@ -375,12 +374,14 @@ public class CollectionExportController<C extends Containerable> implements Expo
     private List<SubreportParameterType> getSubreports(boolean asRow) {
         ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
         if (collection == null || collection.getSubreport().isEmpty()) {
-            return new ArrayList();
+            return new ArrayList<>();
         }
 
         Collection<SubreportParameterType> subreports = collection.getSubreport();
-        List<SubreportParameterType> paramsAsRow = subreports.stream().filter(s -> asRow ? BooleanUtils.isTrue(s.isAsRow()) : BooleanUtils.isNotTrue(s.isAsRow())).collect(Collectors.toList());
-        paramsAsRow.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
+        List<SubreportParameterType> paramsAsRow = subreports.stream()
+                .filter(s -> asRow ? BooleanUtils.isTrue(s.isAsRow()) : BooleanUtils.isNotTrue(s.isAsRow()))
+                .sorted(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)))
+                .collect(Collectors.toList());
 
         return paramsAsRow;
     }

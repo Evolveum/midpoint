@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class Search<C extends Containerable> implements Serializable, DebugDumpable {
+public class Search<T extends Serializable> implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
@@ -53,18 +53,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_ADVANCED_SEARCH = "advancedQueryWrapper";
     public static final String F_AXIOM_SEARCH = "axiomQueryWrapper";
     public static final String F_FULLTEXT_SEARCH = "fulltextQueryWrapper";
-    public static final String F_BASIC_SEARCH = "searchConfigurationWrapper";
+    public static final String F_BASIC_SEARCH = "basicQueryWrapper";
 
-    private ObjectTypeSearchItemWrapper<C> type;
+    private ObjectTypeSearchItemWrapper type;
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
     private AdvancedQueryWrapper advancedQueryWrapper;
     private AxiomQueryWrapper axiomQueryWrapper;
     private FulltextQueryWrapper fulltextQueryWrapper;
-    private SearchConfigurationWrapper searchConfigurationWrapper;
-
+    private BasicQueryWrapper basicQueryWrapper;
     private OidSearchItemWrapper oidSearchItemWrapper;
-    private String advancedError;
     private String collectionViewName;
     private String collectionRefOid;
 
@@ -86,7 +84,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.collectionRefOid = collectionRefOid;
     }
 
-    public Search(ObjectTypeSearchItemWrapper<C> type, SearchBoxConfigurationType searchBoxConfigurationType) {
+    public Search(ObjectTypeSearchItemWrapper type, SearchBoxConfigurationType searchBoxConfigurationType) {
 
         this.type = type;
         this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
@@ -105,8 +103,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.axiomQueryWrapper = axiomQueryWrapper;
     }
 
-    void setSearchConfigurationWrapper(SearchConfigurationWrapper searchConfigurationWrapper) {
-        this.searchConfigurationWrapper = searchConfigurationWrapper;
+    void setSearchConfigurationWrapper(BasicQueryWrapper basicQueryWrapper) {
+        this.basicQueryWrapper = basicQueryWrapper;
     }
 
     void setFulltextQueryWrapper(FulltextQueryWrapper fulltextQueryWrapper) {
@@ -117,8 +115,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.oidSearchItemWrapper = oidSearchItemWrapper;
     }
 
-    public List<FilterableSearchItemWrapper> getItems() {
-        return searchConfigurationWrapper.getItemsList();
+    public List<FilterableSearchItemWrapper<?>> getItems() {
+        return basicQueryWrapper.getItemsList();
     }
 
     public SearchBoxModeType getSearchMode() {
@@ -147,21 +145,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
         allowedModeList.add(allowedModeType);
     }
-    public boolean isAdvancedQueryValid(PrismContext ctx) {
-        try {
-            advancedError = null;
-
-            createAdvancedObjectFilter(ctx);
-            return true;
-        } catch (Exception ex) {
-            advancedError = createErrorMessage(ex);
-        }
-
-        return false;
+    public boolean isAdvancedQueryValid(PageBase pageBase) {
+        createObjectQuery(pageBase);
+        return determineQueryWrapper().getAdvancedError() == null;
     }
 
     public String getAdvancedError() {
-        return advancedError;
+        return determineQueryWrapper().getAdvancedError();
     }
 
     public String getAdvancedQuery() {
@@ -177,25 +167,25 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
-    private ObjectQuery createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
-        SearchBoxModeType searchMode = getSearchMode();
-        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-            return advancedQueryWrapper.createQuery(ctx);
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-            return axiomQueryWrapper.createQuery(ctx);
-        }
+//    private ObjectQuery createAdvancedObjectFilter(PageBase pageBase) throws SchemaException {
+//        SearchBoxModeType searchMode = getSearchMode();
+//        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
+//            return advancedQueryWrapper.createQuery(getTypeClass(), pageBase, null);
+//        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
+//            return axiomQueryWrapper.createQuery(getTypeClass(), pageBase, null);
+//        }
+//
+//        return null;
+//    }
 
-        return null;
-    }
-
-    public Class<C> getTypeClass() {
+    public Class<T> getTypeClass() {
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
-            return (Class<C> )  ObjectType.class;
+            return (Class<T>) ObjectType.class;
         }
         if (type.getValue().getValue() != null){
-            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValue().getValue());
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValue().getValue());
         } else if (type.getValueForNull() != null) {
-            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValueForNull());
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValueForNull());
         }
 
         return null; //should not happen
@@ -227,75 +217,84 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
-        ObjectQuery query;
-        SearchBoxModeType searchMode = getSearchMode();
-        if (SearchBoxModeType.OID.equals(getSearchMode())) {
-            query = createObjectQueryOid(pageBase);
-        } else {
-            query = createObjectTypeItemQuery();
-            ObjectQuery searchTypeQuery = null;
-            if (SearchBoxModeType.ADVANCED.equals(searchMode) || SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-                searchTypeQuery = createObjectQueryAdvanced(pageBase);
-            } else if (SearchBoxModeType.FULLTEXT.equals(searchMode)) {
-                try {
-                    searchTypeQuery = fulltextQueryWrapper.createQuery(pageBase.getPrismContext());//createObjectQueryFullText(pageBase);
-                } catch (SchemaException e) {
-                    //TODO
-                    throw new RuntimeException(e);
-                }
-            } else {
-                searchTypeQuery = createObjectQuerySimple(variables, pageBase);
-            }
-
-            query = mergeQueries(query, searchTypeQuery);
-            if (query == null) {
-                if (ObjectReferenceType.class.equals(getTypeClass())) {
-                    query = pageBase.getPrismContext().queryForReferenceOwnedBy(ObjectType.class, null).build();
-                }
-                query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) getTypeClass()).build();
-            }
-
-            ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
-            query = mergeQueries(query, archetypeQuery);
+        QueryWrapper queryWrapper = determineQueryWrapper();
+        if (queryWrapper == null) {
+            LOGGER.trace("Cannot create query, not supported search box mode: {}", getSearchMode());
+            return PrismContext.get().queryFactory().createQuery();
         }
+
+        ObjectQuery query = null;
+        try {
+            query = queryWrapper.createQuery(getTypeClass(), pageBase, variables);
+        } catch (Exception e) {
+            queryWrapper.setAdvancedError(createErrorMessage(e));
+        }
+//        if (query == null) {
+//            if (ObjectReferenceType.class.equals(getTypeClass())) {
+//                query = pageBase.getPrismContext().queryForReferenceOwnedBy(ObjectType.class, null).build();
+//            }
+//            query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) getTypeClass()).build();
+//        }
+
+        ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
+        query = mergeQueries(query, archetypeQuery);
+//        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
         return query;
     }
 
-    private ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {
-        try{
-            advancedError = null;
+    private QueryWrapper determineQueryWrapper() {
+        SearchBoxModeType searchMode = getSearchMode();
 
-            ObjectQuery query = createAdvancedObjectFilter(pageBase.getPrismContext());
-            return query;
-        } catch (Exception ex) {
-            advancedError = createErrorMessage(ex);
+        switch (searchMode) {
+            case OID:
+                return oidSearchItemWrapper;
+            case ADVANCED:
+                return advancedQueryWrapper;
+            case AXIOM_QUERY:
+                return axiomQueryWrapper;
+            case FULLTEXT:
+                return fulltextQueryWrapper;
+            case BASIC:
+                return basicQueryWrapper;
         }
-
         return null;
     }
 
-    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
-        OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
-        if (oidItem == null) {
-            return null;
-        }
-        if (StringUtils.isEmpty(oidItem.getValue().getValue())) {
-            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
-        }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
-                .id(oidItem.getValue().getValue())
-                .build();
-        return query;
-    }
+//    private ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {
+//        try{
+//            advancedError = null;
+//
+//            ObjectQuery query = createAdvancedObjectFilter(pageBase);
+//            return query;
+//        } catch (Exception ex) {
+//            advancedError = createErrorMessage(ex);
+//        }
+//
+//        return null;
+//    }
+
+//    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
+//        OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
+//        if (oidItem == null) {
+//            return null;
+//        }
+//        if (StringUtils.isEmpty(oidItem.getValue().getValue())) {
+//            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
+//        }
+//        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
+//                .id(oidItem.getValue().getValue())
+//                .build();
+//        return query;
+//    }
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
         return oidSearchItemWrapper;
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
-        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper item : items) {
             if (item instanceof ObjectCollectionSearchItemWrapper) {
                 return (ObjectCollectionSearchItemWrapper) item;
@@ -304,7 +303,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
     public AbstractRoleSearchItemWrapper findMemberSearchItem() {
-        List<FilterableSearchItemWrapper<?>> items = searchConfigurationWrapper.getItemsList();
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper<?> item : items) {
             if (item instanceof AbstractRoleSearchItemWrapper) {
                 return (AbstractRoleSearchItemWrapper) item;
@@ -313,10 +312,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    private ObjectQuery createObjectTypeItemQuery() {
-        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
-        return query;
-    }
+//    private ObjectQuery createObjectTypeItemQuery() {
+//        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
+//        return query;
+//    }
 
     private ObjectQuery evaluateCollectionFilter(PageBase pageBase) {
 
@@ -394,41 +393,41 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return origQuery;
     }
 
-    private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
-        List<FilterableSearchItemWrapper> searchItems = getItems();
-        if (searchItems.isEmpty()) {
-            return null;
-        }
+//    private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
+//        List<FilterableSearchItemWrapper> searchItems = getItems();
+//        if (searchItems.isEmpty()) {
+//            return null;
+//        }
+//
+//        ObjectQuery query = null;
+//        if (query == null) {
+//            query = pageBase.getPrismContext().queryFactory().createQuery();
+//        }
+//        List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
+//        if (filters != null) {
+//            query.addFilter(pageBase.getPrismContext().queryFactory().createAnd(filters));
+//        }
+//        return query;
+//    }
 
-        ObjectQuery query = null;
-        if (query == null) {
-            query = pageBase.getPrismContext().queryFactory().createQuery();
-        }
-        List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
-        if (filters != null) {
-            query.addFilter(pageBase.getPrismContext().queryFactory().createAnd(filters));
-        }
-        return query;
-    }
-
-    public List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, VariablesMap defaultVariables) {
-        List<ObjectFilter> conditions = new ArrayList<>();
-        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
-            return conditions;
-        }
-        for (FilterableSearchItemWrapper item : getItems()) {
-
-            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
-            if (filter != null) {
-                conditions.add(filter);
-            }
-        }
-        return conditions;
-    }
+//    public List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, VariablesMap defaultVariables) {
+//        List<ObjectFilter> conditions = new ArrayList<>();
+//        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
+//            return conditions;
+//        }
+//        for (FilterableSearchItemWrapper item : getItems()) {
+//
+//            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
+//            if (filter != null) {
+//                conditions.add(filter);
+//            }
+//        }
+//        return conditions;
+//    }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        List<FilterableSearchItemWrapper> items = getItems();
+        List<FilterableSearchItemWrapper<?>> items = getItems();
         items.forEach(item -> {
             if (StringUtils.isNotEmpty(item.getParameterName())) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
@@ -440,8 +439,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public void setAdvancedQuery(String advancedQuery) {
-        advancedQueryWrapper = new AdvancedQueryWrapper();
-        advancedQueryWrapper.setAdvancedQuery(advancedQuery);
+        advancedQueryWrapper = new AdvancedQueryWrapper(advancedQuery);
     }
 
     public String getFullText() {
@@ -449,8 +447,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public void setFullText(String fullText) {
-        fulltextQueryWrapper = new FulltextQueryWrapper();
-        fulltextQueryWrapper.setFullText(fullText);
+        fulltextQueryWrapper = new FulltextQueryWrapper(fullText);
     }
 
     public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
@@ -485,10 +482,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);
-        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", basicQueryWrapper, indent + 2);
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }

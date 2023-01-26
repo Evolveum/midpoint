@@ -106,7 +106,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private final PageBase page;
 
-    private IModel<Search<? extends ObjectType>> searchModel;
+    private IModel<Search> searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -313,7 +313,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         searchModel = new LoadableModel<>(false) {
 
             @Override
-            public Search<? extends ObjectType> getObject() {
+            public Search getObject() {
                 Search search = super.getObject();
 
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
@@ -328,10 +328,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            protected Search<? extends ObjectType> load() {
+            protected Search load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
 
-                SearchBuilder<? extends ObjectType> searchBuilder = new SearchBuilder<>(type)
+                SearchBuilder searchBuilder = new SearchBuilder(type)
                         .modelServiceLocator(page);
 
                 return searchBuilder.build();
@@ -495,7 +495,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     }
 
                     @Override
-                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+                    protected IModel<Search> createSearchModel() {
                         return searchModel;
                     }
                 };

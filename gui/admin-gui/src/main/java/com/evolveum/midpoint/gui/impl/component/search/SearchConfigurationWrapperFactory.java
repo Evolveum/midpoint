@@ -36,8 +36,8 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new TextSearchItemWrapperFactory());
     }
 
-    public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(
-            Class<C> type,
+    public static  PropertySearchItemWrapper createPropertySearchItemWrapper(
+            Class<?> type,
             Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType item,
             ModelServiceLocator modelServiceLocator) {

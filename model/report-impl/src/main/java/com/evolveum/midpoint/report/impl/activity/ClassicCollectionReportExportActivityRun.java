@@ -9,31 +9,26 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.run.*;
-import com.evolveum.midpoint.repo.common.activity.run.processing.ContainerableProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.ObjectHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Activity execution specifics for classical (i.e. not distributed) collection report export.
  */
-public final class ClassicCollectionReportExportActivityRun
+public final class ClassicCollectionReportExportActivityRun<T>
         extends PlainIterativeActivityRun
-        <Containerable,
+        <T,
                 ClassicReportExportWorkDefinition,
                 ClassicReportExportActivityHandler,
                 ReportExportWorkStateType> {
@@ -52,12 +47,12 @@ public final class ClassicCollectionReportExportActivityRun
      * Execution object (~ controller) that is used to transfer objects found into report data.
      * Initialized on the activity execution start.
      */
-    private CollectionExportController<Containerable> controller;
+    private CollectionExportController<T> controller;
 
     /**
      * This is "master" search specification, derived from the report.
      */
-    private ContainerableReportDataSource searchSpecificationHolder;
+    private PrismableReportDataSource<T> searchSpecificationHolder;
 
     ClassicCollectionReportExportActivityRun(
             ActivityRunInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context) {
@@ -83,7 +78,7 @@ public final class ClassicCollectionReportExportActivityRun
 
         support.stateCheck(result);
 
-        searchSpecificationHolder = new ContainerableReportDataSource(support);
+        searchSpecificationHolder = new PrismableReportDataSource<>(support);
         dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionExportController<>(
@@ -119,19 +114,19 @@ public final class ClassicCollectionReportExportActivityRun
 
         AtomicInteger sequence = new AtomicInteger(0);
 
-        ObjectHandler<Containerable> handler = (record, lResult) -> {
-            ItemProcessingRequest<Containerable> request =
-                    ContainerableProcessingRequest.create(sequence.getAndIncrement(), record, this);
+        ObjectHandler<T> handler = (record, lResult) -> {
+            ItemProcessingRequest<T> request =
+                    new GenericProcessingRequest<>(sequence.getAndIncrement(), record, this);
             return coordinator.submit(request, lResult);
         };
         searchSpecificationHolder.run(handler, gResult);
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<Containerable> request, @NotNull RunningTask workerTask,
+    public boolean processItem(@NotNull ItemProcessingRequest<T> request, @NotNull RunningTask workerTask,
             OperationResult result)
             throws CommonException, ActivityRunException {
-        Containerable record = request.getItem();
+        T record = request.getItem();
         controller.handleDataRecord(request.getSequentialNumber(), record, workerTask, result);
         return true;
     }

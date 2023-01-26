@@ -41,16 +41,16 @@ public class SearchableItemsDefinitions {
     private static final Map<CollectionPanelType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
     private static final Map<QName, List<ItemPath>> SEARCHABLE_ASSIGNMENT_ITEMS = new HashMap<>();
 
-    private Class<? extends Containerable> type;
+    private Class<?> type;
     private ResourceShadowCoordinates coordinates;
     private ModelServiceLocator modelServiceLocator;
     private CollectionPanelType collectionPanelType;
     private QName assignmentTargetType;
-    private PrismContainerDefinition<? extends Containerable> containerDefinition;
+    private ItemDefinition<?> containerDefinition;
 
     private ResourceObjectDefinition resourceObjectDefinition;
 
-    public SearchableItemsDefinitions(Class<? extends Containerable> type, ModelServiceLocator modelServiceLocator) {
+    public SearchableItemsDefinitions(Class<?> type, ModelServiceLocator modelServiceLocator) {
         this.type = type;
         this.modelServiceLocator = modelServiceLocator;
     }
@@ -263,7 +263,7 @@ public class SearchableItemsDefinitions {
 
         Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
 
-        PrismContainerDefinition<? extends Containerable> containerDef = getDefinition();
+        ItemDefinition<?> containerDef = getDefinition();
         collectExtensionDefinitions(containerDef, extensionPaths, searchableDefinitions);
 
         collectionNonExtensionDefinitions(containerDef, searchableDefinitions, isUseSuperclassDefinition());
@@ -279,15 +279,20 @@ public class SearchableItemsDefinitions {
 
     }
 
-    private PrismContainerDefinition<? extends Containerable> getDefinition() {
+    private ItemDefinition<?> getDefinition() {
         if (containerDefinition != null) {
             return containerDefinition;
         }
         if (ObjectType.class.isAssignableFrom(type)) {
             return containerDefinition = findObjectDefinition();
         }
-
-        return containerDefinition = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        if (Containerable.class.isAssignableFrom(type)) {
+            return containerDefinition = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass((Class<Containerable>) type);
+        }
+        if (Referencable.class.isAssignableFrom(type)) { //TODO probably some "extended" definition with target specification should be here
+            return containerDefinition = PrismContext.get().getSchemaRegistry().findItemDefinitionByType(ObjectReferenceType.COMPLEX_TYPE);
+        }
+        throw new UnsupportedOperationException("Either explicit definition must be declared, or the type must be of ObjectType or Contianerable");
     }
 
     private Collection<ItemPath> createExtensionPaths() {
@@ -322,7 +327,7 @@ public class SearchableItemsDefinitions {
             throw new SystemException(ex);
         }
     }
-    private <C extends Containerable> void collectExtensionDefinitions(PrismContainerDefinition<C> containerDef, Collection<ItemPath> extensionPaths, Map<ItemPath, ItemDefinition<?>> searchableItems) {
+    private void collectExtensionDefinitions(ItemDefinition<?> containerDef, Collection<ItemPath> extensionPaths, Map<ItemPath, ItemDefinition<?>> searchableItems) {
         if (containerDef == null) {
             return;
         }
@@ -333,7 +338,7 @@ public class SearchableItemsDefinitions {
 
         for (ItemPath path : extensionPaths) {
 
-            PrismContainerDefinition ext = containerDef.findContainerDefinition(path);
+            PrismContainerDefinition ext = containerDef.findItemDefinition(path, PrismContainerDefinition.class);
             if (ext == null) {
                 LOGGER.trace("No extension defined, shipping collecting extension search items");
                 return;
@@ -345,10 +350,15 @@ public class SearchableItemsDefinitions {
         }
     }
 
-    private <C extends Containerable> void collectionNonExtensionDefinitions(PrismContainerDefinition<C> containerDef, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass) {
+    private <C extends Containerable> void collectionNonExtensionDefinitions(ItemDefinition<?> itemDefinition, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass) {
         if (CollectionPanelType.RESOURCE_SHADOW == collectionPanelType) {
             return;
         }
+        if (!(itemDefinition instanceof PrismContainerDefinition)) {
+            LOGGER.trace("Skipping collecting non container search item definitions. Parent definition not container definition.");
+            return;
+        }
+        PrismContainerDefinition<C> containerDef = (PrismContainerDefinition<C>) itemDefinition;
         Class<C> typeClass = containerDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
             List<ItemPath> paths = getAvailableSearchableItems(typeClass);

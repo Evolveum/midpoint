@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -85,7 +86,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Abstract class for List panels with table.
  */
-public abstract class ContainerableListPanel<C extends Containerable, PO extends SelectableRow> extends BasePanel<C> {
+public abstract class ContainerableListPanel<C extends Serializable, PO extends SelectableRow> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -143,7 +144,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    private boolean isUseStorageSearch(Search<C> search) {
+    private boolean isUseStorageSearch(Search search) {
         if (search == null) {
             return false;
         }
@@ -159,7 +160,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return new LoadableDetachableModel<>() {
 
             @Override
-            public Search<C> load() {
+            public Search load() {
                 return loadSearchModel();
             }
         };
@@ -176,8 +177,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return search;
     }
 
-    private Search<C> loadSearch(PageStorage storage) {
-        Search<C> search = null;
+    private Search loadSearch(PageStorage storage) {
+        Search search = null;
         if (storage != null) {
             search = storage.getSearch();
         }
@@ -192,8 +193,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private Search<C> createSearch() {
-        SearchBuilder<C> searchBuilder = new SearchBuilder<>(getType())
+    private Search createSearch() {
+        SearchBuilder searchBuilder = new SearchBuilder(getType())
                 .collectionView(getObjectCollectionView())
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
@@ -393,11 +394,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public Class<C> getType() {
         if (getSearchModel().isAttached()) {
-            return getSearchModel().getObject().getTypeClass();
+            return (Class<C>) getSearchModel().getObject().getTypeClass();
         }
         PageStorage storage = getPageStorage();
         if (storage != null && storage.getSearch() != null) {
-            return storage.getSearch().getTypeClass();
+            return (Class<C>) storage.getSearch().getTypeClass();
         }
         return getDefaultType();
     }
@@ -532,14 +533,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
     }
 
-    protected PrismContainerDefinition<C> getContainerDefinitionForColumns() {
+    protected ItemDefinition<?> getContainerDefinitionForColumns() {
         return getPageBase().getPrismContext().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(getType());
+                .findItemDefinitionByCompileTimeClass(getType(), ItemDefinition.class);//ContainerDefinitionByCompileTimeClass(getType());
     }
 
     private boolean noItemDefinitionFor(ItemPath columnPath, GuiObjectColumnType customColumn) {
+        if (!(getContainerDefinitionForColumns() instanceof PrismContainerDefinition)) {
+            LOGGER.warn("Path expression is valid valid only for containerable tables, provided definition is {}", getContainerDefinitionForColumns());
+            return true;
+        }
+        PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
         if (columnPath != null) {
-            ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(columnPath);
+            ItemDefinition itemDefinition = containerDefinition.findItemDefinition(columnPath);
             if (itemDefinition == null) { // TODO check  && expression == null) {
                 LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
                 return true;
@@ -597,7 +603,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private Set<ItemPath> getSearchablePaths(Class<C> type) {
+    private Set<ItemPath> getSearchablePaths(Class<?> type) {
         return new SearchableItemsDefinitions(type, getPageBase())
                 .additionalSearchContext(createAdditionalSearchContext())
                 .createAvailableSearchItems()
@@ -776,7 +782,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
         String collectionName = WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase());
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
-                (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+                (WebComponentUtil.anyClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
 
     private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {
@@ -873,7 +879,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private CompiledObjectCollectionView getCollectionViewForAllObject() {
-        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.containerClassToQName(getPrismContext(), getType()), null);
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.anyClassToQName(getPrismContext(), getType()), null);
     }
 
     protected ISelectableDataProvider getDataProvider() {
@@ -963,7 +969,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private String getItemDisplayName(GuiObjectColumnType column) {
-        ItemDefinition def = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
+        if (!(getContainerDefinitionForColumns() instanceof PrismContainerDefinition)) {
+            LOGGER.warn("Cannot determine item name, it is supported only for containerable tables, but the provided definition is {}", getContainerDefinitionForColumns());
+            return "";
+        }
+        PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
+        ItemDefinition def = containerDefinition.findItemDefinition(column.getPath().getItemPath());
         if (def == null) {
             return "";
         }

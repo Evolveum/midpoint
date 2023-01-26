@@ -1,14 +1,10 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.OidSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
-import com.evolveum.midpoint.prism.Containerable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.BasicQueryWrapper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -19,21 +15,23 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchConfigurationWrapper<C>> {
+public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
 
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
     private static final String ID_MORE = "more";
     private static final String ID_MORE_PROPERTIES_POPOVER = "morePropertiesPopover";
-    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> basicSearchItemsModel;
-    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> morePopupModel;
+    private LoadableDetachableModel<List<FilterableSearchItemWrapper<?>>> basicSearchItemsModel;
+    private LoadableDetachableModel<List<FilterableSearchItemWrapper<?>>> morePopupModel;
 
-    public BasicSearchPanel(String id, IModel<SearchConfigurationWrapper<C>> model) {
+    public BasicSearchPanel(String id, IModel<BasicQueryWrapper> model) {
         super(id, model);
     }
 
@@ -50,7 +48,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<FilterableSearchItemWrapper> load() {
+            protected List<FilterableSearchItemWrapper<?>> load() {
                 return getModelObject().getItemsList();
             }
         };
@@ -59,7 +57,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
     private void initMorePopupModel() {
         morePopupModel = new LoadableDetachableModel<>() {
             @Override
-            protected List<FilterableSearchItemWrapper> load() {
+            protected List<FilterableSearchItemWrapper<?>> load() {
                 return getModelObject().getItemsList();
             }
         };
@@ -71,12 +69,12 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
 
     private void initLayout() {
 
-        ListView<FilterableSearchItemWrapper> items = new ListView<FilterableSearchItemWrapper>(ID_ITEMS, basicSearchItemsModel) {
+        ListView<FilterableSearchItemWrapper<?>> items = new ListView<>(ID_ITEMS, basicSearchItemsModel) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<FilterableSearchItemWrapper> item) {
+            protected void populateItem(ListItem<FilterableSearchItemWrapper<?>> item) {
                 AbstractSearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
                 searchItemPanel.setOutputMarkupId(true);
                 searchItemPanel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
@@ -86,12 +84,12 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
 //        items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         add(items);
 
-        SelectableItemListPopoverPanel<FilterableSearchItemWrapper> popoverPanel =
-                new SelectableItemListPopoverPanel<FilterableSearchItemWrapper>(ID_MORE_PROPERTIES_POPOVER, morePopupModel) {
+        SelectableItemListPopoverPanel<FilterableSearchItemWrapper<?>> popoverPanel =
+                new SelectableItemListPopoverPanel<>(ID_MORE_PROPERTIES_POPOVER, morePopupModel) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void addItemsPerformed(List<FilterableSearchItemWrapper> itemList, AjaxRequestTarget target) {
+                    protected void addItemsPerformed(List<FilterableSearchItemWrapper<?>> itemList, AjaxRequestTarget target) {
                         addItemPerformed(itemList, target);
                     }
 
@@ -151,7 +149,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
         }
     }
 
-    private void addItemPerformed(List<FilterableSearchItemWrapper> itemList, AjaxRequestTarget target) {
+    private void addItemPerformed(List<FilterableSearchItemWrapper<?>> itemList, AjaxRequestTarget target) {
         if (itemList == null) {
             itemList = morePopupModel.getObject();
         }

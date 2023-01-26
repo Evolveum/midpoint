@@ -43,7 +43,7 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
     @Override
     protected SelectableBeanObjectDataProvider<O> createProvider() {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
-                getPageBase(), () -> (Search<O>) getSearchModel().getObject(), null) {
+                getPageBase(), () -> (Search) getSearchModel().getObject(), null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -108,11 +108,11 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
     }
 
     @Override
-    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+    protected IModel<Search> createSearchModel() {
         return new LoadableModel<>(false) {
             @Override
-            protected Search<O> load() {
-                return new SearchBuilder<>(getType())
+            protected Search load() {
+                return new SearchBuilder(getType())
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
                         .build();

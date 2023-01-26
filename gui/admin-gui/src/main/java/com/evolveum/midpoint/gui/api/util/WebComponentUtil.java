@@ -619,7 +619,7 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
-    public static <S extends Serializable> QName anyClassToQName(PrismContext prismContext, Class<S> clazz) {
+    public static QName anyClassToQName(PrismContext prismContext, Class<?> clazz) {
         if (ObjectReferenceType.class.equals(clazz)) {
             return ObjectReferenceType.COMPLEX_TYPE;
         }
@@ -629,7 +629,7 @@ public final class WebComponentUtil {
         return containerClassToQName(prismContext, (Class<Containerable>) clazz);
     }
 
-    public static <S extends Serializable> Class<S> qnameToAnyClass(PrismContext prismContext, QName qName) {
+    public static <S extends Serializable> Class<? extends Serializable> qnameToAnyClass(PrismContext prismContext, QName qName) {
         if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
             return (Class<S>) ObjectReferenceType.class;
         }
@@ -5553,22 +5553,27 @@ public final class WebComponentUtil {
     }
 
     public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {
-        createToastForResource("AbstractWizardPanel.updateObject", type, target);
+        createToastForObject("AbstractWizardPanel.updateObject", type, target);
     }
 
     public static void createToastForCreateObject(AjaxRequestTarget target, QName type) {
-        createToastForResource("AbstractWizardPanel.createObject", type, target);
+        createToastForObject("AbstractWizardPanel.createObject", type, target);
     }
 
-    private static void createToastForResource(String key, QName type, AjaxRequestTarget target) {
-        String typeLabel = translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false));
+    private static void createToastForObject(String key, QName type, AjaxRequestTarget target) {
         new Toast()
                 .success()
-                .title(PageBase.createStringResourceStatic(key, typeLabel).getString())
+                .title(PageBase.createStringResourceStatic(
+                        key,
+                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
+                        .getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(PageBase.createStringResourceStatic(key + ".text", typeLabel).getString())
+                .body(PageBase.createStringResourceStatic(
+                        key + ".text",
+                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
+                        .getString())
                 .show(target);
     }
 

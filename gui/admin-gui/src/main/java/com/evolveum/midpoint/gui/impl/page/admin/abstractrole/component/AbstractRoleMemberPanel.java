@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import static com.evolveum.midpoint.util.MiscUtil.sleepWatchfully;
+
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -40,6 +43,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
@@ -48,6 +52,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -60,6 +65,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -361,10 +367,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         return relation;
     }
-    protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
+    protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search search) {
         if (noMemberSearchItemVisible(search)) {
             PrismContext prismContext = getPageBase().getPrismContext();
-            return prismContext.queryFor(search.getTypeClass())
+            return prismContext.queryFor((Class<? extends Containerable>) search.getTypeClass())
                     .exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
@@ -374,7 +380,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return null;
     }
 
-    private <AH extends AssignmentHolderType> boolean noMemberSearchItemVisible(Search<AH> search) {
+    private <AH extends AssignmentHolderType> boolean noMemberSearchItemVisible(Search search) {
         if (!SearchBoxModeType.BASIC.equals(search.getSearchMode())) {
             return true;
         }
@@ -522,6 +528,35 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
+    }
+
+    protected void waitWhileTaskFinish(Task task, AjaxRequestTarget target) {
+        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
+                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
+
+        AtomicReference<OperationResult> result = new AtomicReference<>();
+        long until = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
+        sleepWatchfully( until, 100, () -> {
+            try {
+                result.set(getPageBase().getTaskManager().getTaskWithResult(
+                        task.getOid(), new OperationResult("reload task")).getResult());
+            } catch (Throwable e) {
+                //ignore exception
+            }
+            return result.get() == null ? false : result.get().isInProgress();
+        });
+        if (!result.get().isSuccess() && !result.get().isInProgress()) {
+            getPageBase().showResult(result.get());
+        } else if (result.get().isInProgress()) {
+            getPageBase().showResult(task.getResult());
+        } else {
+            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
+            showedResult.setStatus(result.get().getStatus());
+            getPageBase().showResult(showedResult);
+        }
+
+        refreshTable(target);
+        target.add(getFeedback());
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
@@ -735,7 +770,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> List<QName> getSupportedObjectTypes() {
-        Search<AH> search = getMemberPanelStorage().getSearch();
+        Search search = getMemberPanelStorage().getSearch();
         return search.getAllowedTypeList();
     }
 
@@ -1121,11 +1156,15 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         } catch (Throwable e) {
             result.recordFatalError("Cannot delete object" + object + ", " + e.getMessage(), e);
             LOGGER.error("Error while deleting object {}, {}", object, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getFeedback());
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
         refreshTable(target);
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        return getPageBase().getFeedbackPanel();
     }
 
     protected void executeRecompute(AssignmentHolderType object, AjaxRequestTarget target) {
@@ -1136,7 +1175,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         } catch (Throwable e) {
             result.recordFatalError("Cannot recompute object" + object + ", " + e.getMessage(), e);
             LOGGER.error("Error while recomputing object {}, {}", object, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getFeedback());
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
@@ -1164,7 +1203,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 subResult.recomputeStatus();
                 subResult.recordFatalError("Cannot unassign object" + object + ", " + e.getMessage(), e);
                 LOGGER.error("Error while unassigned object {}, {}", object, e.getMessage(), e);
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(getFeedback());
             }
         }
         result.computeStatusComposite();
@@ -1236,7 +1275,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     if (type == null) {
                         getSession().warn("No type was selected. Cannot create member");
                         target.add(this);
-                        target.add(getPageBase().getFeedbackPanel());
+                        target.add(getFeedback());
                         return;
                     }
                     if (checkRelationNotSelected(relations, "No relation was selected. Cannot create member", target)) {
@@ -1305,7 +1344,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         getSession().warn(message);
         target.add(this);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(getFeedback());
         return true;
     }
 

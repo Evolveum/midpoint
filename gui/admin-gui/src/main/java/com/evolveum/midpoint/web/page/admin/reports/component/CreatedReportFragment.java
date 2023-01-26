@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -20,7 +22,6 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,7 +40,7 @@ public class CreatedReportFragment extends Fragment {
     private List<String> values;
 
     public CreatedReportFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<Search<ReportDataType>> model, IModel<String> reportType, List<String> values) {
+                                 IModel<Search<ReportDataType>> model, IModel<String> reportType, List<String> values) {
         super(id, markupId, markupProvider);
 
         this.search = model;
