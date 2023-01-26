@@ -43,10 +43,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
 
-    @Override
-    protected SimulationResultProcessedObjectType getRowRealValue(SelectableBean<SimulationResultProcessedObjectType> bean) {
-        return bean != null ? bean.getValue() : null;
-    }
+
+
+//    @Override
+//    protected SimulationResultProcessedObjectType getRowRealValue(SelectableBean<SimulationResultProcessedObjectType> bean) {
+//        return bean != null ? bean.getValue() : null;
+//    }
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {

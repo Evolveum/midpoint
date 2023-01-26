@@ -157,12 +157,18 @@ public class DefaultColumnUtils {
             return getDefaultAuditEventsView();
         } else if (MessageTemplateType.class.equals(type)) {
             return getDefaultMessageTemplateView();
+        } else if (SimulationResultType.class.equals(type)) {
+            return getSimulationResultView();
         } else if (SimulationResultProcessedObjectType.class.equals(type)) {
             return getDefaultSimulationResultProcessedObjectView();
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
+    }
+
+    public static GuiObjectListViewType getSimulationResultView() {
+        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
     }
 
     public static GuiObjectListViewType getDefaultSimulationResultProcessedObjectView() {
