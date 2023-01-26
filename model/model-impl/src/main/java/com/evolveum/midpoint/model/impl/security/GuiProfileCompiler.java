@@ -83,7 +83,7 @@ public class GuiProfileCompiler {
     public void compileFocusProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-
+        LOGGER.debug("Going to compile focus profile for {}", principal.getName());
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(), systemConfiguration, task, result));
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
@@ -165,6 +165,7 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
+        LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
         AdminGuiConfigurationType globalAdminGuiConfig = null;
         if (systemConfiguration != null) {
             globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();

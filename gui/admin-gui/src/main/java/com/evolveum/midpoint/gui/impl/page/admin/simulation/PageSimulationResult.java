@@ -126,7 +126,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             return metrics.stream().map(m -> {
                 SmallBoxData sbd = new SmallBoxData();
                 sbd.setDescription(getDisplayableIdentifier(m.getRef()));
-                sbd.setTitle("" + SimulationMetricValuesTypeUtil.getValue(m));
+                sbd.setTitle("TODO");//todo + SimulationMetricValuesTypeUtil.getValue(m));
                 sbd.setSmallBoxCssClass("bg-info");
                 sbd.setLinkText("More info");
                 sbd.setIcon("fa fa-database");
@@ -158,11 +158,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         MidpointForm form = new MidpointForm(ID_FORM);
         add(form);
 
-        IModel<Search<TagType>> search = new LoadableModel<>(false) {
+        IModel<Search<SimulationResultType>> search = new LoadableModel<>(false) {
 
             @Override
-            protected Search<TagType> load() {
-                return new SearchBuilder(TagType.class).build();
+            protected Search<SimulationResultType> load() {
+                return new SearchBuilder(SimulationResultType.class)
+                        .modelServiceLocator(PageSimulationResult.this)
+                        .build();
             }
         };
 

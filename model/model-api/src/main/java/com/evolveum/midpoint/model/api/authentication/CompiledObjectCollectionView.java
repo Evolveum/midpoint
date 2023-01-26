@@ -91,7 +91,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.containerType = containerType;
     }
 
-    public <C extends Containerable> Class<C> getTargetClass(PrismContext prismContext) {
+    public <T> Class<T> getTargetClass(PrismContext prismContext) {
         if (containerType == null) {
             return null;
         }

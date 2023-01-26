@@ -91,7 +91,7 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
                     public void onClick(AjaxRequestTarget target) {
                         mode.setObject(item.getModelObject());
                         target.add(getSearchButton());
-                        menuItemSelected(target, null);
+                        menuItemSelected(target, item.getModelObject());
 
                     }
                 };

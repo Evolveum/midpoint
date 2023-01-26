@@ -8,6 +8,60 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <div class="d-flex gap-3 mb-3">
+        <a href="#" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back
+        </a>
+        <h3 class="m-0 pt-1 font-weight-normal">
+            Simulation view
+        </h3>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex">
+                <div class="mr-2">
+                    icon
+                </div>
+                <div class="d-flex flex-column flex-grow-1">
+                    <h4>Simulation #006 <span class="text-secondary">(sim-006)</span></h4>
+                    <span class="text-gray">Lorem ipsum dolor sit amet, consectetur adipiscing elit</span>
+                </div>
+
+            </div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a href="#" class="btn btn-primary">
+                <i class="mr-1 fa-solid fa-eye"></i>
+                View report
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                <i class="mr-1 fa-solid fa-play"></i>
+                Run again
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-3">
+            <div class="card">
+                <div class="card-header d-flex gap-2 align-items-center">
+                    <i class="mr-1 fa-solid fa-circle-question"></i>
+                    <h5 class="mb-0">Simulation task details</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table">
+                        <tr>
+                            <td>asdf</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5"/>
+
     <div class="row">
         <div class="col-12 col-md-6 col-lg-3" wicket:id="widgets">
             <div class="mb-4" wicket:id="widget"/>

@@ -129,7 +129,7 @@ public class DefaultColumnUtils {
         return OBJECT_COLUMNS_DEF;
     }
 
-    public static <C extends Containerable> GuiObjectListViewType getDefaultView(Class<? extends C> type) {
+    public static GuiObjectListViewType getDefaultView(Class<?> type) {
         if (type == null) {
             return getDefaultObjectView();
         }
@@ -157,12 +157,18 @@ public class DefaultColumnUtils {
             return getDefaultAuditEventsView();
         } else if (MessageTemplateType.class.equals(type)) {
             return getDefaultMessageTemplateView();
+        } else if (SimulationResultType.class.equals(type)) {
+            return getSimulationResultView();
         } else if (SimulationResultProcessedObjectType.class.equals(type)) {
             return getDefaultSimulationResultProcessedObjectView();
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
+    }
+
+    public static GuiObjectListViewType getSimulationResultView() {
+        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
     }
 
     public static GuiObjectListViewType getDefaultSimulationResultProcessedObjectView() {
@@ -334,7 +340,7 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<Containerable> type, SchemaService schemaService) {
+            Class<?> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }

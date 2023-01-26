@@ -66,7 +66,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * EXPERIMENTAL/UNSTABLE: This is likely to change at any moment without a notice. Depend on this interface on your own risk.
  *
  * @author Radovan Semancik
- *
  */
 @Experimental
 public interface ModelInteractionService {
@@ -527,12 +526,12 @@ public interface ModelInteractionService {
      * TODO document and clean up the interface
      */
     @Experimental
-    <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
+    <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
 
-    class SearchSpec<C extends Containerable> {
-        public Class<C> type;
+    class SearchSpec<T> {
+        public Class<T> type;
         public ObjectQuery query;
         public Collection<SelectorOptions<GetOperationOptions>> options;
     }

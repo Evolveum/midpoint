@@ -19,6 +19,10 @@ public interface SimulationPage extends IRequestablePage {
     String PAGE_PARAMETER_TAG_OID = "TAG_OID";
     String PAGE_PARAMETER_CONTAINER_ID = "CONTAINER_ID";
 
+    String DOT_CLASS = SimulationPage.class.getName() + ".";
+
+    String OPERATION_LOAD_USER = DOT_CLASS + "loadResult";
+
     default String getPageParameterResultOid() {
         PageParameters params = getPageParameters();
         return params.get(PAGE_PARAMETER_RESULT_OID).toString();

@@ -5,7 +5,10 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.ReportExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
+import com.evolveum.midpoint.prism.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,10 +24,6 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
@@ -111,14 +110,6 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return null;
-    }
-
-    @Override
-    protected C getRowRealValue(SelectableBean<C> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
     }
 
     @Override
@@ -330,32 +321,20 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected <T> Collection<T> evaluateExpression(C rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
-        Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
-        OperationResult result = task.getResult();
-        try {
-            VariablesMap variablesMap = new VariablesMap();
-            if (columnItem == null) {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
-            } else {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
-            }
-            processVariables(variablesMap);
-            if (!variablesMap.containsKey(ExpressionConstants.VAR_OBJECT)) {
-                variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.asPrismContainerValue().getDefinition());
+    protected IColumn<SelectableBean<C>, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new ReportExpressionColumn<>(columnDisplayModel, null, customColumn, expression, getPageBase()) {
 
+            @Override
+            protected void processReportSpecificVariables(VariablesMap variablesMap) {
+                ReportObjectsListPanel.this.processVariables(variablesMap);
             }
-            Object object = getPageBase().getReportManager().evaluateScript(getReport().asPrismObject(), expression, variablesMap, "evaluate column expression", task, result);
-            if (object instanceof Collection) {
-                return (Collection) object;
+
+            @Override
+            protected PrismObject<ReportType> getReport() {
+                return ReportObjectsListPanel.this.getReport().asPrismObject();
             }
-            return (Collection<T>) Collections.singletonList(object);
-        } catch (Exception e) {
-            LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
-            result.recomputeStatus();
-            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return (Collection<T>) Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
-        }
+        };
+
     }
 
     public VariablesMap getReportVariables() {
@@ -386,11 +365,5 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     public void resetTable(AjaxRequestTarget target) {
         initView();
         super.resetTable(target);
-    }
-
-    @Override
-    protected String getStringValueForObject(ObjectType object) {
-        String displayName = super.getStringValueForObject(object);
-        return StringUtils.isEmpty(displayName) ? object.getOid() : displayName;
     }
 }

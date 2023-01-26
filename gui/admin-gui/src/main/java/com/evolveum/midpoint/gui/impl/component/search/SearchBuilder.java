@@ -164,6 +164,9 @@ public class SearchBuilder<C extends Containerable> {
     }
 
     private void initAssociationWrapperIfNeeded(Search<C> search) {
+        if (additionalSearchContext == null) {
+            return;
+        }
         if (CollectionPanelType.ASSOCIABLE_SHADOW.equals(additionalSearchContext.getPanelType())) {
             AssociationSearchItemWrapper wrapper = new AssociationSearchItemWrapper(additionalSearchContext.getResourceObjectDefinition());
             search.getItems().add(0, wrapper);

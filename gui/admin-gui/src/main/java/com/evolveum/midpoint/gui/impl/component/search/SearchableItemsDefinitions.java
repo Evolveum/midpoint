@@ -187,6 +187,13 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(ClassLoggerConfigurationType.F_APPENDER),
                 ItemPath.create(ClassLoggerConfigurationType.F_PACKAGE)
         ));
+
+        SEARCHABLE_OBJECTS.put(SimulationResultType.class, Arrays.asList(
+                ItemPath.create(SimulationResultType.F_START_TIMESTAMP),
+                ItemPath.create(SimulationResultType.F_END_TIMESTAMP),
+                ItemPath.create(SimulationResultType.F_ROOT_TASK_REF),
+                ItemPath.create(SimulationResultType.F_METRIC)
+        ));
     }
 
     static {
