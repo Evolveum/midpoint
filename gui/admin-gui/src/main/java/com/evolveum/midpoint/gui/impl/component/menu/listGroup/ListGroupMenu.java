@@ -16,7 +16,27 @@ import java.util.List;
  */
 public class ListGroupMenu<T extends Serializable> implements Serializable {
 
+    private String iconCss;
+
+    private String title;
+
     private List<ListGroupMenuItem<T>> items;
+
+    public String getIconCss() {
+        return iconCss;
+    }
+
+    public void setIconCss(String iconCss) {
+        this.iconCss = iconCss;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public List<ListGroupMenuItem<T>> getItems() {
         if (items == null) {
