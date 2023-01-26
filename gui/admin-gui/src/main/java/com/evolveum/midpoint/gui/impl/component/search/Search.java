@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -19,7 +21,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -231,7 +232,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
-            query = createObjectTypeItemQuery(pageBase);
+            query = createObjectTypeItemQuery();
             ObjectQuery searchTypeQuery = null;
             if (SearchBoxModeType.ADVANCED.equals(searchMode) || SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
@@ -248,7 +249,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
             query = mergeQueries(query, searchTypeQuery);
             if (query == null) {
-                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+                if (ObjectReferenceType.class.equals(getTypeClass())) {
+                    query = pageBase.getPrismContext().queryForReferenceOwnedBy(ObjectType.class, null).build();
+                }
+                query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) getTypeClass()).build();
             }
 
             ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
@@ -288,13 +292,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
         return oidSearchItemWrapper;
-//        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-//        for (FilterableSearchItemWrapper item : items) {
-//            if (item instanceof OidSearchItemWrapper) {
-//                return (OidSearchItemWrapper) item;
-//            }
-//        }
-//        return null;
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
@@ -316,48 +313,74 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    private ObjectQuery createObjectTypeItemQuery(PageBase pageBase) {
-        ObjectQuery query;
-        if (getTypeClass() != null) {
-            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-        } else {
-            query = pageBase.getPrismContext().queryFactory().createQuery();
-        }
+    private ObjectQuery createObjectTypeItemQuery() {
+        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
         return query;
     }
 
     private ObjectQuery evaluateCollectionFilter(PageBase pageBase) {
-        CompiledObjectCollectionView view;
+
         OperationResult result = new OperationResult(OPERATION_EVALUATE_COLLECTION_FILTER);
         Task task = pageBase.createSimpleTask(OPERATION_EVALUATE_COLLECTION_FILTER);
-        ObjectFilter collectionFilter = null;
-        if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
-            view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
-            collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(getCollectionViewName())) {
-            view = pageBase.getCompiledGuiProfile()
-                    .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
-                            getCollectionViewName());
-            collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(getCollectionRefOid())) {
-            try {
-                PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
-                        getCollectionRefOid(), pageBase, task, result);
-                if (collection != null && collection.asObjectable().getFilter() != null) {
-                    collectionFilter = PrismContext.get().getQueryConverter().parseFilter(collection.asObjectable().getFilter(), getTypeClass());
-                }
-            } catch (SchemaException e) {
-                LOGGER.error("Failed to parse filter from object collection, oid {}, {}", getCollectionRefOid(), e.getStackTrace());
-                pageBase.error("Failed to parse filter from object collection, oid " + getCollectionRefOid());
-            }
-        }
+        ObjectFilter collectionFilter = getCollectionFilter(pageBase, task, result);
+
         if (collectionFilter == null) {
             return null;
         }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery();
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(collectionFilter, result, pageBase));
         return query;
 
+    }
+
+    private ObjectFilter getCollectionFilter(PageBase pageBase, Task task, OperationResult result) {
+
+        CompiledObjectCollectionView view = determineObjectCollectionView(pageBase);
+        if (view != null) {
+            return getCollectionFilterFromView(view);
+        }
+
+        if (StringUtils.isNotEmpty(getCollectionRefOid())) {
+            return parseFilterFromCollectionRef(getCollectionRefOid(), pageBase, task, result);
+        }
+        return null;
+    }
+
+    private CompiledObjectCollectionView determineObjectCollectionView(PageBase pageBase) {
+        ObjectCollectionSearchItemWrapper objectCollectionSearchItemWrapper = findObjectCollectionSearchItemWrapper();
+        if (objectCollectionSearchItemWrapper != null && objectCollectionSearchItemWrapper.getObjectCollectionView() != null) {
+            return objectCollectionSearchItemWrapper.getObjectCollectionView();
+        }
+        if (StringUtils.isNotEmpty(getCollectionViewName())) {
+            return pageBase.getCompiledGuiProfile()
+                    .findObjectCollectionView(WebComponentUtil.anyClassToQName(pageBase.getPrismContext(), getTypeClass()),
+                            getCollectionViewName());
+        }
+        return null;
+    }
+
+    private ObjectFilter getCollectionFilterFromView(CompiledObjectCollectionView view) {
+        return view != null ? view.getFilter() : null;
+    }
+
+    private ObjectFilter parseFilterFromCollectionRef(String collectionRefOid, PageBase pageBase, Task task, OperationResult result) {
+        try {
+            PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
+                    collectionRefOid, pageBase, task, result);
+            SearchFilterType filter = getFilterFromCollection(collection);
+            if (filter == null) {
+                return null;
+            }
+            return PrismContext.get().getQueryConverter().parseFilter(filter, (Class<? extends Containerable>) getTypeClass());
+        } catch (SchemaException e) {
+            LOGGER.error("Failed to parse filter from object collection, oid {}, {}", getCollectionRefOid(), e.getStackTrace());
+            pageBase.error("Failed to parse filter from object collection, oid " + getCollectionRefOid());
+        }
+        return null;
+    }
+
+    private SearchFilterType getFilterFromCollection(PrismObject<ObjectCollectionType> collection) {
+        return collection != null ? collection.asObjectable().getFilter() : null;
     }
 
     private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
@@ -379,11 +402,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         ObjectQuery query = null;
         if (query == null) {
-            if (getTypeClass() != null) {
-                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-            } else {
-                query = pageBase.getPrismContext().queryFactory().createQuery();
-            }
+            query = pageBase.getPrismContext().queryFactory().createQuery();
         }
         List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
         if (filters != null) {

@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecution
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -609,6 +610,23 @@ public final class WebComponentUtil {
 
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
+    public static <S extends Serializable> QName anyClassToQName(PrismContext prismContext, Class<S> clazz) {
+        if (ObjectReferenceType.class.equals(clazz)) {
+            return ObjectReferenceType.COMPLEX_TYPE;
+        }
+        if (ObjectType.class.isAssignableFrom(clazz)) {
+            return classToQName(prismContext, (Class<ObjectType>) clazz);
+        }
+        return containerClassToQName(prismContext, (Class<Containerable>) clazz);
+    }
+
+    public static <S extends Serializable> Class<S> qnameToAnyClass(PrismContext prismContext, QName qName) {
+        if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
+            return (Class<S>) ObjectReferenceType.class;
+        }
+        return (Class<S>) qnameToContainerClass(prismContext, qName);
     }
 
     public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {

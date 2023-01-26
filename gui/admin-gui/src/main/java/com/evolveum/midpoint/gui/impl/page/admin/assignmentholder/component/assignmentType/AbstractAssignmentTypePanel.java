@@ -10,6 +10,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.column.*;
+
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -55,10 +59,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -84,7 +84,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     private Class<? extends Objectable> objectType;
     private String objectOid;
-//    private PrismContainerDefinition<AssignmentType> searchDefinition;
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
@@ -147,26 +146,23 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         displayModel = displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel;
-
-        return new AjaxLinkColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, null) {
-            private static final long serialVersionUID = 1L;
+        return new ContainerableNameColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, customColumn, expression, getPageBase()) {
 
             @Override
-            public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                ItemPath itemPath = WebComponentUtil.getPath(customColumn);
-
-                return new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-                        return ColumnUtils.loadValuesForAssignmentNameColumn(rowModel, evaluatedValues,
-                                expression != null || itemPath != null, getPageBase());
+            protected IModel<String> getContainerName(PrismContainerValueWrapper<AssignmentType> rowModel) {
+                return () -> {
+                    String name = AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(rowModel), getPageBase());
+                    LOGGER.trace("Name for AssignmentType: " + name);
+                    if (StringUtils.isBlank(name)) {
+                        return createStringResource("AssignmentPanel.noName").getString();
                     }
+
+                    return name;
                 };
             }
 
             @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+            public boolean isClickable(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 return rowModel.getObject().getRealValue().getFocusMappings() == null && !isPreview();
             }
 

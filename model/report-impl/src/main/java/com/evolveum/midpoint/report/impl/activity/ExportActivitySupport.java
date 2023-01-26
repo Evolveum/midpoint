@@ -7,11 +7,16 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
@@ -21,13 +26,9 @@ import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 /**
  * Contains common functionality for executions of export report-related activities.
@@ -111,8 +112,12 @@ public class ExportActivitySupport extends ReportActivitySupport {
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
             return or0(modelService.countObjects(objectType, query, options, runningTask, result));
-        } else {
+        } else if (Containerable.class.isAssignableFrom(type)) {
             return or0(modelService.countContainers(type, query, options, runningTask, result));
+        } else if (Referencable.class.isAssignableFrom(type)) {
+            return or0(modelService.countReferences(query, options, runningTask, result));
+        } else {
+            throw new UnsupportedOperationException("Unsupported object type for report: " + type);
         }
     }
 }

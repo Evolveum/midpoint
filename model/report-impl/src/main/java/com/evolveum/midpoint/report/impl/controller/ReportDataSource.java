@@ -20,15 +20,15 @@ import java.util.Collection;
 /**
  * Represents a source of data for a collection-based report.
  */
-public interface ReportDataSource<C extends Containerable> {
+public interface ReportDataSource<T> {
 
     /**
      * Initializes the data source - by specifying the search it should execute later.
      */
-    void initialize(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options);
+    void initialize(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options);
 
     /**
      * Executes the search and feeds the handler with the data.
      */
-    void run(ObjectHandler<C> handler, OperationResult result) throws CommonException;
+    void run(ObjectHandler<T> handler, OperationResult result) throws CommonException;
 }
