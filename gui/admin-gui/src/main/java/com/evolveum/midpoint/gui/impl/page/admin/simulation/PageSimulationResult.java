@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -30,12 +33,11 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,9 +50,12 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -77,13 +82,15 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final String DOT_CLASS = PageSimulationResult.class.getName() + ".";
 
+    private static final String ID_NAVIGATION = "navigation";
+
     private static final String ID_WIDGETS = "widgets";
 
     private static final String ID_WIDGET = "widget";
     private static final String ID_FORM = "form";
     private static final String ID_TABLE = "table";
 
-    private IModel<SimulationResultType> model;
+    private IModel<SimulationResultType> resultModel;
 
     public PageSimulationResult() {
         this(new PageParameters());
@@ -97,7 +104,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void initModels() {
-        model = new LoadableDetachableModel<>() {
+        resultModel = new LoadableDetachableModel<>() {
             @Override
             protected SimulationResultType load() {
                 String oid = getPageParameterResultOid();
@@ -119,38 +126,47 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void initLayout() {
+        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
+
+            @Override
+            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            protected IModel<String> createTitleModel() {
+                return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                //todo implement
+                setResponsePage(PageSimulationResults.class);
+            }
+        };
+        add(navigation);
+
         // todo implement
-        IModel<List<SmallBoxData>> data = () -> {
+        IModel<List<DashboardWidgetType>> data = () -> {
 
-            List<SimulationMetricValuesType> metrics = model.getObject().getMetric();
+            List<SimulationMetricValuesType> metrics = resultModel.getObject().getMetric();
             return metrics.stream().map(m -> {
-                SmallBoxData sbd = new SmallBoxData();
-                sbd.setDescription(getDisplayableIdentifier(m.getRef()));
-                sbd.setTitle("TODO");//todo + SimulationMetricValuesTypeUtil.getValue(m));
-                sbd.setSmallBoxCssClass("bg-info");
-                sbd.setLinkText("More info");
-                sbd.setIcon("fa fa-database");
+                DashboardWidgetType dw = new DashboardWidgetType();
+                dw.setDescription(getDisplayableIdentifier(m.getRef()));
+//                dw.setTitle("TODO");//todo + SimulationMetricValuesTypeUtil.getValue(m));
+//                dw.setSmallBoxCssClass("bg-info");
+//                dw.setLinkText("More info");
+//                dw.setIcon("fa fa-database");
 
-                return sbd;
+                return dw;
             }).collect(Collectors.toList());
         };
 
-        ListView<SmallBoxData> widgets = new ListView<>(ID_WIDGETS, data) {
+        ListView<DashboardWidgetType> widgets = new ListView<>(ID_WIDGETS, data) {
 
             @Override
-            protected void populateItem(ListItem<SmallBoxData> item) {
-                item.add(new SmallBox(ID_WIDGET, item.getModel()) {
-
-                    @Override
-                    protected boolean isLinkVisible() {
-                        return true;
-                    }
-
-                    @Override
-                    protected void onClickLink(AjaxRequestTarget target) {
-                        onWidgetClick(target, getModelObject());
-                    }
-                });
+            protected void populateItem(ListItem<DashboardWidgetType> item) {
+                item.add(new MetricWidgetPanel(ID_WIDGET, item.getModel()));
             }
         };
         add(widgets);

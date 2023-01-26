@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -73,7 +76,10 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     private void initLayout() {
         add(AttributeModifier.prepend("class", "d-flex flex-column border rounded-xl bg-white p-3"));
 
-        Label title = new Label(ID_TITLE, () -> getModelObject().getDisplay().getLabel());
+        Label title = new Label(ID_TITLE, () -> {
+            DisplayType display = getModelObject().getDisplay();
+            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
+        });
         add(title);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {

@@ -8,27 +8,36 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="d-flex gap-3 mb-3">
-        <a href="#" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Back
-        </a>
-        <h3 class="m-0 pt-1 font-weight-normal">
-            Simulation view
-        </h3>
-    </div>
+    <div wicket:id="navigation"/>
 
     <div class="row">
         <div class="col-3">
             <div class="card">
                 <div class="card-header d-flex gap-2 align-items-center">
                     <i class="mr-1 fa-solid fa-circle-question"></i>
-                    <h5 class="mb-0">Simulation task details</h5>
+                    <h5 class="mb-0"><wicket:message key="PageSimulationResult.details"/></h5>
                 </div>
                 <div class="card-body p-0">
                     <table class="table">
                         <tr>
-                            <td>asdf</td>
+                            <td><wicket:message key="PageSimulationResult.startTimestamp"/></td>
+                            <td>2023-01-26T17:32:43+01:00</td>
+                        </tr>
+                        <tr>
+                            <td>End timestamp</td>
+                            <td>2023-01-26T17:32:43+01:00</td>
+                        </tr>
+                        <tr>
+                            <td>Finished in</td>
+                            <td>21 minutes 32 seconds</td>
+                        </tr>
+                        <tr>
+                            <td>Task reference</td>
+                            <td><a href="#">Some reconciliation task</a></td>
+                        </tr>
+                        <tr>
+                            <td>Configuration used</td>
+                            <td><span class="badge badge-success">Production</span></td>
                         </tr>
                     </table>
                 </div>
