@@ -65,6 +65,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         var def = simulationResultManager.getMetricDefinition(METRIC_ATTRIBUTE_MODIFICATIONS_ID);
 
         then("it is OK");
+        displayDumpable(METRIC_ATTRIBUTE_MODIFICATIONS_ID, def);
         assertThat(def).as("definition").isNotNull();
         assertThat(def.getIdentifier()).as("identifier").isEqualTo(METRIC_ATTRIBUTE_MODIFICATIONS_ID);
         assertThat(def.getComputation()).as("computation item").isNotNull();
