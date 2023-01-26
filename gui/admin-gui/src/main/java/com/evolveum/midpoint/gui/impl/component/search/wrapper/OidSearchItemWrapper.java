@@ -73,7 +73,7 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
     }
 
     @Override
-    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variables) throws SchemaException {
+    public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variables) throws SchemaException {
         if (StringUtils.isEmpty(getValue().getValue())) {
             return pageBase.getPrismContext().queryFor(ObjectType.class).build();
         }
@@ -89,6 +89,6 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
 
     @Override
     public void setAdvancedError(String advancedError) {
-        
+
     }
 }

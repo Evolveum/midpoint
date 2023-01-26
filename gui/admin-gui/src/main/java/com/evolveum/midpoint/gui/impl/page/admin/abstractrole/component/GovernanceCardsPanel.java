@@ -64,7 +64,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private static final String ID_TITLE = "title";
 
-    private IModel<Search<FocusType>> searchModel;
+    private IModel<Search> searchModel;
 
     public GovernanceCardsPanel(String id, FocusDetailsModels<AR> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -87,14 +87,14 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     private void initSearchModel() {
         searchModel = new LoadableDetachableModel<>() {
             @Override
-            protected Search<FocusType> load() {
+            protected Search load() {
 
-                SearchBuilder<FocusType> searchBuilder = new SearchBuilder<>(FocusType.class)
+                SearchBuilder searchBuilder = new SearchBuilder(FocusType.class)
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
 
-                Search<FocusType> search = searchBuilder.build();
+                Search search = searchBuilder.build();
                 MemberPanelStorage storage = getMemberPanelStorage();
                 storage.setSearch(search);
                 return search;
@@ -247,7 +247,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+                    protected IModel<Search> createSearchModel() {
                         return (IModel) searchModel;
                     }
 

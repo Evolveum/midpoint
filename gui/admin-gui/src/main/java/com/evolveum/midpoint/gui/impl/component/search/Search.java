@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class Search<C extends Containerable> implements Serializable, DebugDumpable {
+public class Search<T extends Serializable> implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
@@ -55,7 +55,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_FULLTEXT_SEARCH = "fulltextQueryWrapper";
     public static final String F_BASIC_SEARCH = "basicQueryWrapper";
 
-    private ObjectTypeSearchItemWrapper<C> type;
+    private ObjectTypeSearchItemWrapper type;
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
     private AdvancedQueryWrapper advancedQueryWrapper;
@@ -84,7 +84,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.collectionRefOid = collectionRefOid;
     }
 
-    public Search(ObjectTypeSearchItemWrapper<C> type, SearchBoxConfigurationType searchBoxConfigurationType) {
+    public Search(ObjectTypeSearchItemWrapper type, SearchBoxConfigurationType searchBoxConfigurationType) {
 
         this.type = type;
         this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
@@ -115,7 +115,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.oidSearchItemWrapper = oidSearchItemWrapper;
     }
 
-    public List<FilterableSearchItemWrapper> getItems() {
+    public List<FilterableSearchItemWrapper<?>> getItems() {
         return basicQueryWrapper.getItemsList();
     }
 
@@ -178,14 +178,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //        return null;
 //    }
 
-    public Class<C> getTypeClass() {
+    public Class<T> getTypeClass() {
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
-            return (Class<C> )  ObjectType.class;
+            return (Class<T>) ObjectType.class;
         }
         if (type.getValue().getValue() != null){
-            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValue().getValue());
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValue().getValue());
         } else if (type.getValueForNull() != null) {
-            return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), type.getValueForNull());
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValueForNull());
         }
 
         return null; //should not happen
@@ -294,7 +294,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
-        List<FilterableSearchItemWrapper> items = basicQueryWrapper.getItemsList();
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper item : items) {
             if (item instanceof ObjectCollectionSearchItemWrapper) {
                 return (ObjectCollectionSearchItemWrapper) item;
@@ -427,7 +427,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        List<FilterableSearchItemWrapper> items = getItems();
+        List<FilterableSearchItemWrapper<?>> items = getItems();
         items.forEach(item -> {
             if (StringUtils.isNotEmpty(item.getParameterName())) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
@@ -485,7 +485,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", basicQueryWrapper, indent + 2);
-        List<FilterableSearchItemWrapper> items = basicQueryWrapper.getItemsList();
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }

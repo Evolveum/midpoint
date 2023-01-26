@@ -24,6 +24,6 @@ import java.util.Objects;
 
 public abstract class FilterableSearchItemWrapper<T> extends AbstractSearchItemWrapper<T> {
 
-    public abstract <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables);
+    public abstract <C> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables);
 
 }

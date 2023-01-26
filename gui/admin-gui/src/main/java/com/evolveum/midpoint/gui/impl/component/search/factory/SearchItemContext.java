@@ -49,10 +49,10 @@ public class SearchItemContext implements Serializable {
     private String lookupTableOid;
     @Nullable private ItemPath path;
 
-    private Class<? extends Containerable> containerType;
+    private Class<?> containerType;
 
     public SearchItemContext(
-            Class<? extends Containerable> containerType,
+            Class<?> containerType,
             Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType searchItem,
             ModelServiceLocator modelServiceLocator) {
@@ -224,7 +224,7 @@ public class SearchItemContext implements Serializable {
         return item.getFilterExpression();
     }
 
-    public Class<? extends Containerable> getContainerClassType() {
+    public Class<?> getContainerClassType() {
         return containerType;
     }
 }

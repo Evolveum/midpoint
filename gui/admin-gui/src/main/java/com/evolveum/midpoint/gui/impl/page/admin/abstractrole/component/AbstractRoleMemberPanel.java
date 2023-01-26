@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -361,10 +363,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         return relation;
     }
-    protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
+    protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search search) {
         if (noMemberSearchItemVisible(search)) {
             PrismContext prismContext = getPageBase().getPrismContext();
-            return prismContext.queryFor(search.getTypeClass())
+            return prismContext.queryFor((Class<? extends Containerable>) search.getTypeClass())
                     .exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
@@ -374,7 +376,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return null;
     }
 
-    private <AH extends AssignmentHolderType> boolean noMemberSearchItemVisible(Search<AH> search) {
+    private <AH extends AssignmentHolderType> boolean noMemberSearchItemVisible(Search search) {
         if (!SearchBoxModeType.BASIC.equals(search.getSearchMode())) {
             return true;
         }
@@ -735,7 +737,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> List<QName> getSupportedObjectTypes() {
-        Search<AH> search = getMemberPanelStorage().getSearch();
+        Search search = getMemberPanelStorage().getSearch();
         return search.getAllowedTypeList();
     }
 

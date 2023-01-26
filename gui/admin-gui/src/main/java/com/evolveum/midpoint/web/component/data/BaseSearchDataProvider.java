@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 /**
  * @author lazyman
  */
-public abstract class BaseSearchDataProvider<C extends Containerable, T extends Serializable>
+public abstract class BaseSearchDataProvider<C extends Serializable, T extends Serializable>
         extends BaseSortableDataProvider<T> {
 
     private final IModel<Search<C>> search;
@@ -76,14 +76,14 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
     }
 
     public Class<C> getType() {
-        return search.getObject() == null ? null : search.getObject().getTypeClass();
+        return search.getObject() == null ? null : (Class<C>) search.getObject().getTypeClass();
     }
 
     @Override
     public long size() {
         if (search.getObject() != null && !search.getObject().getTypeClass().equals(oldType) && isUseCache()) {
             clearCache();
-            oldType = search.getObject().getTypeClass();
+            oldType = (Class<C>) search.getObject().getTypeClass();
         }
         return super.size();
     }

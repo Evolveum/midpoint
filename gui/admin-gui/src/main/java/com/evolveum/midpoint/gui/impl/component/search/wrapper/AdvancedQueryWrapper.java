@@ -20,7 +20,7 @@ public class AdvancedQueryWrapper extends AbstractQueryWrapper {
         this.advancedQuery = advancedQuery;
     }
 
-    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
+    public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
         if (StringUtils.isEmpty(advancedQuery)) {
             return null;
         }

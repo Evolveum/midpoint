@@ -612,7 +612,7 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
-    public static <S extends Serializable> QName anyClassToQName(PrismContext prismContext, Class<S> clazz) {
+    public static QName anyClassToQName(PrismContext prismContext, Class<?> clazz) {
         if (ObjectReferenceType.class.equals(clazz)) {
             return ObjectReferenceType.COMPLEX_TYPE;
         }
@@ -622,7 +622,7 @@ public final class WebComponentUtil {
         return containerClassToQName(prismContext, (Class<Containerable>) clazz);
     }
 
-    public static <S extends Serializable> Class<S> qnameToAnyClass(PrismContext prismContext, QName qName) {
+    public static <S extends Serializable> Class<? extends Serializable> qnameToAnyClass(PrismContext prismContext, QName qName) {
         if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
             return (Class<S>) ObjectReferenceType.class;
         }

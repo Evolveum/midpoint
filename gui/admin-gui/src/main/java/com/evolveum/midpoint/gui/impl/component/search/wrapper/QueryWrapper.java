@@ -17,7 +17,7 @@ import java.io.Serializable;
 
 public interface QueryWrapper extends Serializable {
 
-    ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variables) throws SchemaException;
+    <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variables) throws SchemaException;
 
      String getAdvancedError();
 

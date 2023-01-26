@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -11,14 +12,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class AxiomQueryWrapper<C extends Containerable> extends AbstractQueryWrapper {
+public class AxiomQueryWrapper extends AbstractQueryWrapper {
 
     public static final String F_DSL_QUERY = "dslQuery";
     private String dslQuery;
     //TODO
-    private PrismContainerDefinition<C> containerDefinitionOverride;
+    private ItemDefinition<?> containerDefinitionOverride;
 
-    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
+    public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
         if (StringUtils.isEmpty(dslQuery)) {
             return null;
         }

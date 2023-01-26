@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public abstract class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
+public abstract class SearchPanel<C extends Serializable> extends BasePanel<Search<C>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -152,12 +153,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         SearchBoxModeType modeType = getModelObject().getSearchMode();
         switch (modeType) {
             case BASIC:
-                BasicSearchPanel<C> basicSearchPanel = new BasicSearchPanel<>(panelId, new PropertyModel<>(getModel(), Search.F_BASIC_SEARCH));
+                BasicSearchPanel basicSearchPanel = new BasicSearchPanel(panelId, new PropertyModel<>(getModel(), Search.F_BASIC_SEARCH));
                 basicSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(basicSearchPanel);
                 break;
             case AXIOM_QUERY:
-                AxiomSearchPanel<C> axiomSearchPanel = new AxiomSearchPanel<>(panelId, new PropertyModel<>(getModel(), Search.F_AXIOM_SEARCH));
+                AxiomSearchPanel axiomSearchPanel = new AxiomSearchPanel(panelId, new PropertyModel<>(getModel(), Search.F_AXIOM_SEARCH));
                 axiomSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(axiomSearchPanel);
                 break;
@@ -214,7 +215,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             public void onClick(AjaxRequestTarget target) {
                 boolean containesCollectionFilter = false;
-                for (FilterableSearchItemWrapper item : SearchPanel.this.getModelObject().getItems()) {
+                Search<C> search = SearchPanel.this.getModelObject();
+                for (FilterableSearchItemWrapper<?> item : search.getItems()) {
                     if (item instanceof ObjectCollectionListSearchItemWrapper && item.getValue() != null && item.getValue().getValue() != null) {
                         containesCollectionFilter = true;
                         break;
@@ -225,7 +227,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     target.add(getPageBase().getFeedbackPanel());
                     return;
                 }
-                SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
+                SaveSearchPanel panel = new SaveSearchPanel(getPageBase().getMainPopupBodyId(),
                         SearchPanel.this.getModel(),
                         SearchPanel.this.getModelObject().getTypeClass(),
                         getCollectionInstanceDefaultIdentifier()) {
@@ -467,9 +469,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void applyFilterToBasicMode(List<SearchItemType> items) {
-        getModelObject().getItems().forEach(item -> item.setVisible(false));
+        getSearchItems().forEach(item -> item.setVisible(false));
         getModelObject().setSearchMode(SearchBoxModeType.BASIC);
         items.forEach(this::applyBasicModeSearchItem);
+    }
+
+    private List<FilterableSearchItemWrapper<?>> getSearchItems() {
+        return getModelObject().getItems();
     }
 
     private void applyFilterToAxiomOrAdvancedMode(List<SearchItemType> items, SearchBoxModeType mode) {
@@ -566,7 +572,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private PropertySearchItemWrapper<?> findPropertySearchItemWrapper(SearchItemType searchItem) {
         ItemPath path = searchItem.getPath().getItemPath();
-        for (FilterableSearchItemWrapper itemWrapper : getModelObject().getItems()) {
+        for (FilterableSearchItemWrapper<?> itemWrapper : getSearchItems()) {
             if (!(itemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;
             }

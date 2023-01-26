@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class BasicQueryWrapper<C extends Containerable> extends AbstractQueryWrapper {
+public class BasicQueryWrapper extends AbstractQueryWrapper {
 
-    private List<FilterableSearchItemWrapper> itemsList = new ArrayList<>();
+    private List<FilterableSearchItemWrapper<?>> itemsList = new ArrayList<>();
 
     private boolean allowToConfigureSearchItems;
 
@@ -29,7 +29,7 @@ public class BasicQueryWrapper<C extends Containerable> extends AbstractQueryWra
     public BasicQueryWrapper() {
      }
 
-    public List<FilterableSearchItemWrapper> getItemsList() {
+    public List<FilterableSearchItemWrapper<?>> getItemsList() {
         return itemsList;
     }
 
@@ -41,13 +41,13 @@ public class BasicQueryWrapper<C extends Containerable> extends AbstractQueryWra
         this.allowToConfigureSearchItems = allowToConfigureSearchItems;
     }
 
-    public BasicQueryWrapper<C> removePropertySearchItem(ItemPath path) {
+    public BasicQueryWrapper removePropertySearchItem(ItemPath path) {
         if (path == null) {
             return this;
         }
-        Iterator<FilterableSearchItemWrapper> it = getItemsList().iterator();
+        Iterator<FilterableSearchItemWrapper<?>> it = getItemsList().iterator();
         while (it.hasNext()) {
-            FilterableSearchItemWrapper item = it.next();
+            FilterableSearchItemWrapper<?> item = it.next();
             if (!(item instanceof PropertySearchItemWrapper)) {
                 continue;
             }
@@ -60,7 +60,7 @@ public class BasicQueryWrapper<C extends Containerable> extends AbstractQueryWra
     }
 
     @Override
-    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
+    public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
         if (itemsList.isEmpty()) {
             return null;
         }
@@ -77,7 +77,7 @@ public class BasicQueryWrapper<C extends Containerable> extends AbstractQueryWra
         return query;
     }
 
-    private List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, Class<? extends Containerable> typeClass, VariablesMap defaultVariables) {
+    private <T> List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, Class<T> typeClass, VariablesMap defaultVariables) {
         List<ObjectFilter> conditions = new ArrayList<>();
 //        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
 //            return conditions;

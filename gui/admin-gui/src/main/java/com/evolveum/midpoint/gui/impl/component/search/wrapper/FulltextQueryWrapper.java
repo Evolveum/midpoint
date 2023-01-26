@@ -9,6 +9,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
+
 public class FulltextQueryWrapper extends AbstractQueryWrapper {
 
     private String fullText;
@@ -17,11 +19,15 @@ public class FulltextQueryWrapper extends AbstractQueryWrapper {
         this.fullText = fullText;
     }
 
-    public ObjectQuery createQuery(Class<? extends Containerable> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
+    public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
+        if (!Containerable.class.isAssignableFrom(typeClass)) {
+            return null;
+        }
+
         if (StringUtils.isEmpty(fullText)) {
             return null;
         }
-        return PrismContext.get().queryFor(typeClass)
+        return PrismContext.get().queryFor((Class<? extends Containerable>) typeClass)
                 .fullText(fullText).build();
 
     }
