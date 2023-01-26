@@ -2357,7 +2357,7 @@
             <xsd:element name="lastFailedLogin" type="tns:LoginEventType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The date and time of last successful login attempt.
+                        The date and time of last failed login attempt.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
@@ -2612,22 +2612,6 @@
 
     <xsd:complexType name="AuthenticationAttemptDataType">
         <xsd:sequence>
-            <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The number of failed logins within the appropriate
-                        authentication module. It should be
-                        increased after every unsuccessful use of
-                        the credential. It may be reset after
-                        successful login or a time-out or may not.
-                        It depends on the policy setting. If
-                        not present, value of zero (0) is assumed.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="sequenceIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2658,6 +2642,42 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of the authentication channel used for the current authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastSuccessfulAuthentication" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last successful authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastFailedAuthentication" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last failed authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failedAttempts" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of failed attempts within the appropriate
+                        module authentication. It should be
+                        increased after every unsuccessful use of
+                        the credential. It may be reset after
+                        successful login or a time-out or may not.
+                        It depends on the policy setting. If
+                        not present, value of zero (0) is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
