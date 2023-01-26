@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -79,6 +81,9 @@ public interface SimulationResultManager {
             @NotNull OperationResult result,
             @NotNull SimulatedFunctionCall<X> functionCall)
                     throws CommonException;
+
+    /** Returns the definition of a metric or `null` if there's none. */
+    @Nullable SimulationMetricDefinitionType getMetricDefinition(@NotNull String identifier);
 
     interface SimulatedFunctionCall<X> {
         X execute() throws CommonException;

@@ -85,6 +85,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "6d8ba4fd-95ee-4d98-80c2-3a194b566f89",
             "simple-development-source");
 
+    static final String METRIC_ATTRIBUTE_MODIFICATIONS_ID = "attribute-modifications";
+
     @BeforeMethod
     public void onNativeOnly() {
         skipIfNotNativeRepository();

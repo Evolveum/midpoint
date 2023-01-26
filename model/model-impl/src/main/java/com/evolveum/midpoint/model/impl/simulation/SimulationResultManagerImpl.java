@@ -59,8 +59,8 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     /** Global definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
 
-    /** Global metric definitions provided by the system configuration. */
-    @NotNull private volatile List<SimulationMetricDefinitionType> metricDefinitions = new ArrayList<>();
+    /** Global metric definitions provided by the system configuration. Keyed by identifier. Immutable. */
+    @NotNull private volatile Map<String, SimulationMetricDefinitionType> metricDefinitions = new HashMap<>();
 
     /** Primitive way of checking we do not write to closed results. */
     @VisibleForTesting
@@ -261,7 +261,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         var configuration = value != null ? value.getSimulation() : null;
         if (configuration != null) {
             simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getSimulation());
-            metricDefinitions = CloneUtil.cloneCollectionMembers(configuration.getMetric());
+            metricDefinitions = configuration.getMetric().stream()
+                    .map(def -> CloneUtil.toImmutable(def))
+                    .collect(Collectors.toMap(
+                            def -> def.getIdentifier(),
+                            def -> def));
         }
     }
 
@@ -331,8 +335,8 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         return new SimulationResultContextImpl(this, resultOid);
     }
 
-    @NotNull List<SimulationMetricDefinitionType> getMetricDefinitions() {
-        return metricDefinitions;
+    @NotNull Collection<SimulationMetricDefinitionType> getMetricDefinitions() {
+        return metricDefinitions.values();
     }
 
     @Override
@@ -369,6 +373,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             closeSimulationResult(simulationResultOid, task, result);
         }
         return returnValue;
+    }
+
+    @Override
+    public @Nullable SimulationMetricDefinitionType getMetricDefinition(@NotNull String identifier) {
+        return metricDefinitions.get(identifier);
     }
 
     /**

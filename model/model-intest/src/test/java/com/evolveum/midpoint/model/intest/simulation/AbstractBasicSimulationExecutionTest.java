@@ -58,6 +58,25 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
     abstract TaskExecutionMode getExecutionMode();
 
+    /** Checks whether we can obtain a definition for given metric. */
+    @Test
+    public void test010GetMetricDefinition() {
+        when("obtaining a definition for a known metric");
+        var def = simulationResultManager.getMetricDefinition(METRIC_ATTRIBUTE_MODIFICATIONS_ID);
+
+        then("it is OK");
+        assertThat(def).as("definition").isNotNull();
+        assertThat(def.getIdentifier()).as("identifier").isEqualTo(METRIC_ATTRIBUTE_MODIFICATIONS_ID);
+        assertThat(def.getComputation()).as("computation item").isNotNull();
+        assertThat(def.getDomain()).as("domain item").isNotNull();
+
+        when("obtaining a definition for unknown metric");
+        var def2 = simulationResultManager.getMetricDefinition("nonsense");
+
+        then("it's null");
+        assertThat(def2).isNull();
+    }
+
     /**
      * Creating a user without an account.
      */

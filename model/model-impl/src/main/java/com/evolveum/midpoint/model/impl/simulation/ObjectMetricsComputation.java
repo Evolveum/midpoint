@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,13 +48,13 @@ class ObjectMetricsComputation<O extends ObjectType> {
 
     @NotNull private final ProcessedObject<O> processedObject;
     @NotNull private final LensElementContext<O> elementContext;
-    @NotNull private final List<SimulationMetricDefinitionType> metricDefinitions;
+    @NotNull private final Collection<SimulationMetricDefinitionType> metricDefinitions;
     @NotNull private final Task task;
 
     private ObjectMetricsComputation(
             @NotNull ProcessedObject<O> processedObject,
             @NotNull LensElementContext<O> elementContext,
-            @NotNull List<SimulationMetricDefinitionType> metricDefinitions,
+            @NotNull Collection<SimulationMetricDefinitionType> metricDefinitions,
             @NotNull Task task) {
         this.processedObject = processedObject;
         this.elementContext = elementContext;
@@ -64,7 +65,7 @@ class ObjectMetricsComputation<O extends ObjectType> {
     static <O extends ObjectType> List<SimulationProcessedObjectMetricValueType> computeAll(
             ProcessedObject<O> processedObject,
             LensElementContext<O> elementContext,
-            List<SimulationMetricDefinitionType> metricDefinitions,
+            Collection<SimulationMetricDefinitionType> metricDefinitions,
             Task task,
             OperationResult result) throws CommonException {
         return new ObjectMetricsComputation<>(processedObject, elementContext, metricDefinitions, task)

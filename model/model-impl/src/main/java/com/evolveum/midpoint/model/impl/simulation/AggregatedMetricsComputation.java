@@ -73,7 +73,7 @@ class AggregatedMetricsComputation {
     }
 
     private void initialize(@NotNull OperationResult result) throws ConfigurationException {
-        List<SimulationMetricDefinitionType> definitions = simulationResultManager.getMetricDefinitions();
+        Collection<SimulationMetricDefinitionType> definitions = simulationResultManager.getMetricDefinitions();
         LOGGER.trace("Processing {} global metric definitions", definitions.size());
         for (SimulationMetricDefinitionType definition : definitions) {
             SimulationMetricComputationType objectValueComputation = definition.getComputation();
