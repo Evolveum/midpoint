@@ -2329,6 +2329,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2359,6 +2361,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationAttempt" type="tns:AuthenticationAttemptDataType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The information about authentication attempt, in most cases describing authentication modules failures.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2593,6 +2605,101 @@
                         The source from where the login came. It is supposed to be human-readable,
                         e.g. a hostname, IP address, etc.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationAttemptDataType">
+        <xsd:sequence>
+            <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of failed logins within the appropriate
+                        authentication module. It should be
+                        increased after every unsuccessful use of
+                        the credential. It may be reset after
+                        successful login or a time-out or may not.
+                        It depends on the policy setting. If
+                        not present, value of zero (0) is assumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sequenceIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication sequence within which current authentication attempt was processed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="moduleIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication module which produces the current authentication attempt
+                            data type. This means that current authentication attempt data log describes the results of that
+                            module authentication which has the specified module identifier.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the authentication channel used for the current authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when authentication module state was changed to lockout.
+                        Lockout state can be set to the authentication module in case when the user reached maximum number
+                        of the failed authentication attempts (this maximum number is set within security policies for the
+                        appropriate type of the authentication module).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when authentication module lockout expires and the module can
+                        be normally usable again.
+
+                        This is only an informational value. It should be considered as read-only
+                        for most cases. It only makes sense if the lockoutStatus is not in the "normal" state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutStatus" type="tns:LockoutStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the state of the authentication module lock-out. Lock-out means that the module
+                        was temporarily disabled due to failed authentication attempts.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
