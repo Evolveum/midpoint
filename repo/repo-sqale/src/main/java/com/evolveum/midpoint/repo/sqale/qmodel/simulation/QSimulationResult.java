@@ -33,7 +33,7 @@ public class QSimulationResult extends QObject<MSimulationResult> {
             ColumnMetadata.named("rootTaskRefRelationId").ofType(Types.INTEGER);
 
     public static final ColumnMetadata START_TIMESTAMP =
-            ColumnMetadata.named("endTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+            ColumnMetadata.named("startTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
     public static final ColumnMetadata END_TIMESTAMP =
             ColumnMetadata.named("endTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
