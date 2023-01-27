@@ -452,7 +452,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         List<QName> newMemberObjectTypes = getNewMemberObjectTypes();
         if (newMemberObjectTypes != null) {
             newMemberObjectTypes.forEach(objectType -> {
-                List<QName> supportedRelation = getSupportedRelations();
+                List<QName> supportedRelation = new ArrayList<>(getSupportedRelations());
                 if (!UserType.COMPLEX_TYPE.equals(objectType) && !OrgType.COMPLEX_TYPE.equals(objectType)) {
                     supportedRelation.remove(RelationTypes.APPROVER.getRelation());
                     supportedRelation.remove(RelationTypes.OWNER.getRelation());
