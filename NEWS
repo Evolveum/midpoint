@@ -1,13 +1,13 @@
-midPoint 4.4.3 "Tesla" Update 3
+midPoint 4.4.4 "Tesla" Update 4
 -------------------------------
 
-Release 4.4.3 is is a forty-second midPoint release.
-It is the third maintenance update for 4.4.x version family code-named _Tesla_.
-The 4.4.3 release brings GUI performance improvements, stability improvements and miscellaneous bugfixes.
+Release 4.4.4 is is a forty-fourth midPoint release.
+It is the fourth maintenance update for 4.4.x version family code-named _Tesla_.
+The 4.4.4 release brings ConnId update, AD/LDAP connector upgrades, stability improvements and miscellaneous bugfixes.
 
-Release date: 9th September 2022
+Release date: 27th January 2023
 Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4.3/
+https://docs.evolveum.com/midpoint/release/4.4.4/
