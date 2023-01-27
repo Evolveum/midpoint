@@ -451,11 +451,19 @@ public class PolicyRuleTypeUtil {
      * Returns true if this policy rule can be applied to an object as a whole.
      */
     public static boolean isApplicableToObject(PolicyRuleType rule) {
-        if (rule.getEvaluationTarget() != null) {
-            return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.OBJECT;
+        PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
+        if (evaluationTarget != null) {
+            return evaluationTarget == PolicyRuleEvaluationTargetType.OBJECT;
         } else {
             return !hasAssignmentOnlyConstraint(rule);
         }
+    }
+
+    /**
+     * Returns true if this policy rule can be applied to a projection.
+     */
+    public static boolean isApplicableToProjection(PolicyRuleType rule) {
+        return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.PROJECTION;
     }
 
     private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {

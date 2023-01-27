@@ -160,12 +160,6 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
 
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
-
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
         AssertJUnit.assertNotNull(context);
@@ -231,12 +225,6 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
 
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
-
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
         AssertJUnit.assertNotNull(context);
@@ -265,12 +253,6 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one

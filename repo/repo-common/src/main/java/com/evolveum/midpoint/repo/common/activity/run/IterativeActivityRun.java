@@ -447,6 +447,7 @@ public abstract class IterativeActivityRun<
         BucketProcessingRecord record = new BucketProcessingRecord(getLiveItemProcessing());
 
         beforeBucketProcessing(result);
+        simulationSupport.openSimulationResultTransaction(result);
 
         setExpectedInCurrentBucket(result);
 
@@ -475,6 +476,12 @@ public abstract class IterativeActivityRun<
 
             // We want to report bucket as completed only after it's really marked as completed.
             reportBucketCompleted(record, result);
+
+            // We close the simulation result part only when the bucket is really completed. This means that when
+            // a simulation task is suspended, the information from the currently processed bucket(s) is not available.
+            // If we would commit it, the overall statistics would get broken when the task is resumed. If we want to see
+            // the incomplete statistics, we'd need to store them separately - just like we do for progress information.
+            simulationSupport.commitSimulationResultTransaction(result);
         }
 
         return complete;

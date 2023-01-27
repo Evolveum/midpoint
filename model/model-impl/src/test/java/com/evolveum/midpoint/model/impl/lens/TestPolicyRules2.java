@@ -67,7 +67,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
     private static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_FILE = new File(TEST_DIR, "role-no-inducements-add-delete.xml");
     private static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_VIA_EXPRESSION_FILE = new File(TEST_DIR, "role-no-inducements-add-delete-via-expression.xml");
 
-    private static final int STUDENT_TARGET_RULES = 6;          // one is global
+    private static final int STUDENT_TARGET_RULES = 6; // one is global
     private static final int STUDENT_FOCUS_RULES = 21;
 
     private static final String ACTIVITY_DESCRIPTION = "PROJECTOR (test)";
@@ -98,10 +98,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         ObjectFilter studentFilter = prismContext.queryFor(RoleType.class).id(roleStudentOid).buildFilter();
 
-        GlobalPolicyRuleType hasStudentDisabled = new GlobalPolicyRuleType(prismContext)
+        GlobalPolicyRuleType hasStudentDisabled = new GlobalPolicyRuleType()
                 .name("has-student-assignment-disabled")
-                .focusSelector(new ObjectSelectorType(prismContext))
-                .targetSelector(new ObjectSelectorType(prismContext)
+                .focusSelector(new ObjectSelectorType())
+                .targetSelector(new ObjectSelectorType()
                         .type(RoleType.COMPLEX_TYPE)
                         .filter(prismContext.getQueryConverter().createSearchFilterType(studentFilter)))
                 .beginPolicyConstraints()
@@ -112,7 +112,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .<PolicyConstraintsType>end()
                 .<GlobalPolicyRuleType>end()
                 .evaluationTarget(PolicyRuleEvaluationTargetType.ASSIGNMENT)
-                .policyActions(new PolicyActionsType(prismContext));
+                .policyActions(new PolicyActionsType());
 
         repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 prismContext.deltaFor(SystemConfigurationType.class)
@@ -857,7 +857,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
-                .item(RoleType.F_INDUCEMENT).add(new AssignmentType(prismContext).targetRef("1", OrgType.COMPLEX_TYPE))
+                .item(RoleType.F_INDUCEMENT).add(new AssignmentType().targetRef("1", OrgType.COMPLEX_TYPE))
                 .asObjectDelta(roleNoInducementsAddDeleteOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);

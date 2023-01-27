@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,8 +105,6 @@ public class TaskQuartzImpl implements Task {
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
-
-    @NotNull private final Collection<AggregatedObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -195,6 +192,12 @@ public class TaskQuartzImpl implements Task {
     /** ConnId operations listeners. */
     @Experimental
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
+
+    /** Obtains information about objects processed by the currently executing simulation. */
+    private volatile SimulationDataConsumer simulationDataConsumer;
+
+    /** TODO */
+    private String simulationResultOid;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -2317,24 +2320,32 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
-        objectProcessingListeners.add(listener);
+    public SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer) {
+        SimulationDataConsumer old = simulationDataConsumer;
+        simulationDataConsumer = consumer;
+        return old;
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
-        objectProcessingListeners.remove(listener);
+    public boolean hasSimulationDataConsumer() {
+        return simulationDataConsumer != null;
     }
 
     @Override
-    public <O extends ObjectType> void onItemProcessed(
-            @Nullable O stateBefore,
-            @Nullable ObjectDelta<O> executedDelta,
-            @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull Collection<String> eventTags,
-            @NotNull OperationResult result) throws SchemaException {
-        for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+    public String getSimulationResultOid() {
+        return simulationResultOid;
+    }
+
+    @Override
+    public void setSimulationResultOid(String simulationResultOid) {
+        this.simulationResultOid = simulationResultOid;
+    }
+
+    @Override
+    public void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result) {
+        SimulationDataConsumer consumer = simulationDataConsumer;
+        if (consumer != null) {
+            consumer.accept(data, this, result);
         }
     }
     //endregion

@@ -128,6 +128,8 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
         }
 
         LensContext.dumpRules(sb, "Object policy rules", indent, getObjectPolicyRules());
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "Event tags", getEventTags(), indent);
         return sb.toString();
     }
 

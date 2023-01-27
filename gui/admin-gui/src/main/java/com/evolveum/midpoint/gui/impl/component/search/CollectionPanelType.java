@@ -31,7 +31,8 @@ public enum CollectionPanelType {
     ASSOCIABLE_SHADOW(false, null, false, null),
     PROJECTION_SHADOW(false, null, false, null),
     DEBUG(false, null, false, null),
-    ASSIGNABLE(false, null, false, null);
+    ASSIGNABLE(false, null, false, null),
+    SIMULATION_PROCESSED_OBJECTS(false, null, false, null);
 
     private boolean memberPanel;
     private String panelInstance;

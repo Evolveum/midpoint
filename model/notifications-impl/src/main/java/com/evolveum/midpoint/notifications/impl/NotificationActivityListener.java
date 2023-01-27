@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- * Creates {@link ActivityEvent} instances.
+ * Creates and submits {@link ActivityEvent} instances.
  */
 @Component
 public class NotificationActivityListener implements ActivityListener {

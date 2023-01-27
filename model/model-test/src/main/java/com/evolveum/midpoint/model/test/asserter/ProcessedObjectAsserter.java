@@ -11,10 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.test.AbstractTestResource;
 
 import org.jetbrains.annotations.NotNull;
@@ -65,15 +61,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        if (!getRepositoryService().supportsTags()) {
-            return this;
-        }
-        Set<String> expectedTagsOids = Arrays.stream(expectedTags)
-                .map(r -> r.oid)
-                .collect(Collectors.toSet());
-        assertThat(processedObject.getEventTags())
-                .as("event tags")
-                .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
+        assertEventTags(expectedTags, processedObject.getEventTags());
         return this;
     }
 

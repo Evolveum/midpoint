@@ -476,10 +476,4 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public void deleteEmptyPrimaryDelta() {
         state.deleteEmptyPrimaryDelta();
     }
-
-    @Override
-    @NotNull
-    Collection<String> getEventTags() {
-        return policyRulesContext.getEventTags();
-    }
 }

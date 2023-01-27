@@ -28,6 +28,10 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+
+import com.evolveum.midpoint.gui.impl.page.admin.tag.PageTag;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -255,6 +259,9 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
+
+        OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
+        OBJECT_DETAILS_PAGE_MAP.put(TagType.class, PageTag.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -1895,6 +1902,8 @@ public final class WebComponentUtil {
             return createReportIcon();
         } else if (type == ObjectTemplateType.class) {
             return createObjectTemplateIcon();
+        } else if (type == SimulationResultType.class) {
+            return createSimulationResultIcon();
         }
         return "";
     }
@@ -2304,6 +2313,10 @@ public final class WebComponentUtil {
 
     private static String createObjectTemplateIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
+    }
+
+    private static String createSimulationResultIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_SIMULATION_RESULT);
     }
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {

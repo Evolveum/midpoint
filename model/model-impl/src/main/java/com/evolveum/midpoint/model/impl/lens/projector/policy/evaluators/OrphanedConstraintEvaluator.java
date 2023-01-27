@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrphanedPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -54,16 +54,18 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
     @Autowired protected TaskManager taskManager;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedOrphanedTrigger evaluate(@NotNull JAXBElement<OrphanedPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedOrphanedTrigger evaluate(
+            @NotNull JAXBElement<OrphanedPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
         try {
             if (rctx instanceof ObjectPolicyRuleEvaluationContext<?>) {
-                return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<AH>) rctx, result);
+                return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<O>) rctx, result);
             } else {
                 return null;
             }
@@ -75,11 +77,13 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
         }
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedOrphanedTrigger evaluateForObject(@NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
-            ObjectPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private EvaluatedOrphanedTrigger evaluateForObject(
+            @NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
+            ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
-        PrismObject<AH> object = ctx.getObject();
+        PrismObject<?> object = ctx.getObject();
         if (object == null || !(object.asObjectable() instanceof TaskType)) {
             return null;
         }
@@ -98,23 +102,40 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(@NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + OrphanedConstraintEvaluator.CONSTRAINT_KEY_PREFIX, constraintElement, ctx, result);
+    private LocalizableMessage createMessage(
+            @NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = createBuiltInMessage(
+                SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
+                constraintElement,
+                ctx,
+                result);
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<OrphanedPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + OrphanedConstraintEvaluator.CONSTRAINT_KEY_PREFIX, constraintElement, ctx, result);
+    private LocalizableMessage createShortMessage(
+            JAXBElement<OrphanedPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = createBuiltInMessage(
+                SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
+                constraintElement,
+                ctx,
+                result);
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createBuiltInMessage(String keyPrefix,
-            JAXBElement<OrphanedPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx,
+    private LocalizableMessage createBuiltInMessage(
+            String keyPrefix,
+            JAXBElement<OrphanedPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {

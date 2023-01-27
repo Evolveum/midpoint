@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -34,7 +36,11 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
     }
 
     public QProcessedObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QProcessedObject.TABLE_NAME, DEFAULT_ALIAS_NAME,SimulationResultProcessedObjectType.class, QProcessedObject.class, repositoryContext);
+        super(QProcessedObject.TABLE_NAME,
+                DEFAULT_ALIAS_NAME,
+                SimulationResultProcessedObjectType.class,
+                QProcessedObject.class,
+                repositoryContext);
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -48,9 +54,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
         // addItemMapping(F_OBJECT_TYPE, ));
-
+        addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
-        addItemMapping(F_METRIC_IDENTIFIER, multiStringMapper(q -> q.metricIdentifiers));
+        addRefMapping(F_EVENT_TAG_REF, QProcessedObjectEventTagReferenceMapping.init(repositoryContext));
     }
 
     /*
@@ -85,8 +91,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     @Override
     protected PathSet fullObjectItemsToSkip() {
-        // Do not store full objects
-        return PathSet.of(F_BEFORE, F_AFTER);
+        // Do not store full objects (TEMPORARILY DISABLED because of the need to apply definitions in shadow deltas)
+        // return PathSet.of(F_BEFORE, F_AFTER);
+        return PathSet.empty();
     }
 
     @Override
@@ -101,11 +108,12 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         }
         row.state = object.getState();
 
-        row.metricIdentifiers = stringsToArray(object.getMetricIdentifier());
         row.fullObject = createFullObject(object);
-
+        row.transactionId = object.getTransactionId();
         // Before / After not serialized
         insert(row, jdbcSession);
+        // We store event tags
+        storeRefs(row, object.getEventTagRef(), QProcessedObjectEventTagReferenceMapping.getInstance(), jdbcSession);
         return row;
     }
 }

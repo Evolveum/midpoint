@@ -2666,25 +2666,28 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- TODO "mode" will be here. -->
-            <xsd:element name="productionConfiguration" type="xsd:boolean" minOccurs="0" default="true">
+            <xsd:element name="configurationToUse" type="tns:ConfigurationSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What configuration should the actions take into account? Production or "development" one?
-
-                        - Production usually means `active` and `deprecated` lifecycle states.
-                        - Development will probably `active` and `proposed` states. (Currently: `active`, `proposed` and `deprecated`.)
-
-                        TEMPORARY. May change in near future.
+                        What configuration should be used to run the simulation?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO parameters for the simulation -->
-            <xsd:element name="createSimulationResult" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="createSimulationResult" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Should we create a simulation result for this activity?
 
-                        TEMPORARY. May change in near future.
+                        The default value is "true" if simulation definition is present, and "false" otherwise.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simulationDefinition" type="tns:SimulationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition (configuration) of the simulation. May refer to one of global definitions.
+                        If "createSimulationResult" is true and this definition is unspecified, the system default definition
+                        is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8832,6 +8835,14 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:SimulationResultType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resultCreated" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Was the result created in this activity ("true") or in some of its ancestors or not at all ("false")?
+                        We can close it only in the former case, to avoid writing to closed results in follow-on activities.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

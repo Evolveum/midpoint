@@ -96,6 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'DELEGATED',
     'INCLUDE',
     'PROJECTION',
+    'PROCESSED_OBJECT_EVENT_TAG',
     'OBJECT_CREATE_APPROVER',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
@@ -1875,7 +1876,12 @@ CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
         CHECK (objectType = 'SIMULATION_RESULT'),
-    partitioned boolean
+    partitioned boolean,
+    rootTaskRefTargetOid UUID,
+    rootTaskRefTargetType ObjectType,
+    rootTaskRefRelationId INTEGER REFERENCES m_uri(id),
+    startTimestamp TIMESTAMPTZ,
+    endTimestamp TIMESTAMPTZ
 )
     INHERITS (m_object);
 
@@ -1893,7 +1899,7 @@ CREATE TABLE m_simulation_result_processed_object (
     -- Owner does not have to be the direct parent of the container.
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ownerOid UUID NOT NULL REFERENCES m_simulation_result(oid) ON DELETE CASCADE,
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
@@ -1909,6 +1915,7 @@ CREATE TABLE m_simulation_result_processed_object (
     fullObject BYTEA,
     objectBefore BYTEA,
     objectAfter BYTEA,
+    transactionId TEXT,
 
    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
@@ -1953,6 +1960,20 @@ LANGUAGE plpgsql;
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
+
+
+CREATE TABLE m_processed_object_event_tag (
+  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
+  processedObjectCid INTEGER NOT NULL,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_TAG') STORED,
+  targetOid UUID NOT NULL, -- soft-references m_object
+  targetType ObjectType NOT NULL,
+  relationId INTEGER NOT NULL REFERENCES m_uri(id)
+
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_processed_object_event_tag_default PARTITION OF m_processed_object_event_tag DEFAULT;
 
 -- endregion
 

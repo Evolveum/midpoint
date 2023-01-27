@@ -17,6 +17,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.impl.simulation.SimulationDataImpl;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,7 +170,7 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
-            beans.clockworkAuditHelper.submitSimulationDeltas(context, task, result);
+            task.acceptSimulationData(SimulationDataImpl.with(context), result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));

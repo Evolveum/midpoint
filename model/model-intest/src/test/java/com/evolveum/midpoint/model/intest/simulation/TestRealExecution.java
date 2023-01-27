@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Real execution of operations against development-mode components.
+ *
+ * On native repository only.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

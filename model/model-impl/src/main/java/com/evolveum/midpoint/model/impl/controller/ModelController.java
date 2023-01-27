@@ -646,6 +646,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         final boolean isCertCase;
         final boolean isCaseMgmtWorkItem;
         final boolean isOperationExecution;
+        final boolean isProcessedObject;
         final ObjectManager manager;
         final ObjectQuery refinedQuery;
         private final boolean isAssignment;
@@ -659,10 +660,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
             isOperationExecution = OperationExecutionType.class.equals(type);
             isAssignment = AssignmentType.class.equals(type);
+            isProcessedObject = SimulationResultProcessedObjectType.class.equals(type);
 
-            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment) {
+            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment && !isProcessedObject) {
                 throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only "
-                        + "for AccessCertificationCaseType, CaseWorkItemType and AssignmentType classes");
+                        + "for AccessCertificationCaseType, CaseWorkItemType, SimulationResultProcessedObjectType and AssignmentType classes");
             }
 
             manager = ObjectManager.REPOSITORY;

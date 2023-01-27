@@ -15,16 +15,19 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -34,7 +37,8 @@ import java.util.Collection;
  * 1. calling `modelObjectResolver` for search/count operations,
  * 2. model-level processing of expressions in search queries,
  * 3. authorizations,
- * 4. resolving provisioning definitions in queries.
+ * 4. resolving provisioning definitions in queries,
+ * 5. managing simulation result objects.
  */
 public interface AdvancedActivityRunSupport {
 
@@ -71,9 +75,35 @@ public interface AdvancedActivityRunSupport {
      */
     <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 
-    /** Creates a simulation result into which the activity will store information about processed objects. */
-    @NotNull ObjectReferenceType createSimulationResult(OperationResult result);
+    /**
+     * Creates a simulation result into which the activity will store information about processed objects.
+     *
+     * The result will be open until the activity realization is done. The realization can span multiple tasks (for distributed
+     * activities) and multiple task runs (in the case of suspend/resume actions).
+     */
+    @NotNull String openNewSimulationResult(
+            @Nullable SimulationDefinitionType definition,
+            @NotNull String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            OperationResult result)
+            throws ConfigurationException;
+
+    /** Closes the simulation result. */
+    void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result)
+            throws ObjectNotFoundException;
+
+    /** Opens the transaction on the simulation result. If one already exists, it is erased. */
+    void openSimulationResultTransaction(
+            @NotNull String simulationResultOid,
+            @NotNull String transactionId,
+            OperationResult result);
+
+    /** Closes the part of the simulation result. The metric values are committed to the repository. */
+    void commitSimulationResultTransaction(
+            @NotNull String simulationResultOid,
+            @NotNull String transactionId,
+            OperationResult result);
 
     /** TODO better name */
-    @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
+    @NotNull SimulationDataConsumer getSimulationDataConsumer(@NotNull String simulationResultOid, @NotNull String transactionId);
 }

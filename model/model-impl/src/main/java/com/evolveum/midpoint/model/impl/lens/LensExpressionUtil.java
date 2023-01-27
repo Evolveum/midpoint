@@ -46,35 +46,35 @@ public class LensExpressionUtil {
     public static boolean evaluateBoolean(
             ExpressionType expressionBean,
             VariablesMap variablesMap,
-            @Nullable LensContext<?> lensContext,
+            @Nullable LensElementContext<?> elementContext,
             String contextDesc,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return evaluateExpressionSingle(
-                expressionBean, variablesMap, lensContext, contextDesc, task, result,
+                expressionBean, variablesMap, elementContext, contextDesc, task, result,
                 DOMUtil.XSD_BOOLEAN, false, null);
     }
 
     private static String evaluateString(
             ExpressionType expressionBean,
             VariablesMap variablesMap,
-            @Nullable LensContext<?> lensContext,
+            @Nullable LensElementContext<?> elementContext,
             String contextDesc,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return evaluateExpressionSingle(
-                expressionBean, variablesMap, lensContext, contextDesc, task, result,
+                expressionBean, variablesMap, elementContext, contextDesc, task, result,
                 DOMUtil.XSD_STRING, null, null);
     }
 
     public static LocalizableMessageType evaluateLocalizableMessageType(
             ExpressionType expressionBean,
             VariablesMap variablesMap,
-            @Nullable LensContext<?> lensContext,
+            @Nullable LensElementContext<?> elementContext,
             String contextDesc,
             Task task,
             OperationResult result)
@@ -90,14 +90,14 @@ public class LensExpressionUtil {
             }
         };
         return evaluateExpressionSingle(
-                expressionBean, variablesMap, lensContext, contextDesc, task, result,
+                expressionBean, variablesMap, elementContext, contextDesc, task, result,
                 LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
     }
 
     private static <T> T evaluateExpressionSingle(
             ExpressionType expressionBean,
             VariablesMap variablesMap,
-            @Nullable LensContext<?> lensContext,
+            @Nullable LensElementContext<?> elementContext,
             String contextDesc,
             Task task,
             OperationResult result,
@@ -114,7 +114,10 @@ public class LensExpressionUtil {
                 expressionFactory.makeExpression(
                         expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, contextDesc, task);
-        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(lensContext, null, task, result);
+        LensContext<? extends ObjectType> lensContext = elementContext != null ? elementContext.getLensContext() : null;
+        LensProjectionContext projectionContext = elementContext instanceof LensProjectionContext ?
+                (LensProjectionContext) elementContext : null;
+        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(lensContext, projectionContext, task, result);
         eeContext.setExpressionFactory(expressionFactory);
         eeContext.setAdditionalConvertor(additionalConvertor);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
@@ -128,7 +131,7 @@ public class LensExpressionUtil {
     public static @NotNull SingleLocalizableMessageType interpretLocalizableMessageTemplate(
             LocalizableMessageTemplateType template,
             VariablesMap variablesMap,
-            @Nullable LensContext<?> lensContext,
+            @Nullable LensElementContext<?> elementContext,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
@@ -141,7 +144,7 @@ public class LensExpressionUtil {
                     evaluateString(
                             template.getKeyExpression(),
                             variablesMap,
-                            lensContext,
+                            elementContext,
                             "localizable message key expression",
                             task, result));
         }
@@ -154,7 +157,7 @@ public class LensExpressionUtil {
                                 evaluateLocalizableMessageType(
                                         argumentExpression,
                                         variablesMap,
-                                        lensContext,
+                                        elementContext,
                                         "localizable message argument expression",
                                         task, result)));
             }
@@ -169,7 +172,7 @@ public class LensExpressionUtil {
                     evaluateString(
                             template.getFallbackMessageExpression(),
                             variablesMap,
-                            lensContext,
+                            elementContext,
                             "localizable message fallback expression",
                             task, result));
         }

@@ -665,4 +665,6 @@ public abstract class SchemaConstants {
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_NORMALIZED_DATA);
     public static final @NotNull ItemPath PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE =
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_DEFAULT_AUTHORITATIVE_SOURCE);
+
+    public static final String SIMULATION_RESULT_DEFAULT_TRANSACTION_ID = "default";
 }

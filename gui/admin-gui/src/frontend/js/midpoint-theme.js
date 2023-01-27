@@ -5,6 +5,8 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+import Sparkline from "sparklines";
+
 export default class MidPointTheme {
 
     constructor() {
@@ -545,5 +547,12 @@ export default class MidPointTheme {
         $('.table-responsive').on('hide.bs.dropdown', function () {
             $('.table-responsive').css("min-height", "auto");
         })
+    }
+
+    createSparkline(id, options, data) {
+        $(function () {
+            var chart = new Sparkline($(id)[0], options)
+            chart.draw(data)
+        });
     }
 }

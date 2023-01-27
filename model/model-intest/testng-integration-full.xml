@@ -89,6 +89,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestMemberRecompute"/>
             <class name="com.evolveum.midpoint.model.intest.TestIndexing"/>
             <class name="com.evolveum.midpoint.model.intest.TestIdentities"/>
+            <class name="com.evolveum.midpoint.model.intest.TestInitialObjects"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">

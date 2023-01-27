@@ -61,7 +61,6 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, initResult);
         repoAdd(REPORT_SUBREPORT_AS_ROW_USERS, initResult);
         repoAdd(REPORT_SUBREPORT_AUDIT, initResult);
-        repoAdd(REPORT_SUBREPORT_SIMULATION, initResult);
         repoAdd(REPORT_USER_LIST, initResult);
         repoAdd(REPORT_USER_LIST_SCRIPT, initResult);
         repoAdd(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, initResult);
@@ -188,7 +187,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test130ExportUsersWithAssignments() throws Exception {
         UserType user = new UserType()
                 .name("moreassignments")
@@ -199,7 +198,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         runTest(REPORT_SUBREPORT_AS_ROW_USERS, 56, 3, null);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test140ExportAuditRecords() throws Exception {
         final Task task = getTestTask();
         final OperationResult result = task.getResult();
@@ -207,7 +206,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         final String name = "test140ExportAuditRecords";
         final UserType user = new UserType()
                 .name(name)
-                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_END_USER.value(), RoleType.COMPLEX_TYPE));
+                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_END_USER.value(), RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_DELEGATOR.value(), RoleType.COMPLEX_TYPE));
         final String oid = addObject(user.asPrismObject(), task, result);
 
         final PrismObject<UserType> testedUserObject = getObject(UserType.class, oid);
@@ -231,12 +231,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         ReportParameterType parameters = getParameters("targetName", String.class, name);
 
-        runTest(REPORT_SUBREPORT_AUDIT, 3, 4, null, parameters);
-    }
-
-    @Test(enabled = false)
-    public void test140ExportSimulation() throws Exception {
-        runTest(REPORT_SUBREPORT_SIMULATION, 56, 3, null);
+        runTest(REPORT_SUBREPORT_AUDIT, 5, 4, null, parameters);
     }
 
     private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,

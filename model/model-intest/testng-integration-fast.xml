@@ -18,6 +18,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.TestInitialObjects"/>
         </classes>
     </test>
 </suite>

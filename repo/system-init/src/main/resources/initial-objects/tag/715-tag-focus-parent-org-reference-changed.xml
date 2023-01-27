@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000715">
+    <name>Focus parent organization reference changed</name>
+    <description>Operation that changed the focus parent organization reference (parentOrgRef value)</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <policyRule>
+        <name>focus-parent-org-ref-changed</name>
+        <policyConstraints>
+            <modification>
+                <name>$focus-parent-org-ref-changed</name>
+                <operation>modify</operation>
+                <item>parentOrgRef</item>
+            </modification>
+        </policyConstraints>
+        <focusSelector>
+            <type>FocusType</type>
+        </focusSelector>
+    </policyRule>
+</tag>

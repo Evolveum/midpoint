@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -37,7 +36,6 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
 
 import static java.util.Objects.requireNonNull;
@@ -84,16 +82,17 @@ public abstract class LocalActivityRun<
 
         RunningTask runningTask = getRunningTask();
         TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
-        AggregatedObjectProcessingListener processingListener = getObjectProcessingListener();
 
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
+
+        // Actually, this listener should not be used here. It may (later) be used to catch processed objects that belong
+        // to no bucket (emitted e.g. during search processing). The "real" listener is created by the item processing
+        // gatekeeper. TODO reconsider this; it may cause simulation in some of the tasks not functioning
+        SimulationDataConsumer oldSimulationConsumer = runningTask.setSimulationDataConsumer(getSimulationDataConsumer());
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
-            if (processingListener != null) {
-                runningTask.addObjectProcessingListener(processingListener);
-            }
             runResult = runLocally(localResult);
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
@@ -101,9 +100,7 @@ public abstract class LocalActivityRun<
             localResult.close();
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
-            if (processingListener != null) {
-                runningTask.removeObjectProcessingListener(processingListener);
-            }
+            runningTask.setSimulationDataConsumer(oldSimulationConsumer);
         }
 
         updateStateOnRunEnd(localResult, runResult, result);
@@ -123,15 +120,8 @@ public abstract class LocalActivityRun<
         }
     }
 
-    public AggregatedObjectProcessingListener getObjectProcessingListener() {
-        ActivityExecutionModeDefinition modeDef = getExecutionModeDefinition();
-        if (modeDef.getMode() != ExecutionModeType.PREVIEW || !modeDef.shouldCreateSimulationResult()) {
-            return null;
-        }
-        ObjectReferenceType simulationResultRef = activityState.getSimulationResultRef();
-        stateCheck(simulationResultRef != null,
-                "No simulation result reference in %s even if simulation was requested", this);
-        return getBeans().getAdvancedActivityRunSupport().getObjectProcessingListener(simulationResultRef);
+    public SimulationDataConsumer getSimulationDataConsumer() {
+        return simulationSupport.getSimulationDataConsumer();
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */
