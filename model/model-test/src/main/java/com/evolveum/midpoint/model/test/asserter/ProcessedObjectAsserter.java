@@ -61,7 +61,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        assertEventTags(expectedTags, processedObject.getEventTags());
+        assertEventTags(expectedTags, processedObject.getMatchingEventTags());
         return this;
     }
 

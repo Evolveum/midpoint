@@ -210,13 +210,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="domain" type="tns:SimulationObjectPredicateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Domain of the metric. It denotes objects that should be considered by the metric.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <!--<xsd:element name="defaultDimension" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">-->
             <!--    <xsd:annotation>-->
             <!--        <xsd:documentation>-->
@@ -272,7 +265,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+            <xsd:element name="domain" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Domain of the metric. It denotes objects that should be considered by the metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selection" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Determines whether the object is "selected" by the metric.
+
+                        Default (if the value is computed): true if value greater than 0, false otherwise.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueExpression" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         An expression providing the value for the metric.
@@ -282,6 +291,8 @@
 
                         Output:
                         - any number: the output
+
+                        Default (if the expression is not present but selection criteria is): 1 if selected, 0 otherwise.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -320,10 +331,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="selection" type="tns:SimulationObjectPredicateType" minOccurs="0">
+            <xsd:element name="domainRestriction" type="tns:SimulationObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Denotes the "selection" object set. Relevant for some aggregation functions.
+                        Restriction of the domain of original metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionRestriction" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Restriction of the "selection" predicate of original metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1052,6 +1070,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Identifier of a non-event-tag-based metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selected" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the object "selected" in regard to this metric?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

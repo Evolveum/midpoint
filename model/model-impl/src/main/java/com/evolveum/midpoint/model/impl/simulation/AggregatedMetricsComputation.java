@@ -9,11 +9,10 @@ package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
 import static com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil.forEventTagOid;
+import static com.evolveum.midpoint.util.DebugUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricAggregationFunctionType.*;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 import com.evolveum.midpoint.model.common.TagManager;
@@ -29,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricPartitions;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,8 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Computes metrics aggregation for the whole {@link SimulationResultType}.
  *
  * Separated from {@link SimulationResultManagerImpl} for understandability.
- *
- * TODO will be reworked as we plan to compute the aggregated metrics on-the-fly during bucket processing
  *
  * @see ObjectMetricsComputation
  */
@@ -54,11 +50,7 @@ class AggregatedMetricsComputation {
     private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
     private final TagManager tagManager = ModelBeans.get().tagManager;
 
-    /** Key: Tag OID, Value: Object where the data are aggregated. */
-    private final Map<String, DefaultEventTagAggregation> eventTagAggregations = new HashMap<>();
-
-    /** Key: Metric ID (original or aggregated), Value: Object where data are aggregated. */
-    private final Map<String, MetricAggregation> metricAggregations = new HashMap<>();
+    private final Map<SimulationMetricReference, MetricAggregation> metricAggregations = new HashMap<>();
 
     private AggregatedMetricsComputation() {
     }
@@ -83,16 +75,14 @@ class AggregatedMetricsComputation {
             if (objectValueComputation == null && aggregationComputation == null) {
                 continue;
             }
-            String identifier = definition.getIdentifier();
+            String identifier = Objects.requireNonNull(definition.getIdentifier());
             if (aggregationComputation == null) {
                 aggregationComputation = new SimulationMetricAggregationType()
-                        .aggregationFunction(DEFAULT_AGGREGATION_FUNCTION)
-                        .source(new SimulationMetricReferenceType()
-                                .identifier(identifier));
+                        .aggregationFunction(DEFAULT_AGGREGATION_FUNCTION);
             }
             var previous = metricAggregations.put(
-                    identifier,
-                    new MetricAggregation(identifier, aggregationComputation, definition.getDomain()));
+                    SimulationMetricReference.forMetricId(identifier),
+                    MetricAggregation.forMetric(identifier, aggregationComputation));
             configCheck(previous == null, "Multiple definitions for metric '%s'", identifier);
         }
         LOGGER.trace("Pre-processed {} metrics", metricAggregations.size());
@@ -100,16 +90,15 @@ class AggregatedMetricsComputation {
         Collection<TagType> allEventTags = tagManager.getAllEventTags(result);
         LOGGER.trace("Processing {} event tags", allEventTags.size());
         for (TagType eventTag : allEventTags) {
-            eventTagAggregations.put(eventTag.getOid(), new DefaultEventTagAggregation(eventTag));
+            metricAggregations.put(
+                    SimulationMetricReference.forTag(eventTag.getOid()),
+                    MetricAggregation.forTag(eventTag));
         }
-        LOGGER.trace("Pre-processed {} event tags", eventTagAggregations.size());
+        LOGGER.trace("Pre-processed {} event tags", metricAggregations.size());
     }
 
     void addProcessedObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result) throws CommonException {
         LOGGER.trace("Summarizing {}", processedObject);
-        for (DefaultEventTagAggregation tagAggregation : eventTagAggregations.values()) {
-            tagAggregation.addObject(processedObject, task, result);
-        }
         for (MetricAggregation metricAggregation : metricAggregations.values()) {
             metricAggregation.addObject(processedObject, task, result);
         }
@@ -117,102 +106,86 @@ class AggregatedMetricsComputation {
 
     List<SimulationMetricValuesType> toBeans() {
         List<SimulationMetricValuesType> aggregatedMetricBeans = new ArrayList<>();
-        eventTagAggregations.forEach(
+        metricAggregations.forEach(
                 (tagOid, aggregation) ->
                         aggregatedMetricBeans.addAll(aggregation.toBeans()));
-        metricAggregations.forEach(
-                (identifier, aggregation) ->
-                        aggregatedMetricBeans.addAll(aggregation.toBeans()));
-        LOGGER.trace("Aggregated simulation metrics:\n{}", DebugUtil.debugDumpLazily(aggregatedMetricBeans, 1));
+        LOGGER.trace("Aggregated simulation metrics:\n{}", debugDumpLazily(aggregatedMetricBeans, 1));
         return aggregatedMetricBeans;
     }
 
-    private abstract static class AbstractAggregation {
+    private static class MetricAggregation {
 
         @NotNull final SimulationMetricPartitions partitions = new SimulationMetricPartitions(ALL_DIMENSIONS);
-        @NotNull private final SimulationMetricAggregationFunctionType function;
-        @NotNull private final SimulationMetricReferenceType ref;
+        @NotNull private final SimulationMetricReferenceType targetRef;
+        @NotNull private final SimulationMetricReferenceType sourceRef;
+        @NotNull private final SimulationMetricAggregationFunctionType aggregationFunction;
+        @Nullable private final SimulationObjectPredicateType selectionRestriction;
+        @Nullable private final SimulationObjectPredicateType domainRestriction;
 
-        private AbstractAggregation(
-                @NotNull SimulationMetricAggregationFunctionType function,
-                @NotNull SimulationMetricReferenceType ref) {
-            this.function = function;
-            this.ref = ref;
+        private MetricAggregation(
+                @NotNull SimulationMetricReferenceType targetRef,
+                @Nullable SimulationMetricReferenceType sourceRef,
+                @NotNull SimulationMetricAggregationFunctionType aggregationFunction,
+                @Nullable SimulationObjectPredicateType selectionRestriction,
+                @Nullable SimulationObjectPredicateType domainRestriction) {
+            this.targetRef = targetRef;
+            this.sourceRef = Objects.requireNonNullElse(sourceRef, targetRef);
+            this.aggregationFunction = aggregationFunction;
+            this.selectionRestriction = selectionRestriction;
+            this.domainRestriction = domainRestriction;
         }
 
-        @NotNull List<SimulationMetricValuesType> toBeans() {
-            var partitionBeans = partitions.toPartitionBeans(function);
-            if (partitionBeans.isEmpty()) {
-                return List.of();
-            } else {
-                SimulationMetricValuesType bean = new SimulationMetricValuesType()
-                        .ref(ref)
-                        .aggregationFunction(function)
-                        .sourceDimensions(
-                                SimulationMetricPartitionDimensionsTypeUtil.toBean(ALL_DIMENSIONS));
-                bean.getPartition().addAll(partitionBeans);
-                return List.of(bean);
-            }
+        static MetricAggregation forTag(TagType eventTag) {
+            return new MetricAggregation(
+                    forEventTagOid(eventTag.getOid()),
+                    null,
+                    SELECTION_TOTAL_VALUE,
+                    null, null);
         }
-    }
 
-    private class DefaultEventTagAggregation extends AbstractAggregation {
-
-        @NotNull private final TagType tag;
-        @NotNull private final String tagOid;
-
-        private DefaultEventTagAggregation(@NotNull TagType tag) {
-            super(SELECTION_SIZE, forEventTagOid(tag.getOid()));
-            this.tag = tag;
-            this.tagOid = tag.getOid();
+        static MetricAggregation forMetric(String identifier, SimulationMetricAggregationType aggregationComputation) {
+            return new MetricAggregation(
+                    SimulationMetricReferenceTypeUtil.forIdentifier(identifier),
+                    aggregationComputation.getSource(),
+                    Objects.requireNonNullElse(aggregationComputation.getAggregationFunction(), DEFAULT_AGGREGATION_FUNCTION),
+                    aggregationComputation.getSelectionRestriction(),
+                    aggregationComputation.getDomainRestriction());
         }
 
         public void addObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result)
                 throws CommonException {
-            if (!processedObject.isInDomainOf(tag, task, result)) {
+            ProcessedObjectImpl.MetricValue value = processedObject.getMetricValue(sourceRef);
+            if (value == null) {
+                // Not in domain of the original metric
                 return;
             }
-            boolean inSelection = processedObject.getEventTags().contains(tagOid);
+            boolean inRestrictedDomain = domainRestriction == null || processedObject.matches(domainRestriction, task, result);
+            if (!inRestrictedDomain) {
+                return;
+            }
+
+            boolean inOriginalSelection = value.inSelection;
+            boolean inRestrictedSelection =
+                    inOriginalSelection
+                            && (selectionRestriction == null || processedObject.matches(selectionRestriction, task, result));
             partitions.addObject(
                     processedObject.partitionScope(),
-                    inSelection ? BigDecimal.ONE : BigDecimal.ZERO,
-                    inSelection);
-        }
-    }
-
-    private class MetricAggregation extends AbstractAggregation {
-
-        @NotNull final SimulationMetricAggregationType computationDefinition;
-        @Nullable final SimulationObjectPredicateType selectionPredicate;
-        @Nullable final SimulationObjectPredicateType domainPredicate;
-        @NotNull final SimulationMetricReferenceType sourceRef;
-
-        MetricAggregation(
-                @NotNull String identifier,
-                @NotNull SimulationMetricAggregationType aggregationDefinition,
-                @Nullable SimulationObjectPredicateType domainPredicate)
-                throws ConfigurationException {
-            super(Objects.requireNonNullElse(aggregationDefinition.getAggregationFunction(), SELECTION_TOTAL_VALUE),
-                    SimulationMetricReferenceTypeUtil.forIdentifier(identifier));
-            this.computationDefinition = aggregationDefinition;
-            this.selectionPredicate = aggregationDefinition.getSelection();
-            this.domainPredicate = domainPredicate;
-            this.sourceRef =
-                    configNonNull(aggregationDefinition.getSource(), () -> "no source in the definition of '" + identifier + "'");
+                    value.value,
+                    inRestrictedSelection);
         }
 
-        public void addObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result) throws CommonException {
-            BigDecimal sourceMetricValue = processedObject.getMetricValue(sourceRef);
-            if (sourceMetricValue == null) {
-                // The processed object may be out of domain of the original metric.
-                return;
-            }
-            boolean inDomain = domainPredicate == null || processedObject.matches(domainPredicate, task, result);
-            if (inDomain) {
-                boolean inSelection = selectionPredicate != null ?
-                        processedObject.matches(selectionPredicate, task, result) :
-                        sourceMetricValue.compareTo(BigDecimal.ZERO) > 0;
-                partitions.addObject(processedObject.partitionScope(), sourceMetricValue, inSelection);
+        @NotNull List<SimulationMetricValuesType> toBeans() {
+            var partitionBeans = partitions.toPartitionBeans(aggregationFunction);
+            if (partitionBeans.isEmpty()) {
+                return List.of();
+            } else {
+                SimulationMetricValuesType bean = new SimulationMetricValuesType()
+                        .ref(targetRef)
+                        .aggregationFunction(aggregationFunction)
+                        .sourceDimensions(
+                                SimulationMetricPartitionDimensionsTypeUtil.toBean(ALL_DIMENSIONS));
+                bean.getPartition().addAll(partitionBeans);
+                return List.of(bean);
             }
         }
     }

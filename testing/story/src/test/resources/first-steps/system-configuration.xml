@@ -12,11 +12,11 @@
         <metric>
             <identifier>modifications</identifier>
             <computation>
-                <expression>
+                <valueExpression>
                     <script>
                         <code>processedObject.nonOperationalItemModificationsCount</code>
                     </script>
-                </expression>
+                </valueExpression>
             </computation>
         </metric>
         <!-- TODO other metrics -->

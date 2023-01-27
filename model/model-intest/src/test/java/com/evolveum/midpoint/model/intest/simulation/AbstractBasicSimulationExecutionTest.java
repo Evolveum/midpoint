@@ -69,7 +69,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertThat(def).as("definition").isNotNull();
         assertThat(def.getIdentifier()).as("identifier").isEqualTo(METRIC_ATTRIBUTE_MODIFICATIONS_ID);
         assertThat(def.getComputation()).as("computation item").isNotNull();
-        assertThat(def.getDomain()).as("domain item").isNotNull();
 
         when("obtaining a definition for unknown metric");
         var def2 = simulationResultManager.getMetricDefinition("nonsense");
