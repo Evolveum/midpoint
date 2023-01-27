@@ -92,6 +92,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return; // sync metadata are saved by the above method
             }
+            // FIXME: Somewhere here we should validate preFocus
+
+
+
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
             setupLinkedOwnerAndSituation(completeCtx, change, result);
 
@@ -229,7 +233,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return true;
         }
 
-        if (syncCtx.isProtected(result)) {
+        if (syncCtx.isProtected()) {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);

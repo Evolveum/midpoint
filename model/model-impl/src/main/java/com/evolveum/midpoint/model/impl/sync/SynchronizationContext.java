@@ -193,23 +193,8 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
-    public boolean isProtected(OperationResult result) {
-        if (BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())) {
-            return true;
-        }
-        return determineProtectedFromTags(shadowedResourceObject.getTagRef(), result);
-    }
-
-    private boolean determineProtectedFromTags(List<ObjectReferenceType> tagRefs, OperationResult result) {
-        if (tagRefs == null || tagRefs.isEmpty()) {
-            return false;
-        }
-        Collection<TagType>  marks = this.beans.tagManager.getShadowMarks(tagRefs, result);
-
-        // Account is protected if any of shadow marks set it to protected.
-        return marks.stream().anyMatch(
-                t -> t.getProvisioningPolicy() != null &&
-                BooleanUtils.isTrue(t.getProvisioningPolicy().isProtected()));
+    public boolean isProtected() {
+        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }
 
     /**

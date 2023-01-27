@@ -293,7 +293,7 @@ public class ResourceObjectConverter {
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone)) {
+            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, result)) {
                 throw new SecurityViolationException("Cannot add protected shadow " + shadowClone);
             }
 
@@ -499,7 +499,7 @@ public class ResourceObjectConverter {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
-        if (isProtectedShadow(protectedPatterns, shadow)) {
+        if (isProtectedShadow(protectedPatterns, shadow, result)) {
             // TODO remove this unnecessary logging statement (the error will be logged anyway)
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
@@ -557,7 +557,7 @@ public class ResourceObjectConverter {
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow)) {
+            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow, result)) {
                 if (hasChangesOnResource(itemDeltas)) {
                     // TODO remove this unnecessary logging statement (the error will be logged anyway)
                     LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);

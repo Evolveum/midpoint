@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ShadowMarkManager;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
@@ -315,9 +316,13 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow)
+    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
             throws SchemaException {
         boolean isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
+        if (!isProtected) {
+            // We use shadow marks to determine if shadow is protected (works only for repository shadows).
+            isProtected = ShadowMarkManager.get().isProtectedShadow(shadow, result);
+        }
         LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
         return isProtected;
     }
@@ -326,7 +331,7 @@ public class ProvisioningUtil {
             ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow)) {
+        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow, result)) {
             shadow.setProtectedObject(true);
         }
     }

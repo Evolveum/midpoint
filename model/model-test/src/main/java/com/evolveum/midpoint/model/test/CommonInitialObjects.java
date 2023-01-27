@@ -104,6 +104,12 @@ public interface CommonInitialObjects {
             TAGS, "735-tag-projection-password-changed.xml",
             SystemObjectsType.TAG_PROJECTION_PASSWORD_CHANGED.value());
 
+
+    AbstractTestResource<TagType> TAG_PROTECTED_SHADOW = new ClassPathTestResource<>(
+            TAGS, "750-tag-protected-shadow.xml",
+            SystemObjectsType.TAG_PROTECTED_SHADOW.value());
+
+
     /** To be used when needed. */
     static void addTags(AbstractModelIntegrationTest test, Task task, OperationResult result)
             throws CommonException, IOException {

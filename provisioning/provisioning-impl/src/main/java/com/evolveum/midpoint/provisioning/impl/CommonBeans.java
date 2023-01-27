@@ -43,4 +43,5 @@ public class CommonBeans {
     @Autowired public ResourceOperationalStateManager operationalStateManager;
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public ShadowCaretaker shadowCaretaker;
+    @Autowired public ShadowMarkManager shadowMarkManager;
 }
