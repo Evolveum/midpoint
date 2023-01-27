@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -22,7 +21,9 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -32,6 +33,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TITLE = "title";
+    private static final String ID_OPEN = "open";
     private static final String ID_TREND_BADGE = "trendBadge";
     private static final String ID_VALUE = "value";
     private static final String ID_VALUE_DESCRIPTION = "valueDescription";
@@ -82,6 +84,13 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         });
         add(title);
 
+        AjaxLink open = new AjaxLink<>(ID_OPEN) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onOpenPerformed(target);
+            }
+        };
+
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
             badge.setCssClass("badge badge-success trend trend-success");
@@ -108,5 +117,9 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
     private IModel<String> createDescriptionModel() {
         return () -> "jklo";
+    }
+
+    protected void onOpenPerformed(AjaxRequestTarget target) {
+
     }
 }

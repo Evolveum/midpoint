@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -29,23 +28,18 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -101,20 +95,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         resultModel = new LoadableDetachableModel<>() {
             @Override
             protected SimulationResultType load() {
-                String oid = getPageParameterResultOid();
-                if (!Utils.isPrismObjectOidValid(oid)) {
-                    throw new RestartResponseException(PageError404.class);
-                }
-
-                Task task = getPageTask();
-                PrismObject<SimulationResultType> object =
-                        WebModelServiceUtils.loadObject(SimulationResultType.class, oid, PageSimulationResult.this, task, task.getResult());
-                // todo handle error
-                if (object == null) {
-                    throw new RestartResponseException(PageError404.class);
-                }
-
-                return object.asObjectable();
+                return loadSimulationResult(PageSimulationResult.this);
             }
         };
 

@@ -112,13 +112,13 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
+        return new LoadableModel<>(false) {
 
             @Override
             public String load() {
-
-                if (dashboardModel.getObject().getDisplay() != null && dashboardModel.getObject().getDisplay().getLabel() != null) {
-                    return dashboardModel.getObject().getDisplay().getLabel().getOrig();
+                DisplayType display = dashboardModel.getObject().getDisplay();
+                if (display != null && display.getLabel() != null) {
+                    return display.getLabel().getOrig();
                 } else {
                     return dashboardModel.getObject().getName().getOrig();
                 }
@@ -163,7 +163,13 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private Component populateMetricWidget(String id, IModel<DashboardWidgetType> model) {
-        MetricWidgetPanel widget = new MetricWidgetPanel(id, model);
+        MetricWidgetPanel widget = new MetricWidgetPanel(id, model) {
+
+            @Override
+            protected void onOpenPerformed(AjaxRequestTarget target) {
+                // todo implement
+            }
+        };
 
         return widget;
     }

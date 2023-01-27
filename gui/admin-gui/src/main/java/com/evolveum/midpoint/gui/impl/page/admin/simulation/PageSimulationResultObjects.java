@@ -7,23 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.session.GenericPageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,8 +23,18 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -63,12 +64,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     private static final String OPERATION_LOAD_RESULT = DOT_CLASS + "loadResult";
     private static final String OPERATION_LOAD_TAG = DOT_CLASS + "loadTag";
 
-    private static final String ID_MENU = "menu";
+    private static final String ID_NAVIGATION = "navigation";
     private static final String ID_TABLE = "table";
 
     private IModel<SimulationResultType> resultModel;
 
-    private IModel<ListGroupMenu<String>> menuModel;
+    private IModel<Search<SimulationResultProcessedObjectType>> searchModel;
 
     public PageSimulationResultObjects() {
         this(new PageParameters());
@@ -86,105 +87,52 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected SimulationResultType load() {
-                String resultOid = getPageParameterResultOid();
-
-                Task task = getPageTask();
-                OperationResult result = task.getResult().createSubresult(OPERATION_LOAD_RESULT);
-
-                PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(
-                        SimulationResultType.class, resultOid, PageSimulationResultObjects.this, task, result);
-                if (object == null) {
-                    throw new RestartResponseException(PageError404.class);
-                }
-                result.computeStatusIfUnknown();
-
-                return object.asObjectable();
+                return loadSimulationResult(PageSimulationResultObjects.this);
             }
         };
 
-        menuModel = new LoadableDetachableModel<>() {
-
+        searchModel = new LoadableDetachableModel<>() {
             @Override
-            protected ListGroupMenu<String> load() {
-                ListGroupMenu<String> menu = new ListGroupMenu<>();
+            protected Search<SimulationResultProcessedObjectType> load() {
+                GenericPageStorage storage = getSessionStorage().getConfiguration();
+                Search search = storage.getSearch();
 
-                SimulationResultType result = resultModel.getObject();
-                List<SimulationMetricValuesType> metrics = result.getMetric().stream()
-                        .filter(m -> m.getRef() != null && m.getRef().getEventTagRef() != null)
-                        .collect(Collectors.toList());
-
-                Task task = getPageTask();
-
-                int allCount = 0;
-                for (SimulationMetricValuesType metric : metrics) {
-                    ObjectReferenceType ref = metric.getRef().getEventTagRef();
-
-                    OperationResult opResult = task.getResult().createSubresult(OPERATION_LOAD_TAG);
-
-                    PrismObject<TagType> object = WebModelServiceUtils.loadObject(ref, PageSimulationResultObjects.this, task, opResult);
-                    opResult.computeStatusIfUnknown();
-
-                    if (object == null) {
-                        continue;
-                    }
-
-                    int count = 0;
-                    ListGroupMenuItem<String> item = createTagMenuItem(object, count);
-                    menu.getItems().add(item);
-
-                    allCount += count;
-                }
-
-                ListGroupMenuItem<String> all = new ListGroupMenuItem<>("PageSimulationResultObjects.all");
-                all.setIconCss(GuiStyleConstants.CLASS_TAG + " d-none");
-                all.setBadge(Integer.toString(allCount));
-                all.setBadgeCss("badge badge-danger");
-                menu.getItems().add(0, all);
-
-                return menu;
+//                if (search == null || search.isForceReload()) {
+//                    Class<? extends ObjectType> type = getType();
+//
+//                    SearchBuilder searchBuilder = new SearchBuilder(type)
+//                            .additionalSearchContext(createAdditionalSearchContext())
+//                            .modelServiceLocator(PageDebugList.this);
+//
+//                    search = createSearch(type);
+//
+//
+//                    storage.setSearch(search);
+//                }
+                return search;
             }
         };
-    }
-
-    private ListGroupMenuItem<String> createTagMenuItem(PrismObject<TagType> object, int count) {
-        String name = WebComponentUtil.getDisplayNameOrName(object, true);
-        ListGroupMenuItem<String> item = new ListGroupMenuItem<>(name);
-
-        TagType tag = object.asObjectable();
-        DisplayType display = tag.getDisplay();
-        item.setIconCss(getTagMenuIcon(display));
-        item.setBadge(Integer.toString(count));
-        item.setBadge("badge badge-danger");
-
-        item.setValue(object.getOid());
-
-        return item;
-    }
-
-    private String getTagMenuIcon(DisplayType display) {
-        if (display == null || display.getIcon() == null) {
-            return GuiStyleConstants.CLASS_TAG;
-        }
-
-        String iconCssClass = display.getIcon().getCssClass();
-        return iconCssClass != null ? iconCssClass : GuiStyleConstants.CLASS_TAG;
     }
 
     private void initLayout() {
-        ListGroupMenuPanel menu = new ListGroupMenuPanel(ID_MENU, menuModel) {
+        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
             @Override
-            protected void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
-                super.onMenuClickPerformed(target, item);
+            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
 
-                if (!item.isActive()) {
-                    return;
-                }
+            @Override
+            protected IModel<String> createTitleModel() {
+                return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+            }
 
-                // todo add action
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                PageSimulationResultObjects.this.onBackPerformed(target);
             }
         };
-        add(menu);
+        add(navigation);
 
         ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE) {
 
@@ -211,19 +159,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         add(table);
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return () -> {
-            String oid = getPageParameterResultOid();
-
-            if (!Utils.isPrismObjectOidValid(oid)) {
-                throw new RestartResponseException(PageError404.class);
-            }
-
-            String name = WebModelServiceUtils.resolveReferenceName(
-                    new ObjectReferenceType().oid(oid).type(SimulationResultType.COMPLEX_TYPE), this);
-
-            return getString("PageSimulationResultObjects.title", name);
-        };
+    private void onBackPerformed(AjaxRequestTarget target) {
+        //todo implement
+        setResponsePage(PageSimulationResults.class);
     }
 }
