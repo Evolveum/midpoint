@@ -2364,7 +2364,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="authenticationAttempt" type="tns:AuthenticationAttemptDataType">
+            <xsd:element name="authenticationAttempt" type="tns:AuthenticationAttemptDataType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The information about authentication attempt, in most cases describing authentication modules failures.
