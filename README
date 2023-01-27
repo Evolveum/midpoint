@@ -1,5 +1,5 @@
-midPoint 4.4.4 "Tesla" Update 4
--------------------------------
+MidPoint 4.4 Support Branch
+---------------------------
 
 General information:
 
