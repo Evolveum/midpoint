@@ -305,7 +305,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0">
+            <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0" default="selectionTotalValue">
                 <xsd:annotation>
                     <xsd:documentation>
                         An aggregation function used to compute the (aggregated) metric value.

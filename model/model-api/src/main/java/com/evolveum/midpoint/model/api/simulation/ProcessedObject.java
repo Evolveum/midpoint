@@ -44,6 +44,22 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     @NotNull Collection<String> getEventTags();
     @Nullable Map<String, TagType> getEventTagsMap();
 
+    default boolean isAddition() {
+        return getState() == ObjectProcessingStateType.ADDED;
+    }
+
+    default boolean isModification() {
+        return getState() == ObjectProcessingStateType.MODIFIED;
+    }
+
+    default boolean isDeletion() {
+        return getState() == ObjectProcessingStateType.DELETED;
+    }
+
+    default boolean isNoChange() {
+        return getState() == ObjectProcessingStateType.UNMODIFIED;
+    }
+
     void setEventTagsMap(Map<String, TagType> eventTagsMap);
     O getBefore();
     O getAfter();

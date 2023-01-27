@@ -14,6 +14,13 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -119,5 +126,22 @@ public class SimulationResult {
 
     public @NotNull String getSimulationResultOid() {
         return simulationResultOid;
+    }
+
+    public @NotNull SimulationResultType getCompleteSimulationResult(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        RepositoryService repositoryService = TestSpringBeans.getCacheRepositoryService();
+        SimulationResultType simulationResult = repositoryService
+                .getObject(SimulationResultType.class, simulationResultOid, null, result)
+                .asObjectable();
+        ObjectQuery objectsQuery = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                .ownerId(simulationResultOid)
+                .build();
+        List<SimulationResultProcessedObjectType> processedObjectBeans =
+                repositoryService.searchContainers(SimulationResultProcessedObjectType.class, objectsQuery, null, result);
+        simulationResult.asPrismObject().removeContainer(SimulationResultType.F_PROCESSED_OBJECT); // incomplete item -> remove
+        simulationResult.getProcessedObject().addAll(
+                CloneUtil.cloneCollectionMembers(processedObjectBeans));
+        return simulationResult;
     }
 }

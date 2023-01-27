@@ -8,7 +8,8 @@
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -54,4 +55,160 @@
         <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
+    <simulation>
+        <metric>
+            <identifier>objects-added</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.addition ? 1 : 0</code>
+                    </script>
+                </expression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>objects-modified</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.modification ? 1 : 0</code>
+                    </script>
+                </expression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>objects-deleted</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.deletion ? 1 : 0</code>
+                    </script>
+                </expression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>objects-unmodified</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.noChange ? 1 : 0</code>
+                    </script>
+                </expression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>pct-objects-added</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <identifier>objects-added</identifier>
+                </source>
+            </aggregation>
+        </metric>
+        <metric>
+            <identifier>pct-objects-deleted</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <identifier>objects-deleted</identifier>
+                </source>
+            </aggregation>
+        </metric>
+        <metric>
+            <identifier>item-mdifications</identifier>
+            <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.nonOperationalItemModificationsCount</code>
+                    </script>
+                </expression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>attribute-modifications</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.attributeModificationsCount</code>
+                    </script>
+                </expression>
+            </computation>
+            <domain>
+                <expression>
+                    <script>
+                        <code>processedObject.isShadow()</code>
+                    </script>
+                </expression>
+            </domain>
+        </metric>
+        <metric>
+            <identifier>association-values-changed</identifier>
+            <computation>
+                <expression>
+                    <script>
+                        <code>processedObject.associationValuesChanged</code>
+                    </script>
+                </expression>
+            </computation>
+            <domain>
+                <expression>
+                    <script>
+                        <code>processedObject.isShadow()</code>
+                    </script>
+                </expression>
+            </domain>
+        </metric>
+        <metric>
+            <identifier>avg-focus-modifications</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <identifier>modifications</identifier>
+                </source>
+            </aggregation>
+            <domain>
+                <expression>
+                    <script>
+                        <!-- The original metric applies to all objects. Here we are interested in focal objects only. -->
+                        <code>processedObject.isOfFocusType()</code>
+                    </script>
+                </expression>
+            </domain>
+        </metric>
+        <metric>
+            <identifier>pct-users-enabled</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <eventTagRef oid="00000000-0000-0000-0000-000000000710"/>
+                </source>
+            </aggregation>
+            <domain>
+                <filter>
+                    <q:equal>
+                        <q:path>type</q:path>
+                        <q:value>c:UserType</q:value>
+                    </q:equal>
+                </filter>
+            </domain>
+        </metric>
+        <metric>
+            <identifier>pct-users-disabled</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <eventTagRef oid="00000000-0000-0000-0000-000000000711"/>
+                </source>
+            </aggregation>
+            <domain>
+                <filter>
+                    <q:equal>
+                        <q:path>type</q:path>
+                        <q:value>c:UserType</q:value>
+                    </q:equal>
+                </filter>
+            </domain>
+        </metric>
+    </simulation>
 </systemConfiguration>

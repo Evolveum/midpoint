@@ -3489,8 +3489,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 List<Task> pathToRootTask = task.getPathToRootTask(result);
                 if (TaskUtil.tasksToOids(pathToRootTask).contains(taskOid)) {
                     statusQueue.add(task);
-                } else {
-                    System.out.println("Missed update; waiting for " + taskOid + ", got " + task);
                 }
             } catch (SchemaException e) {
                 throw SystemException.unexpected(e);

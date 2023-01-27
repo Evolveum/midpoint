@@ -189,7 +189,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             throws CommonException {
 
         Class<O> type = elementContext.getObjectTypeClass();
-        @Nullable O stateBefore = asObjectable(elementContext.getObjectOldOrCurrent());
+        boolean isFocus = elementContext instanceof LensFocusContext<?>;
+        @Nullable O stateBefore;
+        if (isFocus) {
+            // Focus is computed iteratively, so "current" represents some intermediate state.
+            // We are sure that "old" is OK for focus.
+            stateBefore = asObjectable(elementContext.getObjectOld());
+        } else {
+            // Projections are never computed iteratively (except for already-exists exceptions, that cannot occur during
+            // simulations). Moreover, if full shadow is loaded during processing, it is put into "current", not into "old".
+            // Hence it's best to take "current" for projections.
+            stateBefore = asObjectable(elementContext.getObjectCurrent());
+        }
         @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
         @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
         @Nullable ObjectDelta<O> delta = elementContext.getSummaryExecutedDelta();
@@ -212,7 +223,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         ObjectProcessingStateType.UNMODIFIED,
                 elementContext.getEventTags(),
                 new HashMap<>(),
-                elementContext instanceof LensFocusContext<?>,
+                isFocus,
                 null, // later
                 stateBefore,
                 stateAfter,
