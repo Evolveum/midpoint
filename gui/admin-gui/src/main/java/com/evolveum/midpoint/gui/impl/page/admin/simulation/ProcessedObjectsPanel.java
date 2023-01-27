@@ -110,7 +110,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         }
         params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
 
-        setResponsePage(new PageSimulationResultObject(params));
+        getPageBase().navigateToNext(PageSimulationResultObject.class, params);
     }
 
     @Override
