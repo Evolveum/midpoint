@@ -52,6 +52,14 @@ public class AccessApplicationRoleStepPanel
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (getTable().getTilesModel().getObject().size() == 0) {
+            getPageBase().info(getPageBase().createStringResource("AccessApplicationRoleStepPanel.skip").getString());
+        }
+    }
+
+    @Override
     protected IModel<List<AbstractMap.SimpleEntry<String, String>>> getSelectedItemsModel() {
         return selectedItems;
     }

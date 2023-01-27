@@ -14,15 +14,12 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
@@ -56,7 +53,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     }
 
     public MultivalueContainerListDataProvider(Component component,
-            @NotNull IModel<Search<C>> search, IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
+                                               @NotNull IModel<Search<C>> search, IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
         super(component, search);
 
         Validate.notNull(model);

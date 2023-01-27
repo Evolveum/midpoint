@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
-public class SearchBuilder<C extends Containerable> {
+public class SearchBuilder<C extends Serializable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchBuilder.class);
     private static final String DOT_CLASS = SearchBuilder.class.getName() + ".";
@@ -101,7 +102,7 @@ public class SearchBuilder<C extends Containerable> {
         allSearchableItems =  searchableItemsDefinitions.createAvailableSearchItems();
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration();
 
-        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(mergedConfig);
+        BasicQueryWrapper basicSearchWrapper = createBasicSearchWrapper(mergedConfig);
 
         createAbstractRoleSearchItemWrapperList(basicSearchWrapper, mergedConfig);
 
@@ -185,12 +186,12 @@ public class SearchBuilder<C extends Containerable> {
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
-    private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, SearchConfigurationWrapper<C> basicSearchWrapper) {
-        AxiomQueryWrapper<C> axiomWrapper = new AxiomQueryWrapper<>();
-        AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
-        FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
+    private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
+        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper();
+        AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
+        FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
 
-        ObjectTypeSearchItemWrapper<C> objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper<>(mergedConfig.getObjectTypeConfiguration());
+        ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
         objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());
         objectTypeSearchItemWrapper.setValueForNull(getValueRepresentingAllTypes());
         Search<C> search = new Search<>(objectTypeSearchItemWrapper, mergedConfig);
@@ -216,8 +217,8 @@ public class SearchBuilder<C extends Containerable> {
     }
 
 
-    private SearchConfigurationWrapper<C> createBasicSearchWrapper(SearchBoxConfigurationType configuredSearchBox) {
-        SearchConfigurationWrapper<C> basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(configuredSearchBox);
+    private BasicQueryWrapper createBasicSearchWrapper(SearchBoxConfigurationType configuredSearchBox) {
+        BasicQueryWrapper basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(configuredSearchBox);
         basicSearchWrapper.setAllowToConfigureSearchItems(isAllowToConfigureSearchItems(configuredSearchBox));
 
         if (isViewForDashboard) {
@@ -229,18 +230,18 @@ public class SearchBuilder<C extends Containerable> {
         return basicSearchWrapper;
     }
 
-    private void initCollectionViewList(SearchConfigurationWrapper<C> basicSearchWrapper) {
+    private void initCollectionViewList(BasicQueryWrapper basicSearchWrapper) {
         if (collectionView == null || !collectionView.isDefaultView()) {
             return;
         }
 
         List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-                .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
+                .findAllApplicableObjectCollectionViews(WebComponentUtil.anyClassToQName(PrismContext.get(), type))
                 .stream()
                 .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(views)) {
-            ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
+            ObjectCollectionListSearchItemWrapper viewListItem = new ObjectCollectionListSearchItemWrapper(type,
                     views);
             viewListItem.setVisible(true);
             basicSearchWrapper.getItemsList().add(viewListItem);
@@ -248,7 +249,7 @@ public class SearchBuilder<C extends Containerable> {
 
     }
 
-    private void sortItems(SearchConfigurationWrapper<C> basicSearchWrapper) {
+    private void sortItems(BasicQueryWrapper basicSearchWrapper) {
         basicSearchWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
                 StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
                 StringUtils.isEmpty(i2.getName()) ? "" : PageBase.createStringResourceStatic(i2.getName()).getString()));
@@ -276,7 +277,7 @@ public class SearchBuilder<C extends Containerable> {
         return collectionView.getSearchBoxConfiguration();
     }
 
-    public void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper<C> searchConfigWrapper, SearchBoxConfigurationType config) {
+    public void createAbstractRoleSearchItemWrapperList(BasicQueryWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
         AbstractRoleSearchItemWrapper roleSearchWrapper = new AbstractRoleSearchItemWrapper(config);
         if (roleSearchWrapper.isNotEmpty()){
             searchConfigWrapper.getItemsList().add(roleSearchWrapper);
@@ -284,8 +285,8 @@ public class SearchBuilder<C extends Containerable> {
 
     }
 
-    public SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(SearchBoxConfigurationType mergedConfig) {
-        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>();
+    public BasicQueryWrapper createDefaultSearchBoxConfigurationWrapper(SearchBoxConfigurationType mergedConfig) {
+        BasicQueryWrapper searchConfigWrapper = new BasicQueryWrapper();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(type, allSearchableItems, searchItem, modelServiceLocator));

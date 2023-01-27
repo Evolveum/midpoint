@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,33 +7,31 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.CollectionExportController;
-import com.evolveum.midpoint.report.impl.controller.ContainerableReportDataSource;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.controller.CollectionExportController;
+import com.evolveum.midpoint.report.impl.controller.PrismableReportDataSource;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains common functionality for executions of dashboard export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ExportDashboardActivitySupport extends ExportActivitySupport{
+class ExportDashboardActivitySupport extends ExportActivitySupport {
 
     /**
      * Resolved dashboard object.
@@ -57,7 +55,7 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
         setupCompiledViewsForWidgets(result);
     }
 
-    private void setupCompiledViewsForWidgets(OperationResult result) throws CommonException{
+    private void setupCompiledViewsForWidgets(OperationResult result) throws CommonException {
         mapOfCompiledViews = new LinkedHashMap<>();
         List<DashboardWidgetType> widgets = dashboard.getWidget();
         for (DashboardWidgetType widget : widgets) {
@@ -66,7 +64,7 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
                 DisplayType newDisplay = widget.getDisplay();
                 if (compiledView.getDisplay() == null) {
                     compiledView.setDisplay(newDisplay);
-                } else if (newDisplay != null){
+                } else if (newDisplay != null) {
                     MiscSchemaUtil.mergeDisplay(compiledView.getDisplay(), newDisplay);
                 }
                 compiledView.setViewIdentifier(widget.getIdentifier());
@@ -89,7 +87,8 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
                 null, "resolving dashboard", runningTask, result);
     }
 
-    @NotNull public DashboardType getDashboard() {
+    @NotNull
+    public DashboardType getDashboard() {
         return dashboard;
     }
 
@@ -105,30 +104,34 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
         super.stateCheck(result);
     }
 
-    @Nullable public CompiledObjectCollectionView getCompiledCollectionView(String widgetIdentifier) {
+    @Nullable
+    public CompiledObjectCollectionView getCompiledCollectionView(String widgetIdentifier) {
         return mapOfCompiledViews.get(widgetIdentifier);
     }
 
-    @NotNull public Map<String, CompiledObjectCollectionView> getMapOfCompiledViews() {
+    @NotNull
+    public Map<String, CompiledObjectCollectionView> getMapOfCompiledViews() {
         return mapOfCompiledViews;
     }
 
-    static class DashboardWidgetHolder {
+    static class DashboardWidgetHolder<T> {
 
-        @NotNull final ContainerableReportDataSource searchSpecificationHolder;
-        @NotNull final CollectionExportController<Containerable> controller;
+        @NotNull final PrismableReportDataSource<T> searchSpecificationHolder;
+        @NotNull final CollectionExportController<T> controller;
 
-        DashboardWidgetHolder(@NotNull ContainerableReportDataSource searchSpecificationHolder,
-                @NotNull CollectionExportController<Containerable> controller) {
+        DashboardWidgetHolder(@NotNull PrismableReportDataSource<T> searchSpecificationHolder,
+                @NotNull CollectionExportController<T> controller) {
             this.searchSpecificationHolder = searchSpecificationHolder;
             this.controller = controller;
         }
 
-        @NotNull public ContainerableReportDataSource getSearchSpecificationHolder() {
+        @NotNull
+        public PrismableReportDataSource<T> getSearchSpecificationHolder() {
             return searchSpecificationHolder;
         }
 
-        @NotNull  public CollectionExportController<Containerable> getController() {
+        @NotNull
+        public CollectionExportController<T> getController() {
             return controller;
         }
     }

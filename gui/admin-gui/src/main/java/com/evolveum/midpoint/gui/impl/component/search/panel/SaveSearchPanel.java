@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C>> implements Popupable {
+public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
@@ -62,12 +63,12 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private static final String ID_SAVE_BUTTON = "saveButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private final Class<C> type;
+    private final Class<?> type;
     IModel<String> feedbackMessageModel = Model.of();
     IModel<String> queryNameModel = Model.of();
     private final String defaultCollectionViewIdentifier;
 
-    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type, String defaultCollectionViewIdentifier) {
+    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<?> type, String defaultCollectionViewIdentifier) {
         super(id, searchModel);
         this.type = type;
         this.defaultCollectionViewIdentifier = defaultCollectionViewIdentifier;
@@ -133,7 +134,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     }
 
     private void saveCustomQuery(AjaxRequestTarget ajaxRequestTarget) {
-        Search<C> search = getModelObject();
+        Search search = getModelObject();
         AvailableFilterType availableFilter = new AvailableFilterType();
         availableFilter.setDisplay(new DisplayType().label(queryNameModel.getObject()));
         SearchBoxModeType searchMode = search.getSearchMode();
@@ -162,7 +163,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         saveSearchItemToAdminConfig(availableFilter, ajaxRequestTarget);
     }
 
-    private List<SearchItemType> getAvailableFilterSearchItems(Class<C> typeClass, List<FilterableSearchItemWrapper> items, SearchBoxModeType mode) {
+    private List<SearchItemType> getAvailableFilterSearchItems(Class<?> typeClass, List<FilterableSearchItemWrapper<?>> items, SearchBoxModeType mode) {
         List<SearchItemType> searchItems = new ArrayList<>();
         for (FilterableSearchItemWrapper item : items) {
             if (!item.isApplyFilter(mode)) {
@@ -221,7 +222,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private SearchItemType createFulltextSearchItem() {
         try {
             SearchItemType fulltextSearchItem = new SearchItemType();
-            ObjectFilter filter = PrismContext.get().queryFor(getModelObject().getTypeClass())
+            ObjectFilter filter = PrismContext.get().queryFor((Class<Containerable>)getModelObject().getTypeClass())
                     .fullText(getModelObject().getFullText())
                     .buildFilter();
             fulltextSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
@@ -295,7 +296,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         if (objectListView == null) {
             viewExists = false;
             objectListView = new GuiObjectListViewType();
-            objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+            objectListView.setType(WebComponentUtil.anyClassToQName(PrismContext.get(), type));
             if (valueToAdd != null) {
                 views.getObjectCollectionView().add(objectListView);
             } else {

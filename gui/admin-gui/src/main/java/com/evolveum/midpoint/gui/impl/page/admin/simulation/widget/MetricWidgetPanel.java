@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -19,12 +22,12 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SimulationMetricWidgetPanel extends WidgetPanel<SimulationMetricWidgetType> {
+public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,7 +38,7 @@ public class SimulationMetricWidgetPanel extends WidgetPanel<SimulationMetricWid
     private static final String ID_ICON = "";
     private static final String ID_CHART_CONTAINER = "chartContainer";
 
-    public SimulationMetricWidgetPanel(String id, IModel<SimulationMetricWidgetType> model) {
+    public MetricWidgetPanel(String id, IModel<DashboardWidgetType> model) {
         super(id, model);
 
         initLayout();
@@ -57,23 +60,26 @@ public class SimulationMetricWidgetPanel extends WidgetPanel<SimulationMetricWid
             return;
         }
 
-        Object[] array = new Object[0];
+        Object[] array = new Object[0]; // todo data
 
         if (array == null || array.length == 0) {
             return;
         }
 
         String options = "{ height: 85, lineColor: '#92c1dc', endColor: '#92c1dc' }";
-        String data = StringUtils.join(array, ", ");
+        String data = "[" + StringUtils.join(array, ", ") + "]";
 
         response.render(OnDomReadyHeaderItem.forScript(
-                "MidPointTheme.createSparkline('#" + comp.getMarkupId() + "', " + options + ", " + data));
+                "MidPointTheme.createSparkline('#" + comp.getMarkupId() + "', " + options + ", " + data + ");"));
     }
 
     private void initLayout() {
         add(AttributeModifier.prepend("class", "d-flex flex-column border rounded-xl bg-white p-3"));
 
-        Label title = new Label(ID_TITLE, () -> getModelObject().getDisplay().getLabel());
+        Label title = new Label(ID_TITLE, () -> {
+            DisplayType display = getModelObject().getDisplay();
+            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
+        });
         add(title);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
@@ -85,14 +91,22 @@ public class SimulationMetricWidgetPanel extends WidgetPanel<SimulationMetricWid
         });
         add(trendBadge);
 
-        Label value = new Label(ID_VALUE);
+        Label value = new Label(ID_VALUE, createValueModel());
         add(value);
 
-        Label valueDescription = new Label(ID_VALUE_DESCRIPTION);
+        Label valueDescription = new Label(ID_VALUE_DESCRIPTION, createDescriptionModel());
         add(valueDescription);
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
+    }
+
+    private IModel<String> createValueModel() {
+        return () -> "asdf";
+    }
+
+    private IModel<String> createDescriptionModel() {
+        return () -> "jklo";
     }
 }

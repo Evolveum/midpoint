@@ -52,7 +52,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
 
 
-    private LoadableDetachableModel<Search<? extends AssignmentHolderType>> searchModel;
+    private LoadableDetachableModel<Search> searchModel;
 
     private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
@@ -71,14 +71,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         if (searchModel == null) {
             searchModel = new LoadableDetachableModel<>() {
                 @Override
-                protected Search<? extends AssignmentHolderType> load() {
+                protected Search load() {
                     PageStorage storage = getStorage();
                     TemplateType template = templateType.getObject();
                     if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(template.getType())) {
-                        SearchBuilder<? extends AssignmentHolderType> searchBuilder = new SearchBuilder<>(template.getType())
+                        SearchBuilder searchBuilder = new SearchBuilder(template.getType())
                                 .modelServiceLocator(getPageBase());
 
-                        Search<? extends AssignmentHolderType> search = searchBuilder.build();
+                        Search search = searchBuilder.build();
                         storage.setSearch(search);
                         return search;
                     }

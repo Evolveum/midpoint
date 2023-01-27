@@ -31,6 +31,14 @@ public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<Servic
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (getTable().getTilesModel().getObject().size() == 0) {
+            getPageBase().info(getPageBase().createStringResource("AccessApplicationStepPanel.skip").getString());
+        }
+    }
+
+    @Override
     protected ItemPath getPathForValueContainer() {
         return RoleType.F_INDUCEMENT;
     }

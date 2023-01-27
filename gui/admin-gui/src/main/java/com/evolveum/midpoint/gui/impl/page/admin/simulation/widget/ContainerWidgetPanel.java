@@ -88,12 +88,12 @@ public class ContainerWidgetPanel extends WidgetPanel<ContainerWidgetType> {
         WidgetType w = model.getObject();
 
         // todo fix via some widget factory...
-        if (w instanceof ContainerWidgetType) {
-            return new ContainerWidgetPanel(id, () -> (ContainerWidgetType) model.getObject());
-        } else if (w instanceof SimulationMetricWidgetType) {
-            return new SimulationMetricWidgetPanel(id, () -> (SimulationMetricWidgetType) model.getObject());
-        } else {
+//        if (w instanceof ContainerWidgetType) {
+//            return new ContainerWidgetPanel(id, () -> (ContainerWidgetType) model.getObject());
+//        } else if (w instanceof SimulationMetricWidgetType) {
+//            return new MetricWidgetPanel(id, () -> (SimulationMetricWidgetType) model.getObject());
+//        } else {
             return new Label(id, () -> model.getObject().getIdentifier());
-        }
+//        }
     }
 }

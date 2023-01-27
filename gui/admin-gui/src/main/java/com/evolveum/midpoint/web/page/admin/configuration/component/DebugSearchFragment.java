@@ -27,7 +27,7 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
+                               IModel<Search> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
 
         initLayout(showAllItemsModel);

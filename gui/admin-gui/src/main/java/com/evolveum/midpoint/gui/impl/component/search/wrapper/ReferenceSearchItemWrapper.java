@@ -27,10 +27,10 @@ import java.util.List;
 public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<ObjectReferenceType> {
 
     PrismReferenceDefinition def;
-    Class<? extends Containerable> searchType;
+    Class<?> searchType;
 //    List<T> availableValues = new ArrayList<>();
 
-    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
+    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<?> searchType) {
         super(def.getItemName());
         this.def = def;
         this.searchType = searchType;
@@ -47,7 +47,7 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
         return def;
     }
 
-    public Class<? extends Containerable> getSearchType() {
+    public Class<?> getSearchType() {
         return searchType;
     }
 
