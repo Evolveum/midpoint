@@ -915,6 +915,9 @@
                     <xsd:documentation>
                         OID of the object processed. Usually known, even for objects that are to be created.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.oid</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
@@ -922,6 +925,9 @@
                     <xsd:documentation>
                         Type of the object processed.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.type</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resourceObjectCoordinates" type="tns:ShadowDiscriminatorType" minOccurs="0">
@@ -939,6 +945,9 @@
                     <xsd:documentation>
                         Name of the object processed.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="state" type="tns:ObjectProcessingStateType" minOccurs="0">
@@ -946,6 +955,9 @@
                     <xsd:documentation>
                         Was the object added, modified, deleted, or unchanged?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.state</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -956,6 +968,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
                         <a:indexed>true</a:indexed>
+                        <a:displayName>SimulationResultProcessedObjectType.eventTagRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

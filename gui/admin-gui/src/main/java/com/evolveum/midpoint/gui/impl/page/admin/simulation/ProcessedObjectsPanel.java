@@ -43,13 +43,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
 
-
-
-//    @Override
-//    protected SimulationResultProcessedObjectType getRowRealValue(SelectableBean<SimulationResultProcessedObjectType> bean) {
-//        return bean != null ? bean.getValue() : null;
-//    }
-
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
         // TODO
@@ -105,11 +98,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         // todo implement
 
         PageParameters params = new PageParameters();
-        params.set("RESULT_OID", "123");
-        params.set("TAG_OID", "456");
-        params.set("CONTAINER_ID", "789");
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, "123");
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_TAG_OID, "456");
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, "789");
 
-        setResponsePage( new PageSimulationResultObject(params));
+        setResponsePage(new PageSimulationResultObject(params));
     }
 
     @Override

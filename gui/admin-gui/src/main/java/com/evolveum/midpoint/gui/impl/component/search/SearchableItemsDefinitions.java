@@ -194,6 +194,14 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultType.F_ROOT_TASK_REF),
                 ItemPath.create(SimulationResultType.F_METRIC)
         ));
+
+        SEARCHABLE_OBJECTS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                ItemPath.create(SimulationResultProcessedObjectType.F_NAME),
+                ItemPath.create(SimulationResultProcessedObjectType.F_STATE),
+                ItemPath.create(SimulationResultProcessedObjectType.F_TYPE),
+                ItemPath.create(SimulationResultProcessedObjectType.F_OID),
+                ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_TAG_REF)
+        ));
     }
 
     static {

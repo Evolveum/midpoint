@@ -30,6 +30,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String KEY_SIMULATION = "simulation";
     public static final String KEY_CONFIGURATION = "configuration";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
     public static final String KEY_ROLE_CATALOG = "roleCatalog";
@@ -333,5 +334,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
         pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+    }
+
+    public GenericPageStorage getSimulation() {
+        return getPageStorage(KEY_SIMULATION, new GenericPageStorage());
     }
 }
