@@ -469,6 +469,70 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return clock.isPast(lockedUntilTimestamp);
     }
 
+    public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+            String reason, Class<? extends FocusType> focusType, boolean isSuccess) {
+        if (principal == null && focusType != null) {
+            try {
+                principal = focusProfileService.getPrincipal(username, focusType);
+            } catch (Exception e) {
+                //ignore if non-exist
+            }
+        }
+        if (principal != null) {
+            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AuthenticationAttemptDataType authAttemptData = null;
+            if (authentication instanceof MidpointAuthentication) {
+                String sequenceIdentifier = ((MidpointAuthentication) authentication).getSequence().getIdentifier();
+                String moduleIdentifier = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication().getModuleIdentifier();
+                authAttemptData = AuthenticationEvaluatorUtil.findOrCreateAuthenticationAttemptData(behavior,
+                        sequenceIdentifier, moduleIdentifier);
+                authAttemptData.setChannel(((MidpointAuthentication) authentication).getSequence().getChannel());
+                recordModuleAuthenticationAttempt(principal, authAttemptData, connEnv, isSuccess);
+            }
+
+            if (isSuccess) {
+                recordPasswordAuthenticationSuccess(principal, connEnv, behavior, true);
+            } else {
+                recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason, true);
+            }
+        } else {
+            recordAuthenticationFailure(username, connEnv, reason);
+        }
+    }
+
+    private void recordModuleAuthenticationAttempt(@NotNull MidPointPrincipal principal, @NotNull AuthenticationAttemptDataType authAttemptData,
+            @NotNull ConnectionEnvironment connEnv, boolean isSuccess) {
+        FocusType focusBefore = principal.getFocus().clone();
+        Integer failedLogins = authAttemptData.getFailedAttempts();
+        boolean successLoginAfterFail = false;
+        if (failedLogins != null && failedLogins > 0) {
+            authAttemptData.setFailedAttempts(0);
+            successLoginAfterFail = true;
+        }
+        LoginEventType event = new LoginEventType();
+        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+        event.setFrom(connEnv.getRemoteHostAddress());
+
+        if (isSuccess) {
+            authAttemptData.setLastSuccessfulAuthentication(event);
+        } else {
+            authAttemptData.setLastFailedAuthentication(event);
+        }
+        LockoutStatusType oldLockoutStatus = authAttemptData.getLockoutStatus();
+        if (LockoutStatusType.LOCKED.equals(oldLockoutStatus) && isSuccess) {
+            authAttemptData.setLockoutStatus(LockoutStatusType.NORMAL);
+            authAttemptData.setLockoutExpirationTimestamp(null);
+        }
+
+        ActivationType activation = principal.getFocus().getActivation();
+        //todo decide user lockout status
+
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
+    }
+
     protected void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
             @NotNull AuthenticationBehavioralDataType behavioralData, boolean audit) {
         FocusType focusBefore = principal.getFocus().clone();
@@ -504,27 +568,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
     private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
         securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
-    }
-
-    public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            String reason, Class<? extends FocusType> focusType, boolean isSuccess) {
-        if (principal == null && focusType != null) {
-            try {
-                principal = focusProfileService.getPrincipal(username, focusType);
-            } catch (Exception e) {
-                //ignore if non-exist
-            }
-        }
-        if (principal != null) {
-            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
-            if (isSuccess) {
-                recordPasswordAuthenticationSuccess(principal, connEnv, behavior, true);
-            } else {
-                recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason, true);
-            }
-        } else {
-            recordAuthenticationFailure(username, connEnv, reason);
-        }
     }
 
     private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,

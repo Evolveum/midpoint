@@ -165,7 +165,9 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
+        if(principal != null) {
+            LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
+        }
         AdminGuiConfigurationType globalAdminGuiConfig = null;
         if (systemConfiguration != null) {
             globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();
