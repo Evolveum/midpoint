@@ -90,6 +90,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 onOpenPerformed(target);
             }
         };
+        add(open);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();

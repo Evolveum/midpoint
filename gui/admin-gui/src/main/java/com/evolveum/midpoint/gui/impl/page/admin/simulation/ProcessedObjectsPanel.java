@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
@@ -95,12 +96,19 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
-        // todo implement
+        SimulationResultProcessedObjectType object = bean.getValue();
+        if (object == null) {
+            // todo implement case where there was a problem loading object for row
+            return;
+        }
 
         PageParameters params = new PageParameters();
-        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, "123");
-        params.set(PageSimulationResultObject.PAGE_PARAMETER_TAG_OID, "456");
-        params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, "789");
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
+        String tagOid = getTagOid();
+        if (tagOid != null) {
+            params.set(PageSimulationResultObject.PAGE_PARAMETER_TAG_OID, tagOid);
+        }
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
 
         setResponsePage(new PageSimulationResultObject(params));
     }
@@ -117,6 +125,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             @Override
             protected String getTagOid() {
                 return ProcessedObjectsPanel.this.getTagOid();
+            }
+
+            // todo remove
+            @Override
+            public ObjectQuery getQuery() {
+                return super.getQuery();
             }
         };
     }

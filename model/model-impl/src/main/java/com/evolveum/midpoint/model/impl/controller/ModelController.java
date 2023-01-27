@@ -745,7 +745,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         if (ctx.isCertCase) {
             list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
                     AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment) {
+        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment || ctx.isProcessedObject) {
             // TODO implement security post processing for CaseWorkItems
         } else {
             throw new IllegalStateException();
