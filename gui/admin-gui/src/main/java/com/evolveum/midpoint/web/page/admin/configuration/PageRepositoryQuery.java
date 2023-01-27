@@ -17,7 +17,6 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -466,12 +465,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
             // TODO add containerable option too
-            Search<?> search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(this).build();
+            Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(this).build();
             search.addAllowedModelType(SearchBoxModeType.ADVANCED);
             search.setSearchMode(SearchBoxModeType.ADVANCED);
             search.setAdvancedQuery(filterAsString);
 
-            if (!search.isAdvancedQueryValid(getPrismContext())) {
+            if (!search.isAdvancedQueryValid(PageRepositoryQuery.this)) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
                 target.add(getFeedbackPanel());

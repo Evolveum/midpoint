@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,7 +50,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private IModel<ViewToggle> viewToggleModel;
 
-    private IModel<Search<? extends ObjectType>> searchModel;
+    private IModel<Search> searchModel;
 
     private UserProfileStorage.TableId tableId;
 
@@ -199,11 +198,11 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         }
     }
 
-    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+    protected IModel<Search> createSearchModel() {
         return null;
     }
 
-    public IModel<Search<? extends ObjectType>> getSearchModel() {
+    public IModel<Search> getSearchModel() {
         return searchModel;
     }
 

@@ -100,11 +100,11 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (displayModel == null || customColumn == null) {
             return null;
         }
-        return new ContainerableNameColumn<>(displayModel, WebComponentUtil.getPath(customColumn), expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel, null, customColumn, expression, getPageBase()) {
             @Override
-            protected IModel<String> getContainerName(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+            protected IModel<String> getContainerName(SelectableBean<AuditEventRecordType> selectableBean) {
                 return () -> {
-                    AuditEventRecordType record = unwrapModel(rowModel);
+                    AuditEventRecordType record = selectableBean == null ? null : selectableBean.getValue() ;
                     if (record == null) {
                         return null;
                     }
@@ -155,7 +155,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     @Override
     protected ISelectableDataProvider<SelectableBean<AuditEventRecordType>> createProvider() {
         PageStorage pageStorage = getPageStorage();
-        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<>(
+        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                 AuditLogViewerPanel.this, getSearchModel(), null, false) {
 
             @Override
@@ -203,15 +203,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     public List<AuditEventRecordType> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
-
-    @Override
-    protected AuditEventRecordType getRowRealValue(SelectableBean<AuditEventRecordType> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
-    }
-
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();

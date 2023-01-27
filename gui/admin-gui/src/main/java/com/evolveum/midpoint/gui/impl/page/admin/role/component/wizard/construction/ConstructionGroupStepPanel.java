@@ -62,7 +62,6 @@ public class ConstructionGroupStepPanel
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
-//    private IModel<SearchValue<ItemName>> associationRef = Model.of();
 
     public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
@@ -272,6 +271,20 @@ public class ConstructionGroupStepPanel
                     ex.getLocalizedMessage());
         }
         return searchContext;
+    }
+
+    @Override
+    protected void customizeTile(SelectableBean<ShadowType> object, TemplateTile<SelectableBean<ShadowType>> tile) {
+        object.setSelected(false);
+        tile.setSelected(false);
+
+        getSelectedItemsModel().getObject().forEach(association -> {
+            if (association.oid.equals(object.getValue().getOid())
+                    && association.associationName.equivalent(getAssociationRef().getValue())) {
+                object.setSelected(true);
+                tile.setSelected(true);
+            }
+        });
     }
 
     public class AssociationWrapper implements Serializable {

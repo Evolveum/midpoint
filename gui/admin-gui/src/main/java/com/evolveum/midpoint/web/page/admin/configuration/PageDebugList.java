@@ -107,7 +107,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private LoadableDetachableModel<Search<? extends ObjectType>> searchModel = null;
+    private LoadableDetachableModel<Search> searchModel = null;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
@@ -127,7 +127,7 @@ public class PageDebugList extends PageAdminConfiguration {
         searchModel = new LoadableDetachableModel<>() {
 
             @Override
-            protected Search<? extends ObjectType> load() {
+            protected Search load() {
                 GenericPageStorage storage = getSessionStorage().getConfiguration();
                 Search search = storage.getSearch();
 
@@ -147,12 +147,12 @@ public class PageDebugList extends PageAdminConfiguration {
         initLayout();
     }
 
-    private Search<? extends ObjectType> createSearch(Class<? extends ObjectType> type) {
-        SearchBuilder<? extends ObjectType> searchBuilder = new SearchBuilder<>(type)
+    private Search createSearch(Class<? extends ObjectType> type) {
+        SearchBuilder searchBuilder = new SearchBuilder(type)
                 .additionalSearchContext(createAdditionalSearchContext())
                 .modelServiceLocator(PageDebugList.this);
 
-        Search<? extends ObjectType> search = searchBuilder.build();
+        Search search = searchBuilder.build();
         //TODO axiom?
         search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
         return search;
@@ -497,11 +497,11 @@ public class PageDebugList extends PageAdminConfiguration {
         Table table = getListTable();
 
 
-        Search<? extends ObjectType> search = searchModel.getObject();
+        Search search = searchModel.getObject();
         if (search.isForceReload()) {
             Class<? extends ObjectType> type = search.getTypeClass();
 
-            Search<? extends ObjectType> newSearch = createSearch(type);
+            Search newSearch = createSearch(type);
                         searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
                         table.getDataTable().getColumns().clear();
                         table.getDataTable().getColumns().addAll(createColumns());

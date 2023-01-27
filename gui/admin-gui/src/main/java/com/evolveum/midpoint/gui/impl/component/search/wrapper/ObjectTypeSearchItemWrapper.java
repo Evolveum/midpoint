@@ -23,14 +23,15 @@ import org.apache.commons.lang3.StringUtils;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class ObjectTypeSearchItemWrapper<C extends Containerable> extends FilterableSearchItemWrapper<QName> {
+public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QName> {
 
     private QName oldType;
     private boolean typeChanged;
     private boolean allowAllTypesSearch;
 
-    private List<Class<C>> supportedTypeList = new ArrayList<>();
+    private List<Class<?>> supportedTypeList = new ArrayList<>();
     private String name;
     private String help;
     private boolean visible = true;
@@ -43,7 +44,7 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Filter
         this.defaultObjectType = config.getDefaultValue();
     }
 
-    public ObjectTypeSearchItemWrapper(List<Class<C>> supportedTypeList, QName defaultObjectType) {
+    public ObjectTypeSearchItemWrapper(List<Class<?>> supportedTypeList, QName defaultObjectType) {
         this.supportedTypeList = supportedTypeList;
         this.defaultObjectType = defaultObjectType;
     }
@@ -52,9 +53,9 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Filter
         if (supportedTypeList == null) {
             return;
         }
-        supportedTypeList.forEach(qname -> {
-            this.supportedTypeList.add((Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), qname));
-        });
+        this.supportedTypeList = supportedTypeList.stream()
+                        .map(qName ->  WebComponentUtil.qnameToAnyClass(PrismContext.get(), qName))
+                                .collect(Collectors.toList());
     }
 
     public Class<ObjectTypeSearchItemPanel> getSearchItemPanelClass() {
@@ -62,11 +63,9 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Filter
     }
 
     public List<QName> getAvailableValues() {
-        List<QName> availableValues = new ArrayList<>();
-        supportedTypeList.forEach(type -> {
-            availableValues.add(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-        });
-        return availableValues;
+        return supportedTypeList.stream()
+                .map(type -> WebComponentUtil.anyClassToQName(PrismContext.get(), type))
+                .collect(Collectors.toList());
     }
 
     public boolean isTypeChanged() {
@@ -82,7 +81,7 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Filter
         return new SearchValue(getDefaultObjectType());
     }
 
-    public List<Class<C>> getSupportedTypeList() {
+    public List<Class<?>> getSupportedTypeList() {
         return supportedTypeList;
     }
 

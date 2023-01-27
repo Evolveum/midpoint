@@ -141,14 +141,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         return SessionStorage.KEY_WORK_ITEMS;
     }
 
-    @Override
-    protected CaseWorkItemType getRowRealValue(PrismContainerValueWrapper<CaseWorkItemType> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getRealValue();
-    }
-
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
                 .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()

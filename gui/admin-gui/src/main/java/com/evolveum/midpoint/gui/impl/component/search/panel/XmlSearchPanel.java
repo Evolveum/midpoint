@@ -6,12 +6,14 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -61,7 +63,13 @@ public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
 //        advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
         add(advancedArea);
 
-
+        Label advancedError = new Label(ID_ADVANCED_ERROR,
+                new PropertyModel<String>(getModel(), AdvancedQueryWrapper.F_ERROR));
+        advancedError.setOutputMarkupId(true);
+        advancedError.add(AttributeAppender.append("class",
+                () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
+        advancedError.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getAdvancedError())));
+        add(advancedError);
     }
 
 //    private boolean isAdvancedMode() {

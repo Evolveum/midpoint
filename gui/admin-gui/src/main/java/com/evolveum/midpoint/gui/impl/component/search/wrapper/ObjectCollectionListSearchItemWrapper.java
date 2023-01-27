@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ObjectCollectionListSearchItemWrapper<C extends Containerable> extends FilterableSearchItemWrapper<String> {
+public class ObjectCollectionListSearchItemWrapper extends FilterableSearchItemWrapper<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectCollectionSearchItemWrapper.class);
-    private Class<C> type;
+    private Class<?> type;
     Map<String, CompiledObjectCollectionView> collectionViewLightMap = new HashMap<>();
 
-    public ObjectCollectionListSearchItemWrapper(@NotNull Class<C> type, List<CompiledObjectCollectionView> collectionViews) {
+    public ObjectCollectionListSearchItemWrapper(@NotNull Class<?> type, List<CompiledObjectCollectionView> collectionViews) {
         this.type = type;
         initCollectionViews(collectionViews);
     }

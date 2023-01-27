@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecution
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -609,6 +610,23 @@ public final class WebComponentUtil {
 
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
+    public static QName anyClassToQName(PrismContext prismContext, Class<?> clazz) {
+        if (ObjectReferenceType.class.equals(clazz)) {
+            return ObjectReferenceType.COMPLEX_TYPE;
+        }
+        if (ObjectType.class.isAssignableFrom(clazz)) {
+            return classToQName(prismContext, (Class<ObjectType>) clazz);
+        }
+        return containerClassToQName(prismContext, (Class<Containerable>) clazz);
+    }
+
+    public static <S extends Serializable> Class<? extends Serializable> qnameToAnyClass(PrismContext prismContext, QName qName) {
+        if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
+            return (Class<S>) ObjectReferenceType.class;
+        }
+        return (Class<S>) qnameToContainerClass(prismContext, qName);
     }
 
     public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
@@ -5537,22 +5555,27 @@ public final class WebComponentUtil {
     }
 
     public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {
-        createToastForResource("AbstractWizardPanel.updateObject", type, target);
+        createToastForObject("AbstractWizardPanel.updateObject", type, target);
     }
 
     public static void createToastForCreateObject(AjaxRequestTarget target, QName type) {
-        createToastForResource("AbstractWizardPanel.createObject", type, target);
+        createToastForObject("AbstractWizardPanel.createObject", type, target);
     }
 
-    private static void createToastForResource(String key, QName type, AjaxRequestTarget target) {
-        String typeLabel = translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false));
+    private static void createToastForObject(String key, QName type, AjaxRequestTarget target) {
         new Toast()
                 .success()
-                .title(PageBase.createStringResourceStatic(key, typeLabel).getString())
+                .title(PageBase.createStringResourceStatic(
+                        key,
+                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
+                        .getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(PageBase.createStringResourceStatic(key + ".text", typeLabel).getString())
+                .body(PageBase.createStringResourceStatic(
+                        key + ".text",
+                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
+                        .getString())
                 .show(target);
     }
 
@@ -5574,6 +5597,10 @@ public final class WebComponentUtil {
     }
 
     public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
+        if (listViewType == null) {
+            return null;
+        }
+
         Task task = pageBase.createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
         try {

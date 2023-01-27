@@ -75,13 +75,13 @@ public class SearchBoxConfigurationBuilder {
         ));
     }
 
-    private Class<? extends Containerable> type;
+    private Class<?> type;
     private CollectionPanelType collectionPanelType;
     private ModelServiceLocator modelServiceLocator;
     private Map<ItemPath, ItemDefinition<?>> availableDefinitions;
     private SearchContext additionalSearchContext;
 
-    public SearchBoxConfigurationBuilder type(Class<? extends Containerable> type) {
+    public SearchBoxConfigurationBuilder type(Class<?> type) {
         this.type = type;
         return this;
     }
@@ -132,8 +132,8 @@ public class SearchBoxConfigurationBuilder {
     private List<SearchItemType> createSearchItemList() {
         List<SearchItemType> searchItems = new ArrayList<>();
 
-        if (additionalSearchContext.getReportCollection() != null) {
-            return createReportSearchItems(additionalSearchContext.getReportCollection());
+        if (getReportCollection() != null) {
+            return createReportSearchItems(getReportCollection());
         }
 
         for (ItemPath path : availableDefinitions.keySet()) {
@@ -146,6 +146,13 @@ public class SearchBoxConfigurationBuilder {
         }
 
         return searchItems;
+    }
+
+    private ObjectCollectionReportEngineConfigurationType getReportCollection(){
+        if (additionalSearchContext == null) {
+            return null;
+        }
+        return additionalSearchContext.getReportCollection();
     }
 
     private boolean isDeadItemForProjections(ItemPath path) {
@@ -166,12 +173,12 @@ public class SearchBoxConfigurationBuilder {
             SearchFilterType filter = reportCollection.getCollection().getFilter();
             if (filter != null) {
                 try {
-                    ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().parseFilter(filter, type);
+                    ObjectFilter parsedFilter = null;//PrismContext.get().getQueryConverter().parseFilter(filter, type);
                     if (parsedFilter instanceof AndFilter) {
                         List<ObjectFilter> conditions = ((AndFilter) parsedFilter).getConditions();
                         conditions.forEach(condition -> processFilterToSearchItem(searchItems, condition));
                     }
-                } catch (SchemaException e) {
+                } catch (Exception e) {
                     LOGGER.debug("Unable to parse filter, {} ", filter);
                 }
             }
@@ -233,7 +240,7 @@ public class SearchBoxConfigurationBuilder {
 
     private ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration() {
         ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
-        objectTypeItem.setDefaultValue(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+        objectTypeItem.setDefaultValue(WebComponentUtil.anyClassToQName(PrismContext.get(), type));
         objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(collectionPanelType));
         objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         return objectTypeItem;
@@ -363,6 +370,7 @@ public class SearchBoxConfigurationBuilder {
             case SERVICE_MEMBER_MEMBER:
             case SERVICE_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
+            case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
                 return WebComponentUtil.createFocusTypeList();
             case ORG_MEMBER_MEMBER:
@@ -387,7 +395,7 @@ public class SearchBoxConfigurationBuilder {
         return new ArrayList<>();
     }
 
-    public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
+    public static <C> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
 
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
             if (FIXED_SEARCH_ITEMS.get(typeClass) != null &&

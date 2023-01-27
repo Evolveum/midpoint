@@ -39,7 +39,7 @@ public class FullTextSearchUtil {
                 && !Boolean.FALSE.equals(config.isEnabled());
     }
 
-    public static boolean isEnabledFor(FullTextSearchConfigurationType config, Class<? extends Containerable> clazz) {
+    public static boolean isEnabledFor(FullTextSearchConfigurationType config, Class<?> clazz) {
         if (!ObjectType.class.isAssignableFrom(clazz)) {
             return false;
         }

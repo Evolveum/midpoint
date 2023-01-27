@@ -63,7 +63,7 @@ public interface ContainerValueDataProviderFactory<T extends Containerable, C ex
      * @return Data Provider instance
      */
     ISelectableDataProvider<PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
-            Class<? extends Objectable>  objectType, String oid, ItemPath path);
+                                                                  Class<? extends Objectable>  objectType, String oid, ItemPath path);
 
     /**
      * Creates data provider instance
@@ -80,7 +80,7 @@ public interface ContainerValueDataProviderFactory<T extends Containerable, C ex
      */
 
     ISelectableDataProvider<PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
-            Class<? extends Objectable>  objectType, String oid, ItemPath path, CompiledObjectCollectionView compiledObjectCollectionView, Customization<T> customization);
+                                                                  Class<? extends Objectable>  objectType, String oid, ItemPath path, CompiledObjectCollectionView compiledObjectCollectionView, Customization<T> customization);
 
     /**
      *

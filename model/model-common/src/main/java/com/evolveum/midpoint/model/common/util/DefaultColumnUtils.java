@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -118,7 +118,7 @@ public class DefaultColumnUtils {
         return OBJECT_COLUMNS_DEF;
     }
 
-    public static <C extends Containerable> GuiObjectListViewType getDefaultView(Class<? extends C> type) {
+    public static GuiObjectListViewType getDefaultView(Class<?> type) {
         if (type == null) {
             return getDefaultObjectView();
         }
@@ -241,14 +241,12 @@ public class DefaultColumnUtils {
     }
 
     public static String processSpecialColumn(
-            ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
-        return processSpecialColumn(itemPath, object.getRealValue(), localization);
-    }
-
-    public static String processSpecialColumn(
-            ItemPath itemPath, Containerable object, LocalizationService localization) {
+            ItemPath itemPath, Object object, LocalizationService localization) {
         if (itemPath == null) {
             return null;
+        }
+        if (object instanceof PrismValue) {
+            object = ((PrismValue) object).getRealValue();
         }
         if (object instanceof TaskType) {
             TaskType task = (TaskType) object;
@@ -297,7 +295,7 @@ public class DefaultColumnUtils {
         return null;
     }
 
-    public static boolean isSpecialColumn(ItemPath itemPath, Containerable value) {
+    public static boolean isSpecialColumn(ItemPath itemPath, Object value) {
         if (value == null || itemPath == null) {
             return false;
         }
@@ -317,7 +315,7 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<Containerable> type, SchemaService schemaService) {
+            Class<?> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }
@@ -343,7 +341,7 @@ public class DefaultColumnUtils {
 
     private static class ColumnWrapper {
 
-        private ItemPath path;
+        private final ItemPath path;
         private String label = null;
         private boolean isSortable = false;
         private DisplayValueType displayValue = DisplayValueType.STRING;

@@ -17,8 +17,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -48,7 +46,7 @@ public class ResourceTemplateProvider
 
     private final IModel<TemplateType> type;
 
-    public ResourceTemplateProvider(Component component, IModel<Search<? extends AssignmentHolderType>> search, IModel<TemplateType> type) {
+    public ResourceTemplateProvider(Component component, IModel<Search> search, IModel<TemplateType> type) {
         super(component, (IModel) search);
         this.type = type;
     }

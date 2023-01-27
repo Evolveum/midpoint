@@ -64,7 +64,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private static final String ID_TITLE = "title";
 
-    private IModel<Search<FocusType>> searchModel;
+    private IModel<Search> searchModel;
 
     public GovernanceCardsPanel(String id, FocusDetailsModels<AR> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -87,14 +87,14 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     private void initSearchModel() {
         searchModel = new LoadableDetachableModel<>() {
             @Override
-            protected Search<FocusType> load() {
+            protected Search load() {
 
-                SearchBuilder<FocusType> searchBuilder = new SearchBuilder<>(FocusType.class)
+                SearchBuilder searchBuilder = new SearchBuilder(FocusType.class)
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
 
-                Search<FocusType> search = searchBuilder.build();
+                Search search = searchBuilder.build();
                 MemberPanelStorage storage = getMemberPanelStorage();
                 storage.setSearch(search);
                 return search;
@@ -247,7 +247,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+                    protected IModel<Search> createSearchModel() {
                         return (IModel) searchModel;
                     }
 
@@ -391,30 +391,19 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     @Override
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
-                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
-
-        AtomicReference<OperationResult> result = new AtomicReference<>();
-        long until = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
-        sleepWatchfully( until, 100, () -> {
-            try {
-                result.set(getPageBase().getTaskManager().getTaskWithResult(
-                        task.getOid(), new OperationResult("reload task")).getResult());
-            } catch (Throwable e) {
-                //ignore exception
-            }
-            return result.get() == null ? false : result.get().isInProgress();
-        });
-        if (!result.get().isSuccess()) {
-            getPageBase().showResult(result.get());
-        }
-        refreshTable(target);
-        target.add(getPageBase().getFeedbackPanel());
+        waitWhileTaskFinish(task, target);
     }
 
     @Override
     protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
         super.unassignMembersPerformed(rowModel, target);
+        target.add(getFeedback());
+    }
+
+    @Override
+    protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
+        super.executeUnassign(object, target);
+        target.add(getFeedback());
     }
 
     @Override

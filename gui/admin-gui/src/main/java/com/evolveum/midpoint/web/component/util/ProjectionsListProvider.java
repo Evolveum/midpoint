@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.Component;
