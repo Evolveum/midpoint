@@ -4309,6 +4309,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                               Tags and Shadow marks assigned to the shadow.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TagType</a:objectReferenceTargetType>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5576,6 +5587,32 @@
                 </xsd:annotation>
             </xsd:element>
             <!-- inheritance options may be included later -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowProvisioningPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Shadow specific provisioning policy. This policy is applied to concrete shadows using TagType.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="protected" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Protected shadows cannot be changed. They are out of IDM control.
+                        This is only informational property. Changing it will have no effect on
+                        whether object is protected or not. Object protection is a strict policy that
+                        cannot be easily overridden.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="readOnly" type="xsd:boolean" minOccurs="0" default="false" />
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

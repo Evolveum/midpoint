@@ -229,7 +229,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return true;
         }
 
-        if (syncCtx.isProtected()) {
+        if (syncCtx.isProtected(result)) {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);

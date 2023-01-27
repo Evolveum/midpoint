@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -191,10 +193,23 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
-    public boolean isProtected() {
-        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())
-                || shadowedResourceObject.getPolicySituation().contains(
-                        SchemaConstants.MODEL_POLICY_SITUATION_PROTECTED_SHADOW); // TODO resolve this TEMPORARY code
+    public boolean isProtected(OperationResult result) {
+        if (BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())) {
+            return true;
+        }
+        return determineProtectedFromTags(shadowedResourceObject.getTagRef(), result);
+    }
+
+    private boolean determineProtectedFromTags(List<ObjectReferenceType> tagRefs, OperationResult result) {
+        if (tagRefs == null || tagRefs.isEmpty()) {
+            return false;
+        }
+        Collection<TagType>  marks = this.beans.tagManager.getShadowMarks(tagRefs, result);
+
+        // Account is protected if any of shadow marks set it to protected.
+        return marks.stream().anyMatch(
+                t -> t.getProvisioningPolicy() != null &&
+                BooleanUtils.isTrue(t.getProvisioningPolicy().isProtected()));
     }
 
     /**
@@ -216,6 +231,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.correlationContext = correlationContext;
     }
 
+    @Override
     public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
         return MiscUtil.stateNonNull(resourceObjectDefinition, () -> "No object definition");
     }
@@ -272,10 +288,12 @@ public abstract class SynchronizationContext<F extends FocusType>
         return shadowedResourceObject.getOid();
     }
 
+    @Override
     public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
         return resourceObjectDelta;
     }
 
+    @Override
     public @NotNull ResourceType getResource() {
         return resource;
     }
@@ -290,10 +308,12 @@ public abstract class SynchronizationContext<F extends FocusType>
         return (Class<F>) synchronizationPolicy.getFocusClass();
     }
 
+    @Override
     public @Nullable String getArchetypeOid() {
         return synchronizationPolicy != null ? synchronizationPolicy.getArchetypeOid() : null;
     }
 
+    @Override
     public @NotNull F getPreFocus() {
         if (preFocus != null) {
             return preFocus;
@@ -307,6 +327,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return preFocus;
     }
 
+    @Override
     public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
         //noinspection unchecked
         return (PrismObject<F>) preFocus.asPrismObject();
@@ -346,10 +367,12 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.correlatedOwner = correlatedFocus;
     }
 
+    @Override
     public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
     }
 
+    @Override
     public String getChannel() {
         return channel;
     }
@@ -358,6 +381,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return expressionProfile;
     }
 
+    @Override
     public @NotNull Task getTask() {
         return task;
     }
@@ -449,6 +473,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return systemConfiguration;
     }
 
+    @Override
     public @NotNull ModelBeans getBeans() {
         return beans;
     }

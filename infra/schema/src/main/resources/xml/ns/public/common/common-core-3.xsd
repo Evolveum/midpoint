@@ -808,6 +808,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="provisioningPolicy" type="tns:ShadowProvisioningPolicyType" minOccurs="0">
+                       <xsd:annotation>
+                            <xsd:documentation>
+                                Provisioning policy, which is applied to shadows, which have this tag assigned.
+                                
+                                If shadow have multiple tags with provisioning policy applied, the strongest effect is applied.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.provisioningPolicy</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="eventTag" type="tns:EventTagInformationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -15498,6 +15510,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_POLICY_SITUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,7 +35,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
@@ -160,5 +163,26 @@ public class TagManager {
             map.put(tagOid, tag);
         }
         return map;
+    }
+
+    public Collection<TagType> getShadowMarks(List<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
+        // FIXME: Consider caching of all shadow marks and doing post-filter only
+        if (!cacheRepositoryService.supportsTags()) {
+            return List.of();
+        }
+        String[] tagRefIds = tagRefs.stream().map(t -> t.getOid()).collect(Collectors.toList()).toArray(new String[0]);
+        ObjectQuery query = prismContext.queryFor(TagType.class)
+            //.item(TagType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
+             // Tag is Shadow Marks
+            .item(TagType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
+            .and()
+            // Tag is assigned to shadow
+            .id(tagRefIds)
+            .build();
+        try {
+            return asObjectables(cacheRepositoryService.searchObjects(TagType.class, query, null, result));
+        } catch (SchemaException e) {
+            throw new SystemException(e);
+        }
     }
 }

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -68,6 +69,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
     private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
 
+
+    private static final File ACCOUNT_SHADOW_MANCOMB_DUMMY_FILE = new File(TEST_DIR, "account-shadow-mancomb-dummy.xml");
+    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    private static final File SHADOW_MARK_CUSTOM_PROTECTED_ACCOUNT_DUMMY_FILE = new File(TEST_DIR, "shadow-mark-custom-protected-account.xml");
+
+
     private static final String INTENT_GROUP = "group";
 
     private static final DummyTestResource RESOURCE_DUMMY_BROKEN =
@@ -83,8 +90,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private String accountShadowJackDummyOid = null;
     private String accountShadowJackDummyLimitedOid;
     private String accountShadowCalypsoDummyOid = null;
+    private String accountShadowMancombDummyOid = null;
 
     private MockLensDebugListener mockListener;
+
+
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -505,6 +515,104 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected user "+userCalypso, userCalypso);
 
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
+        assertSituation(shadow, SynchronizationSituationType.DISPUTED);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+    }
+
+    /**
+     * Mancomb is protected using shadow marks, no reaction should be applied.
+     */
+    @Test
+    public void test070AddedAccountMancomb() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        setDebugListener();
+
+        // Add tags and archetype
+        repoAdd(CommonInitialObjects.ARCHETYPE_SHADOW_MARK, result);
+        repoAddObjectFromFile(SHADOW_MARK_CUSTOM_PROTECTED_ACCOUNT_DUMMY_FILE, result);
+
+        PrismObject<ShadowType> accountShadowMancomb = repoAddObjectFromFile(ACCOUNT_SHADOW_MANCOMB_DUMMY_FILE, result);
+        accountShadowMancombDummyOid = accountShadowMancomb.getOid();
+        provisioningService.applyDefinition(accountShadowMancomb, task, result);
+        provisioningService.determineShadowState(accountShadowMancomb, task, result);
+        assertNotNull("No oid in shadow", accountShadowMancomb.getOid());
+
+
+        DummyAccount dummyAccount = new DummyAccount();
+        dummyAccount.setName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        dummyAccount.setPassword("h1ghS3AS");
+        dummyAccount.setEnabled(true);
+        dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb");
+        getDummyResource().addAccount(dummyAccount);
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setShadowedResourceObject(accountShadowMancomb);
+        change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
+
+        // WHEN
+        when();
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        then();
+        LensContext<UserType> context = cleanDebugListener();
+
+        displayDumpable("Resulting context (as seen by debug listener)", context);
+        assertNull("Unexpected lens context", context);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNull("Unexpected user "+userMancomb, userMancomb);
+
+        PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowMancombDummyOid);
+        assertSituation(shadow, null);
+
+        assertSuccess(result);
+    }
+
+    /**
+     * Mancomb is protected using shadow mark, no reaction should be applied.
+     */
+    @Test
+    public void test071MancombRecon() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        setDebugListener();
+
+        // Lets make this a bit more interesting by setting up a fake situation in the shadow
+        ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountShadowMancombDummyOid,
+                getDummyResourceObject(), ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
+        repositoryService.modifyObject(ShadowType.class, accountShadowMancombDummyOid, objectDelta.getModifications(), result);
+
+        PrismObject<ShadowType> accountShadowCalypso = getShadowModelNoFetch(accountShadowMancombDummyOid);
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setShadowedResourceObject(accountShadowCalypso);
+        change.setResource(getDummyResourceObject());
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
+
+        displayDumpable("Change notification", change);
+
+        // WHEN
+        when();
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        then();
+        LensContext<UserType> context = cleanDebugListener();
+
+        displayDumpable("Resulting context (as seen by debug listener)", context);
+        assertNull("Unexpected lens context", context);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNull("Unexpected user "+userMancomb, userMancomb);
+
+        PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowMancombDummyOid);
         assertSituation(shadow, SynchronizationSituationType.DISPUTED);
 
         result.computeStatus();

@@ -47,6 +47,11 @@ public interface CommonInitialObjects {
             ARCHETYPES, "701-archetype-policy-situation.xml",
             SystemObjectsType.ARCHETYPE_POLICY_SITUATION.value());
 
+    AbstractTestResource<ArchetypeType> ARCHETYPE_SHADOW_MARK= new ClassPathTestResource<>(
+            ARCHETYPES, "702-archetype-shadow-mark.xml",
+            SystemObjectsType.ARCHETYPE_SHADOW_MARK.value());
+
+
     AbstractTestResource<TagType> TAG_FOCUS_ACTIVATED = new ClassPathTestResource<>(
             TAGS, "710-tag-focus-activated.xml",
             SystemObjectsType.TAG_FOCUS_ACTIVATED.value());
