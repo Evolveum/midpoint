@@ -27,6 +27,7 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     @NotNull private final ResourceObjectSetType resourceObjects;
     private final Integer batchSize;
     private final boolean updateLiveSyncTokenInDryRun;
+    private final boolean updateLiveSyncTokenInPreviewMode;
 
     LiveSyncWorkDefinition(WorkDefinitionSource source) {
         Boolean updateLiveSyncTokenInDryRunRaw;
@@ -37,12 +38,14 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
             updateLiveSyncTokenInDryRunRaw =
                     legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN,
                             Boolean.class);
+            updateLiveSyncTokenInPreviewMode = false; // not supported here
         } else {
             LiveSyncWorkDefinitionType typedDefinition = (LiveSyncWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
             resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
             batchSize = typedDefinition.getBatchSize();
             updateLiveSyncTokenInDryRunRaw = typedDefinition.isUpdateLiveSyncTokenInDryRun();
+            updateLiveSyncTokenInPreviewMode = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInPreviewMode());
         }
         ResourceObjectSetUtil.removeQuery(resourceObjects);
         updateLiveSyncTokenInDryRun = Boolean.TRUE.equals(updateLiveSyncTokenInDryRunRaw);
@@ -61,10 +64,15 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
         return updateLiveSyncTokenInDryRun;
     }
 
+    boolean isUpdateLiveSyncTokenInPreviewMode() {
+        return updateLiveSyncTokenInPreviewMode;
+    }
+
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjects", resourceObjects, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "batchSize", batchSize, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "updateLiveSyncTokenInDryRun", updateLiveSyncTokenInDryRun, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "updateLiveSyncTokenInDryRun", updateLiveSyncTokenInDryRun, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "updateLiveSyncTokenInPreviewMode", updateLiveSyncTokenInPreviewMode, indent+1);
     }
 }
