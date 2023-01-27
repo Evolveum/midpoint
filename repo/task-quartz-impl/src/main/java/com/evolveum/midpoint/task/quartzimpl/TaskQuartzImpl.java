@@ -194,7 +194,7 @@ public class TaskQuartzImpl implements Task {
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
 
     /** Obtains information about objects processed by the currently executing simulation. */
-    private volatile SimulationProcessedObjectListener simulationProcessedObjectListener;
+    private volatile SimulationDataConsumer simulationDataConsumer;
 
     /** TODO */
     private String simulationResultOid;
@@ -2320,15 +2320,15 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public SimulationProcessedObjectListener setSimulationProcessedObjectListener(SimulationProcessedObjectListener listener) {
-        SimulationProcessedObjectListener old = simulationProcessedObjectListener;
-        simulationProcessedObjectListener = listener;
+    public SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer) {
+        SimulationDataConsumer old = simulationDataConsumer;
+        simulationDataConsumer = consumer;
         return old;
     }
 
     @Override
-    public boolean hasSimulationProcessedObjectListener() {
-        return simulationProcessedObjectListener != null;
+    public boolean hasSimulationDataConsumer() {
+        return simulationDataConsumer != null;
     }
 
     @Override
@@ -2342,12 +2342,10 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void onObjectProcessedBySimulation(
-            @NotNull SimulationProcessedObject processedObject, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException {
-        SimulationProcessedObjectListener listener = simulationProcessedObjectListener;
-        if (listener != null) {
-            listener.onObjectProcessedBySimulation(processedObject, task, result);
+    public void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result) {
+        SimulationDataConsumer consumer = simulationDataConsumer;
+        if (consumer != null) {
+            consumer.accept(data, this, result);
         }
     }
     //endregion

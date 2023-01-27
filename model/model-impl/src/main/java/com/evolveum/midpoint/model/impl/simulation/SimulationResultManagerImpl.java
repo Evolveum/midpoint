@@ -11,8 +11,14 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.SimulationData;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +61,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private OpenResultTransactionsHolder openResultTransactionsHolder;
     @Autowired private PrismContext prismContext;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     /** Global definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
@@ -279,38 +286,97 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         systemConfigurationChangeDispatcher.unregisterListener(this);
     }
 
-    void storeProcessedObject(
-            @NotNull String oid,
+    void storeSimulationData(
+            @NotNull String resultOid,
             @NotNull String transactionId,
-            @NotNull ProcessedObjectImpl<?> processedObject,
+            @NotNull SimulationData data,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        if (!(data instanceof SimulationDataImpl)) {
+            LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
+            return;
+        }
+        LensContext<?> lensContext = ((SimulationDataImpl) data).getLensContext();
         try {
-            LOGGER.trace("Storing processed object into {}:{}: {}", oid, transactionId, processedObject);
-            closedResultsChecker.checkNotClosed(oid);
-            SimulationResultProcessedObjectType processedObjectBean = processedObject.toBean();
-            setTransactionIdSafely(processedObjectBean, transactionId);
-            List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
-                    .item(SimulationResultType.F_PROCESSED_OBJECT)
-                    .add(processedObjectBean.asPrismContainerValue())
-                    .asItemDeltas();
-            repository.modifyObject(SimulationResultType.class, oid, modifications, result);
-            openResultTransactionsHolder.addProcessedObject(oid, transactionId, processedObject, task, result);
+            LOGGER.trace("Storing {} into {}:{}", lensContext, resultOid, transactionId);
+            closedResultsChecker.checkNotClosed(resultOid);
+
+            LensFocusContext<?> focusContext = lensContext.getFocusContext();
+            ProcessedObjectImpl<?> focusRecord = createProcessedObject(focusContext, transactionId, task, result);
+
+            List<ProcessedObjectImpl<ShadowType>> projectionRecords = new ArrayList<>();
+            for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
+                ProcessedObjectImpl<ShadowType> projectionRecord =
+                        createProcessedObject(projectionContext, transactionId, task, result);
+                if (projectionRecord != null) {
+                    projectionRecords.add(projectionRecord);
+                }
+            }
+
+            // Setting links between focus and its projections
+            if (focusRecord != null) {
+                focusRecord.setRecordId(generateRecordId());
+                focusRecord.setProjectionRecords(projectionRecords.size());
+                storeProcessedObjects(resultOid, transactionId, List.of(focusRecord), task, result);
+            }
+
+            for (ProcessedObjectImpl<ShadowType> projectionRecord : projectionRecords) {
+                projectionRecord.setRecordId(generateRecordId());
+                projectionRecord.setFocusRecordId(focusRecord != null ? focusRecord.getRecordId() : null);
+            }
+            storeProcessedObjects(resultOid, transactionId, projectionRecords, task, result);
+
         } catch (CommonException e) {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
         }
     }
 
-    private void setTransactionIdSafely(SimulationResultProcessedObjectType processedObject, String newValue) {
-        String existingValue = processedObject.getTransactionId();
-        if (existingValue != null) {
-            stateCheck(existingValue.equals(newValue),
-                    "Attempted to overwrite transaction ID (%s -> %s) in %s",
-                    existingValue, newValue, processedObject);
-        } else {
-            processedObject.setTransactionId(newValue);
+    /**
+     * Generates the ID for the "processed object" record. Should be unique within a simulation result.
+     *
+     * Later, this may be done right in the repository service.
+     */
+    private String generateRecordId() {
+        return lightweightIdentifierGenerator.generate().toString();
+    }
+
+    private <O extends ObjectType> ProcessedObjectImpl<O> createProcessedObject(
+            @Nullable LensElementContext<O> elementContext,
+            String transactionId,
+            Task task,
+            OperationResult result) {
+        if (elementContext == null) {
+            return null;
         }
+        try {
+            return ProcessedObjectImpl.create(elementContext, transactionId, task, result);
+        } catch (CommonException e) {
+            // TODO do we need more precise error reporting here?
+            //  Or should we conceal some of these exceptions? (Probably not.)
+            throw new SystemException(
+                    "Couldn't process or store the simulation object processing record: " + e.getMessage(), e);
+        }
+    }
+
+    private void storeProcessedObjects(
+            @NotNull String resultOid,
+            @NotNull String transactionId,
+            @NotNull Collection<? extends ProcessedObjectImpl<?>> processedObjects,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException {
+        if (processedObjects.isEmpty()) {
+            return;
+        }
+        for (ProcessedObjectImpl<?> processedObject : processedObjects) {
+            LOGGER.trace("Going to store processed object into {}:{}: {}", resultOid, transactionId, processedObject);
+            openResultTransactionsHolder.addProcessedObject(resultOid, transactionId, processedObject, task, result);
+        }
+        List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
+                .item(SimulationResultType.F_PROCESSED_OBJECT)
+                .addRealValues(ProcessedObjectImpl.toBeans(processedObjects))
+                .asItemDeltas();
+        repository.modifyObject(SimulationResultType.class, resultOid, modifications, result);
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
@@ -358,16 +424,16 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         task.setSimulationResultOid(simulationResultOid);
         openSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
 
-        SimulationProcessedObjectListener simulationObjectProcessingListener =
-                simulationResultContext.getSimulationProcessedObjectListener(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
+        SimulationDataConsumer simulationObjectProcessingListener =
+                simulationResultContext.getSimulationDataConsumer(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
 
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         X returnValue;
         try {
-            task.setSimulationProcessedObjectListener(simulationObjectProcessingListener);
+            task.setSimulationDataConsumer(simulationObjectProcessingListener);
             returnValue = functionCall.execute();
         } finally {
-            task.setSimulationProcessedObjectListener(null);
+            task.setSimulationDataConsumer(null);
             task.setExecutionMode(oldMode);
             commitSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
             closeSimulationResult(simulationResultOid, task, result);

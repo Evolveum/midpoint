@@ -774,12 +774,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public SimulationProcessedObjectListener setSimulationProcessedObjectListener(SimulationProcessedObjectListener listener) {
+    public SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean hasSimulationProcessedObjectListener() {
+    public boolean hasSimulationDataConsumer() {
         return false;
     }
 
@@ -793,7 +793,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onObjectProcessedBySimulation(
-            @NotNull SimulationProcessedObject processedObject, @NotNull Task task, @NotNull OperationResult result) {
+    public void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result) {
     }
 }

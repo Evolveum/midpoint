@@ -22,7 +22,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.common.util.AuditHelper;
-import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.SimulationProcessedObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -358,52 +356,5 @@ public class ClockworkAuditHelper {
             }
         }
         auditRecord.setMessage(sb.toString());
-    }
-
-    /**
-     * Passes the simulation deltas to the appropriate listener.
-     *
-     * The code is here because of the similarity with auditing.
-     *
-     * Temporary code.
-     */
-    <F extends ObjectType> void submitSimulationDeltas(LensContext<F> context, Task task, OperationResult result) {
-        if (task.isPersistentExecution()) {
-            return;
-        }
-
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext != null) {
-            submitElementSimulationDelta(focusContext, task, result);
-        }
-        // We ignore duplicates stemming from higher-order contexts for now
-        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-            submitElementSimulationDelta(projectionContext, task, result);
-        }
-    }
-
-    /**
-     * Submits the information about the (summary) change computed.
-     *
-     * Limitations:
-     *
-     * - We ignore the fact that sometimes we don't have full shadow loaded. The deltas applied to "shadow-only" state
-     * may be misleading.
-     */
-    private <E extends ObjectType> void submitElementSimulationDelta(
-            LensElementContext<E> elementContext, Task task, OperationResult result) {
-        if (task.hasSimulationProcessedObjectListener()) {
-            try {
-                SimulationProcessedObject processedObject = ProcessedObjectImpl.create(elementContext, task, result);
-                if (processedObject != null) {
-                    task.onObjectProcessedBySimulation(processedObject, task, result);
-                }
-            } catch (CommonException e) {
-                // TODO do we need more precise error reporting here?
-                //  Or should we conceal some of these exceptions? (Probably not.)
-                throw new SystemException(
-                        "Couldn't process or store the simulation object processing record: " + e.getMessage(), e);
-            }
-        }
     }
 }

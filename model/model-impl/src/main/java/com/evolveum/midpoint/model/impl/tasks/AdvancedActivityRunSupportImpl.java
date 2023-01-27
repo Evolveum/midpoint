@@ -51,7 +51,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -161,11 +161,11 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public @NotNull SimulationProcessedObjectListener getSimulationProcessedObjectListener(
+    public @NotNull SimulationDataConsumer getSimulationDataConsumer(
             @NotNull String simulationResultOid, @NotNull String transactionId) {
         return simulationResultManager
                 .newSimulationContext(simulationResultOid)
-                .getSimulationProcessedObjectListener(transactionId);
+                .getSimulationDataConsumer(transactionId);
     }
 
     @Override

@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.task.api;
 
 /**
- * Represents an object passed from the clockwork to the simulation manager via {@link Task} interface,
- * namely {@link SimulationProcessedObjectListener} facet.
+ * Represents the data passed from the clockwork to the simulation manager via {@link Task} interface,
+ * namely {@link SimulationDataConsumer} facet.
  *
  * (This module does not understand it all. It is a matter of those upper layers only.)
  */
-public interface SimulationProcessedObject {
+public interface SimulationData {
 }

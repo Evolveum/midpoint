@@ -10,18 +10,13 @@ package com.evolveum.midpoint.model.impl.simulation;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.schema.simulation.PartitionScope;
-
-import com.evolveum.midpoint.task.api.SimulationProcessedObject;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +24,9 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Referencable;
@@ -42,6 +40,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.simulation.PartitionScope;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.TagTypeUtil;
@@ -50,16 +49,21 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Parsed analogy of {@link SimulationResultProcessedObjectType}.
+ *
+ * TODO decide on the purpose and implementation of this class - the duplication of properties and fragility when setting them
+ *  becomes unbearable
  */
-public class ProcessedObjectImpl<O extends ObjectType>
-        implements ProcessedObject<O>, SimulationProcessedObject {
+public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
 
+    private String recordId;
+    @NotNull private final String transactionId;
     private final String oid; // TODO may be null?
     @NotNull private final Class<O> type;
     @NotNull private final QName typeName;
@@ -77,6 +81,10 @@ public class ProcessedObjectImpl<O extends ObjectType>
     /** Complete information on the tags (optional) */
     private Map<String, TagType> eventTagsMap;
 
+    private final Boolean focus;
+    private Integer projectionRecords;
+    private String focusRecordId;
+
     @Nullable private final O before;
     @Nullable private final O after;
     @Nullable private final ObjectDelta<O> delta;
@@ -84,6 +92,7 @@ public class ProcessedObjectImpl<O extends ObjectType>
     private SimulationResultProcessedObjectType cachedBean;
 
     private ProcessedObjectImpl(
+            @NotNull String transactionId,
             String oid,
             @NotNull Class<O> type,
             ShadowDiscriminatorType shadowDiscriminator,
@@ -91,9 +100,12 @@ public class ProcessedObjectImpl<O extends ObjectType>
             @NotNull ObjectProcessingStateType state,
             @NotNull Collection<String> eventTags,
             @NotNull Map<String, BigDecimal> metricValues,
+            Boolean focus,
+            @Nullable String focusRecordId,
             @Nullable O before,
             @Nullable O after,
             @Nullable ObjectDelta<O> delta) {
+        this.transactionId = transactionId;
         this.oid = oid;
         this.type = type;
         this.typeName = ObjectTypes.getObjectType(type).getTypeQName();
@@ -102,17 +114,21 @@ public class ProcessedObjectImpl<O extends ObjectType>
         this.state = state;
         this.eventTags = eventTags;
         this.metricValues = metricValues;
+        this.focus = focus;
+        this.focusRecordId = focusRecordId;
         this.before = before;
         this.after = after;
         this.delta = delta;
     }
 
+    @VisibleForTesting
     public static <O extends ObjectType> ProcessedObjectImpl<O> parse(@NotNull SimulationResultProcessedObjectType bean)
             throws SchemaException {
         Class<?> type = PrismContext.get().getSchemaRegistry().determineClassForTypeRequired(bean.getType());
         argCheck(ObjectType.class.isAssignableFrom(type), "Type is not an ObjectType: %s", type);
         //noinspection unchecked
-        return new ProcessedObjectImpl<>(
+        var obj = new ProcessedObjectImpl<>(
+                bean.getTransactionId(),
                 bean.getOid(),
                 (Class<O>) type,
                 bean.getResourceObjectCoordinates(),
@@ -120,10 +136,15 @@ public class ProcessedObjectImpl<O extends ObjectType>
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
                 getEventTagsOids(bean),
                 parseMetricValues(bean.getMetricValue()),
+                bean.isFocus(),
+                bean.getFocusRecordId(),
                 (O) bean.getBefore(),
                 (O) bean.getAfter(),
-                DeltaConvertor.createObjectDeltaNullable(bean.getDelta())
-        );
+                DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
+        obj.setRecordId(bean.getIdentifier());
+        obj.setFocusRecordId(bean.getFocusRecordId());
+        obj.setProjectionRecords(bean.getProjectionRecords());
+        return obj;
     }
 
     private static Map<String, BigDecimal> parseMetricValues(List<SimulationProcessedObjectMetricValueType> beans) {
@@ -152,8 +173,20 @@ public class ProcessedObjectImpl<O extends ObjectType>
                 .collect(Collectors.toSet());
     }
 
-    public static <O extends ObjectType> @Nullable SimulationProcessedObject create(
-            LensElementContext<O> elementContext, Task task, OperationResult result) throws CommonException {
+    /**
+     * Creates {@link ProcessedObjectImpl} for the {@link LensElementContext}.
+     *
+     * Limitations:
+     *
+     * - We ignore the fact that sometimes we don't have full shadow loaded. The deltas applied to "shadow-only" state
+     * may be misleading.
+     */
+    public static <O extends ObjectType> @Nullable ProcessedObjectImpl<O> create(
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull String transactionId,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
 
         Class<O> type = elementContext.getObjectTypeClass();
         @Nullable O stateBefore = asObjectable(elementContext.getObjectOldOrCurrent());
@@ -169,6 +202,7 @@ public class ProcessedObjectImpl<O extends ObjectType>
         // We may consider returning null if anyState is null (meaning that the delta is MODIFY/DELETE with null stateBefore)
 
         var processedObject = new ProcessedObjectImpl<>(
+                transactionId,
                 elementContext.getOid(),
                 type,
                 determineShadowDiscriminator(anyState),
@@ -178,6 +212,8 @@ public class ProcessedObjectImpl<O extends ObjectType>
                         ObjectProcessingStateType.UNMODIFIED,
                 elementContext.getEventTags(),
                 new HashMap<>(),
+                elementContext instanceof LensFocusContext<?>,
+                null, // later
                 stateBefore,
                 stateAfter,
                 delta
@@ -206,6 +242,19 @@ public class ProcessedObjectImpl<O extends ObjectType>
                 .intent(shadow.getIntent())
                 .tag(shadow.getTag())
                 .objectClassName(shadow.getObjectClass());
+    }
+
+    String getRecordId() {
+        return recordId;
+    }
+
+    void setRecordId(String recordId) {
+        this.recordId = recordId;
+        invalidateCachedBean();
+    }
+
+    public @NotNull String getTransactionId() {
+        return transactionId;
     }
 
     @Override
@@ -260,6 +309,32 @@ public class ProcessedObjectImpl<O extends ObjectType>
         this.eventTagsMap = eventTagsMap;
     }
 
+    public Boolean getFocus() {
+        return focus;
+    }
+
+    public Integer getProjectionRecords() {
+        return projectionRecords;
+    }
+
+    void setProjectionRecords(Integer projectionRecords) {
+        this.projectionRecords = projectionRecords;
+        invalidateCachedBean();
+    }
+
+    private void invalidateCachedBean() {
+        this.cachedBean = null;
+    }
+
+    public String getFocusRecordId() {
+        return focusRecordId;
+    }
+
+    void setFocusRecordId(String focusRecordId) {
+        this.focusRecordId = focusRecordId;
+        invalidateCachedBean();
+    }
+
     @Override
     @Nullable
     public O getBefore() {
@@ -278,31 +353,47 @@ public class ProcessedObjectImpl<O extends ObjectType>
         return delta;
     }
 
-    public SimulationResultProcessedObjectType toBean() throws SchemaException {
+    public SimulationResultProcessedObjectType toBean() {
         if (cachedBean != null) {
             return cachedBean;
         }
-        SimulationResultProcessedObjectType bean = new SimulationResultProcessedObjectType()
-                .oid(oid)
-                .type(
-                        PrismContext.get().getSchemaRegistry().determineTypeForClass(type))
-                .resourceObjectCoordinates(shadowDiscriminator != null ? shadowDiscriminator.clone() : null)
-                .name(name)
-                .state(state)
-                .before(prepareObjectForStorage(before))
-                .after(prepareObjectForStorage(after))
-                .delta(DeltaConvertor.toObjectDeltaType(delta));
-        List<ObjectReferenceType> eventTagRef = bean.getEventTagRef();
-        eventTags.forEach(
-                oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
-        List<SimulationProcessedObjectMetricValueType> metricValues = bean.getMetricValue();
-        this.metricValues.forEach(
-                (id, value) -> metricValues.add(
-                        new SimulationProcessedObjectMetricValueType()
-                                .identifier(id)
-                                .value(value)));
-        cachedBean = bean;
-        return bean;
+        try {
+            SimulationResultProcessedObjectType bean = new SimulationResultProcessedObjectType()
+                    .identifier(recordId)
+                    .transactionId(transactionId)
+                    .oid(oid)
+                    .type(
+                            PrismContext.get().getSchemaRegistry().determineTypeForClass(type))
+                    .resourceObjectCoordinates(shadowDiscriminator != null ? shadowDiscriminator.clone() : null)
+                    .name(name)
+                    .state(state)
+                    .focus(focus)
+                    .focusRecordId(focusRecordId)
+                    .projectionRecords(projectionRecords)
+                    .before(prepareObjectForStorage(before))
+                    .after(prepareObjectForStorage(after))
+                    .delta(DeltaConvertor.toObjectDeltaType(delta));
+            List<ObjectReferenceType> eventTagRef = bean.getEventTagRef();
+            eventTags.forEach(
+                    oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
+            List<SimulationProcessedObjectMetricValueType> metricValues = bean.getMetricValue();
+            this.metricValues.forEach(
+                    (id, value) -> metricValues.add(
+                            new SimulationProcessedObjectMetricValueType()
+                                    .identifier(id)
+                                    .value(value)));
+            cachedBean = bean;
+            return bean;
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "while creating SimulationResultProcessedObjectType instance");
+        }
+    }
+
+    static @NotNull Collection<SimulationResultProcessedObjectType> toBeans(
+            @NotNull Collection<? extends ProcessedObjectImpl<?>> processedObjects) {
+        return processedObjects.stream()
+                .map(o -> o.toBean())
+                .collect(Collectors.toList());
     }
 
     private ObjectType prepareObjectForStorage(@Nullable O original) {
@@ -324,6 +415,19 @@ public class ProcessedObjectImpl<O extends ObjectType>
         sb.append(" ").append(oid);
         sb.append(" (").append(name).append("): ");
         sb.append(state);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "id", recordId + " in tx '" + transactionId + "'", indent + 1);
+        DebugUtil.debugDumpLabel(sb, "context", indent + 1);
+        sb.append(" ");
+        if (focus == null) {
+            sb.append("No 'is focus' information! (It seems like a problem.)\n");
+            DebugUtil.debugDumpWithLabelLn(sb, "projection records", projectionRecords, indent + 2);
+            DebugUtil.debugDumpWithLabel(sb, "focus record ID", focusRecordId, indent + 2);
+        } else if (focus) {
+            sb.append("This is a focus with ").append(projectionRecords).append(" projection(s).");
+        } else {
+            sb.append("This is a projection; focus record ID: ").append(focusRecordId).append(".");
+        }
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsDebugDump(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "metrics", metricValues, indent + 1);

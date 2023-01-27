@@ -63,7 +63,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, SimulationProcessedObjectListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -1028,11 +1028,18 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         }
     }
 
-    // FIXME this is a temporary code
-    SimulationProcessedObjectListener setSimulationProcessedObjectListener(SimulationProcessedObjectListener listener);
+    /**
+     * Forwards the simulation data to {@link SimulationDataConsumer} set for this task (if any).
+     *
+     * TODO better name?
+     */
+    void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result);
 
     // FIXME this is a temporary code
-    boolean hasSimulationProcessedObjectListener();
+    SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer);
+
+    // FIXME this is a temporary code; delete if really unused
+    boolean hasSimulationDataConsumer();
 
     /**
      * Returns the OID of the last simulation result produced by running the `executeInSimulationMode` method with this task.

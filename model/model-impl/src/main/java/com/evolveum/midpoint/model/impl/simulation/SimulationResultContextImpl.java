@@ -3,8 +3,7 @@ package com.evolveum.midpoint.model.impl.simulation;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 
 public class SimulationResultContextImpl implements SimulationResultContext {
 
@@ -22,13 +21,9 @@ public class SimulationResultContextImpl implements SimulationResultContext {
     }
 
     @Override
-    public @NotNull SimulationProcessedObjectListener getSimulationProcessedObjectListener(@NotNull String transactionId) {
-        return (processedObject, task, result) ->
-                manager.storeProcessedObject(
-                        oid,
-                        transactionId,
-                        MiscUtil.castSafely(processedObject, ProcessedObjectImpl.class),
-                        task, result);
+    public @NotNull SimulationDataConsumer getSimulationDataConsumer(@NotNull String transactionId) {
+        return (data, task, result) ->
+                manager.storeSimulationData(oid, transactionId, data, task, result);
     }
 
     @Override

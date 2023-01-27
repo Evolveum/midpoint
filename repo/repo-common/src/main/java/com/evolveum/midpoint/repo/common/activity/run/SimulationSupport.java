@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -78,15 +78,15 @@ class SimulationSupport {
         }
 
         // We put the simulation result into the current activity to allow fast retrieval when processing the objects,
-        // see getSimulationObjectProcessingListener().
+        // see getSimulationDataConsumer().
         activityState.setSimulationResultOid(simResultOid);
         activityState.flushPendingTaskModificationsChecked(result);
     }
 
     /**
-     * Creates "object processing listener" that will record data into the simulation result object.
+     * Creates the object that will record data into the simulation result object.
      */
-    SimulationProcessedObjectListener getSimulationProcessedObjectListener() {
+    SimulationDataConsumer getSimulationDataConsumer() {
         ActivityExecutionModeDefinition modeDef = activityRun.getExecutionModeDefinition();
         if (!modeDef.shouldCreateSimulationResult()) {
             LOGGER.trace("Not creating object processing listener; mode definition = {}", modeDef);
@@ -98,7 +98,7 @@ class SimulationSupport {
         stateCheck(simulationResultOid != null,
                 "No simulation result reference in %s even if simulation was requested", this);
 
-        return advancedActivityRunSupport.getSimulationProcessedObjectListener(simulationResultOid, transactionId);
+        return advancedActivityRunSupport.getSimulationDataConsumer(simulationResultOid, transactionId);
     }
 
     private int getBucketSequentialNumber() {

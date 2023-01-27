@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
@@ -105,7 +105,5 @@ public interface AdvancedActivityRunSupport {
             OperationResult result);
 
     /** TODO better name */
-    @NotNull SimulationProcessedObjectListener getSimulationProcessedObjectListener(
-            @NotNull String simulationResultOid, @NotNull String transactionId);
-
+    @NotNull SimulationDataConsumer getSimulationDataConsumer(@NotNull String simulationResultOid, @NotNull String transactionId);
 }

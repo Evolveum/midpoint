@@ -14,7 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -86,12 +86,10 @@ public abstract class LocalActivityRun<
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
 
-        // Actually, this listener should not be used. It may (later) be used to catch processed objects that belong
+        // Actually, this listener should not be used here. It may (later) be used to catch processed objects that belong
         // to no bucket (emitted e.g. during search processing). The "real" listener is created by the item processing
         // gatekeeper. TODO reconsider this; it may cause simulation in some of the tasks not functioning
-        SimulationProcessedObjectListener oldSimulationListener =
-                runningTask.setSimulationProcessedObjectListener(
-                        getSimulationObjectProcessingListener());
+        SimulationDataConsumer oldSimulationConsumer = runningTask.setSimulationDataConsumer(getSimulationDataConsumer());
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
@@ -102,7 +100,7 @@ public abstract class LocalActivityRun<
             localResult.close();
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
-            runningTask.setSimulationProcessedObjectListener(oldSimulationListener);
+            runningTask.setSimulationDataConsumer(oldSimulationConsumer);
         }
 
         updateStateOnRunEnd(localResult, runResult, result);
@@ -122,8 +120,8 @@ public abstract class LocalActivityRun<
         }
     }
 
-    public SimulationProcessedObjectListener getSimulationObjectProcessingListener() {
-        return simulationSupport.getSimulationProcessedObjectListener();
+    public SimulationDataConsumer getSimulationDataConsumer() {
+        return simulationSupport.getSimulationDataConsumer();
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */

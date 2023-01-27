@@ -9,12 +9,12 @@ package com.evolveum.midpoint.model.api.simulation;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.task.api.SimulationProcessedObjectListener;
+import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 public interface SimulationResultContext {
 
-    @NotNull SimulationProcessedObjectListener getSimulationProcessedObjectListener(@NotNull String transactionId);
+    @NotNull SimulationDataConsumer getSimulationDataConsumer(@NotNull String transactionId);
 
     /** OID of the {@link SimulationResultType} object. */
     @NotNull String getResultOid();

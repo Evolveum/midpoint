@@ -152,13 +152,12 @@ class ItemProcessingGatekeeper<I> {
 
             itemProcessingMonitor.startProfilingAndTracingIfNeeded(result);
 
-            var oldListener = workerTask.setSimulationProcessedObjectListener(
-                    activityRun.getSimulationObjectProcessingListener());
+            var oldSimulationDataConsumer = workerTask.setSimulationDataConsumer(activityRun.getSimulationDataConsumer());
             try {
                 startLocalConnIdListeningIfNeeded(result);
                 processingResult = doProcessItem(result);
             } finally {
-                workerTask.setSimulationProcessedObjectListener(oldListener);
+                workerTask.setSimulationDataConsumer(oldSimulationDataConsumer);
                 stopLocalConnIdOperationListening();
             }
 
