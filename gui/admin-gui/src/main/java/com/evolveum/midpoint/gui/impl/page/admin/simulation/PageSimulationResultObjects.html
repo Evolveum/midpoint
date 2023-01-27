@@ -8,12 +8,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="row">
-        <div class="col-sm-12 col-md-5 col-lg-4 col-xxl-2 d-flex flex-column align-items-stretch gap-3">
-            <ul wicket:id="menu"/>
-        </div>
-        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10 role-catalog-tiles-table" wicket:id="table"/>
-    </div>
+    <div wicket:id="navigation"/>
+
+    <div class="w-100" wicket:id="table"/>
 </wicket:extend>
 </body>
 </html>

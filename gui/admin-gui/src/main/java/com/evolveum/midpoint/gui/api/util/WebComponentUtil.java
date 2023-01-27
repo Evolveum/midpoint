@@ -1902,6 +1902,8 @@ public final class WebComponentUtil {
             return createReportIcon();
         } else if (type == ObjectTemplateType.class) {
             return createObjectTemplateIcon();
+        } else if (type == SimulationResultType.class) {
+            return createSimulationResultIcon();
         }
         return "";
     }
@@ -2311,6 +2313,10 @@ public final class WebComponentUtil {
 
     private static String createObjectTemplateIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
+    }
+
+    private static String createSimulationResultIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_SIMULATION_RESULT);
     }
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
