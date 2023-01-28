@@ -49,6 +49,8 @@ class AggregatedMetricsComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedMetricsComputation.class);
 
+    private static final SimulationMetricAggregationFunctionType DEFAULT_AGGREGATION_FUNCTION = SELECTION_TOTAL_VALUE;
+
     private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
     private final TagManager tagManager = ModelBeans.get().tagManager;
 
@@ -84,7 +86,7 @@ class AggregatedMetricsComputation {
             String identifier = definition.getIdentifier();
             if (aggregationComputation == null) {
                 aggregationComputation = new SimulationMetricAggregationType()
-                        .aggregationFunction(DOMAIN_TOTAL_VALUE)
+                        .aggregationFunction(DEFAULT_AGGREGATION_FUNCTION)
                         .source(new SimulationMetricReferenceType()
                                 .identifier(identifier));
             }
@@ -145,7 +147,7 @@ class AggregatedMetricsComputation {
             } else {
                 SimulationMetricValuesType bean = new SimulationMetricValuesType()
                         .ref(ref)
-                        .aggregationFunction(SELECTION_SIZE)
+                        .aggregationFunction(function)
                         .sourceDimensions(
                                 SimulationMetricPartitionDimensionsTypeUtil.toBean(ALL_DIMENSIONS));
                 bean.getPartition().addAll(partitionBeans);
@@ -207,7 +209,9 @@ class AggregatedMetricsComputation {
             }
             boolean inDomain = domainPredicate == null || processedObject.matches(domainPredicate, task, result);
             if (inDomain) {
-                boolean inSelection = selectionPredicate == null || processedObject.matches(selectionPredicate, task, result);
+                boolean inSelection = selectionPredicate != null ?
+                        processedObject.matches(selectionPredicate, task, result) :
+                        sourceMetricValue.compareTo(BigDecimal.ZERO) > 0;
                 partitions.addObject(processedObject.partitionScope(), sourceMetricValue, inSelection);
             }
         }

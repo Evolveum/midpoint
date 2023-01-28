@@ -25,18 +25,16 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
@@ -182,8 +180,17 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
                 AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
                         search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
                 if (eventTagRefItem != null) {
+                    List<String> tagOids = resultModel.getObject().getMetric().stream()
+                            .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+                            .filter(ref -> ref != null)
+                            .map(ref -> ref.getOid())
+                            .filter(oid -> Utils.isPrismObjectOidValid(oid))
+                            .distinct().collect(Collectors.toList());
+
+                    ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
+
                     List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-                            TagType.class, null, getPageTask().getResult(), PageSimulationResultObjects.this);
+                            TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
 
                     List<DisplayableValue<String>> values = tags.stream()
                             .map(o -> new DisplayableValueImpl<>(
@@ -202,7 +209,6 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     private void onBackPerformed(AjaxRequestTarget target) {
-        //todo implement
-        setResponsePage(PageSimulationResults.class);
+        redirectBack();
     }
 }

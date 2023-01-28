@@ -20,8 +20,7 @@ public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFac
 
     @Override
     protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new AvailableTagSearchItemWrapper(
-                SimulationResultProcessedObjectType.F_EVENT_TAG_REF, (List) ctx.getAvailableValues());
+        return new AvailableTagSearchItemWrapper( (List) ctx.getAvailableValues());
     }
 
     @Override

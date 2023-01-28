@@ -11,10 +11,10 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -27,10 +27,6 @@ public interface SimulationPage extends IRequestablePage {
     String PAGE_PARAMETER_RESULT_OID = "RESULT_OID";
     String PAGE_PARAMETER_TAG_OID = "TAG_OID";
     String PAGE_PARAMETER_CONTAINER_ID = "CONTAINER_ID";
-
-    String DOT_CLASS = SimulationPage.class.getName() + ".";
-
-    String OPERATION_LOAD_RESULT = DOT_CLASS + "loadResult";
 
     default String getPageParameterResultOid() {
         PageParameters params = getPageParameters();
@@ -50,15 +46,17 @@ public interface SimulationPage extends IRequestablePage {
     default SimulationResultType loadSimulationResult(PageBase page) {
         String resultOid = getPageParameterResultOid();
 
+        if (!Utils.isPrismObjectOidValid(resultOid)) {
+            throw new RestartResponseException(PageError404.class);
+        }
+
         Task task = page.getPageTask();
-        OperationResult result = task.getResult().createSubresult(OPERATION_LOAD_RESULT);
 
         PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(
-                SimulationResultType.class, resultOid, page, task, result);
+                SimulationResultType.class, resultOid, page, task, task.getResult());
         if (object == null) {
             throw new RestartResponseException(PageError404.class);
         }
-        result.computeStatusIfUnknown();
 
         return object.asObjectable();
     }

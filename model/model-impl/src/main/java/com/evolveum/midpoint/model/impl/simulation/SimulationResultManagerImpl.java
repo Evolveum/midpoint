@@ -299,7 +299,9 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         LensContext<?> lensContext = ((SimulationDataImpl) data).getLensContext();
         try {
             LOGGER.trace("Storing {} into {}:{}", lensContext, resultOid, transactionId);
-            closedResultsChecker.checkNotClosed(resultOid);
+
+            // This check is temporarily disabled because of LiveSync simulations. FIXME reconsider this
+            //closedResultsChecker.checkNotClosed(resultOid);
 
             LensFocusContext<?> focusContext = lensContext.getFocusContext();
             ProcessedObjectImpl<?> focusRecord = createProcessedObject(focusContext, transactionId, task, result);
@@ -424,13 +426,13 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         task.setSimulationResultOid(simulationResultOid);
         openSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
 
-        SimulationDataConsumer simulationObjectProcessingListener =
+        SimulationDataConsumer dataConsumer =
                 simulationResultContext.getSimulationDataConsumer(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
 
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         X returnValue;
         try {
-            task.setSimulationDataConsumer(simulationObjectProcessingListener);
+            task.setSimulationDataConsumer(dataConsumer);
             returnValue = functionCall.execute();
         } finally {
             task.setSimulationDataConsumer(null);
