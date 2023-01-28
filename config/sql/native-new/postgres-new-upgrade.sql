@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -175,7 +175,7 @@ call apply_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'TAG' AFTER 'SYSTEM_CONFIGURATION';
    ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_TAG' AFTER 'PROJECTION';
    ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
-$aa$);
+$aa$, true); -- TODO remove forced before release
 
 call apply_change(13, $aa$
 -- TODO delete before release
