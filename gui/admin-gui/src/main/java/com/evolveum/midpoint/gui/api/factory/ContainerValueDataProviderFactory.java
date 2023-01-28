@@ -4,11 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.data;
+package com.evolveum.midpoint.gui.api.factory;
 
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;

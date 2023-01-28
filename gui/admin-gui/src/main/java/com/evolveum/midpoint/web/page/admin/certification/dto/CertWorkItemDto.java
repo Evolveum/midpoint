@@ -38,7 +38,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     private List<ObjectReferenceType> reviewerRefList;
     private List<String> reviewerNameList = new ArrayList<>();
 
-    CertWorkItemDto(@NotNull AccessCertificationWorkItemType workItem, @NotNull PageBase page) {
+    public CertWorkItemDto(@NotNull AccessCertificationWorkItemType workItem, @NotNull PageBase page) {
         //noinspection ConstantConditions
         super(CertCampaignTypeUtil.getCase(workItem), page);
         this.workItem = workItem;

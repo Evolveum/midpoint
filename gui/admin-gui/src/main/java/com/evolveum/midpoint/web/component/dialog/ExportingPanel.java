@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**

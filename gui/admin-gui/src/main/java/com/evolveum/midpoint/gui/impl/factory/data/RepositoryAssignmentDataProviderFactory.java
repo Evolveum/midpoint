@@ -21,9 +21,9 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
+import com.evolveum.midpoint.gui.api.factory.ContainerValueDataProviderFactory;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryAssignmentDataProviderType;

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;

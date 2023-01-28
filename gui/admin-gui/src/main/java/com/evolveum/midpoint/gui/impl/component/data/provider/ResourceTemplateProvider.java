@@ -4,20 +4,20 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplate;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
@@ -31,15 +31,13 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * @author lskublik
  */
 public class ResourceTemplateProvider
-        extends ObjectDataProvider<TemplateTile<ResourceTemplateProvider.ResourceTemplate>, AssignmentHolderType> {
+        extends ObjectDataProvider<TemplateTile<ResourceTemplate>, AssignmentHolderType> {
 
     private static final String DOT_CLASS = ResourceTemplateProvider.class.getName() + ".";
     private static final String OPERATION_GET_DISPLAY = DOT_CLASS + "getDisplay";
@@ -131,22 +129,4 @@ public class ResourceTemplateProvider
         return connectorObject.getDescription();
     }
 
-    protected class ResourceTemplate implements Serializable {
-
-        private final String oid;
-        private final QName type;
-
-        ResourceTemplate(String oid, QName type) {
-            this.oid = oid;
-            this.type = type;
-        }
-
-        public QName getType() {
-            return type;
-        }
-
-        public String getOid() {
-            return oid;
-        }
-    }
 }

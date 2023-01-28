@@ -10,10 +10,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,8 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 
 public abstract class CsvDownloadButtonPanel extends BasePanel {

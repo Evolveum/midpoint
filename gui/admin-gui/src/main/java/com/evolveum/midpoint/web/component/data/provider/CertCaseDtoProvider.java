@@ -5,9 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.admin.certification.dto;
+package com.evolveum.midpoint.web.component.data.provider;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,7 +24,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.Component;

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.data;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
