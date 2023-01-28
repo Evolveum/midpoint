@@ -887,8 +887,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @Override
     @NotNull
-    public Collection<String> getEventTags() {
-        return policyRulesContext.getEventTags();
+    public Collection<String> getMatchingEventTags() {
+        return policyRulesContext.getTriggeredEventTags();
+    }
+
+    public @NotNull Collection<String> getAllConsideredEventTags() {
+        return policyRulesContext.getAllConsideredEventTags();
     }
     //endregion
 }

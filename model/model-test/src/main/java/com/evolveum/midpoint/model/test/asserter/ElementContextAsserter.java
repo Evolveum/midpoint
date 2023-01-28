@@ -105,7 +105,7 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
 
     @SafeVarargs
     public final ElementContextAsserter<C, O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        assertEventTags(expectedTags, elementContext.getEventTags());
+        assertEventTags(expectedTags, elementContext.getMatchingEventTags());
         return this;
     }
 }

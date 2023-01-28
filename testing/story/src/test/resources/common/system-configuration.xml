@@ -59,41 +59,49 @@
         <metric>
             <identifier>objects-added</identifier>
             <computation>
-                <expression>
-                    <script>
-                        <code>processedObject.addition ? 1 : 0</code>
-                    </script>
-                </expression>
+                <selection>
+                    <expression>
+                        <script>
+                            <code>processedObject.addition</code>
+                        </script>
+                    </expression>
+                </selection>
             </computation>
         </metric>
         <metric>
             <identifier>objects-modified</identifier>
             <computation>
-                <expression>
-                    <script>
-                        <code>processedObject.modification ? 1 : 0</code>
-                    </script>
-                </expression>
+                <selection>
+                    <expression>
+                        <script>
+                            <code>processedObject.modification</code>
+                        </script>
+                    </expression>
+                </selection>
             </computation>
         </metric>
         <metric>
             <identifier>objects-deleted</identifier>
             <computation>
-                <expression>
-                    <script>
-                        <code>processedObject.deletion ? 1 : 0</code>
-                    </script>
-                </expression>
+                <selection>
+                    <expression>
+                        <script>
+                            <code>processedObject.deletion</code>
+                        </script>
+                    </expression>
+                </selection>
             </computation>
         </metric>
         <metric>
             <identifier>objects-unmodified</identifier>
             <computation>
-                <expression>
-                    <script>
-                        <code>processedObject.noChange ? 1 : 0</code>
-                    </script>
-                </expression>
+                <selection>
+                    <expression>
+                        <script>
+                            <code>processedObject.noChange</code>
+                        </script>
+                    </expression>
+                </selection>
             </computation>
         </metric>
         <metric>
@@ -115,49 +123,49 @@
             </aggregation>
         </metric>
         <metric>
-            <identifier>item-mdifications</identifier>
+            <identifier>item-modifications</identifier>
             <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
             <computation>
-                <expression>
+                <valueExpression>
                     <script>
                         <code>processedObject.nonOperationalItemModificationsCount</code>
                     </script>
-                </expression>
+                </valueExpression>
             </computation>
         </metric>
         <metric>
             <identifier>attribute-modifications</identifier>
             <computation>
-                <expression>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.isShadow()</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
                     <script>
                         <code>processedObject.attributeModificationsCount</code>
                     </script>
-                </expression>
+                </valueExpression>
             </computation>
-            <domain>
-                <expression>
-                    <script>
-                        <code>processedObject.isShadow()</code>
-                    </script>
-                </expression>
-            </domain>
         </metric>
         <metric>
             <identifier>association-values-changed</identifier>
             <computation>
-                <expression>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.isShadow()</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
                     <script>
                         <code>processedObject.associationValuesChanged</code>
                     </script>
-                </expression>
+                </valueExpression>
             </computation>
-            <domain>
-                <expression>
-                    <script>
-                        <code>processedObject.isShadow()</code>
-                    </script>
-                </expression>
-            </domain>
         </metric>
         <metric>
             <identifier>avg-focus-modifications</identifier>
@@ -166,15 +174,15 @@
                 <source>
                     <identifier>modifications</identifier>
                 </source>
+                <domainRestriction>
+                    <expression>
+                        <script>
+                            <!-- The original metric applies to all objects. Here we are interested in focal objects only. -->
+                            <code>processedObject.isOfFocusType()</code>
+                        </script>
+                    </expression>
+                </domainRestriction>
             </aggregation>
-            <domain>
-                <expression>
-                    <script>
-                        <!-- The original metric applies to all objects. Here we are interested in focal objects only. -->
-                        <code>processedObject.isOfFocusType()</code>
-                    </script>
-                </expression>
-            </domain>
         </metric>
         <metric>
             <identifier>pct-users-enabled</identifier>
@@ -183,15 +191,15 @@
                 <source>
                     <eventTagRef oid="00000000-0000-0000-0000-000000000710"/>
                 </source>
+                <domainRestriction>
+                    <filter>
+                        <q:equal>
+                            <q:path>type</q:path>
+                            <q:value>c:UserType</q:value>
+                        </q:equal>
+                    </filter>
+                </domainRestriction>
             </aggregation>
-            <domain>
-                <filter>
-                    <q:equal>
-                        <q:path>type</q:path>
-                        <q:value>c:UserType</q:value>
-                    </q:equal>
-                </filter>
-            </domain>
         </metric>
         <metric>
             <identifier>pct-users-disabled</identifier>
@@ -200,15 +208,15 @@
                 <source>
                     <eventTagRef oid="00000000-0000-0000-0000-000000000711"/>
                 </source>
+                <domainRestriction>
+                    <filter>
+                        <q:equal>
+                            <q:path>type</q:path>
+                            <q:value>c:UserType</q:value>
+                        </q:equal>
+                    </filter>
+                </domainRestriction>
             </aggregation>
-            <domain>
-                <filter>
-                    <q:equal>
-                        <q:path>type</q:path>
-                        <q:value>c:UserType</q:value>
-                    </q:equal>
-                </filter>
-            </domain>
         </metric>
     </simulation>
 </systemConfiguration>

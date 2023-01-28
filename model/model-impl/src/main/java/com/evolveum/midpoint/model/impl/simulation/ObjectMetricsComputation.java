@@ -79,22 +79,36 @@ class ObjectMetricsComputation<O extends ObjectType> {
             if (computation == null) {
                 continue;
             }
-            SimulationObjectPredicateType domain = metricDefinition.getDomain();
+            SimulationObjectPredicateType domain = computation.getDomain();
             if (domain != null && !processedObject.matches(domain, task, result)) {
                 continue;
             }
             String identifier = metricDefinition.getIdentifier();
-            ExpressionType expression = computation.getExpression();
-            BigDecimal value = computeObjectMetricValue(identifier, expression, result);
-            LOGGER.trace("Value for metric '{}': {}", identifier, value);
-            if (value != null) {
+
+            ExpressionType valueExpression = computation.getValueExpression();
+            BigDecimal computedValue = computeObjectMetricValue(identifier, valueExpression, result);
+
+            SimulationObjectPredicateType selectionPredicate = computation.getSelection();
+            Boolean selected = selectionPredicate != null ? processedObject.matches(selectionPredicate, task, result) : null;
+
+            LOGGER.trace("Computation for metric '{}' yielded value = {}, selected = {}", identifier, computedValue, selected);
+            if (computedValue != null || selected != null) {
                 values.add(
                         new SimulationProcessedObjectMetricValueType()
                                 .identifier(identifier)
-                                .value(value));
+                                .selected(selected != null ? selected : defaultSelected(computedValue))
+                                .value(computedValue != null ? computedValue : defaultValue(selected)));
             }
         }
         return values;
+    }
+
+    private BigDecimal defaultValue(boolean selected) {
+        return selected ? BigDecimal.ONE : BigDecimal.ZERO;
+    }
+
+    private boolean defaultSelected(BigDecimal value) {
+        return value.compareTo(BigDecimal.ZERO) > 0;
     }
 
     private BigDecimal computeObjectMetricValue(
