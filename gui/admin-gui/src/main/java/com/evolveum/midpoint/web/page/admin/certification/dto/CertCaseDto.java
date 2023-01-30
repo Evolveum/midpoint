@@ -42,7 +42,7 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
     private final List<String> comments = new ArrayList<>();
     private final String noReviewersLabel;
 
-    CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
+    public CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
         super(_case, page);
         Map<String, String> names = new HashMap<>();
         for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {

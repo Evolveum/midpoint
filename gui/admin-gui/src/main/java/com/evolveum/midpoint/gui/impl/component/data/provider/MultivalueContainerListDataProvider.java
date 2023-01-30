@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -12,8 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import org.apache.commons.beanutils.PropertyUtils;

@@ -5,26 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.component.data;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
-
-import java.io.Serializable;
-import java.util.*;
-
-import com.evolveum.midpoint.prism.PrismContext;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -36,26 +23,40 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.data.TypedCacheKey;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman
  * @author semancik
  */
-public class SelectableBeanContainerDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, SelectableBean<C>>
-        implements ISelectableDataProvider<SelectableBean<C>>{
+public class SelectableBeanReferenceDataProvider extends BaseSearchDataProvider<ObjectReferenceType, SelectableBean<ObjectReferenceType>>
+        implements ISelectableDataProvider<SelectableBean<ObjectReferenceType>> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanContainerDataProvider.class);
-    private static final String DOT_CLASS = SelectableBeanContainerDataProvider.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanReferenceDataProvider.class);
+    private static final String DOT_CLASS = SelectableBeanReferenceDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private Set<? extends C> selected = new HashSet<>();
+    private Set<? extends ObjectReferenceType> selected = new HashSet<>();
 
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
@@ -75,8 +76,8 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     // probably the solution will be to work directly with panel configuration
     private boolean isForPreview;
 
-    public SelectableBeanContainerDataProvider(Component component, @NotNull IModel<Search<C>> search, Set<? extends C> selected, boolean useDefaultSortingField) {
-        super(component, search, false, useDefaultSortingField);
+    public SelectableBeanReferenceDataProvider(Component component, @NotNull IModel<Search<ObjectReferenceType>> search, Set<? extends ObjectReferenceType> selected, boolean useDefaultSortingField) {
+        super(component, (IModel) search, false, useDefaultSortingField);
 
         if (selected != null) {
             this.selected = selected;
@@ -93,13 +94,13 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     protected void preprocessSelectedDataInternal() {
-        for (SelectableBean<C> available : getAvailableData()) {
+        for (SelectableBean<ObjectReferenceType> available : getAvailableData()) {
             if (available.isSelected() && available.getValue() != null) {
                 ((Set) selected).add(available.getValue());
             }
         }
 
-        for (SelectableBean<C> available : getAvailableData()) {
+        for (SelectableBean<ObjectReferenceType> available : getAvailableData()) {
             if (!available.isSelected()) {
                 selected.remove(available.getValue());
             }
@@ -112,7 +113,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     @Override
-    public Iterator<SelectableBean<C>> internalIterator(long offset, long pageSize) {
+    public Iterator<SelectableBean<ObjectReferenceType>> internalIterator(long offset, long pageSize) {
         LOGGER.trace("begin::iterator() offset {} pageSize {}.", offset, pageSize);
 
         preprocessSelectedData();
@@ -137,9 +138,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
 
-            if (ResourceType.class.equals(getType()) && (options == null || options.isEmpty())) {
-                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-            }
             GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder(options);
             if (export) {
                 // TODO also for other classes
@@ -165,45 +163,45 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         LOGGER.trace("end::iterator() {}", result);
         return getAvailableData().iterator();
     }
-    public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query,
+    public List<SelectableBean<ObjectReferenceType>> createDataObjectWrappers(Class<? extends ObjectReferenceType> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws CommonException {
-        List<C> list = searchObjects(type, query, options, task, result);
+        List<ObjectReferenceType> list = searchObjects(type, query, options, task, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
         }
 
-        List<SelectableBean<C>> data = new ArrayList<>();
-        for (C object : list) {
+        List<SelectableBean<ObjectReferenceType>> data = new ArrayList<>();
+        for (ObjectReferenceType object : list) {
             data.add(createDataObjectWrapper(object));
         }
         return data;
     }
 
-    protected List<C> searchObjects(Class<? extends C> type, ObjectQuery query,
+    protected List<ObjectReferenceType> searchObjects(Class<? extends ObjectReferenceType> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws CommonException {
-        return (List) getModelService().searchContainers(type, query, options, task, result);
+        return getModelService().searchReferences(query, options,task, result);
     }
 
-    protected Iterator<SelectableBean<C>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+    protected Iterator<SelectableBean<ObjectReferenceType>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
         LOGGER.trace("handling non-success result {}", result);
         // page.showResult() will not work here. We are too deep in the rendering now.
         // Also do NOT re-throw not redirect to the error page. That will break the page.
         // Just return a SelectableBean that indicates the error.
-        List<SelectableBean<C>> errorList = new ArrayList<>(1);
-        SelectableBean<C> bean = new SelectableBeanImpl<>();
+        List<SelectableBean<ObjectReferenceType>> errorList = new ArrayList<>(1);
+        SelectableBean<ObjectReferenceType> bean = new SelectableBeanImpl<>();
         bean.setResult(result);
         errorList.add(bean);
         return errorList.iterator();
     }
 
-    public SelectableBean<C> createDataObjectWrapper(C obj) {
-        SelectableBean<C> selectable = new SelectableBeanImpl<>(Model.of(obj));
+    public SelectableBean<ObjectReferenceType> createDataObjectWrapper(ObjectReferenceType obj) {
+        SelectableBean<ObjectReferenceType> selectable = new SelectableBeanImpl<>(Model.of(obj));
 
-        for (C s : selected) {
-            if (s.asPrismContainerValue().equivalent(obj.asPrismContainerValue())) {
+        for (ObjectReferenceType s : selected) {
+            if (s.asReferenceValue().equals(obj.asReferenceValue())) {
                 selectable.setSelected(true);
             }
         }
@@ -223,7 +221,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         try {
             Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(PrismContext.get(), getOptions(),
                     null);
-            Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
+            Integer counted = countObjects(getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
@@ -242,10 +240,10 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         return count;
     }
 
-    protected Integer countObjects(Class<? extends C> type, ObjectQuery query,
+    protected Integer countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
             throws CommonException {
-        return getModelService().countContainers(type, getQuery(), currentOptions, task, result);
+        return getModelService().countReferences(query, currentOptions, task, result);
     }
 
     @Override
@@ -319,7 +317,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         this.defaultCountIfNull = defaultCountIfNull;
     }
 
-    public Set<? extends C> getSelected() {
+    public Set<? extends ObjectReferenceType> getSelected() {
         return selected;
     }
 
