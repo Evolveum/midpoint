@@ -13,8 +13,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -74,6 +79,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 XMLGregorianCalendar end = result.getEndTimestamp();
                 if (end == null) {
                     // todo null
+                    return null;
                 }
 
                 return null;
@@ -81,7 +87,17 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
         }
 
         if (ItemPath.create(SimulationResultType.F_ROOT_TASK_REF, TaskType.F_EXECUTION_STATE).equivalent(path)) {
+            return new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.duration")) {
 
+                @Override
+                public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
+                    Label label = new Label(id, () -> {
+                        return "vilko";
+                    });
+                    label.add(AttributeAppender.replace("class", () -> "badge badge-success"));
+                    item.add(label);
+                }
+            };
         }
 
         return super.createCustomExportableColumn(columnDisplayModel, customColumn, expression);
