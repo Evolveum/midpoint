@@ -64,6 +64,9 @@
                             <xsd:documentation>
                                 When this simulation started.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.startTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -71,6 +74,9 @@
                             <xsd:documentation>
                                 When this simulation ended.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.endTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="rootTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -83,6 +89,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.rootTaskRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

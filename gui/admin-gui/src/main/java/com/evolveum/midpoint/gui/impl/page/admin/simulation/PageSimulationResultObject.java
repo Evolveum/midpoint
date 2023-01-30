@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
@@ -22,9 +23,22 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
@@ -54,11 +68,16 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResultObject.class);
+
     private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
 
     private IModel<SimulationResultProcessedObjectType> objectModel;
+
+    private IModel<VisualizationDto> changesModel;
 
     public PageSimulationResultObject() {
         this(new PageParameters());
@@ -113,6 +132,33 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 return result.get(0);
             }
         };
+
+        changesModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected VisualizationDto load() {
+                Visualization visualization;
+                try {
+                    ObjectDelta delta = DeltaConvertor.createObjectDelta(objectModel.getObject().getDelta());
+
+                    Task task = getPageTask();
+                    OperationResult result = task.getResult();
+
+                    visualization = getModelInteractionService().visualizeDelta(delta, task, result);
+                } catch (SchemaException | ExpressionEvaluationException e) {
+                    throw new SystemException(e);        // TODO
+                }
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Creating dto for deltas:\n{}", DebugUtil.debugDump(visualization));
+                }
+
+                final WrapperVisualization wrapper =
+                        new WrapperVisualization(Arrays.asList(visualization), "PagePreviewChanges.primaryChangesOne", 1);
+
+                return new VisualizationDto(wrapper);
+            }
+        };
     }
 
     private void initLayout() {
@@ -136,6 +182,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
         add(navigation);
+
+        VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
+        add(panel);
     }
 
     @Override
