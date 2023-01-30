@@ -24,13 +24,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -61,45 +63,92 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
-        return super.createInlineMenu();
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        items.add(new ButtonInlineMenuItem(createStringResource("list processed objects")) {
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-solid fa-eye");
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<SimulationResultType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<SimulationResultType> bean = getRowModel().getObject();
+                        listProcessedObjectsPerformed(target, bean.getValue());
+                    }
+                };
+            }
+        });
+        items.add(new ButtonInlineMenuItem(createStringResource("delete")) {
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return null;
+            }
+        });
+        items.add(new ButtonInlineMenuItem(createStringResource("Delete processed objects")) {
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return null;
+            }
+        });
+
+        return items;
     }
 
     @Override
-    protected IColumn<SelectableBean<SimulationResultType>, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        ItemPath path = WebComponentUtil.getPath(customColumn);
-        if (DefaultColumnUtils.SIMULATION_RESULTS_DURATION.equivalent(path)) {
-            return new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> {
-                SimulationResultType result = row.getValue();
+    protected List<IColumn<SelectableBean<SimulationResultType>, String>> createDefaultColumns() {
+        List<IColumn<SelectableBean<SimulationResultType>, String>> columns = super.createDefaultColumns();
+        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> {
+            SimulationResultType result = row.getValue();
 
-                XMLGregorianCalendar start = result.getStartTimestamp();
-                if (start == null) {
-                    return null;
-                }
+            XMLGregorianCalendar start = result.getStartTimestamp();
+            if (start == null) {
+                return null;    // todo viliam
+            }
 
-                XMLGregorianCalendar end = result.getEndTimestamp();
-                if (end == null) {
-                    // todo null
-                    return null;
-                }
-
+            XMLGregorianCalendar end = result.getEndTimestamp();
+            if (end == null) {
+                // todo viliam
                 return null;
-            });
-        }
+            }
 
-        if (ItemPath.create(SimulationResultType.F_ROOT_TASK_REF, TaskType.F_EXECUTION_STATE).equivalent(path)) {
-            return new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.duration")) {
+            return null;
+        }));
+        columns.add(new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.executionState")) {
 
-                @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
-                    Label label = new Label(id, () -> {
-                        return "vilko";
-                    });
-                    label.add(AttributeAppender.replace("class", () -> "badge badge-success"));
-                    item.add(label);
-                }
-            };
-        }
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
+                Label label = new Label(id, () -> {
+                    return "running";   // todo viliam
+                });
+                label.add(AttributeAppender.replace("class", () -> "badge badge-success")); // todo viliam
+                item.add(label);
+            }
+        });
 
-        return super.createCustomExportableColumn(columnDisplayModel, customColumn, expression);
+        return columns;
+    }
+
+    private void listProcessedObjectsPerformed(AjaxRequestTarget target, SimulationResultType object) {
+        PageParameters params = new PageParameters();
+        params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, object.getOid());
+
+        getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
     }
 }

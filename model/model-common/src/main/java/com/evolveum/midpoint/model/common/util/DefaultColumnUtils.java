@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -42,8 +41,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Column related utilities shared by reporting and GUI.
  */
 public class DefaultColumnUtils {
-
-    public static final ItemName SIMULATION_RESULTS_DURATION = new ItemName(ObjectFactory.NAMESPACE, "duration");
 
     // Maps need to preserve iteration order (like LinkedHashMap)
     private static final Map<Class<? extends Containerable>, List<ColumnWrapper>> COLUMNS_DEF;
@@ -111,8 +108,6 @@ public class DefaultColumnUtils {
                 .put(SimulationResultType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultType.F_NAME),
                         new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
-                        new ColumnWrapper(ItemPath.create(SimulationResultType.F_ROOT_TASK_REF, TaskType.F_EXECUTION_STATE)),
-                        new ColumnWrapper(SIMULATION_RESULTS_DURATION),
                         new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP)))
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
