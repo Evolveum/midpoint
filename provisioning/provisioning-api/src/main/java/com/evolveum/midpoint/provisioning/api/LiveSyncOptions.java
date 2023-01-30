@@ -29,15 +29,21 @@ public class LiveSyncOptions {
 
     private final Integer batchSize;
     private final boolean updateLiveSyncTokenInDryRun;
+    private final boolean updateLiveSyncTokenInPreviewMode;
 
     public LiveSyncOptions() {
-        this(ExecutionModeType.FULL, null, false);
+        this(ExecutionModeType.FULL, null, false, false);
     }
 
-    public LiveSyncOptions(@NotNull ExecutionModeType executionMode, Integer batchSize, boolean updateLiveSyncTokenInDryRun) {
+    public LiveSyncOptions(
+            @NotNull ExecutionModeType executionMode,
+            Integer batchSize,
+            boolean updateLiveSyncTokenInDryRun,
+            boolean updateLiveSyncTokenInPreviewMode) {
         this.executionMode = executionMode;
         this.batchSize = batchSize;
         this.updateLiveSyncTokenInDryRun = updateLiveSyncTokenInDryRun;
+        this.updateLiveSyncTokenInPreviewMode = updateLiveSyncTokenInPreviewMode;
     }
 
     public @NotNull ExecutionModeType getExecutionMode() {
@@ -50,5 +56,9 @@ public class LiveSyncOptions {
 
     public boolean isUpdateLiveSyncTokenInDryRun() {
         return updateLiveSyncTokenInDryRun;
+    }
+
+    public boolean isUpdateLiveSyncTokenInPreviewMode() {
+        return updateLiveSyncTokenInPreviewMode;
     }
 }

@@ -7,22 +7,24 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.List;
+
 import com.evolveum.midpoint.gui.impl.component.search.factory.AbstractSearchItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.component.search.factory.SearchItemContext;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFactory {
+public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFactory<String, AvailableTagSearchItemWrapper> {
 
     @Override
-    protected PropertySearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return null;
+    protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
+        return new AvailableTagSearchItemWrapper( (List) ctx.getAvailableValues());
     }
 
     @Override
     public boolean match(SearchItemContext ctx) {
-        return false;
+        return SimulationResultProcessedObjectType.F_EVENT_TAG_REF.equivalent(ctx.getPath());
     }
 }

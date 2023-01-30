@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.box.InfoBox;
 import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesItemProcessingDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivityItemProcessingDto;

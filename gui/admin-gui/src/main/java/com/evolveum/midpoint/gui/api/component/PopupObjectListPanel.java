@@ -13,7 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 

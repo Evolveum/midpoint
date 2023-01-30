@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation;
+package com.evolveum.midpoint.gui.impl.page.admin.tag;
 
 import java.util.Arrays;
 import java.util.List;

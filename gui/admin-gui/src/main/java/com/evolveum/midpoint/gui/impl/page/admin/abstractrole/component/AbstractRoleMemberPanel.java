@@ -80,7 +80,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
@@ -452,7 +452,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         List<QName> newMemberObjectTypes = getNewMemberObjectTypes();
         if (newMemberObjectTypes != null) {
             newMemberObjectTypes.forEach(objectType -> {
-                List<QName> supportedRelation = getSupportedRelations();
+                List<QName> supportedRelation = new ArrayList<>(getSupportedRelations());
                 if (!UserType.COMPLEX_TYPE.equals(objectType) && !OrgType.COMPLEX_TYPE.equals(objectType)) {
                     supportedRelation.remove(RelationTypes.APPROVER.getRelation());
                     supportedRelation.remove(RelationTypes.OWNER.getRelation());

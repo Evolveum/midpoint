@@ -10,6 +10,10 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -193,7 +197,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    private Search createSearch() {
+    protected Search createSearch() {
         SearchBuilder searchBuilder = new SearchBuilder(getType())
                 .collectionView(getObjectCollectionView())
                 .modelServiceLocator(getPageBase())
@@ -394,7 +398,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public Class<C> getType() {
         if (getSearchModel().isAttached()) {
-            return (Class<C>) getSearchModel().getObject().getTypeClass();
+            return getSearchModel().getObject().getTypeClass();
         }
         PageStorage storage = getPageStorage();
         if (storage != null && storage.getSearch() != null) {

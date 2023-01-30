@@ -9,16 +9,17 @@ package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
-public class QSimulationResult extends QObject<MSimulationResult> {
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+
+public class QSimulationResult extends QAssignmentHolder<MSimulationResult> {
 
     public static final String TABLE_NAME = "m_simulation_result";
 

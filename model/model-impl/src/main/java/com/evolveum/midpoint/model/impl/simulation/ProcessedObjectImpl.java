@@ -10,13 +10,14 @@ package com.evolveum.midpoint.model.impl.simulation;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.DebugDumpable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.PartitionScope;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.TagTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -62,7 +62,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
 
-    private String recordId;
+    private String recordId; // TODO consider removal
     @NotNull private final String transactionId;
     private final String oid; // TODO may be null?
     @NotNull private final Class<O> type;
@@ -70,19 +70,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private final ShadowDiscriminatorType shadowDiscriminator;
     private final PolyStringType name;
     @NotNull private final ObjectProcessingStateType state;
-    @NotNull private final Collection<String> eventTags;
 
-    /** Parsed equivalent of {@link #metricValuesBeans} */
-    @NotNull private final Map<String, BigDecimal> metricValues;
-
-    /** Serialized form of {@link #metricValues}. */
-    @NotNull private final List<SimulationProcessedObjectMetricValueType> metricValuesBeans = new ArrayList<>();
+    @NotNull private final ParsedMetricValues parsedMetricValues;
 
     /** Complete information on the tags (optional) */
     private Map<String, TagType> eventTagsMap;
 
     private final Boolean focus;
+
     private Integer projectionRecords;
+
     private String focusRecordId;
 
     @Nullable private final O before;
@@ -91,6 +88,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     private SimulationResultProcessedObjectType cachedBean;
 
+    @NotNull private InternalState internalState;
+
     private ProcessedObjectImpl(
             @NotNull String transactionId,
             String oid,
@@ -98,13 +97,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             ShadowDiscriminatorType shadowDiscriminator,
             PolyStringType name,
             @NotNull ObjectProcessingStateType state,
-            @NotNull Collection<String> eventTags,
-            @NotNull Map<String, BigDecimal> metricValues,
+            @NotNull ParsedMetricValues parsedMetricValues,
             Boolean focus,
             @Nullable String focusRecordId,
             @Nullable O before,
             @Nullable O after,
-            @Nullable ObjectDelta<O> delta) {
+            @Nullable ObjectDelta<O> delta,
+            @NotNull InternalState internalState) {
         this.transactionId = transactionId;
         this.oid = oid;
         this.type = type;
@@ -112,13 +111,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.shadowDiscriminator = shadowDiscriminator;
         this.name = name;
         this.state = state;
-        this.eventTags = eventTags;
-        this.metricValues = metricValues;
+        this.parsedMetricValues = parsedMetricValues;
         this.focus = focus;
         this.focusRecordId = focusRecordId;
         this.before = before;
         this.after = after;
         this.delta = delta;
+        this.internalState = internalState;
     }
 
     @VisibleForTesting
@@ -134,44 +133,32 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 bean.getResourceObjectCoordinates(),
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
-                getEventTagsOids(bean),
-                parseMetricValues(bean.getMetricValue()),
+                ParsedMetricValues.fromAll(bean.getMetricValue(), bean.getEventTagRef()),
                 bean.isFocus(),
                 bean.getFocusRecordId(),
                 (O) bean.getBefore(),
                 (O) bean.getAfter(),
-                DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
+                DeltaConvertor.createObjectDeltaNullable(bean.getDelta()),
+                InternalState.PARSED);
         obj.setRecordId(bean.getIdentifier());
         obj.setFocusRecordId(bean.getFocusRecordId());
         obj.setProjectionRecords(bean.getProjectionRecords());
         return obj;
     }
 
-    private static Map<String, BigDecimal> parseMetricValues(List<SimulationProcessedObjectMetricValueType> beans) {
-        Map<String, BigDecimal> map = new HashMap<>();
-        beans.forEach(bean -> map.put(bean.getIdentifier(), bean.getValue()));
-        return map;
+    private void addComputedMetricValues(@NotNull List<SimulationProcessedObjectMetricValueType> newValues) {
+        assert internalState == InternalState.CREATING;
+        parsedMetricValues.addMetricValues(newValues);
+        internalState = InternalState.CREATED;
+        invalidateCachedBean();
     }
 
-    private void setMetricValuesBeans(@NotNull List<SimulationProcessedObjectMetricValueType> newValues) {
-        metricValuesBeans.clear();
-        metricValuesBeans.addAll(newValues);
-        metricValues.clear();
-        metricValues.putAll(
-                parseMetricValues(newValues));
-        cachedBean = null;
-    }
-
-    public @NotNull List<SimulationProcessedObjectMetricValueType> getMetricValuesBeans() {
-        return Collections.unmodifiableList(metricValuesBeans);
-    }
-
-    private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
-        return bean.getEventTagRef().stream()
-                .map(ref -> ref.getOid())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
+//    private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
+//        return bean.getEventTagRef().stream()
+//                .map(ref -> ref.getOid())
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toSet());
+//    }
 
     /**
      * Creates {@link ProcessedObjectImpl} for the {@link LensElementContext}.
@@ -189,7 +176,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             throws CommonException {
 
         Class<O> type = elementContext.getObjectTypeClass();
-        @Nullable O stateBefore = asObjectable(elementContext.getObjectOldOrCurrent());
+        boolean isFocus = elementContext instanceof LensFocusContext<?>;
+        @Nullable O stateBefore;
+        if (isFocus) {
+            // Focus is computed iteratively, so "current" represents some intermediate state.
+            // We are sure that "old" is OK for focus.
+            stateBefore = asObjectable(elementContext.getObjectOld());
+        } else {
+            // Projections are never computed iteratively (except for already-exists exceptions, that cannot occur during
+            // simulations). Moreover, if full shadow is loaded during processing, it is put into "current", not into "old".
+            // Hence it's best to take "current" for projections.
+            stateBefore = asObjectable(elementContext.getObjectCurrent());
+        }
         @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
         @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
         @Nullable ObjectDelta<O> delta = elementContext.getSummaryExecutedDelta();
@@ -210,16 +208,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta != null ?
                         ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()) :
                         ObjectProcessingStateType.UNMODIFIED,
-                elementContext.getEventTags(),
-                new HashMap<>(),
-                elementContext instanceof LensFocusContext<?>,
+                ParsedMetricValues.fromEventTags(
+                        elementContext.getMatchingEventTags(), elementContext.getAllConsideredEventTags()),
+                isFocus,
                 null, // later
                 stateBefore,
                 stateAfter,
-                delta
-        );
+                delta,
+                InternalState.CREATING);
 
-        processedObject.setMetricValuesBeans(
+        processedObject.addComputedMetricValues(
                 ObjectMetricsComputation.computeAll(
                         processedObject,
                         elementContext,
@@ -295,8 +293,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Collection<String> getEventTags() {
-        return eventTags;
+    public @NotNull Collection<String> getMatchingEventTags() {
+        return parsedMetricValues.getMatchingEventTags();
     }
 
     @Override
@@ -374,14 +372,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .after(prepareObjectForStorage(after))
                     .delta(DeltaConvertor.toObjectDeltaType(delta));
             List<ObjectReferenceType> eventTagRef = bean.getEventTagRef();
-            eventTags.forEach(
+            parsedMetricValues.getMatchingEventTags().forEach(
                     oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
-            List<SimulationProcessedObjectMetricValueType> metricValues = bean.getMetricValue();
-            this.metricValues.forEach(
-                    (id, value) -> metricValues.add(
-                            new SimulationProcessedObjectMetricValueType()
-                                    .identifier(id)
-                                    .value(value)));
+            List<ObjectReferenceType> consideredEventTagRef = bean.getConsideredEventTagRef();
+            parsedMetricValues.getAllConsideredEventTags().forEach(
+                    oid -> consideredEventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
+            bean.getMetricValue().addAll(parsedMetricValues.getMetricValueBeans());
             cachedBean = bean;
             return bean;
         } catch (SchemaException e) {
@@ -429,8 +425,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             sb.append("This is a projection; focus record ID: ").append(focusRecordId).append(".");
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsDebugDump(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "metrics", metricValues, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "metrics", parsedMetricValues, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "before", before, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
         return sb.toString();
@@ -443,23 +438,22 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ", type=" + type +
                 ", name=" + name +
                 ", state=" + state +
-                ", eventTags=" + getEventTagsDebugDump() +
-                ", metrics=" + metricValues +
+                ", metrics=" + parsedMetricValues +
                 ", before=" + before +
                 ", after=" + after +
                 ", delta=" + delta +
                 '}';
     }
 
-    private Collection<String> getEventTagsDebugDump() {
-        if (eventTagsMap != null) {
-            return eventTagsMap.entrySet().stream()
-                    .map(e -> getTagDebugDump(e))
-                    .collect(Collectors.toList());
-        } else {
-            return eventTags;
-        }
-    }
+//    private Collection<String> getEventTagsDebugDump() {
+//        if (eventTagsMap != null) {
+//            return eventTagsMap.entrySet().stream()
+//                    .map(e -> getTagDebugDump(e))
+//                    .collect(Collectors.toList());
+//        } else {
+//            return eventTags;
+//        }
+//    }
 
     private String getTagDebugDump(Map.Entry<String, TagType> tagEntry) {
         String tagOid = tagEntry.getKey();
@@ -547,20 +541,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return ShadowType.class.isAssignableFrom(type);
     }
 
-    @Nullable BigDecimal getMetricValue(@NotNull SimulationMetricReferenceType ref) {
-        String identifier = ref.getIdentifier();
-        if (identifier != null) {
-            return metricValues.get(identifier);
-        }
-        String tagOid = Referencable.getOid(ref.getEventTagRef());
-        if (tagOid != null) {
-            return eventTags.contains(tagOid) ? BigDecimal.ONE : BigDecimal.ZERO;
-        }
-        throw new IllegalArgumentException("Neither metric identifier nor event tag OID present in metric reference: " + ref);
+    @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReferenceType ref) {
+        assert internalState == InternalState.CREATED;
+        return parsedMetricValues.getMetricValue(ref);
     }
 
     @Override
-    public boolean matches(SimulationObjectPredicateType predicate, Task task, OperationResult result)
+    public boolean matches(@NotNull SimulationObjectPredicateType predicate, @NotNull Task task, @NotNull OperationResult result)
             throws CommonException {
         SearchFilterType filter = predicate.getFilter();
         if (filter != null && !matchesFilter(filter)) {
@@ -592,30 +579,115 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 result);
     }
 
-    /**
-     * Checks whether this (simulation-related) object is in the domain of given event tag.
-     *
-     * The domain is specified either explicitly, or we have to look at attached policy rules.
-     *
-     * In other words, if the determination from attached policy rules is insufficient (e.g. there are other rules elsewhere),
-     * the administrator is obliged to specify the domain explicitly.
-     *
-     * TODO we can have a look at all considered domains in the element context instead
-     *  (but this will not work - later - for audit records)
-     */
-    boolean isInDomainOf(TagType eventTag, Task task, OperationResult result) throws CommonException {
-        SimulationObjectPredicateType domain = TagTypeUtil.getSimulationDomain(eventTag);
-        if (domain != null) {
-            return matches(domain, task, result);
+    @VisibleForTesting
+    @Override
+    public void resolveEventTags(OperationResult result) {
+        if (eventTagsMap != null) {
+            return;
         }
-        if (ShadowType.class.equals(type)) {
-            return TagTypeUtil.attachedRuleEvaluatesOnProjection(eventTag);
-        } else {
-            return TagTypeUtil.attachedRuleEvaluatesOnFocus(eventTag);
-        }
+        eventTagsMap = ModelCommonBeans.get().tagManager.resolveTagNames(
+                parsedMetricValues.getMatchingEventTags(), result);
     }
 
     PartitionScope partitionScope() {
         return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
+    }
+
+    static class ParsedMetricValues implements DebugDumpable {
+        @NotNull private final Map<SimulationMetricReference, MetricValue> valueMap;
+
+        private ParsedMetricValues(@NotNull Map<SimulationMetricReference, MetricValue> valueMap) {
+            this.valueMap = valueMap;
+        }
+
+        static @NotNull ParsedMetricValues fromEventTags(
+                @NotNull Collection<String> matching,
+                @NotNull Collection<String> allConsidered) {
+            Map<SimulationMetricReference, MetricValue> valueMap = new HashMap<>();
+            for (String tagOid : allConsidered) {
+                boolean matches = matching.contains(tagOid);
+                valueMap.put(
+                        SimulationMetricReference.forTag(tagOid),
+                        new MetricValue(matches ? BigDecimal.ONE : BigDecimal.ZERO, matches));
+            }
+            return new ParsedMetricValues(valueMap);
+        }
+
+        // We don't have "all considered event tags" here
+        static ParsedMetricValues fromAll(
+                @NotNull List<SimulationProcessedObjectMetricValueType> metricValue,
+                @NotNull List<ObjectReferenceType> matchingTagRefs) {
+            var matchingTagOids = matchingTagRefs.stream()
+                    .map(ref -> ref.getOid())
+                    .collect(Collectors.toSet());
+            ParsedMetricValues parsedMetricValues = fromEventTags(matchingTagOids, matchingTagOids);
+            parsedMetricValues.addMetricValues(metricValue);
+            return parsedMetricValues;
+        }
+
+        void addMetricValues(List<SimulationProcessedObjectMetricValueType> values) {
+            for (SimulationProcessedObjectMetricValueType valueBean : values) {
+                valueMap.put(
+                        SimulationMetricReference.forMetricId(valueBean.getIdentifier()),
+                        new MetricValue(valueBean.getValue(), valueBean.isSelected()));
+            }
+        }
+
+        @NotNull Collection<String> getMatchingEventTags() {
+            return valueMap.entrySet().stream()
+                    .filter(e -> e.getKey().isTag())
+                    .filter(e -> e.getValue().inSelection)
+                    .map(e -> e.getKey().getTagOid())
+                    .collect(Collectors.toSet());
+        }
+
+        @NotNull Collection<String> getAllConsideredEventTags() {
+            return valueMap.keySet().stream()
+                    .filter(ref -> ref.isTag())
+                    .map(ref -> ref.getTagOid())
+                    .collect(Collectors.toSet());
+        }
+
+        @NotNull Collection<SimulationProcessedObjectMetricValueType> getMetricValueBeans() {
+            return valueMap.entrySet().stream()
+                    .filter(e -> e.getKey().isCustomMetric())
+                    .map(e -> new SimulationProcessedObjectMetricValueType()
+                            .identifier(e.getKey().getMetricIdentifier())
+                            .selected(e.getValue().inSelection)
+                            .value(e.getValue().value))
+                    .collect(Collectors.toList());
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            return null;
+        }
+
+        @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReferenceType ref) {
+            return valueMap.get(
+                    SimulationMetricReference.fromBean(ref));
+        }
+    }
+
+    static class MetricValue {
+        @NotNull final BigDecimal value;
+        final boolean inSelection;
+
+        MetricValue(@NotNull BigDecimal value, boolean inSelection) {
+            this.value = value;
+            this.inSelection = inSelection;
+        }
+    }
+
+    private enum InternalState {
+        /** Instance is being created. Metric values are not available. */
+        CREATING,
+
+        /** Instance is fully created, all metric values are available. */
+        CREATED,
+
+        /** Instance is re-parsed. "All considered event tags" information is not available. */
+        @VisibleForTesting
+        PARSED
     }
 }

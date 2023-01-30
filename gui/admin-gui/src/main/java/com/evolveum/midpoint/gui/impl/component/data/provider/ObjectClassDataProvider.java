@@ -4,17 +4,17 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 /**
  * @author lskublik
@@ -29,7 +29,7 @@ public class ObjectClassDataProvider extends SelectableListDataProvider<Selectab
         super(Component, model);
     }
 
-    protected List<ObjectClassWrapper> getListFromModel() {
+    public List<ObjectClassWrapper> getListFromModel() {
         if (StringUtils.isEmpty(filter)) {
             return getModel().getObject();
         }

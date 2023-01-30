@@ -135,7 +135,11 @@ public final class LiveSyncActivityRun
     @NotNull
     private LiveSyncOptions createLiveSyncOptions() {
         LiveSyncWorkDefinition def = activity.getWorkDefinition();
-        return new LiveSyncOptions(activity.getExecutionMode(), def.getBatchSize(), def.isUpdateLiveSyncTokenInDryRun());
+        return new LiveSyncOptions(
+                activity.getExecutionMode(),
+                def.getBatchSize(),
+                def.isUpdateLiveSyncTokenInDryRun(),
+                def.isUpdateLiveSyncTokenInPreviewMode());
     }
 
     @Override

@@ -48,7 +48,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0">
                         <xsd:annotation>
@@ -64,6 +64,9 @@
                             <xsd:documentation>
                                 When this simulation started.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.startTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -71,6 +74,9 @@
                             <xsd:documentation>
                                 When this simulation ended.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.endTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="rootTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -83,6 +89,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                            <xsd:appinfo>
+                                <a:displayName>SimulationResultType.rootTaskRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -210,13 +219,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="domain" type="tns:SimulationObjectPredicateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Domain of the metric. It denotes objects that should be considered by the metric.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <!--<xsd:element name="defaultDimension" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">-->
             <!--    <xsd:annotation>-->
             <!--        <xsd:documentation>-->
@@ -272,7 +274,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+            <xsd:element name="domain" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Domain of the metric. It denotes objects that should be considered by the metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selection" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Determines whether the object is "selected" by the metric.
+
+                        Default (if the value is computed): true if value greater than 0, false otherwise.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueExpression" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         An expression providing the value for the metric.
@@ -282,6 +300,8 @@
 
                         Output:
                         - any number: the output
+
+                        Default (if the expression is not present but selection criteria is): 1 if selected, 0 otherwise.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -305,7 +325,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0">
+            <xsd:element name="aggregationFunction" type="tns:SimulationMetricAggregationFunctionType" minOccurs="0" default="selectionTotalValue">
                 <xsd:annotation>
                     <xsd:documentation>
                         An aggregation function used to compute the (aggregated) metric value.
@@ -320,10 +340,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="selection" type="tns:SimulationObjectPredicateType" minOccurs="0">
+            <xsd:element name="domainRestriction" type="tns:SimulationObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Denotes the "selection" object set. Relevant for some aggregation functions.
+                        Restriction of the domain of original metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selectionRestriction" type="tns:SimulationObjectPredicateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Restriction of the "selection" predicate of original metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -915,6 +942,9 @@
                     <xsd:documentation>
                         OID of the object processed. Usually known, even for objects that are to be created.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.oid</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
@@ -922,6 +952,9 @@
                     <xsd:documentation>
                         Type of the object processed.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.type</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resourceObjectCoordinates" type="tns:ShadowDiscriminatorType" minOccurs="0">
@@ -939,6 +972,9 @@
                     <xsd:documentation>
                         Name of the object processed.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="state" type="tns:ObjectProcessingStateType" minOccurs="0">
@@ -946,6 +982,9 @@
                     <xsd:documentation>
                         Was the object added, modified, deleted, or unchanged?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.state</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -956,6 +995,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
                         <a:indexed>true</a:indexed>
+                        <a:displayName>SimulationResultProcessedObjectType.eventTagRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1052,6 +1092,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Identifier of a non-event-tag-based metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selected" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the object "selected" in regard to this metric?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

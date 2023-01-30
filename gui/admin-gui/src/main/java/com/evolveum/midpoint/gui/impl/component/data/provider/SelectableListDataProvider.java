@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +13,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -23,7 +24,6 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 import org.apache.wicket.model.Model;
 
@@ -72,7 +72,7 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         return getAvailableData().iterator();
     }
 
-    protected List<T> getListFromModel() {
+    public List<T> getListFromModel() {
         return getModel().getObject();
     }
 

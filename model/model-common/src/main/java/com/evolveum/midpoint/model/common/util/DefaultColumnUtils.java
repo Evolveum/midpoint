@@ -107,7 +107,8 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(TagType.F_DESCRIPTION)))
                 .put(SimulationResultType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultType.F_NAME),
-                        new ColumnWrapper(SimulationResultType.F_DESCRIPTION)))
+                        new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
+                        new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP)))
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),

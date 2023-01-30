@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -32,8 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.org.component.AbstractTreeTablePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.OrgTreeProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;

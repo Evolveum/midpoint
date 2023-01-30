@@ -149,17 +149,17 @@ public class LiveSynchronizer {
 
         LiveSyncCapabilityType capability = ctx.context.getCapability(LiveSyncCapabilityType.class); // TODO only if enabled?
         boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
-        boolean isDryRun = ctx.isDryRun();
         boolean updateTokenInDryRun = ctx.isUpdateLiveSyncTokenInDryRun();
+        boolean updateTokenInPreviewMode = ctx.isUpdateLiveSyncTokenInPreviewMode();
         LiveSyncToken initialToken = ctx.getInitialToken();
 
         LiveSyncToken oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
         LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
         LiveSyncToken tokenToSet;
-        if (ctx.isPreview()) {
-            LOGGER.trace("Preview mode -> token will not be updated.");
+        if (ctx.isPreview() && !updateTokenInPreviewMode) {
+            LOGGER.trace("Preview mode with updateTokenInPreviewMode=false -> token will not be updated.");
             tokenToSet = null;
-        } else if (isDryRun && !updateTokenInDryRun) {
+        } else if (ctx.isDryRun() && !updateTokenInDryRun) {
             LOGGER.trace("Dry run mode with updateTokenInDryRun=false -> token will not be updated.");
             tokenToSet = null;
         } else if (ctx.canRun() && ctx.syncResult.isAllChangesFetched() && ctx.syncResult.isAllFetchedChangesProcessed()) {
@@ -205,13 +205,14 @@ public class LiveSynchronizer {
         LiveSyncToken currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}", ctx.context, ctx.task);
-        } else if (!ctx.isPreview()) {
+        } else if (ctx.isPreview() && !ctx.isUpdateLiveSyncTokenInPreviewMode()) { // TODO what about dry run?
+            LOGGER.debug(
+                    "We would set initial live sync token ({}) in task: {}; but not doing so because in simulation (preview) mode",
+                    currentToken, ctx.task);
+        } else {
             LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
             ctx.tokenStorage.setToken(currentToken, result);
             ctx.syncResult.setTokenUpdatedTo(currentToken);
-        } else {
-            LOGGER.debug("We would set initial live sync token ({}) in task: {}; but not doing so because in simulation mode",
-                    currentToken, ctx.task);
         }
     }
 
@@ -262,6 +263,10 @@ public class LiveSynchronizer {
 
         boolean isUpdateLiveSyncTokenInDryRun() {
             return options.isUpdateLiveSyncTokenInDryRun();
+        }
+
+        boolean isUpdateLiveSyncTokenInPreviewMode() {
+            return options.isUpdateLiveSyncTokenInPreviewMode();
         }
 
         public boolean canRun() {

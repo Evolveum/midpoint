@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType.*;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -7,20 +9,17 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCaseMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType.*;
-
-public class QSimulationResultMapping extends QObjectMapping<SimulationResultType, QSimulationResult, MSimulationResult> {
+public class QSimulationResultMapping
+        extends QAssignmentHolderMapping<SimulationResultType, QSimulationResult, MSimulationResult> {
 
     public static final String DEFAULT_ALIAS_NAME = "sr";
 

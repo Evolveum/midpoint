@@ -7,14 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.session.GenericPageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,12 +24,19 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -91,27 +93,41 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
         };
 
-        searchModel = new LoadableDetachableModel<>() {
-            @Override
-            protected Search<SimulationResultProcessedObjectType> load() {
-                GenericPageStorage storage = getSessionStorage().getConfiguration();
-                Search search = storage.getSearch();
-
+//        searchModel = new LoadableDetachableModel<>() {
+//            @Override
+//            protected Search<SimulationResultProcessedObjectType> load() {
+//                GenericPageStorage storage = getSessionStorage().getSimulation();
+//                Search search = storage.getSearch();
+//
 //                if (search == null || search.isForceReload()) {
-//                    Class<? extends ObjectType> type = getType();
+//                    SearchContext searchCtx = new SearchContext();
+//                    searchCtx.setPanelType(CollectionPanelType.SIMULATION_PROCESSED_OBJECTS);
 //
-//                    SearchBuilder searchBuilder = new SearchBuilder(type)
-//                            .additionalSearchContext(createAdditionalSearchContext())
-//                            .modelServiceLocator(PageDebugList.this);
+//                    SearchBuilder searchBuilder = new SearchBuilder(SimulationResultProcessedObjectType.class)
+//                            .additionalSearchContext(searchCtx)
+//                            .modelServiceLocator(PageSimulationResultObjects.this);
+//                    search = searchBuilder.build();
 //
-//                    search = createSearch(type);
+//                    AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
+//                            search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
+//                    if (eventTagRefItem != null) {
+//                        List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
+//                                TagType.class, null, getPageTask().getResult(), PageSimulationResultObjects.this);
 //
+//                        List<DisplayableValue<String>> values = tags.stream()
+//                                .map(o -> new DisplayableValueImpl<>(
+//                                        o.getOid(),
+//                                        WebComponentUtil.getDisplayNameOrName(o),
+//                                        o.asObjectable().getDescription()))
+//                                .collect(Collectors.toList());
+//                        eventTagRefItem.getAvailableValues().addAll(values);
+//                    }
 //
 //                    storage.setSearch(search);
 //                }
-                return search;
-            }
-        };
+//                return search;
+//            }
+//        };
     }
 
     private void initLayout() {
@@ -155,12 +171,43 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
                 return oid;
             }
+
+            @Override
+            protected Search createSearch() {
+                Search search = super.createSearch();
+
+                AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
+                        search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
+                if (eventTagRefItem != null) {
+                    List<String> tagOids = resultModel.getObject().getMetric().stream()
+                            .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+                            .filter(ref -> ref != null)
+                            .map(ref -> ref.getOid())
+                            .filter(oid -> Utils.isPrismObjectOidValid(oid))
+                            .distinct().collect(Collectors.toList());
+
+                    ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
+
+                    List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
+                            TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
+
+                    List<DisplayableValue<String>> values = tags.stream()
+                            .map(o -> new DisplayableValueImpl<>(
+                                    o.getOid(),
+                                    WebComponentUtil.getDisplayNameOrName(o),
+                                    o.asObjectable().getDescription()))
+                            .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+                            .collect(Collectors.toList());
+                    eventTagRefItem.getAvailableValues().addAll(values);
+                }
+
+                return search;
+            }
         };
         add(table);
     }
 
     private void onBackPerformed(AjaxRequestTarget target) {
-        //todo implement
-        setResponsePage(PageSimulationResults.class);
+        redirectBack();
     }
 }
