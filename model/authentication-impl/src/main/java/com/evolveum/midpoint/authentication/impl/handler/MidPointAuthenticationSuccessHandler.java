@@ -25,12 +25,17 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -40,11 +45,14 @@ import org.springframework.security.web.savedrequest.SavedRequest;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import org.springframework.security.web.util.UrlUtils;
+
 /**
  * @author skublik
  */
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationSuccessHandler.class);
     @Autowired
     private AuthModuleRegistryImpl authModuleRegistry;
     private String defaultTargetUrl;
@@ -79,9 +87,17 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
                 boolean continueSequence = false;
                 if (isNewSecurityPolicyFound(mpAuthentication)) {
-                    continueSequence = true;
                     SecurityPolicyType securityPolicy = ((MidPointPrincipal) mpAuthentication.getPrincipal()).getApplicableSecurityPolicy();
                     updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
+                    if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Badly configured authentication modules.");
+                        }
+                        moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+                        getRedirectStrategy().sendRedirect(request, response, AuthConstants.DEFAULT_PATH_AFTER_LOGOUT);
+                        return;
+                    }
+                    continueSequence = true;
                 }
                 if (mpAuthentication.isAuthenticated() && !continueSequence) {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
@@ -138,6 +154,14 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy,
                 AuthSequenceUtil.getAuthSequenceIdentifier(processingSequence));
         return sequence != null && processingSequence.getModule().size() != sequence.getModule().size();
+    }
+
+    private boolean isCorrectlyConfigured(SecurityPolicyType securityPolicy, MidpointAuthentication mpAuthentication) {
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, mpAuthentication.getSequence().getIdentifier());
+        if (sequence == null) {
+            return false;
+        }
+        return !mpAuthentication.wrongConfiguredSufficientModuleExists();
     }
 
     private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {

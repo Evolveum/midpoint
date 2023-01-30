@@ -258,7 +258,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED);
     }
 
-    private boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
+    public boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         return modules.stream()
                 .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
@@ -479,6 +479,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return false;
         }
         return true;
+    }
+
+    public boolean wrongConfiguredSufficientModuleExists() {
+        AuthenticationSequenceModuleType sufficientModule = sequence.getModule().stream()
+                .filter(m -> AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(m.getNecessity())).findFirst().orElse(null);
+        return sufficientModule != null &&  !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED)
+                && sequence.getModule().stream().anyMatch(m -> m.getOrder() > sufficientModule.getOrder());
     }
 
     public boolean authenticationShouldBeAborted() {
