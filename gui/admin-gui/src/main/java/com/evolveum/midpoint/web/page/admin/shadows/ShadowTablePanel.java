@@ -434,7 +434,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_STATUS);
 
         if (selectedShadow == null || selectedShadow.isEmpty()) {
-            result.recordWarning(createStringResource("updateResourceObjectStatusPerformed.warning").getString());
+            result.recordWarning(createStringResource("ResourceContentPanel.message.updateResourceObjectStatusPerformed.warning").getString());
             getPageBase().showResult(result);
             target.add(getPageBase().getFeedbackPanel());
             return;
