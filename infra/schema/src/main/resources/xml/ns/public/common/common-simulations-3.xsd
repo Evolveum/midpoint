@@ -48,7 +48,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0">
                         <xsd:annotation>
