@@ -67,6 +67,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
+    private static final String OPERATION_MARK_PROTECTED = DOT_CLASS + "markProtectedShadow";
+
 
     public ShadowTablePanel(String id) {
         super(id, ShadowType.class);
@@ -246,6 +248,22 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 return false;
             }
 
+        });
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        markProtectedShadow(getRowModel(), target);
+                    }
+                };
+            }
         });
 
         return items;
@@ -576,6 +594,44 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         ReferenceDelta delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
                 ObjectTypeUtil.createObjectRef(shadow, PrismContext.get()).asReferenceValue());
         changeOwnerInternal(ownerToChange.getOid(), ownerToChange.getClass(), Collections.singletonList(delta), target);
+    }
+
+    private void markProtectedShadow(IModel<SelectableBean<ShadowType>> model, AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_MARK_PROTECTED);
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_PROTECTED);
+
+        var selected = getSelectedShadowsList(model);
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowProtectedPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (SelectableBean<ShadowType> shadow : selected) {
+            var delta = getPageBase().getPrismContext().deltaFactory().object()
+                    .createModificationAddReference(ShadowType.class,
+                            shadow.getValue().getOid(),ShadowType.F_TAG_REF,
+                            SystemObjectsType.TAG_PROTECTED_SHADOW.value());
+            try {
+                getPageBase().getModelService().executeChanges(
+                        MiscUtil.createCollection(delta), null, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError(
+                        createStringResource(
+                                        "ResourceContentPanel.message.markShadowProtectedPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} as protected", shadow, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
     }
 
     private boolean isSatisfyConstraints(List selected) {
