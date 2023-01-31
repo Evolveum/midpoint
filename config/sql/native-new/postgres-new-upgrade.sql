@@ -198,7 +198,7 @@ CREATE TABLE m_simulation_result (
     startTimestamp TIMESTAMPTZ,
     endTimestamp TIMESTAMPTZ
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_simulation_result
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();

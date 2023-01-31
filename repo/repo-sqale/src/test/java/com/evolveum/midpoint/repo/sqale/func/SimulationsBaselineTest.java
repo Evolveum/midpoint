@@ -23,6 +23,8 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
     private static final String TEST_TAG_1 = "00000000-0000-0000-0000-000000001000";
     private static final String TEST_TAG_2 = "00000000-0000-0000-0000-000000002000";
+    private static final String TEST_ARCHETYPE = "d029f4e9-d0e9-4486-a927-20585d909dc7";
+    private static final String RANDOM_OID = "24a89c52-e477-4a38-b3c0-75a01d8c13f3";
 
     @Test
     public void test100CreateSimulation() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -36,6 +38,10 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                 .name("Test Simulation Result")
                 .rootTaskRef(TEST_TAG_1, TaskType.COMPLEX_TYPE)
                 .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                .archetypeRef(TEST_ARCHETYPE, ArchetypeType.COMPLEX_TYPE)
+                .assignment(new AssignmentType()
+                        .targetRef(TEST_ARCHETYPE, ArchetypeType.COMPLEX_TYPE)
+                )
                 .processedObject(new SimulationResultProcessedObjectType()
                     .transactionId("1")
                     .oid("00000000-0000-0000-0000-000000000001")
@@ -84,6 +90,54 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         // TODO this should work, shouldn't it?
         ObjectType objectBefore = processedObjects.get(0).getBefore();
         assertThat(objectBefore).as("'object before' from result").isEqualTo(systemConfiguration);
+
+        when("simulation result is searched by matching archetypeRef");
+        var byArchetypeRefMatching = repositoryService.searchObjects(
+                SimulationResultType.class,
+                prismContext.queryFor(SimulationResultType.class)
+                        .item(SimulationResultType.F_ARCHETYPE_REF)
+                        .ref(TEST_ARCHETYPE)
+                        .build(),
+                null, result);
+
+        then("it is found");
+        assertThat(byArchetypeRefMatching).as("by archetypeRef, matching").hasSize(1);
+
+        when("simulation result is searched by matching assignment/targetRef");
+        var byAssignmentTargetRefMatching = repositoryService.searchObjects(
+                SimulationResultType.class,
+                prismContext.queryFor(SimulationResultType.class)
+                        .item(SimulationResultType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(TEST_ARCHETYPE)
+                        .build(),
+                null, result);
+
+        then("it is found");
+        assertThat(byAssignmentTargetRefMatching).as("by assignment/targetRef, matching").hasSize(1);
+
+        when("simulation result is searched by non-matching archetypeRef");
+        var byArchetypeRefNonMatching = repositoryService.searchObjects(
+                SimulationResultType.class,
+                prismContext.queryFor(SimulationResultType.class)
+                        .item(SimulationResultType.F_ARCHETYPE_REF)
+                        .ref(RANDOM_OID)
+                        .build(),
+                null, result);
+
+        then("nothing is found");
+        assertThat(byArchetypeRefNonMatching).as("by archetypeRef, non-matching").isEmpty();
+
+        when("simulation result is searched by non-matching assignment/targetRef");
+        var byAssignmentTargetRefNonMatching = repositoryService.searchObjects(
+                SimulationResultType.class,
+                prismContext.queryFor(SimulationResultType.class)
+                        .item(SimulationResultType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(RANDOM_OID)
+                        .build(),
+                null, result);
+
+        then("nothing is found");
+        assertThat(byAssignmentTargetRefNonMatching).as("by assignment/targetRef, non-matching").isEmpty();
     }
 
     protected boolean getPartitioned() {
@@ -97,7 +151,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
         @NotNull
-        PrismObject<TagType> readed = repositoryService.getObject(TagType.class, oid, null, result);
-        assertNotNull(readed);
+        PrismObject<TagType> read = repositoryService.getObject(TagType.class, oid, null, result);
+        assertNotNull(read);
     }
 }

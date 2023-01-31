@@ -90,18 +90,14 @@ public class SimulationResult {
                 "Asking for persistent processed objects but there is no simulation result OID");
         List<? extends ProcessedObject<?>> objects = TestSpringBeans.getBean(SimulationResultManager.class)
                 .getStoredProcessedObjects(simulationResultOid, result);
-        resolveTagNames(objects, result);
+        resolveEventTags(objects, result);
         applyAttributesDefinitions(objects, result);
         return objects;
     }
 
-    public void resolveTagNames(Collection<? extends ProcessedObject<?>> processedObjects, OperationResult result) {
-        TagManager tagManager = TestSpringBeans.getBean(TagManager.class);
+    public void resolveEventTags(Collection<? extends ProcessedObject<?>> processedObjects, OperationResult result) {
         for (ProcessedObject<?> processedObject : processedObjects) {
-            if (processedObject.getEventTagsMap() == null) {
-                processedObject.setEventTagsMap(
-                        tagManager.resolveTagNames(processedObject.getEventTags(), result));
-            }
+            processedObject.resolveEventTags(result);
         }
     }
 

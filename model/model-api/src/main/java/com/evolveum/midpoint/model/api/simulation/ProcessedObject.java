@@ -41,7 +41,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     @NotNull Class<O> getType();
     @Nullable PolyStringType getName();
     @NotNull ObjectProcessingStateType getState();
-    @NotNull Collection<String> getEventTags();
+    @NotNull Collection<String> getMatchingEventTags();
     @Nullable Map<String, TagType> getEventTagsMap();
 
     default boolean isAddition() {
@@ -65,8 +65,10 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     O getAfter();
     @Nullable ObjectDelta<O> getDelta();
     O getAfterOrBefore();
-    boolean matches(SimulationObjectPredicateType predicate, Task task, OperationResult result)
+
+    boolean matches(@NotNull SimulationObjectPredicateType predicate, @NotNull Task task, @NotNull OperationResult result)
             throws CommonException;
+    void resolveEventTags(OperationResult result);
 
     interface Factory {
         <O extends ObjectType> ProcessedObject<O> create(

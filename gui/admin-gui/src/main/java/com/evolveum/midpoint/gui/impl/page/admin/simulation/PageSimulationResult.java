@@ -187,7 +187,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                item.add(new MetricWidgetPanel(ID_WIDGET, item.getModel()));
+                item.add(new MetricWidgetPanel(ID_WIDGET, item.getModel()) {
+
+                    @Override
+                    protected void onOpenPerformed(AjaxRequestTarget target) {
+                        openTagMetricPerformed(target);
+                    }
+                });
             }
         };
         add(widgets);
@@ -199,7 +205,14 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private void onBackPerformed(AjaxRequestTarget target) {
         //todo implement
-        setResponsePage(PageSimulationResults.class);
+        redirectBack();
+    }
+
+    private void openTagMetricPerformed(AjaxRequestTarget target) {
+        PageParameters params = new PageParameters();
+        params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+//        params.add(SimulationPage.PAGE_PARAMETER_TAG_OID, null);    // todo add tag oid somehow
+        navigateToNext(PageSimulationResultObjects.class, params);
     }
 
     private static class ResultDetail implements Serializable {

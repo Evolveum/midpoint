@@ -138,7 +138,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
 
     private String getDataTime() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS");
         return formatDate.format(createDate);
     }
 
