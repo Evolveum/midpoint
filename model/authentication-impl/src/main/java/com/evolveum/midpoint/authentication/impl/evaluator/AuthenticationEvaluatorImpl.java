@@ -447,30 +447,48 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
-        int failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
-        return isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
-    }
-
-    private boolean isOverFailedLockoutAttempts(int failedLogins, CredentialPolicyType credentialsPolicy) {
-        return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
-                credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        int failedLogins;
+        if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            return SecurityUtil.isOverFailedLockoutAttempts(((MidPointPrincipal) authentication.getPrincipal()).getFocus(),
+                    mpAuthentication.getSequence().getIdentifier(),
+                    mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier(),
+                    credentialsPolicy);
+        } else {
+            //todo old code
+            failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
+            return SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
+        }
     }
 
     private boolean isLockoutExpired(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
-        Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-        if (lockoutDuration == null) {
-            return false;
+        Duration lockoutDuration;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            XMLGregorianCalendar lockedUntilTimestamp = SecurityUtil.getLockoutExpirationTimestampForAuthModule(
+                    ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus(),
+                    mpAuthentication.getSequence().getIdentifier(),
+                    mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier());
+            return clock.isPast(lockedUntilTimestamp);
+        } else {
+            //todo old code
+            lockoutDuration = credentialsPolicy.getLockoutDuration();
+            if (lockoutDuration == null) {
+                return false;
+            }
+            LoginEventType lastFailedLogin = credentialsType.getLastFailedLogin();
+            if (lastFailedLogin == null) {
+                return true;
+            }
+            XMLGregorianCalendar lastFailedLoginTimestamp = lastFailedLogin.getTimestamp();
+            if (lastFailedLoginTimestamp == null) {
+                return true;
+            }
+            XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, lockoutDuration);
+            return clock.isPast(lockedUntilTimestamp);
         }
-        LoginEventType lastFailedLogin = credentialsType.getLastFailedLogin();
-        if (lastFailedLogin == null) {
-            return true;
-        }
-        XMLGregorianCalendar lastFailedLoginTimestamp = lastFailedLogin.getTimestamp();
-        if (lastFailedLoginTimestamp == null) {
-            return true;
-        }
-        XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, lockoutDuration);
-        return clock.isPast(lockedUntilTimestamp);
     }
 
     public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
@@ -610,7 +628,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         behavioralData.setLastFailedLogin(event);
 
-        if (isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
+        if (SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
             ActivationType activation = focusAfter.getActivation();
             if (activation == null) {
                 activation = new ActivationType();

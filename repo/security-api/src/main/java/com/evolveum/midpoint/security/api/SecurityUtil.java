@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Radovan Semancik
@@ -416,5 +417,44 @@ public class SecurityUtil {
             return true;
         }
         return isAudited;
+    }
+
+    public static Integer getFailedAttemptsForAuthModule(FocusType principal, String sequenceIdentifier, String moduleIdentifier) {
+        AuthenticationAttemptDataType attemptData = findAuthAttemptDataForModule(principal, sequenceIdentifier, moduleIdentifier);
+        return attemptData != null ? attemptData.getFailedAttempts() : null;
+    }
+
+    public static boolean isOverFailedLockoutAttempts(@NotNull FocusType principal, String sequenceIdentifier,
+            String moduleIdentifier, CredentialPolicyType credentialsPolicy) {
+        if (StringUtils.isEmpty(sequenceIdentifier) || StringUtils.isEmpty(moduleIdentifier)) {
+            return false;
+        }
+        Integer moduleFailedAttempts = getFailedAttemptsForAuthModule(principal, sequenceIdentifier, moduleIdentifier);
+        int failedLogins = moduleFailedAttempts != null ? moduleFailedAttempts : 0;
+        return isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
+    }
+
+    public static boolean isOverFailedLockoutAttempts(int failedLogins, CredentialPolicyType credentialsPolicy) {
+        return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
+                credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
+    }
+
+    public static XMLGregorianCalendar getLockoutExpirationTimestampForAuthModule(FocusType principal, String sequenceIdentifier, String moduleIdentifier) {
+        AuthenticationAttemptDataType attemptData = findAuthAttemptDataForModule(principal, sequenceIdentifier, moduleIdentifier);
+        return attemptData != null ? attemptData.getLockoutExpirationTimestamp() : null;
+    }
+
+    public static AuthenticationAttemptDataType findAuthAttemptDataForModule(FocusType principal, String sequenceIdentifier, String moduleIdentifier) {
+        if (StringUtils.isEmpty(sequenceIdentifier) || StringUtils.isEmpty(moduleIdentifier)) {
+            return null;
+        }
+        if (principal.getBehavior() == null || principal.getBehavior().getAuthentication() == null) {
+            return null;
+        }
+        List<AuthenticationAttemptDataType> authAttempts = principal.getBehavior().getAuthentication().getAuthenticationAttempt();
+        return authAttempts.stream()
+                .filter(attempt -> sequenceIdentifier.equals(attempt.getSequenceIdentifier())
+                        && moduleIdentifier.equals(attempt.getModuleIdentifier()))
+                .findFirst().orElse(null);
     }
 }

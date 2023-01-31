@@ -16,8 +16,8 @@ import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -26,8 +26,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
  * wrapper for all authentication modules, basic authentication token
@@ -465,6 +463,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public boolean hasSucceededAuthentication() {
         return getAuthentications().stream().anyMatch(auth -> AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
+    }
+
+    public boolean canRepeatAuthenticationAttempt() {
+        if (!(getPrincipal() instanceof MidPointPrincipal)) {
+            return false;
+        }
+        FocusType principal = ((MidPointPrincipal) getPrincipal()).getFocus();
+        return !SecurityUtil.isOverFailedLockoutAttempts(principal, getSequence().getIdentifier(),
+                getProcessingModuleAuthentication().getModuleIdentifier(), null);   //todo how to get credentials policy
     }
 
     public boolean canContinueAfterCredentialsCheckFail() {

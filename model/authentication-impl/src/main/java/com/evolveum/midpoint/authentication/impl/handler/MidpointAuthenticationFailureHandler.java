@@ -50,6 +50,10 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            if (mpAuthentication.canRepeatAuthenticationAttempt()) {
+                getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
+                return;
+            }
             if (mpAuthentication.isAuthenticated()) {
                 getRedirectStrategy().sendRedirect(request, response, urlSuffix);
                 return;
