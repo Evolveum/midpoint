@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
@@ -24,9 +27,9 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
             return null;
         }
 
-        String key = "ObjectType." + qname.getLocalPart();
-
-        return new ResourceModel(key, key).getObject();
+        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(qname);
+        String key = WebComponentUtil.createEnumResourceKey(ot);
+        return new StringResourceModel(key).setDefaultValue(key);
     }
 
     @Override

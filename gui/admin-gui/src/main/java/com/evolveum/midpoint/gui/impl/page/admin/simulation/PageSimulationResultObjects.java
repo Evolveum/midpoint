@@ -71,6 +71,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private IModel<SimulationResultType> resultModel;
 
+    private IModel<List<TagType>> availableTagsModel;
+
     private IModel<Search<SimulationResultProcessedObjectType>> searchModel;
 
     public PageSimulationResultObjects() {
@@ -90,6 +92,36 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             @Override
             protected SimulationResultType load() {
                 return loadSimulationResult(PageSimulationResultObjects.this);
+            }
+        };
+
+        availableTagsModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<TagType> load() {
+                List<String> tagOids = resultModel.getObject().getMetric().stream()
+                        .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+                        .filter(ref -> ref != null)
+                        .map(ref -> ref.getOid())
+                        .filter(oid -> Utils.isPrismObjectOidValid(oid))
+                        .distinct().collect(Collectors.toList());
+
+                ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
+
+                List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
+                        TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
+
+                List<DisplayableValue<String>> values = tags.stream()
+                        .map(o -> new DisplayableValueImpl<>(
+                                o.getOid(),
+                                WebComponentUtil.getDisplayNameOrName(o),
+                                o.asObjectable().getDescription()))
+                        .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+                        .collect(Collectors.toList());
+
+                return tags.stream()
+                        .map(o -> o.asObjectable())
+                        .collect(Collectors.toUnmodifiableList());
             }
         };
 
@@ -150,7 +182,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         };
         add(navigation);
 
-        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE) {
+        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableTagsModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
