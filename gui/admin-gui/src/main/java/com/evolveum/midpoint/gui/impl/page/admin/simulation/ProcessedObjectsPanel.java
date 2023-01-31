@@ -30,10 +30,12 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -58,6 +60,22 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
+    }
+
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+
+        List<DisplayableValue<String>> values = availableTagsModel.getObject().stream()
+                .map(o -> new DisplayableValueImpl<>(
+                        o.getOid(),
+                        WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
+                        o.getDescription()))
+                .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+                .collect(Collectors.toList());
+        ctx.setAvailableEventTags(values);
+
+        return ctx;
     }
 
     @Override
@@ -167,12 +185,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             protected String getTagOid() {
                 return ProcessedObjectsPanel.this.getTagOid();
             }
-
-            // todo remove
-            @Override
-            public ObjectQuery getQuery() {
-                return super.getQuery();
-            }
         };
     }
 
@@ -198,20 +210,20 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createCustomExportableColumn(
-            IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+            IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
 
         ItemPath path = WebComponentUtil.getPath(customColumn);
         if (SimulationResultProcessedObjectType.F_STATE.equivalent(path)) {
-            return createStateColumn(columnDisplayModel);
+            return createStateColumn(displayModel);
         } else if (SimulationResultProcessedObjectType.F_TYPE.equivalent(path)) {
-            return createTypeColumn(columnDisplayModel);
+            return createTypeColumn(displayModel);
         }
 
-        return super.createCustomExportableColumn(columnDisplayModel, customColumn, expression);
+        return super.createCustomExportableColumn(displayModel, customColumn, expression);
     }
 
-    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> columnDisplayModel) {
-        return new AbstractColumn<>(columnDisplayModel) {
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {
+        return new AbstractColumn<>(displayModel) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
@@ -253,8 +265,8 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         };
     }
 
-    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> columnDisplayModel) {
-        return new LambdaColumn<>(columnDisplayModel, row -> {
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
+        return new LambdaColumn<>(displayModel, row -> {
             SimulationResultProcessedObjectType object = row.getValue();
             QName type = object.getType();
             if (type == null) {

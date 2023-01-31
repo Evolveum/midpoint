@@ -111,55 +111,11 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
                 List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
                         TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
 
-                List<DisplayableValue<String>> values = tags.stream()
-                        .map(o -> new DisplayableValueImpl<>(
-                                o.getOid(),
-                                WebComponentUtil.getDisplayNameOrName(o),
-                                o.asObjectable().getDescription()))
-                        .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
-                        .collect(Collectors.toList());
-
                 return tags.stream()
                         .map(o -> o.asObjectable())
                         .collect(Collectors.toUnmodifiableList());
             }
         };
-
-//        searchModel = new LoadableDetachableModel<>() {
-//            @Override
-//            protected Search<SimulationResultProcessedObjectType> load() {
-//                GenericPageStorage storage = getSessionStorage().getSimulation();
-//                Search search = storage.getSearch();
-//
-//                if (search == null || search.isForceReload()) {
-//                    SearchContext searchCtx = new SearchContext();
-//                    searchCtx.setPanelType(CollectionPanelType.SIMULATION_PROCESSED_OBJECTS);
-//
-//                    SearchBuilder searchBuilder = new SearchBuilder(SimulationResultProcessedObjectType.class)
-//                            .additionalSearchContext(searchCtx)
-//                            .modelServiceLocator(PageSimulationResultObjects.this);
-//                    search = searchBuilder.build();
-//
-//                    AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
-//                            search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
-//                    if (eventTagRefItem != null) {
-//                        List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-//                                TagType.class, null, getPageTask().getResult(), PageSimulationResultObjects.this);
-//
-//                        List<DisplayableValue<String>> values = tags.stream()
-//                                .map(o -> new DisplayableValueImpl<>(
-//                                        o.getOid(),
-//                                        WebComponentUtil.getDisplayNameOrName(o),
-//                                        o.asObjectable().getDescription()))
-//                                .collect(Collectors.toList());
-//                        eventTagRefItem.getAvailableValues().addAll(values);
-//                    }
-//
-//                    storage.setSearch(search);
-//                }
-//                return search;
-//            }
-//        };
     }
 
     private void initLayout() {
@@ -204,37 +160,37 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
                 return oid;
             }
 
-            @Override
-            protected Search createSearch() {
-                Search search = super.createSearch();
-
-                AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
-                        search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
-                if (eventTagRefItem != null) {
-                    List<String> tagOids = resultModel.getObject().getMetric().stream()
-                            .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
-                            .filter(ref -> ref != null)
-                            .map(ref -> ref.getOid())
-                            .filter(oid -> Utils.isPrismObjectOidValid(oid))
-                            .distinct().collect(Collectors.toList());
-
-                    ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
-
-                    List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-                            TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
-
-                    List<DisplayableValue<String>> values = tags.stream()
-                            .map(o -> new DisplayableValueImpl<>(
-                                    o.getOid(),
-                                    WebComponentUtil.getDisplayNameOrName(o),
-                                    o.asObjectable().getDescription()))
-                            .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
-                            .collect(Collectors.toList());
-                    eventTagRefItem.getAvailableValues().addAll(values);
-                }
-
-                return search;
-            }
+//            @Override
+//            protected Search createSearch() {
+//                Search search = super.createSearch();
+//
+//                AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
+//                        search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
+//                if (eventTagRefItem != null) {
+//                    List<String> tagOids = resultModel.getObject().getMetric().stream()
+//                            .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+//                            .filter(ref -> ref != null)
+//                            .map(ref -> ref.getOid())
+//                            .filter(oid -> Utils.isPrismObjectOidValid(oid))
+//                            .distinct().collect(Collectors.toList());
+//
+//                    ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
+//
+//                    List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
+//                            TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
+//
+//                    List<DisplayableValue<String>> values = tags.stream()
+//                            .map(o -> new DisplayableValueImpl<>(
+//                                    o.getOid(),
+//                                    WebComponentUtil.getDisplayNameOrName(o),
+//                                    o.asObjectable().getDescription()))
+//                            .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+//                            .collect(Collectors.toList());
+//                    eventTagRefItem.getAvailableValues().addAll(values);
+//                }
+//
+//                return search;
+//            }
         };
         add(table);
     }

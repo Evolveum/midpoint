@@ -197,7 +197,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    protected Search createSearch() {
+    private Search createSearch() {
         SearchBuilder searchBuilder = new SearchBuilder(getType())
                 .collectionView(getObjectCollectionView())
                 .modelServiceLocator(getPageBase())
