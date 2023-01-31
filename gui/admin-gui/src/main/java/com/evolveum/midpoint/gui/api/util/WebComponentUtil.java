@@ -631,17 +631,17 @@ public final class WebComponentUtil {
 
     public static <S extends Serializable> Class<? extends Serializable> qnameToAnyClass(PrismContext prismContext, QName qName) {
         if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
-            return (Class<S>) ObjectReferenceType.class;
+            return ObjectReferenceType.class;
         }
-        return (Class<S>) qnameToContainerClass(prismContext, qName);
+        return qnameToContainerClass(prismContext, qName);
     }
 
     public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
-        PrismContainerDefinition<C> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
+        ComplexTypeDefinition def = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def == null) {
             return null;
         }
-        return def.getTypeClass();
+        return (Class<C>) def.getCompileTimeClass();
     }
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
