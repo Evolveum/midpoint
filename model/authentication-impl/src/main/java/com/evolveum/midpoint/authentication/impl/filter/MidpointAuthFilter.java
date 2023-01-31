@@ -125,6 +125,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
+        if (mpAuthentication != null && mpAuthentication.wrongConfiguredSufficientModuleExists()) {
+            clearAuthentication((HttpServletRequest) request);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("web.security.flexAuth.wrong.auth.modules.config");
+            }
+            AuthenticationException exception = new AuthenticationServiceException("web.security.flexAuth.wrong.auth.modules.config");
+            AuthSequenceUtil.saveException(httpRequest, exception);
+        }
         if (mpAuthentication != null && mpAuthentication.authenticationShouldBeAborted()) {
             clearAuthentication((HttpServletRequest) request);
         }
@@ -320,6 +328,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
     }
 
+    //todo decide if we still need it
     private void resolveErrorWithMoreModules(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
         if (existMoreAsOneAuthModule(mpAuthentication)) {
             Exception actualException = (Exception) httpRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);

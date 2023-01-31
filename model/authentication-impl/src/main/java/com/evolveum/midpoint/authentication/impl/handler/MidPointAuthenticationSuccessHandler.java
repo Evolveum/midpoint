@@ -90,9 +90,6 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                     SecurityPolicyType securityPolicy = ((MidPointPrincipal) mpAuthentication.getPrincipal()).getApplicableSecurityPolicy();
                     updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
                     if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Badly configured authentication modules.");
-                        }
                         moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
                         getRedirectStrategy().sendRedirect(request, response, AuthConstants.DEFAULT_PATH_AFTER_LOGOUT);
                         return;
