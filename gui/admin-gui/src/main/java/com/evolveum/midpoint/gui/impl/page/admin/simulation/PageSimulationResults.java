@@ -91,6 +91,5 @@ public class PageSimulationResults extends PageAdmin {
 
     @Override
     protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(super.getPageTitleModel(), this.getClass(), getPageParameters()));
     }
 }

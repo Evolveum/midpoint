@@ -7,25 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -34,6 +27,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -89,7 +83,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBean<SimulationResultType> bean = getRowModel().getObject();
-                        listProcessedObjectsPerformed(target, bean.getValue());
+                        listProcessedObjectsPerformed(bean.getValue());
                     }
                 };
             }
@@ -134,6 +128,9 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
             }
 
             long duration = end.toGregorianCalendar().getTimeInMillis() - start.toGregorianCalendar().getTimeInMillis();
+            if (duration < 0) {
+                return null;
+            }
 
             return DurationFormatUtils.formatDurationWords(duration, true, true);
         }));
@@ -141,10 +138,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
-                Label label = new Label(id, () -> {
-                    return "running";   // todo viliam
-                });
-                label.add(AttributeAppender.replace("class", () -> "badge badge-success")); // todo viliam
+                Component label = PageSimulationResult.createTaskStateLabel(id, () -> model.getObject().getValue(), getPageBase());
                 item.add(label);
             }
         });
@@ -152,7 +146,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
         return columns;
     }
 
-    private void listProcessedObjectsPerformed(AjaxRequestTarget target, SimulationResultType object) {
+    private void listProcessedObjectsPerformed(SimulationResultType object) {
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, object.getOid());
 

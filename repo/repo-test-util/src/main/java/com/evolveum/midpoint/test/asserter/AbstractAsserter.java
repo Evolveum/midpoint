@@ -9,7 +9,7 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
 import com.evolveum.midpoint.test.AbstractTestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import org.testng.AssertJUnit;
 
@@ -157,15 +157,15 @@ public abstract class AbstractAsserter<RA> {
         return returnAsserter;
     }
 
-    protected void assertEventTags(AbstractTestResource<TagType>[] expectedTags, Collection<String> realTags) {
-        if (!getRepositoryService().supportsTags()) {
+    protected void assertEventMarks(AbstractTestResource<MarkType>[] expectedTags, Collection<String> realTags) {
+        if (!getRepositoryService().supportsMarks()) {
             return;
         }
         Set<String> expectedTagsOids = Arrays.stream(expectedTags)
                 .map(r -> r.oid)
                 .collect(Collectors.toSet());
         assertThat(realTags)
-                .as("event tags")
+                .as("event marks")
                 .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
     }
 }

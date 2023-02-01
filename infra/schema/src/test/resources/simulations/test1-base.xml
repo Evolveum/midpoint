@@ -10,7 +10,7 @@
     <name>old</name>
     <metric>
         <ref>
-            <eventTagRef oid="00000000-0000-0000-0000-000000000712"/>
+            <eventMarkRef oid="00000000-0000-0000-0000-000000000712"/>
         </ref>
         <aggregationFunction>selectionSize</aggregationFunction>
         <sourceDimensions>
@@ -39,7 +39,7 @@
     </metric>
     <metric>
         <ref>
-            <eventTagRef oid="00000000-0000-0000-0000-000000000716"/>
+            <eventMarkRef oid="00000000-0000-0000-0000-000000000716"/>
         </ref>
         <aggregationFunction>selectionSize</aggregationFunction>
         <sourceDimensions>

@@ -200,7 +200,7 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultProcessedObjectType.F_STATE),
                 ItemPath.create(SimulationResultProcessedObjectType.F_TYPE),
                 ItemPath.create(SimulationResultProcessedObjectType.F_OID),
-                ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_TAG_REF)
+                ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
         ));
     }
 

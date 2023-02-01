@@ -16,28 +16,28 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEva
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType.PROJECTION;
 
 /**
- * Utilities for {@link TagType}.
+ * Utilities for {@link MarkType}.
  */
-public class TagTypeUtil {
+public class MarkTypeUtil {
 
-    public static @Nullable SimulationObjectPredicateType getSimulationDomain(@NotNull TagType tag) {
-        EventTagInformationType eventTagInfo = tag.getEventTag();
-        if (eventTagInfo == null) {
+    public static @Nullable SimulationObjectPredicateType getSimulationDomain(@NotNull MarkType tag) {
+        EventMarkInformationType eventMarkInfo = tag.getEventMark();
+        if (eventMarkInfo == null) {
             return null;
         }
-        EventTagDomainType domain = eventTagInfo.getDomain();
+        EventMarkDomainType domain = eventMarkInfo.getDomain();
         if (domain == null) {
             return null;
         }
         return domain.getSimulation();
     }
 
-    public static boolean attachedRuleEvaluatesOnProjection(@NotNull TagType tag) {
+    public static boolean attachedRuleEvaluatesOnProjection(@NotNull MarkType tag) {
         return tag.getPolicyRule().stream()
                 .anyMatch(rule -> rule.getEvaluationTarget() == PROJECTION);
     }
 
-    public static boolean attachedRuleEvaluatesOnFocus(@NotNull TagType tag) {
+    public static boolean attachedRuleEvaluatesOnFocus(@NotNull MarkType tag) {
         return tag.getPolicyRule().stream()
                 .anyMatch(rule -> {
                     PolicyRuleEvaluationTargetType target = rule.getEvaluationTarget();

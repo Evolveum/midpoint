@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricReferenceType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public class SimulationMetricReferenceTypeUtil {
         if (identifier != null) {
             return identifier;
         } else {
-            return getOid(reference.getEventTagRef());
+            return getOid(reference.getEventMarkRef());
         }
     }
 
@@ -39,17 +39,17 @@ public class SimulationMetricReferenceTypeUtil {
                 .identifier(identifier);
     }
 
-    public static SimulationMetricReferenceType forEventTagOid(String oid) {
+    public static SimulationMetricReferenceType forEventMarkOid(String oid) {
         return new SimulationMetricReferenceType()
-                .eventTagRef(oid, TagType.COMPLEX_TYPE);
+                .eventMarkRef(oid, MarkType.COMPLEX_TYPE);
     }
 
     public static boolean isMetricIdentifier(@NotNull SimulationMetricReferenceType ref, String identifier) {
         return identifier != null && identifier.equals(ref.getIdentifier());
     }
 
-    public static boolean isEventTag(@NotNull SimulationMetricReferenceType ref, String oid) {
-        return oid != null && oid.equals(getOid(ref.getEventTagRef()));
+    public static boolean isEventMark(@NotNull SimulationMetricReferenceType ref, String oid) {
+        return oid != null && oid.equals(getOid(ref.getEventMarkRef()));
     }
 
     public static String describe(SimulationMetricReferenceType reference) {
@@ -60,7 +60,7 @@ public class SimulationMetricReferenceTypeUtil {
         if (identifier != null) {
             return "metric '" + identifier + "'";
         } else {
-            return "event tag '" + getOid(reference.getEventTagRef()) + "'";
+            return "event mark '" + getOid(reference.getEventMarkRef()) + "'";
         }
     }
 }

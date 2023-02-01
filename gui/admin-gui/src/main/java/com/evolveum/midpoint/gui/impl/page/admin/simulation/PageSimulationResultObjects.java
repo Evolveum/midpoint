@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -63,7 +63,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private IModel<SimulationResultType> resultModel;
 
-    private IModel<List<TagType>> availableTagsModel;
+    private IModel<List<MarkType>> availableTagsModel;
 
     public PageSimulationResultObjects() {
         this(new PageParameters());
@@ -88,26 +88,30 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         availableTagsModel = new LoadableDetachableModel<>() {
 
             @Override
-            protected List<TagType> load() {
+            protected List<MarkType> load() {
                 String[] tagOids = resultModel.getObject().getMetric().stream()
-                        .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+                        .map(m -> m.getRef() != null ? m.getRef().getEventMarkRef() : null)
                         .filter(Objects::nonNull)
                         .map(AbstractReferencable::getOid)
                         .filter(Utils::isPrismObjectOidValid)
                         .distinct().toArray(String[]::new);
 
                 ObjectQuery query = getPrismContext()
-                        .queryFor(TagType.class)
+                        .queryFor(MarkType.class)
                         .id(tagOids).build();
 
-                List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-                        TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
+                List<PrismObject<MarkType>> tags = WebModelServiceUtils.searchObjects(
+                        MarkType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
 
                 return tags.stream()
                         .map(o -> o.asObjectable())
                         .collect(Collectors.toUnmodifiableList());
             }
         };
+    }
+
+    @Override
+    protected void createBreadcrumb() {
     }
 
     @Override

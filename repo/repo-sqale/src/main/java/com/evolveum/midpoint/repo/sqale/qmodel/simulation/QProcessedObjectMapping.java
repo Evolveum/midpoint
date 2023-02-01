@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -56,7 +54,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         // addItemMapping(F_OBJECT_TYPE, ));
         addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
-        addRefMapping(F_EVENT_TAG_REF, QProcessedObjectEventTagReferenceMapping.init(repositoryContext));
+        addRefMapping(F_EVENT_MARK_REF, QProcessedObjectEventMarkReferenceMapping.init(repositoryContext));
     }
 
     /*
@@ -112,8 +110,8 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         row.transactionId = object.getTransactionId();
         // Before / After not serialized
         insert(row, jdbcSession);
-        // We store event tags
-        storeRefs(row, object.getEventTagRef(), QProcessedObjectEventTagReferenceMapping.getInstance(), jdbcSession);
+        // We store event marks
+        storeRefs(row, object.getEventMarkRef(), QProcessedObjectEventMarkReferenceMapping.getInstance(), jdbcSession);
         return row;
     }
 }

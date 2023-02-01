@@ -59,5 +59,5 @@ public class ModelCommonBeans {
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired public ModelService modelService;
     @Autowired public ModelInteractionService modelInteractionService;
-    @Autowired public TagManager tagManager;
+    @Autowired public MarkManager markManager;
 }

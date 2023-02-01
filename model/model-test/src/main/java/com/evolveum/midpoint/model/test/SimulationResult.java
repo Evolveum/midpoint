@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-import com.evolveum.midpoint.model.common.TagManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.MidpointTestContextWithTask;
@@ -90,14 +89,14 @@ public class SimulationResult {
                 "Asking for persistent processed objects but there is no simulation result OID");
         List<? extends ProcessedObject<?>> objects = TestSpringBeans.getBean(SimulationResultManager.class)
                 .getStoredProcessedObjects(simulationResultOid, result);
-        resolveEventTags(objects, result);
+        resolveEventMarks(objects, result);
         applyAttributesDefinitions(objects, result);
         return objects;
     }
 
-    public void resolveEventTags(Collection<? extends ProcessedObject<?>> processedObjects, OperationResult result) {
+    public void resolveEventMarks(Collection<? extends ProcessedObject<?>> processedObjects, OperationResult result) {
         for (ProcessedObject<?> processedObject : processedObjects) {
-            processedObject.resolveEventTags(result);
+            processedObject.resolveEventMarks(result);
         }
     }
 

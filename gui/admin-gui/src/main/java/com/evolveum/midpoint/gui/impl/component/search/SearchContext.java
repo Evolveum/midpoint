@@ -27,7 +27,7 @@ public class SearchContext {
     private QName assignmentTargetType;
     private ObjectCollectionReportEngineConfigurationType reportCollection;
 
-    private List<DisplayableValue<String>> availableEventTags;
+    private List<DisplayableValue<String>> availableEventMarks;
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
@@ -69,14 +69,14 @@ public class SearchContext {
         this.definitionOverride = definitionOverride;
     }
 
-    public List<DisplayableValue<String>> getAvailableEventTags() {
-        if (availableEventTags == null) {
-            availableEventTags = new ArrayList<>();
+    public List<DisplayableValue<String>> getAvailableEventMarks() {
+        if (availableEventMarks == null) {
+            availableEventMarks = new ArrayList<>();
         }
-        return availableEventTags;
+        return availableEventMarks;
     }
 
-    public void setAvailableEventTags(List<DisplayableValue<String>> availableEventTags) {
-        this.availableEventTags = availableEventTags;
+    public void setAvailableEventMarks(List<DisplayableValue<String>> availableEventMarks) {
+        this.availableEventMarks = availableEventMarks;
     }
 }

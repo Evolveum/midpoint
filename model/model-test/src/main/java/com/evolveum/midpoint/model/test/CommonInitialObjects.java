@@ -16,20 +16,20 @@ import com.evolveum.midpoint.test.ClassPathTestResource;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * Definition of commonly used initial objects be used in tests on or above the `model` level.
  *
- * TODO Should this class be limited to tags? Or should it cover more initial objects? Is this a good idea, after all?
+ * TODO Should this class be limited to marks? Or should it cover more initial objects? Is this a good idea, after all?
  */
 @Experimental
 public interface CommonInitialObjects {
 
     String INITIAL_OBJECTS = "initial-objects";
 
-    String TAGS = INITIAL_OBJECTS + "/tag";
+    String MARKS = INITIAL_OBJECTS + "/mark";
 
     String ARCHETYPES = INITIAL_OBJECTS + "/archetype";
 
@@ -39,86 +39,86 @@ public interface CommonInitialObjects {
             FUNCTION_LIBRARY, "005-standard-functions.xml",
             SystemObjectsType.STANDARD_FUNCTIONS.value());
 
-    AbstractTestResource<ArchetypeType> ARCHETYPE_EVENT_TAG = new ClassPathTestResource<>(
-            ARCHETYPES, "700-archetype-event-tag.xml",
-            SystemObjectsType.ARCHETYPE_EVENT_TAG.value());
+    AbstractTestResource<ArchetypeType> ARCHETYPE_EVENT_MARK = new ClassPathTestResource<>(
+            ARCHETYPES, "700-archetype-event-mark.xml",
+            SystemObjectsType.ARCHETYPE_EVENT_MARK.value());
 
-    AbstractTestResource<ArchetypeType> ARCHETYPE_POLICY_SITUATION = new ClassPathTestResource<>(
-            ARCHETYPES, "701-archetype-policy-situation.xml",
-            SystemObjectsType.ARCHETYPE_POLICY_SITUATION.value());
+    AbstractTestResource<ArchetypeType> ARCHETYPE_OBJECT_MARK = new ClassPathTestResource<>(
+            ARCHETYPES, "701-archetype-object-mark.xml",
+            SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_ACTIVATED = new ClassPathTestResource<>(
-            TAGS, "710-tag-focus-activated.xml",
-            SystemObjectsType.TAG_FOCUS_ACTIVATED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_ACTIVATED = new ClassPathTestResource<>(
+            MARKS, "710-mark-focus-activated.xml",
+            SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_DEACTIVATED = new ClassPathTestResource<>(
-            TAGS, "711-tag-focus-deactivated.xml",
-            SystemObjectsType.TAG_FOCUS_DEACTIVATED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_DEACTIVATED = new ClassPathTestResource<>(
+            MARKS, "711-mark-focus-deactivated.xml",
+            SystemObjectsType.MARK_FOCUS_DEACTIVATED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_RENAMED = new ClassPathTestResource<>(
-            TAGS, "712-tag-focus-renamed.xml",
-            SystemObjectsType.TAG_FOCUS_RENAMED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_RENAMED = new ClassPathTestResource<>(
+            MARKS, "712-mark-focus-renamed.xml",
+            SystemObjectsType.MARK_FOCUS_RENAMED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_ASSIGNMENT_CHANGED = new ClassPathTestResource<>(
-            TAGS, "713-tag-focus-assignment-changed.xml",
-            SystemObjectsType.TAG_FOCUS_ASSIGNMENT_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_ASSIGNMENT_CHANGED = new ClassPathTestResource<>(
+            MARKS, "713-mark-focus-assignment-changed.xml",
+            SystemObjectsType.MARK_FOCUS_ASSIGNMENT_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_ARCHETYPE_CHANGED = new ClassPathTestResource<>(
-            TAGS, "714-tag-focus-archetype-changed.xml",
-            SystemObjectsType.TAG_FOCUS_ARCHETYPE_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_ARCHETYPE_CHANGED = new ClassPathTestResource<>(
+            MARKS, "714-mark-focus-archetype-changed.xml",
+            SystemObjectsType.MARK_FOCUS_ARCHETYPE_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED = new ClassPathTestResource<>(
-            TAGS, "715-tag-focus-parent-org-reference-changed.xml",
-            SystemObjectsType.TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED = new ClassPathTestResource<>(
+            MARKS, "715-mark-focus-parent-org-reference-changed.xml",
+            SystemObjectsType.MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED = new ClassPathTestResource<>(
-            TAGS, "716-tag-focus-role-membership-changed.xml",
-            SystemObjectsType.TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED = new ClassPathTestResource<>(
+            MARKS, "716-mark-focus-role-membership-changed.xml",
+            SystemObjectsType.MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_ACTIVATED = new ClassPathTestResource<>(
-            TAGS, "730-tag-projection-activated.xml",
-            SystemObjectsType.TAG_PROJECTION_ACTIVATED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_ACTIVATED = new ClassPathTestResource<>(
+            MARKS, "730-mark-projection-activated.xml",
+            SystemObjectsType.MARK_PROJECTION_ACTIVATED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_DEACTIVATED = new ClassPathTestResource<>(
-            TAGS, "731-tag-projection-deactivated.xml",
-            SystemObjectsType.TAG_PROJECTION_DEACTIVATED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_DEACTIVATED = new ClassPathTestResource<>(
+            MARKS, "731-mark-projection-deactivated.xml",
+            SystemObjectsType.MARK_PROJECTION_DEACTIVATED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_RENAMED = new ClassPathTestResource<>(
-            TAGS, "732-tag-projection-renamed.xml",
-            SystemObjectsType.TAG_PROJECTION_RENAMED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_RENAMED = new ClassPathTestResource<>(
+            MARKS, "732-mark-projection-renamed.xml",
+            SystemObjectsType.MARK_PROJECTION_RENAMED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_IDENTIFIER_CHANGED = new ClassPathTestResource<>(
-            TAGS, "733-tag-projection-identifier-changed.xml",
-            SystemObjectsType.TAG_PROJECTION_IDENTIFIER_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_IDENTIFIER_CHANGED = new ClassPathTestResource<>(
+            MARKS, "733-mark-projection-identifier-changed.xml",
+            SystemObjectsType.MARK_PROJECTION_IDENTIFIER_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_ENTITLEMENT_CHANGED = new ClassPathTestResource<>(
-            TAGS, "734-tag-projection-entitlement-changed.xml",
-            SystemObjectsType.TAG_PROJECTION_ENTITLEMENT_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_ENTITLEMENT_CHANGED = new ClassPathTestResource<>(
+            MARKS, "734-mark-projection-entitlement-changed.xml",
+            SystemObjectsType.MARK_PROJECTION_ENTITLEMENT_CHANGED.value());
 
-    AbstractTestResource<TagType> TAG_PROJECTION_PASSWORD_CHANGED = new ClassPathTestResource<>(
-            TAGS, "735-tag-projection-password-changed.xml",
-            SystemObjectsType.TAG_PROJECTION_PASSWORD_CHANGED.value());
+    AbstractTestResource<MarkType> MARK_PROJECTION_PASSWORD_CHANGED = new ClassPathTestResource<>(
+            MARKS, "735-mark-projection-password-changed.xml",
+            SystemObjectsType.MARK_PROJECTION_PASSWORD_CHANGED.value());
 
     /** To be used when needed. */
-    static void addTags(AbstractModelIntegrationTest test, Task task, OperationResult result)
+    static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)
             throws CommonException, IOException {
-        if (!test.areTagsSupported()) {
+        if (!test.areMarksSupported()) {
             return;
         }
-        test.addObject(ARCHETYPE_EVENT_TAG, task, result);
-        test.addObject(ARCHETYPE_POLICY_SITUATION, task, result);
-        test.addObject(TAG_FOCUS_ACTIVATED, task, result);
-        test.addObject(TAG_FOCUS_DEACTIVATED, task, result);
-        test.addObject(TAG_FOCUS_RENAMED, task, result);
-        test.addObject(TAG_FOCUS_ASSIGNMENT_CHANGED, task, result);
-        test.addObject(TAG_FOCUS_ARCHETYPE_CHANGED, task, result);
-        test.addObject(TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED, task, result);
-        test.addObject(TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED, task, result);
-        test.addObject(TAG_PROJECTION_ACTIVATED, task, result);
-        test.addObject(TAG_PROJECTION_DEACTIVATED, task, result);
-        test.addObject(TAG_PROJECTION_RENAMED, task, result);
-        test.addObject(TAG_PROJECTION_IDENTIFIER_CHANGED, task, result);
-        test.addObject(TAG_PROJECTION_ENTITLEMENT_CHANGED, task, result);
-        test.addObject(TAG_PROJECTION_PASSWORD_CHANGED, task, result);
+        test.addObject(ARCHETYPE_EVENT_MARK, task, result);
+        test.addObject(ARCHETYPE_OBJECT_MARK, task, result);
+        test.addObject(MARK_FOCUS_ACTIVATED, task, result);
+        test.addObject(MARK_FOCUS_DEACTIVATED, task, result);
+        test.addObject(MARK_FOCUS_RENAMED, task, result);
+        test.addObject(MARK_FOCUS_ASSIGNMENT_CHANGED, task, result);
+        test.addObject(MARK_FOCUS_ARCHETYPE_CHANGED, task, result);
+        test.addObject(MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED, task, result);
+        test.addObject(MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED, task, result);
+        test.addObject(MARK_PROJECTION_ACTIVATED, task, result);
+        test.addObject(MARK_PROJECTION_DEACTIVATED, task, result);
+        test.addObject(MARK_PROJECTION_RENAMED, task, result);
+        test.addObject(MARK_PROJECTION_IDENTIFIER_CHANGED, task, result);
+        test.addObject(MARK_PROJECTION_ENTITLEMENT_CHANGED, task, result);
+        test.addObject(MARK_PROJECTION_PASSWORD_CHANGED, task, result);
     }
 }

@@ -8,7 +8,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
-public class QProcessedObjectEventTagReference extends QReference<MProcessedObjectEventTagReference, MProcessedObject> {
+public class QProcessedObjectEventMarkReference extends QReference<MProcessedObjectEventMarkReference, MProcessedObject> {
 
     private static final long serialVersionUID = -4323954643404516391L;
 
@@ -17,15 +17,15 @@ public class QProcessedObjectEventTagReference extends QReference<MProcessedObje
 
     public final NumberPath<Long> processedObjectCid = createLong("processedObjectCid", PROCESSED_OBJECT_CID);
 
-    public final PrimaryKey<MProcessedObjectEventTagReference> pk =
+    public final PrimaryKey<MProcessedObjectEventMarkReference> pk =
             createPrimaryKey(ownerOid, processedObjectCid, referenceType, relationId, targetOid);
 
-    public QProcessedObjectEventTagReference(String variable, String tableName) {
+    public QProcessedObjectEventMarkReference(String variable, String tableName) {
         this(variable, DEFAULT_SCHEMA_NAME, tableName);
     }
 
-    public QProcessedObjectEventTagReference(String variable, String schema, String table) {
-        super(MProcessedObjectEventTagReference.class, variable, schema, table);
+    public QProcessedObjectEventMarkReference(String variable, String schema, String table) {
+        super(MProcessedObjectEventMarkReference.class, variable, schema, table);
     }
 
     @Override

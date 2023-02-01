@@ -4406,7 +4406,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 result);
     }
 
-    public boolean areTagsSupported() {
-        return repositoryService.supportsTags();
+    public boolean areMarksSupported() {
+        return repositoryService.supportsMarks();
     }
 }
