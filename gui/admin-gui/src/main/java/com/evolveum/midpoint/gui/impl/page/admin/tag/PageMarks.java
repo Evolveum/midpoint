@@ -29,30 +29,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/tags", matchUrlForSecurity = "/admin/tags")
+                @Url(mountUrl = "/admin/marks", matchUrlForSecurity = "/admin/marks")
         },
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAGS_ALL_URL,
-                        label = "PageAdminUsers.auth.tagsAll.label",
-                        description = "PageAdminUsers.auth.usersAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAGS_URL,
-                        label = "PageTags.auth.tags.label",
-                        description = "PageTags.auth.tags.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARKS_ALL_URL,
+                        label = "PageAdminUsers.auth.marksAll.label",
+                        description = "PageAdminUsers.auth.marksAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARKS_URL,
+                        label = "PageTags.auth.marks.label",
+                        description = "PageTags.auth.marks.description")
         })
 @CollectionInstance(identifier = "allTags", applicableForType = MarkType.class,
-        display = @PanelDisplay(label = "PageAdmin.menu.top.tags.list", singularLabel = "ObjectType.tag", icon = GuiStyleConstants.CLASS_CIRCLE_FULL))
-public class PageTags extends PageAdmin {
+        display = @PanelDisplay(label = "PageAdmin.menu.top.marks.list", singularLabel = "ObjectTypes.MARK", icon = GuiStyleConstants.CLASS_MARK))
+public class PageMarks extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_FORM = "form";
     private static final String ID_TABLE = "table";
 
-    public PageTags() {
+    public PageMarks() {
         this(new PageParameters());
     }
 
-    public PageTags(PageParameters parameters) {
+    public PageMarks(PageParameters parameters) {
         super(parameters);
     }
 
@@ -65,7 +65,7 @@ public class PageTags extends PageAdmin {
 
     private void initLayout() {
         if (!isNativeRepo()) {
-            warn(getString("PageTags.nonNativeRepositoryWarning"));
+            warn(getString("PageMarks.nonNativeRepositoryWarning"));
         }
 
         Form form = new MidpointForm(ID_FORM);

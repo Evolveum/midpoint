@@ -505,7 +505,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createTagItems() {
-        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.tags", GuiStyleConstants.CLASS_TAG);
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.tags", GuiStyleConstants.CLASS_MARK);
         createBasicAssignmentHolderMenuItems(menu, PageTypes.TAG);
 
         return menu;

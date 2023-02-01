@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 
-import com.evolveum.midpoint.gui.impl.page.admin.tag.PageTag;
+import com.evolveum.midpoint.gui.impl.page.admin.tag.PageMark;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -261,7 +261,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
 
         OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
-        OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageTag.class);
+        OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageMark.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
