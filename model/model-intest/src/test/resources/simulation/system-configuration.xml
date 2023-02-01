@@ -88,7 +88,7 @@
             <aggregation>
                 <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
                 <source>
-                    <eventTagRef oid="00000000-0000-0000-0000-000000000710"/>
+                    <eventMarkRef oid="00000000-0000-0000-0000-000000000710"/>
                 </source>
                 <domainRestriction>
                     <filter>
@@ -105,7 +105,7 @@
             <aggregation>
                 <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
                 <source>
-                    <eventTagRef oid="00000000-0000-0000-0000-000000000711"/>
+                    <eventMarkRef oid="00000000-0000-0000-0000-000000000711"/>
                 </source>
                 <domainRestriction>
                     <filter>

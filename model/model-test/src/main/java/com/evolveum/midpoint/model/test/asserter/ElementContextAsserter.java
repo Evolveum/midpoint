@@ -14,8 +14,8 @@ import com.evolveum.midpoint.test.AbstractTestResource;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * @author semancik
@@ -104,8 +104,8 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
     }
 
     @SafeVarargs
-    public final ElementContextAsserter<C, O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        assertEventTags(expectedTags, elementContext.getMatchingEventTags());
+    public final ElementContextAsserter<C, O, RA> assertEventMarks(AbstractTestResource<MarkType>... expectedMarks) {
+        assertEventMarks(expectedMarks, elementContext.getMatchingEventMarks());
         return this;
     }
 }

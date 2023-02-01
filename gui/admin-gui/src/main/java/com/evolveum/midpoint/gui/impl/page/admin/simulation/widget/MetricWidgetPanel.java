@@ -91,7 +91,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 onOpenPerformed(target);
             }
         };
-        open.add(new VisibleBehaviour(() -> true)); // todo visible only when it's event tag ref metric
+        open.add(new VisibleBehaviour(() -> true)); // todo visible only when it's event mark ref metric
         add(open);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {

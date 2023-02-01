@@ -5,25 +5,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000711">
-    <name>Focus deactivated</name>
-    <description>Operation that deactivated the focus</description>
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000710">
+    <name>Focus activated</name>
+    <description>Operation that activated the focus</description>
     <documentation>
-        This is an operation that deleted or effectively disabled the focus.
-        (So, previously it existed and was effectively enabled.)
+        This is an operation that brought the focus into existence and being effectively enabled.
+        (So, previously it was either non-existent or effectively disabled.)
     </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <policyRule>
-        <name>focus-deactivated</name>
+        <name>focus-activated</name>
         <policyConstraints>
             <custom>
-                <name>$focus-deactivated</name>
+                <name>$focus-activated</name>
                 <expression>
                     <script>
-                        <code>midpoint.focusDeactivated</code>
+                        <code>midpoint.focusActivated</code>
                     </script>
                 </expression>
             </custom>
@@ -32,4 +32,4 @@
             <type>FocusType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

@@ -74,7 +74,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @NotNull private final ParsedMetricValues parsedMetricValues;
 
     /** Complete information on the tags (optional) */
-    private Map<String, TagType> eventTagsMap;
+    private Map<String, MarkType> eventMarksMap;
 
     private final Boolean focus;
 
@@ -133,7 +133,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 bean.getResourceObjectCoordinates(),
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
-                ParsedMetricValues.fromAll(bean.getMetricValue(), bean.getEventTagRef()),
+                ParsedMetricValues.fromAll(bean.getMetricValue(), bean.getEventMarkRef()),
                 bean.isFocus(),
                 bean.getFocusRecordId(),
                 (O) bean.getBefore(),
@@ -152,13 +152,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         internalState = InternalState.CREATED;
         invalidateCachedBean();
     }
-
-//    private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
-//        return bean.getEventTagRef().stream()
-//                .map(ref -> ref.getOid())
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toSet());
-//    }
 
     /**
      * Creates {@link ProcessedObjectImpl} for the {@link LensElementContext}.
@@ -208,8 +201,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta != null ?
                         ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()) :
                         ObjectProcessingStateType.UNMODIFIED,
-                ParsedMetricValues.fromEventTags(
-                        elementContext.getMatchingEventTags(), elementContext.getAllConsideredEventTags()),
+                ParsedMetricValues.fromEventMarks(
+                        elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()),
                 isFocus,
                 null, // later
                 stateBefore,
@@ -293,18 +286,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Collection<String> getMatchingEventTags() {
-        return parsedMetricValues.getMatchingEventTags();
+    public @NotNull Collection<String> getMatchingEventMarks() {
+        return parsedMetricValues.getMatchingEventMarks();
     }
 
     @Override
-    public @Nullable Map<String, TagType> getEventTagsMap() {
-        return eventTagsMap;
+    public @Nullable Map<String, MarkType> getEventMarksMap() {
+        return eventMarksMap;
     }
 
     @Override
-    public void setEventTagsMap(Map<String, TagType> eventTagsMap) {
-        this.eventTagsMap = eventTagsMap;
+    public void setEventMarksMap(Map<String, MarkType> eventMarksMap) {
+        this.eventMarksMap = eventMarksMap;
     }
 
     public Boolean getFocus() {
@@ -371,12 +364,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .before(prepareObjectForStorage(before))
                     .after(prepareObjectForStorage(after))
                     .delta(DeltaConvertor.toObjectDeltaType(delta));
-            List<ObjectReferenceType> eventTagRef = bean.getEventTagRef();
-            parsedMetricValues.getMatchingEventTags().forEach(
-                    oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
-            List<ObjectReferenceType> consideredEventTagRef = bean.getConsideredEventTagRef();
-            parsedMetricValues.getAllConsideredEventTags().forEach(
-                    oid -> consideredEventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
+            List<ObjectReferenceType> eventMarkRef = bean.getEventMarkRef();
+            parsedMetricValues.getMatchingEventMarks().forEach(
+                    oid -> eventMarkRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.MARK)));
+            List<ObjectReferenceType> consideredEventMarkRef = bean.getConsideredEventMarkRef();
+            parsedMetricValues.getAllConsideredEventMarks().forEach(
+                    oid -> consideredEventMarkRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.MARK)));
             bean.getMetricValue().addAll(parsedMetricValues.getMetricValueBeans());
             cachedBean = bean;
             return bean;
@@ -445,19 +438,19 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 '}';
     }
 
-//    private Collection<String> getEventTagsDebugDump() {
-//        if (eventTagsMap != null) {
-//            return eventTagsMap.entrySet().stream()
+//    private Collection<String> geteventMarksDebugDump() {
+//        if (eventMarksMap != null) {
+//            return eventMarksMap.entrySet().stream()
 //                    .map(e -> getTagDebugDump(e))
 //                    .collect(Collectors.toList());
 //        } else {
-//            return eventTags;
+//            return eventMarks;
 //        }
 //    }
 
-    private String getTagDebugDump(Map.Entry<String, TagType> tagEntry) {
+    private String getTagDebugDump(Map.Entry<String, MarkType> tagEntry) {
         String tagOid = tagEntry.getKey();
-        TagType tag = tagEntry.getValue();
+        MarkType tag = tagEntry.getValue();
         if (tag != null) {
             return getOrig(tag.getName()) + " (" + tagOid + ")";
         } else {
@@ -581,12 +574,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     @VisibleForTesting
     @Override
-    public void resolveEventTags(OperationResult result) {
-        if (eventTagsMap != null) {
+    public void resolveEventMarks(OperationResult result) {
+        if (eventMarksMap != null) {
             return;
         }
-        eventTagsMap = ModelCommonBeans.get().tagManager.resolveTagNames(
-                parsedMetricValues.getMatchingEventTags(), result);
+        eventMarksMap = ModelCommonBeans.get().markManager.resolveTagNames(
+                parsedMetricValues.getMatchingEventMarks(), result);
     }
 
     PartitionScope partitionScope() {
@@ -600,27 +593,27 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             this.valueMap = valueMap;
         }
 
-        static @NotNull ParsedMetricValues fromEventTags(
+        static @NotNull ParsedMetricValues fromEventMarks(
                 @NotNull Collection<String> matching,
                 @NotNull Collection<String> allConsidered) {
             Map<SimulationMetricReference, MetricValue> valueMap = new HashMap<>();
             for (String tagOid : allConsidered) {
                 boolean matches = matching.contains(tagOid);
                 valueMap.put(
-                        SimulationMetricReference.forTag(tagOid),
+                        SimulationMetricReference.forMark(tagOid),
                         new MetricValue(matches ? BigDecimal.ONE : BigDecimal.ZERO, matches));
             }
             return new ParsedMetricValues(valueMap);
         }
 
-        // We don't have "all considered event tags" here
+        // We don't have "all considered event marks" here
         static ParsedMetricValues fromAll(
                 @NotNull List<SimulationProcessedObjectMetricValueType> metricValue,
-                @NotNull List<ObjectReferenceType> matchingTagRefs) {
-            var matchingTagOids = matchingTagRefs.stream()
+                @NotNull List<ObjectReferenceType> matchingMarkRefs) {
+            var matchingTagOids = matchingMarkRefs.stream()
                     .map(ref -> ref.getOid())
                     .collect(Collectors.toSet());
-            ParsedMetricValues parsedMetricValues = fromEventTags(matchingTagOids, matchingTagOids);
+            ParsedMetricValues parsedMetricValues = fromEventMarks(matchingTagOids, matchingTagOids);
             parsedMetricValues.addMetricValues(metricValue);
             return parsedMetricValues;
         }
@@ -633,7 +626,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             }
         }
 
-        @NotNull Collection<String> getMatchingEventTags() {
+        @NotNull Collection<String> getMatchingEventMarks() {
             return valueMap.entrySet().stream()
                     .filter(e -> e.getKey().isTag())
                     .filter(e -> e.getValue().inSelection)
@@ -641,7 +634,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .collect(Collectors.toSet());
         }
 
-        @NotNull Collection<String> getAllConsideredEventTags() {
+        @NotNull Collection<String> getAllConsideredEventMarks() {
             return valueMap.keySet().stream()
                     .filter(ref -> ref.isTag())
                     .map(ref -> ref.getTagOid())
@@ -686,7 +679,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         /** Instance is fully created, all metric values are available. */
         CREATED,
 
-        /** Instance is re-parsed. "All considered event tags" information is not available. */
+        /** Instance is re-parsed. "All considered event marks" information is not available. */
         @VisibleForTesting
         PARSED
     }

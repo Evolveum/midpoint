@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="caa2921a-6cf4-4e70-ad2b-bfed278e29cf">
     <name>user-delete</name>
     <policyRule>
@@ -18,4 +18,4 @@
             <type>UserType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

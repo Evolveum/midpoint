@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -36,8 +36,8 @@ public class GlobalPolicyRuleCounter extends SimpleCounter<AssignmentHolderDetai
             return ((SystemConfigurationType) object).getGlobalPolicyRule().size();
         }
 
-        if (object instanceof TagType) {
-            return ((TagType) object).getPolicyRule().size();
+        if (object instanceof MarkType) {
+            return ((MarkType) object).getPolicyRule().size();
         }
 
         return 0;

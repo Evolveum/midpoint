@@ -78,10 +78,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_FOCUS_DEACTIVATED)
+                    .assertEventMarks(MARK_FOCUS_DEACTIVATED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_PROJECTION_DEACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
                 .end()
                 .assertSize(2);
         // @formatter:on
@@ -135,10 +135,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_FOCUS_RENAMED)
+                    .assertEventMarks(MARK_FOCUS_RENAMED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_PROJECTION_RENAMED, TAG_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
                 .end()
                 .assertSize(2);
         // @formatter:on
@@ -182,10 +182,10 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         assertProcessedObjects(simResult)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags()
+                    .assertEventMarks()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventTags(TAG_PROJECTION_PASSWORD_CHANGED)
+                    .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED)
                 .end()
                 .assertSize(2);
         // @formatter:on

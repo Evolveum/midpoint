@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf">
     <name>user-add</name>
     <policyRule>
@@ -18,4 +18,4 @@
             <type>UserType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

@@ -24,10 +24,10 @@ public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFac
     @Override
     protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         SearchContext additionalSearchContext = ctx.getAdditionalSearchContext();
-        List<DisplayableValue<String>> availableEventTags = additionalSearchContext != null ?
-                additionalSearchContext.getAvailableEventTags() : new ArrayList<>();
+        List<DisplayableValue<String>> availableEventMarks = additionalSearchContext != null ?
+                additionalSearchContext.getAvailableEventMarks() : new ArrayList<>();
 
-        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventTags);
+        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventMarks);
         wrapper.setCanConfigure(false);
         wrapper.setVisible(true);
         return wrapper;
@@ -35,6 +35,6 @@ public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFac
 
     @Override
     public boolean match(SearchItemContext ctx) {
-        return SimulationResultProcessedObjectType.F_EVENT_TAG_REF.equivalent(ctx.getPath());
+        return SimulationResultProcessedObjectType.F_EVENT_MARK_REF.equivalent(ctx.getPath());
     }
 }

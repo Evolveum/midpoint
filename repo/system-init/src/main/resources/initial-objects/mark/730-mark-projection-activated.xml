@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000730">
     <name>Projection activated</name>
     <description>Operation that activated the projection</description>
@@ -33,4 +33,4 @@
             <type>FocusType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

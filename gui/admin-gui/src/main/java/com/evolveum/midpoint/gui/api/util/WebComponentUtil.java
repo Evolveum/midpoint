@@ -261,7 +261,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
 
         OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
-        OBJECT_DETAILS_PAGE_MAP.put(TagType.class, PageTag.class);
+        OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageTag.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -64,7 +64,7 @@ public class GlobalPolicyRuleContentPanel extends MultivalueContainerListPanelWi
                 // todo nasty hack to get one instance of panel work for different containers (same type, different objects)
                 // should be handled via @PanelInstances, but there's no way to configure it properly
                 // If containerPath & type in {@link @PanelInstance} is used then there are too many NPE and ContainerPanelConfigurationType misconfigurations
-                model.getObjectType() instanceof SystemConfigurationType ? SystemConfigurationType.F_GLOBAL_POLICY_RULE :TagType.F_POLICY_RULE
+                model.getObjectType() instanceof SystemConfigurationType ? SystemConfigurationType.F_GLOBAL_POLICY_RULE : MarkType.F_POLICY_RULE
         ));
     }
 

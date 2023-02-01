@@ -68,7 +68,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mark" type="tns:MarkType" minOccurs="0"/>
+            <xsd:element name="mark" type="tns:PirateMarkType" minOccurs="0"/>
             <xsd:element name="secret" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -86,7 +86,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="MarkType">
+    <xsd:simpleType name="PirateMarkType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="pegLeg">
                 <xsd:annotation>

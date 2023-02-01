@@ -64,9 +64,9 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public SimulationResultAsserter<RA> assertMetricValueByEventTag(String oid, BigDecimal expected) {
-        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByEventTag(simulationResult, oid))
-                .as("metric with event tag " + oid + " value")
+    public SimulationResultAsserter<RA> assertMetricValueByEventMark(String oid, BigDecimal expected) {
+        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByEventMark(simulationResult, oid))
+                .as("metric with event mark " + oid + " value")
                 .isEqualTo(expected);
         return this;
     }

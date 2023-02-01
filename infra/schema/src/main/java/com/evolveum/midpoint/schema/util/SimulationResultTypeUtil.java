@@ -32,10 +32,10 @@ public class SimulationResultTypeUtil {
                 .findFirst().orElse(null);
     }
 
-    public static SimulationMetricValuesType getAggregatedMetricValuesByEventTagOid(
+    public static SimulationMetricValuesType getAggregatedMetricValuesByEventMarkOid(
             @NotNull SimulationResultType simulationResult, String tagOid) {
         return simulationResult.getMetric().stream()
-                .filter(mv -> SimulationMetricValuesTypeUtil.matchesEventTagOid(mv, tagOid))
+                .filter(mv -> SimulationMetricValuesTypeUtil.matchesEventMarkOid(mv, tagOid))
                 .findFirst().orElse(null);
     }
 
@@ -45,10 +45,10 @@ public class SimulationResultTypeUtil {
                 getAggregatedMetricValuesByIdentifier(simulationResult, metricId));
     }
 
-    public static BigDecimal getSummarizedMetricValueByEventTag(
+    public static BigDecimal getSummarizedMetricValueByEventMark(
             @NotNull SimulationResultType simulationResult, @NotNull String tagOid) {
         return getValue(
-                getAggregatedMetricValuesByEventTagOid(simulationResult, tagOid));
+                getAggregatedMetricValuesByEventMarkOid(simulationResult, tagOid));
     }
 
     public static SimulationResultType collapseDimensions(SimulationResultType originalResult) {

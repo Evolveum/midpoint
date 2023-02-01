@@ -38,9 +38,9 @@ public class SimulationMetricValuesTypeUtil {
         return ref != null && identifier.equals(ref.getIdentifier());
     }
 
-    public static boolean matchesEventTagOid(@NotNull SimulationMetricValuesType value, @NotNull String tagOid) {
+    public static boolean matchesEventMarkOid(@NotNull SimulationMetricValuesType value, @NotNull String tagOid) {
         SimulationMetricReferenceType ref = value.getRef();
-        return ref != null && tagOid.equals(getOid(ref.getEventTagRef()));
+        return ref != null && tagOid.equals(getOid(ref.getEventMarkRef()));
     }
 
     public static BigDecimal getValue(@Nullable SimulationMetricValuesType mv) {

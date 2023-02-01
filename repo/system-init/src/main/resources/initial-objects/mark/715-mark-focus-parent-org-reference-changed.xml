@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000715">
     <name>Focus parent organization reference changed</name>
     <description>Operation that changed the focus parent organization reference (parentOrgRef value)</description>
@@ -25,4 +25,4 @@
             <type>FocusType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>
