@@ -47,8 +47,8 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                     .oid("00000000-0000-0000-0000-000000000001")
                     .name("System Configuration")
                     .state(ObjectProcessingStateType.UNMODIFIED)
-                    .eventTagRef(TEST_TAG_1, TagType.COMPLEX_TYPE)
-                    .eventTagRef(TEST_TAG_2, TagType.COMPLEX_TYPE)
+                    .eventMarkRef(TEST_TAG_1, MarkType.COMPLEX_TYPE)
+                    .eventMarkRef(TEST_TAG_2, MarkType.COMPLEX_TYPE)
                     .before(systemConfiguration.clone())
                  )
                 .processedObject(new SimulationResultProcessedObjectType()
@@ -77,7 +77,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
                 .ownerId(oid)
                 .and()
-                .item(SimulationResultProcessedObjectType.F_EVENT_TAG_REF).ref(TEST_TAG_1)
+                .item(SimulationResultProcessedObjectType.F_EVENT_MARK_REF).ref(TEST_TAG_1)
                 .build();
         SearchResultList<SimulationResultProcessedObjectType> processedObjects =
                 repositoryService.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
@@ -147,11 +147,11 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     @Test
     public void test110createTag() throws Exception {
         OperationResult result = createOperationResult();
-        TagType obj = new TagType().name("testOfTest");
+        MarkType obj = new MarkType().name("testOfTest");
         String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
         @NotNull
-        PrismObject<TagType> read = repositoryService.getObject(TagType.class, oid, null, result);
+        PrismObject<MarkType> read = repositoryService.getObject(MarkType.class, oid, null, result);
         assertNotNull(read);
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.tag;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -21,8 +22,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                         label = "PageTags.auth.tags.label",
                         description = "PageTags.auth.tags.description")
         })
-@CollectionInstance(identifier = "allTags", applicableForType = TagType.class,
+@CollectionInstance(identifier = "allTags", applicableForType = MarkType.class,
         display = @PanelDisplay(label = "PageAdmin.menu.top.tags.list", singularLabel = "ObjectType.tag", icon = GuiStyleConstants.CLASS_CIRCLE_FULL))
 public class PageTags extends PageAdmin {
 
@@ -67,7 +66,7 @@ public class PageTags extends PageAdmin {
         Form form = new MidpointForm(ID_FORM);
         add(form);
 
-        MainObjectListPanel<TagType> table = new MainObjectListPanel<>(ID_TABLE, TagType.class) {
+        MainObjectListPanel<MarkType> table = new MainObjectListPanel<>(ID_TABLE, MarkType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

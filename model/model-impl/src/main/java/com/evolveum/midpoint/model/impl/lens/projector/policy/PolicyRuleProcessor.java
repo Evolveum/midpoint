@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
-import com.evolveum.midpoint.model.common.TagManager;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -79,7 +79,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private TagManager tagManager;
+    @Autowired private MarkManager markManager;
     @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private PolicyStateRecorder policyStateRecorder;
@@ -562,7 +562,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             }
         }
         allRules.addAll(
-                tagManager.getAllTagPolicyRules(result));
+                markManager.getAllMarkPolicyRules(result));
         return allRules;
     }
 

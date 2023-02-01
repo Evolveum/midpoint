@@ -25,21 +25,21 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 public class SimulationMetricReference implements Serializable {
 
     private final String metricIdentifier;
-    private final String eventTagOid;
+    private final String eventMarkOid;
 
-    private SimulationMetricReference(String metricIdentifier, String eventTagOid) {
+    private SimulationMetricReference(String metricIdentifier, String eventMarkOid) {
         argCheck(
-                metricIdentifier != null || eventTagOid != null,
-                "Either metric identifier or event tag OID must be specified");
+                metricIdentifier != null || eventMarkOid != null,
+                "Either metric identifier or event mark OID must be specified");
         this.metricIdentifier = metricIdentifier;
-        this.eventTagOid = eventTagOid;
+        this.eventMarkOid = eventMarkOid;
     }
 
     public static SimulationMetricReference fromBean(@NotNull SimulationMetricReferenceType bean) {
-        return new SimulationMetricReference(bean.getIdentifier(), getOid(bean.getEventTagRef()));
+        return new SimulationMetricReference(bean.getIdentifier(), getOid(bean.getEventMarkRef()));
     }
 
-    public static SimulationMetricReference forTag(@NotNull String tagOid) {
+    public static SimulationMetricReference forMark(@NotNull String tagOid) {
         return new SimulationMetricReference(null, tagOid);
     }
 
@@ -48,7 +48,7 @@ public class SimulationMetricReference implements Serializable {
     }
 
     public boolean isTag() {
-        return eventTagOid != null;
+        return eventMarkOid != null;
     }
 
     @Override
@@ -61,24 +61,24 @@ public class SimulationMetricReference implements Serializable {
         }
         SimulationMetricReference that = (SimulationMetricReference) o;
         return Objects.equals(metricIdentifier, that.metricIdentifier)
-                && Objects.equals(eventTagOid, that.eventTagOid);
+                && Objects.equals(eventMarkOid, that.eventMarkOid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(metricIdentifier, eventTagOid);
+        return Objects.hash(metricIdentifier, eventMarkOid);
     }
 
     @Override
     public String toString() {
         return "SimulationMetricReference{" +
                 "metricIdentifier='" + metricIdentifier + '\'' +
-                ", eventTagOid='" + eventTagOid + '\'' +
+                ", eventMarkOid='" + eventMarkOid + '\'' +
                 '}';
     }
 
     public String getTagOid() {
-        return eventTagOid;
+        return eventMarkOid;
     }
 
     public boolean isCustomMetric() {

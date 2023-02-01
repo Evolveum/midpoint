@@ -49,9 +49,9 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<List<TagType>> availableTagsModel;
+    private IModel<List<MarkType>> availableTagsModel;
 
-    public ProcessedObjectsPanel(String id, IModel<List<TagType>> availableTagsModel) {
+    public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableTagsModel) {
         super(id, SimulationResultProcessedObjectType.class);
 
         this.availableTagsModel = availableTagsModel;
@@ -73,7 +73,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                         o.getDescription()))
                 .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
                 .collect(Collectors.toList());
-        ctx.setAvailableEventTags(values);
+        ctx.setAvailableEventMarks(values);
 
         return ctx;
     }
@@ -125,12 +125,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                         return null;
                     }
 
-                    List<ObjectReferenceType> eventTagRefs = obj.getEventTagRef();
-                    // resolve names from tagRefs
-                    List<String> names = eventTagRefs.stream()
+                    List<ObjectReferenceType> eventMarkRefs = obj.getEventMarkRef();
+                    // resolve names from markRefs
+                    List<String> names = eventMarkRefs.stream()
                             .map(ref -> {
-                                List<TagType> tags = availableTagsModel.getObject();
-                                TagType tag = tags.stream()
+                                List<MarkType> tags = availableTagsModel.getObject();
+                                MarkType tag = tags.stream()
                                         .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
                                         .findFirst().orElse(null);
                                 if (tag == null) {

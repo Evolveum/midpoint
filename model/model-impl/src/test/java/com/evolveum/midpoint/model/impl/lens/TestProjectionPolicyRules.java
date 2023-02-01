@@ -36,7 +36,7 @@ import javax.xml.namespace.QName;
 /**
  * Tests policy rules attached to projections.
  *
- * (Currently, all projection-related event tags are tested here.)
+ * (Currently, all projection-related event marks are tested here.)
  */
 public class TestProjectionPolicyRules extends AbstractLensTest {
 
@@ -65,7 +65,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        CommonInitialObjects.addTags(this, initTask, initResult);
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         RESOURCE_DUMMY_TAGS.initAndTest(this, initTask, initResult);
 
@@ -89,7 +89,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_DEACTIVATED} and {@link SystemObjectsType#TAG_PROJECTION_ACTIVATED}
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_DEACTIVATED} and {@link SystemObjectsType#MARK_PROJECTION_ACTIVATED}
      * are set correctly.
      */
     @Test
@@ -110,11 +110,11 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:off
         assertModelContext(disableContext, "disable context")
                 .focusContext()
-                    .assertEventTags(TAG_FOCUS_DEACTIVATED)
+                    .assertEventMarks(MARK_FOCUS_DEACTIVATED)
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventTags(TAG_PROJECTION_DEACTIVATED);
+                        .assertEventMarks(MARK_PROJECTION_DEACTIVATED);
 
         when("user and account are enabled");
         ObjectDelta<UserType> enableDelta = deltaFor(UserType.class)
@@ -126,11 +126,11 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:off
         assertModelContext(enableContext, "enable context")
                 .focusContext()
-                    .assertEventTags(TAG_FOCUS_ACTIVATED)
+                    .assertEventMarks(MARK_FOCUS_ACTIVATED)
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventTags(TAG_PROJECTION_ACTIVATED);
+                        .assertEventMarks(MARK_PROJECTION_ACTIVATED);
         // @formatter:on
     }
 
@@ -145,7 +145,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_FOCUS_RENAMED} and {@link SystemObjectsType#TAG_PROJECTION_RENAMED}
+     * Check that {@link SystemObjectsType#MARK_FOCUS_RENAMED} and {@link SystemObjectsType#MARK_PROJECTION_RENAMED}
      * are set correctly.
      */
     @Test
@@ -163,21 +163,21 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
         then("tags are set correctly");
-        if (areTagsSupported()) {
+        if (areMarksSupported()) {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags(TAG_FOCUS_RENAMED)
+                        .assertEventMarks(MARK_FOCUS_RENAMED)
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(TAG_PROJECTION_RENAMED, TAG_PROJECTION_IDENTIFIER_CHANGED);
+                            .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED);
             // @formatter:on
         }
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_IDENTIFIER_CHANGED} is set correctly.
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_IDENTIFIER_CHANGED} is set correctly.
      */
     @Test
     public void test120ChangeNonNamingIdentifier() throws Exception {
@@ -194,21 +194,21 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
         then("tags are set correctly");
-        if (areTagsSupported()) {
+        if (areMarksSupported()) {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags()
+                        .assertEventMarks()
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(TAG_PROJECTION_IDENTIFIER_CHANGED);
+                            .assertEventMarks(MARK_PROJECTION_IDENTIFIER_CHANGED);
             // @formatter:on
         }
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_ENTITLEMENT_CHANGED} is set correctly.
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_ENTITLEMENT_CHANGED} is set correctly.
      */
     @Test
     public void test130ChangeEntitlement() throws Exception {
@@ -229,21 +229,21 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 
         then("tags are set correctly");
-        if (areTagsSupported()) {
+        if (areMarksSupported()) {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags()
+                        .assertEventMarks()
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(TAG_PROJECTION_ENTITLEMENT_CHANGED);
+                            .assertEventMarks(MARK_PROJECTION_ENTITLEMENT_CHANGED);
             // @formatter:on
         }
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_ENTITLEMENT_CHANGED} is not set when non-entitlement association
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_ENTITLEMENT_CHANGED} is not set when non-entitlement association
      * is changed.
      */
     @Test
@@ -265,21 +265,21 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 
         then("'entitlement changed' tag is not present");
-        if (areTagsSupported()) {
+        if (areMarksSupported()) {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags()
+                        .assertEventMarks()
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(); // "org" is not an entitlement
+                            .assertEventMarks(); // "org" is not an entitlement
             // @formatter:on
         }
     }
 
     /**
-     * Check that {@link SystemObjectsType#TAG_PROJECTION_PASSWORD_CHANGED} is set correctly.
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_PASSWORD_CHANGED} is set correctly.
      */
     @Test
     public void test150ChangeAccountPassword() throws Exception {
@@ -296,15 +296,15 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
         then("tags are set correctly");
-        if (areTagsSupported()) {
+        if (areMarksSupported()) {
             // @formatter:off
             assertModelContext(lensContext, "context")
                     .focusContext()
-                        .assertEventTags()
+                        .assertEventMarks()
                     .end()
                     .projectionContexts()
                         .single()
-                            .assertEventTags(TAG_PROJECTION_PASSWORD_CHANGED);
+                            .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED);
             // @formatter:on
         }
     }

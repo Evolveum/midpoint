@@ -235,7 +235,7 @@
     <xsd:complexType name="SimulationMetricReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                Reference to a metric - either by identifier (for explicitly defined ones) or by tag OID (for event tag based).
+                Reference to a metric - either by identifier (for explicitly defined ones) or by mark OID (for event mark based).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -250,13 +250,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="eventTagRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="eventMarkRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to an event tag.
+                        Reference to an event mark.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:MarkType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -605,10 +605,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="eventTags" type="tns:SimulationEventTagsUseType" minOccurs="0">
+            <xsd:element name="eventMarks" type="tns:SimulationEventMarksUseType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Selecting which event tags to consider.
+                        Selecting which event marks to consider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -622,10 +622,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SimulationEventTagsUseType">
+    <xsd:complexType name="SimulationEventMarksUseType">
         <xsd:annotation>
             <xsd:documentation>
-                <p>Specifies which event tags to consider for given simulation.</p>
+                <p>Specifies which event marks to consider for given simulation.</p>
                 <pre>
                     Matches "include" | Matches "exclude" | Used in simulation
                     ------------------+-------------------+-------------------
@@ -645,14 +645,14 @@
             <xsd:element name="include" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Which event tags to include?
+                        Which event marks to include?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exclude" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Which event tags to exclude?
+                        Which event marks to exclude?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -712,7 +712,7 @@
                     <xsd:documentation>
                         Identifier of the metric. This is either the identifier of the new (aggregation) metric, like
                         "percent-of-users-disabled", or the name of the original (source) metric that is being aggregated,
-                        like "number-of-attributes-modified" or an event tag reference.
+                        like "number-of-attributes-modified" or an event mark reference.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -987,27 +987,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="eventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="eventMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Event tag or tags that apply to this operation.
+                        Event mark or marks that apply to this operation.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:MarkType</a:objectReferenceTargetType>
                         <a:indexed>true</a:indexed>
-                        <a:displayName>SimulationResultProcessedObjectType.eventTagRef</a:displayName>
+                        <a:displayName>SimulationResultProcessedObjectType.eventMarkRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="consideredEventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="consideredEventMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Event tag or tags that were considered regarding this operation.
+                        Event mark or marks that were considered regarding this operation.
                         (The processed object belongs to the domain of each of them.)
                         TRANSIENT. This information is not stored into repository as the list may be quite large.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:MarkType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1185,10 +1185,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="EventTagDomainType">
+    <xsd:complexType name="EventMarkDomainType">
         <xsd:annotation>
             <xsd:documentation>
-                Domain of a given event tag.
+                Domain of a given event mark.
 
                 TODO decide on this -- maybe we won't need it for simulations at all, but who knows about the audit?
             </xsd:documentation>
@@ -1202,7 +1202,7 @@
             <xsd:element name="simulation" type="tns:SimulationObjectPredicateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Domain of the event tag to be used during simulation.
+                        Domain of the event mark to be used during simulation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1210,5 +1210,5 @@
                  of a domain for both purposes. -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="eventTagDomain" type="tns:EventTagDomainType"/>
+    <xsd:element name="eventMarkDomain" type="tns:EventMarkDomainType"/>
 </xsd:schema>
