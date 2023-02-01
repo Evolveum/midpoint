@@ -8,16 +8,19 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
@@ -57,5 +60,11 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
 
     protected String getTagOid() {
         return null;
+    }
+
+    // todo is this necessary? parent class has this method returning null, why? This way we're just reverting behaviour trying to avoid funky NPEs
+    @Override
+    public IModel<SelectableBean<SimulationResultProcessedObjectType>> model(SelectableBean<SimulationResultProcessedObjectType> selectableBean) {
+        return Model.of(selectableBean);
     }
 }

@@ -46,6 +46,7 @@ DO $$ BEGIN
         'FUNCTION_LIBRARY',
         'GENERIC_OBJECT',
         'LOOKUP_TABLE',
+        'MARK',
         'MESSAGE_TEMPLATE',
         'NODE',
         'OBJECT',
@@ -62,7 +63,6 @@ DO $$ BEGIN
         'SHADOW',
         'SIMULATION_RESULT',
         'SYSTEM_CONFIGURATION',
-        'TAG',
         'TASK',
         'USER',
         'VALUE_POLICY');
