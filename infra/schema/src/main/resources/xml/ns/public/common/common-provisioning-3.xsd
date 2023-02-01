@@ -4309,7 +4309,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="effectiveMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                Tags and Shadow marks assigned to the shadow.
@@ -4319,6 +4319,8 @@
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
+                     </xsd:element>
+                     <xsd:element name="policyStatement" type="tns:PolicyStatementType" minOccurs="0" maxOccurs="unbounded">
                      </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

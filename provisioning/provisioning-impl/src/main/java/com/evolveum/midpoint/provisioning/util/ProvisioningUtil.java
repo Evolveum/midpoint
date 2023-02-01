@@ -318,7 +318,11 @@ public class ProvisioningUtil {
 
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
             throws SchemaException {
-        boolean isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
+        boolean isProtected =
+                ShadowMarkManager.get().isProtectedShadowPolicyNotExcluded(shadow) &&
+                ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
+
+
         if (!isProtected) {
             // We use shadow marks to determine if shadow is protected (works only for repository shadows).
             isProtected = ShadowMarkManager.get().isProtectedShadow(shadow, result);

@@ -162,9 +162,12 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
         assertNull("" + account + " is not protected", account.asObjectable().isProtectedObject());
 
-        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createModificationAddReference(ShadowType.class, account.getOid(), ShadowType.F_TAG_REF, TAG_PROTECTED_SHADOW.oid);
+        PolicyStatementType policyStat = new PolicyStatementType()
+                .markRef(SystemObjectsType.TAG_PROTECTED_SHADOW.value(), TagType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
 
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+                .createModificationAddContainer(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_POLICY_STATEMENT, policyStat);
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
 
      // THEN
@@ -403,8 +406,12 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
+
+        PolicyStatementType policyStat = new PolicyStatementType()
+                .markRef(SystemObjectsType.TAG_PROTECTED_SHADOW.value(), TagType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createModificationDeleteReference(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_TAG_REF, TAG_PROTECTED_SHADOW.oid);
+                .createModificationDeleteContainer(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_POLICY_STATEMENT, policyStat);
 
         // WHEN
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);

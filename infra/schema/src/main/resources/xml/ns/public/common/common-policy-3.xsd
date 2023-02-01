@@ -3105,4 +3105,57 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="PolicyStatementTypeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                        <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+         <xsd:restriction base="xsd:string">
+             <xsd:enumeration value="apply">
+                 <xsd:annotation>
+                     <xsd:documentation>
+                         Specified policy will be applied to object
+                     </xsd:documentation>
+                     <xsd:appinfo>
+                         <jaxb:typesafeEnumMember name="APPLY"/>
+                     </xsd:appinfo>
+                 </xsd:annotation>
+             </xsd:enumeration>
+             <xsd:enumeration value="exclude">
+                 <xsd:annotation>
+                     <xsd:documentation>
+                         Specified policy will be excluded from object
+                     </xsd:documentation>
+                     <xsd:appinfo>
+                         <jaxb:typesafeEnumMember name="EXCLUDE"/>
+                     </xsd:appinfo>
+                 </xsd:annotation>
+             </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="PolicyStatementType">
+      <xsd:annotation>
+          <xsd:appinfo>
+              <a:container/>
+          </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+         <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:annotation>
+                <xsd:documentation>
+                   Object mark representing policy, which is APPLIED or EXCLUDED
+                </xsd:documentation>
+                <xsd:appinfo>
+                    <a:objectReferenceTargetType>tns:TagType</a:objectReferenceTargetType>
+                    <a:experimental>true</a:experimental>
+                </xsd:appinfo>
+            </xsd:annotation>
+         </xsd:element>
+         <xsd:element name="type" type="tns:PolicyStatementTypeType" />
+         <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    
 </xsd:schema>
