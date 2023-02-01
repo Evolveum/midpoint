@@ -14,7 +14,7 @@ import java.util.Map;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.factory.*;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.AvailableTagItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.AvailableMarkItemWrapperFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
@@ -24,7 +24,7 @@ public class SearchConfigurationWrapperFactory {
     private static List<AbstractSearchItemWrapperFactory> factories = new ArrayList<>();
 
     static {
-        factories.add(new AvailableTagItemWrapperFactory());
+        factories.add(new AvailableMarkItemWrapperFactory());
         factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ChoicesSearchItemWrapperFactory());
         factories.add(new AutocompleteSearchItemWrapperFactory());
