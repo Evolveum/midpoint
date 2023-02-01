@@ -29,7 +29,7 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(qname);
         String key = WebComponentUtil.createEnumResourceKey(ot);
-        return new StringResourceModel(key).setDefaultValue(key);
+        return new StringResourceModel(key).setDefaultValue(key).getString();
     }
 
     @Override

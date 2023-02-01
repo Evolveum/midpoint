@@ -1806,8 +1806,8 @@ public final class WebComponentUtil {
         if (date == null) {
             return "";
         }
-        String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
-        return getLocalizedDate(date, shortDateTimeFortam);
+        String dateTimeFormat = getShortDateTimeFormat(pageBase);
+        return getLocalizedDate(date, dateTimeFormat);
     }
 
     public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
