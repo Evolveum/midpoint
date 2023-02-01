@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 
+import com.evolveum.midpoint.task.api.SimulationResult;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,27 +38,22 @@ public interface SimulationResultManager {
      * @param definition Definition to use. If null, the default one is used.
      * @see #defaultDefinition()
      */
-    @NotNull SimulationResultContext openNewSimulationResult(
+    @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @Nullable String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException;
 
-    /** Closes the simulation result, e.g. computes the metrics. No "processed object" records should be added afterwards. */
-    void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result)
-            throws ObjectNotFoundException;
-
-    /** TODO */
-    void openSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result);
-
-    /** TODO */
-    void commitSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result);
-
-    /** TODO better name */
-    SimulationResultContext newSimulationContext(@NotNull String resultOid);
+    /**
+     * Provides a {@link SimulationResult} for given simulation result OID. May involve repository get operation.
+     *
+     * Makes sure that the simulation result is open. Although this does not prevent writing to closed results (as the
+     * result may be closed after obtaining the context), it should be good enough to cover e.g. cases when we re-use
+     * existing result by mistake.
+     */
+    SimulationResult getSimulationResult(@NotNull String resultOid, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException;
 
     /**
      * Returns the default simulation definition: either from the system configuration (if present there), or a new one.
@@ -73,6 +70,8 @@ public interface SimulationResultManager {
     /**
      * See {@link ModelInteractionService#executeInSimulationMode(TaskExecutionMode, SimulationDefinitionType, Task,
      * OperationResult, SimulatedFunctionCall)}.
+     *
+     * When in `functionCall`, the {@link Task#getSimulationTransaction()} returns non-null value for the task.
      */
     <X> X executeInSimulationMode(
             @NotNull TaskExecutionMode mode,

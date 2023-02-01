@@ -8,6 +8,9 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf">
     <name>user-add</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
     <policyRule>
         <policyConstraints>
             <modification>
@@ -18,4 +21,7 @@
             <type>UserType</type>
         </focusSelector>
     </policyRule>
+    <eventMark>
+        <enabledByDefault>false</enabledByDefault>
+    </eventMark>
 </mark>

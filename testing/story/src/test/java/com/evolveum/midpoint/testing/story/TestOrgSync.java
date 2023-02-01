@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.model.test.SimulationResult;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.test.TestTask;
 
 import org.opends.server.types.DirectoryException;
@@ -316,7 +316,7 @@ public class TestOrgSync extends AbstractStoryTest {
         TASK_DUMMY_HR_LIVESYNC_SIMULATION.rerun(result);
 
         then("there is a simulation result");
-        SimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
+        TestSimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
         assertSimulationResultAfter(simResult);
         assertProcessedObjectsAfter(simResult);
         displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));
@@ -504,7 +504,7 @@ public class TestOrgSync extends AbstractStoryTest {
         TASK_DUMMY_HR_LIVESYNC_SIMULATION.rerun(result);
 
         then("there is a fat simulation result, because we are processing all changes since #2");
-        SimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
+        TestSimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
         displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));
     }
     /**
@@ -1043,7 +1043,7 @@ public class TestOrgSync extends AbstractStoryTest {
                 .simulatedProduction()
                 .execute(result);
 
-        SimulationResult simResult = getTaskSimResult(taskOid, result);
+        TestSimulationResult simResult = getTaskSimResult(taskOid, result);
         assertSimulationResultAfter(simResult);
         assertProcessedObjectsAfter(simResult);
         displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));

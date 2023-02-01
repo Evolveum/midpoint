@@ -10,14 +10,13 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.Operation;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,8 +47,8 @@ public interface ExecutionSupport {
      *
      * @return Current values of the counters (after the update).
      */
-    Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup, @NotNull Collection<String> countersIdentifiers,
-            @NotNull OperationResult result)
+    Map<String, Integer> incrementCounters(
+            @NotNull CountersGroup counterGroup, @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
     /**

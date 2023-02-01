@@ -12,6 +12,17 @@
     <name>SystemConfiguration</name>
     <simulation>
         <metric>
+            <identifier>nonsense-custom-metric</identifier>
+            <documentation>Always fails. Used to check the exclusion mechanism.</documentation>
+            <computation>
+                <valueExpression>
+                    <script>
+                        <code>throw new UnsupportedOperationException("nonsense custom metric")</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
             <identifier>modifications</identifier>
             <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
             <computation>
@@ -117,12 +128,30 @@
                 </domainRestriction>
             </aggregation>
         </metric>
-        <!--<definition>-->
-        <!--    <identifier>default-definition</identifier>-->
-        <!--    <default>true</default>-->
-        <!--    <metrics>-->
-
-        <!--    </metrics>-->
-        <!--</definition>-->
+        <simulation>
+            <default>true</default>
+            <metrics>
+                <eventMarks>
+                    <include>
+                        <q:equal>
+                            <!-- this one is disabled by default, so it must be enabled here -->
+                            <q:path>name</q:path>
+                            <q:value>user-add</q:value>
+                        </q:equal>
+                    </include>
+                    <exclude>
+                        <!-- this one is flawed, so must be disabled for the simulations to even run -->
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>nonsense-mark</q:value>
+                        </q:equal>
+                    </exclude>
+                </eventMarks>
+                <metrics>
+                    <!-- this one is flawed, so must be disabled for the simulations to even run -->
+                    <exclude>nonsense-custom-metric</exclude>
+                </metrics>
+            </metrics>
+        </simulation>
     </simulation>
 </systemConfiguration>

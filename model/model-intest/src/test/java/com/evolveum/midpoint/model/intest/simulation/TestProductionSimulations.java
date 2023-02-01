@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.simulation;
 
-import com.evolveum.midpoint.model.test.SimulationResult;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -61,7 +61,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(user.getOid());
 
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -118,7 +118,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(PolyString.fromOrig("test810a"))
                 .asObjectDelta(user.getOid());
 
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -165,7 +165,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .replace(new ProtectedStringType().clearValue("test"))
                 .asObjectDelta(user.getOid());
 
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);

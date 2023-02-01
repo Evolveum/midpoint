@@ -14,9 +14,9 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -86,10 +86,13 @@ public abstract class LocalActivityRun<
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
 
-        // Actually, this listener should not be used here. It may (later) be used to catch processed objects that belong
-        // to no bucket (emitted e.g. during search processing). The "real" listener is created by the item processing
-        // gatekeeper. TODO reconsider this; it may cause simulation in some of the tasks not functioning
-        SimulationDataConsumer oldSimulationConsumer = runningTask.setSimulationDataConsumer(getSimulationDataConsumer());
+        simulationSupport.initializeSimulationResult(result);
+
+        // The transaction should (probably) not be set here. The "real" transaction is created by the item processing
+        // gatekeeper. This one may be used as a "catch-all" for objects processed without the context of item processing.
+        // (But are there any such objects? Should not be, because e.g. provisioning retry operations should not be allowed,
+        // and plain synchronization is executed within item processing.)
+        var oldSimulationTransaction = runningTask.setSimulationTransaction(getSimulationTransaction());
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
@@ -100,7 +103,7 @@ public abstract class LocalActivityRun<
             localResult.close();
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
-            runningTask.setSimulationDataConsumer(oldSimulationConsumer);
+            runningTask.setSimulationTransaction(oldSimulationTransaction);
         }
 
         updateStateOnRunEnd(localResult, runResult, result);
@@ -120,8 +123,8 @@ public abstract class LocalActivityRun<
         }
     }
 
-    public SimulationDataConsumer getSimulationDataConsumer() {
-        return simulationSupport.getSimulationDataConsumer();
+    public SimulationTransaction getSimulationTransaction() {
+        return simulationSupport.getSimulationTransaction();
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */

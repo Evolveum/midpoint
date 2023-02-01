@@ -774,25 +774,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean hasSimulationDataConsumer() {
-        return false;
-    }
-
-    @Override
-    public String getSimulationResultOid() {
+    public SimulationTransaction setSimulationTransaction(SimulationTransaction context) {
         return null;
     }
 
     @Override
-    public void setSimulationResultOid(String oid) {
-    }
-
-    @Override
-    public void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result) {
+    public @Nullable SimulationTransaction getSimulationTransaction() {
+        return null;
     }
 }

@@ -115,7 +115,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
 
-        Collection<? extends PolicyRuleType> allGlobalRules = getAllGlobalRules(context, result);
+        Collection<? extends PolicyRuleType> allGlobalRules = getAllGlobalRules(context, task, result);
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
@@ -277,7 +277,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             // This is a very special case, where the focus was deleted.
             focus = focusContext.getObjectOld();
         }
-        List<GlobalRuleWithId> rulesWithIds = getAllGlobalPolicyRules(systemConfiguration, result);
+        List<GlobalRuleWithId> rulesWithIds = getAllGlobalPolicyRules(systemConfiguration, task, result);
         LOGGER.trace("Checking {} global policy rules", rulesWithIds.size());
         int globalRulesFound = 0;
         for (GlobalRuleWithId ruleWithId: rulesWithIds) {
@@ -343,7 +343,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
         collectFocusRulesFromAssignments(rules, context);
         collectGlobalObjectRules(rules, context, task, result);
-        resolveConstraintReferences(rules, getAllGlobalRules(context, result));
+        resolveConstraintReferences(rules, getAllGlobalRules(context, task, result));
         return rules;
     }
 
@@ -546,14 +546,14 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
      * TODO implement more efficiently
      */
     private <AH extends AssignmentHolderType> Collection<GlobalPolicyRuleType> getAllGlobalRules(
-            LensContext<AH> context, OperationResult result) {
-        return getAllGlobalPolicyRules(context.getSystemConfigurationBean(), result).stream()
+            LensContext<AH> context, Task task, OperationResult result) {
+        return getAllGlobalPolicyRules(context.getSystemConfigurationBean(), task, result).stream()
                 .map(GlobalRuleWithId::getRuleBean)
                 .collect(Collectors.toList());
     }
 
     private @NotNull List<GlobalRuleWithId> getAllGlobalPolicyRules(
-            @Nullable SystemConfigurationType systemConfiguration, @NotNull OperationResult result) {
+            @Nullable SystemConfigurationType systemConfiguration, Task task, @NotNull OperationResult result) {
         List<GlobalRuleWithId> allRules = new ArrayList<>();
         if (systemConfiguration != null) {
             for (GlobalPolicyRuleType ruleBean : systemConfiguration.getGlobalPolicyRule()) {
@@ -562,7 +562,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             }
         }
         allRules.addAll(
-                markManager.getAllMarkPolicyRules(result));
+                markManager.getAllEnabledMarkPolicyRules(task, result));
         return allRules;
     }
 
@@ -584,7 +584,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 focusContext.getObjectCurrentOrNew(),
                 "no current nor new focus while operation is not DELETE");
 
-        List<GlobalRuleWithId> globalPolicyRuleList = getAllGlobalPolicyRules(systemConfiguration, result);
+        List<GlobalRuleWithId> globalPolicyRuleList = getAllGlobalPolicyRules(systemConfiguration, task, result);
         LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
         int globalRulesInstantiated = 0;
         for (GlobalRuleWithId ruleWithId : globalPolicyRuleList) {

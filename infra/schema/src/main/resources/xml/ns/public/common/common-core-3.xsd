@@ -849,6 +849,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this event tag processing enabled by default?
+
+                        TODO is this the correct place (as it most probably applies only to simulations)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="eventMarkInformation" type="tns:EventMarkInformationType"/>

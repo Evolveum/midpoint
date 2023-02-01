@@ -35,19 +35,19 @@ public class SimulationMetricReference implements Serializable {
         this.eventMarkOid = eventMarkOid;
     }
 
-    public static SimulationMetricReference fromBean(@NotNull SimulationMetricReferenceType bean) {
+    static SimulationMetricReference fromBean(@NotNull SimulationMetricReferenceType bean) {
         return new SimulationMetricReference(bean.getIdentifier(), getOid(bean.getEventMarkRef()));
     }
 
-    public static SimulationMetricReference forMark(@NotNull String tagOid) {
-        return new SimulationMetricReference(null, tagOid);
+    static SimulationMetricReference forMark(@NotNull String markOid) {
+        return new SimulationMetricReference(null, markOid);
     }
 
-    public static SimulationMetricReference forMetricId(@NotNull String identifier) {
+    static SimulationMetricReference forMetricId(@NotNull String identifier) {
         return new SimulationMetricReference(identifier, null);
     }
 
-    public boolean isTag() {
+    public boolean isMark() {
         return eventMarkOid != null;
     }
 
@@ -71,21 +71,18 @@ public class SimulationMetricReference implements Serializable {
 
     @Override
     public String toString() {
-        return "SimulationMetricReference{" +
-                "metricIdentifier='" + metricIdentifier + '\'' +
-                ", eventMarkOid='" + eventMarkOid + '\'' +
-                '}';
+        return isMark() ? eventMarkOid : metricIdentifier;
     }
 
-    public String getTagOid() {
+    String getMarkOid() {
         return eventMarkOid;
     }
 
-    public boolean isCustomMetric() {
+    boolean isCustomMetric() {
         return metricIdentifier != null;
     }
 
-    public String getMetricIdentifier() {
+    String getMetricIdentifier() {
         return metricIdentifier;
     }
 }
