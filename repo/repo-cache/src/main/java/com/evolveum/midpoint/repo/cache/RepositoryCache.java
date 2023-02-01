@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -118,6 +118,15 @@ public class RepositoryCache implements RepositoryService, Cache {
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
             boolean strictlySequential, OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchObjectsIterative(type, query, handler, options, strictlySequential, parentResult);
+    }
+
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        return searchOpHandler.searchReferencesIterative(query, handler, options, parentResult);
     }
 
     @Override

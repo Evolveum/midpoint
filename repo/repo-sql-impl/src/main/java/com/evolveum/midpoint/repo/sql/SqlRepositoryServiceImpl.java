@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -269,7 +269,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     // returns null if the query is equivalent to NONE (TODO this is counter-intuitive, fix that)
     private ObjectQuery simplify(ObjectQuery query, OperationResult subResult) {
         ObjectFilter filter = query.getFilter();
-        filter = ObjectQueryUtil.simplify(filter, prismContext);
+        filter = ObjectQueryUtil.simplify(filter);
         if (filter instanceof NoneFilter) {
             subResult.recordSuccess();
             return null;
@@ -956,6 +956,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 throw new AssertionError("iterationMethod: " + iterationMethod);
         }
         return rv;
+    }
+
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) {
+        throw new UnsupportedOperationException("Reference search/count is not supported in Generic repository");
     }
 
     private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {

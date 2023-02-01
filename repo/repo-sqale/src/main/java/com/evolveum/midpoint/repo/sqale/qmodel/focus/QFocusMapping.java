@@ -257,7 +257,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         var query = jdbcSession.newQuery()
                 .from(q)
                 .select(q) // no complications here, we load it whole
-                .where(q.ownerOid.eq(SqaleUtils.oidToUUid(focus.getOid())));
+                .where(q.ownerOid.eq(SqaleUtils.oidToUuid(focus.getOid())));
         for (MFocusIdentity row : query.fetch()) {
             FocusIdentityType focusIdentity = focusIdentityMapping.toSchemaObject(row);
             focus.getIdentities().identity(focusIdentity);
