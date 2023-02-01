@@ -41,8 +41,8 @@ public class TitleWithDescriptionPanel extends BasePanel {
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+            public void onClick(AjaxRequestTarget target) {
+                onTitleClicked(target);
             }
         };
         add(link);
@@ -53,5 +53,9 @@ public class TitleWithDescriptionPanel extends BasePanel {
         Label description = new Label(ID_DESCRIPTION, this.description);
         description.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.description.getObject())));
         link.add(description);
+    }
+
+    protected void onTitleClicked(AjaxRequestTarget target) {
+
     }
 }

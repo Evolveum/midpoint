@@ -144,12 +144,13 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
                     return StringUtils.joinWith(", ", names.toArray(new String[names.size()]));
                 };
-                item.add(new TitleWithDescriptionPanel(id, title, description));
-            }
+                item.add(new TitleWithDescriptionPanel(id, title, description) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                onObjectNameClicked(target, rowModel.getObject());
+                    @Override
+                    protected void onTitleClicked(AjaxRequestTarget target) {
+                        onObjectNameClicked(target, rowModel.getObject());
+                    }
+                });
             }
         };
     }

@@ -27,7 +27,10 @@ public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFac
         List<DisplayableValue<String>> availableEventTags = additionalSearchContext != null ?
                 additionalSearchContext.getAvailableEventTags() : new ArrayList<>();
 
-        return new AvailableTagSearchItemWrapper(availableEventTags);
+        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventTags);
+        wrapper.setCanConfigure(false);
+        wrapper.setVisible(true);
+        return wrapper;
     }
 
     @Override

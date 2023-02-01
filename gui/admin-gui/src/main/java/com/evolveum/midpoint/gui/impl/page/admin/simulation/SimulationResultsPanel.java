@@ -87,7 +87,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
+                return getDefaultCompositedIconBuilder("fa-solid fa-trash-can");
             }
 
             @Override
@@ -95,12 +95,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 return null;
             }
         });
-        items.add(new ButtonInlineMenuItem(createStringResource("Delete processed objects")) {
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
-            }
+        items.add(new InlineMenuItem(createStringResource("Delete processed objects")) {
 
             @Override
             public InlineMenuItemAction initAction() {
