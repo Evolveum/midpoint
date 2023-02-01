@@ -36,7 +36,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
@@ -210,10 +209,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         add(widgets);
     }
 
-    private void onWidgetClick(AjaxRequestTarget target, SmallBoxData data) {
-        System.out.println();
-    }
-
     private void onBackPerformed(AjaxRequestTarget target) {
         //todo implement
         redirectBack();
@@ -277,5 +272,9 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         }));
 
         return label;
+    }
+
+    @Override
+    protected void createBreadcrumb() {
     }
 }

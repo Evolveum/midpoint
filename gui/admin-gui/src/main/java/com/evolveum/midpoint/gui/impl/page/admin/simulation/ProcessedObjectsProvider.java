@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -57,5 +60,11 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
 
     protected String getTagOid() {
         return null;
+    }
+
+    // todo is this necessary? parent class has this method returning null, why? This way we're just reverting behaviour trying to avoid funky NPEs
+    @Override
+    public IModel<SelectableBean<SimulationResultProcessedObjectType>> model(SelectableBean<SimulationResultProcessedObjectType> selectableBean) {
+        return Model.of(selectableBean);
     }
 }
