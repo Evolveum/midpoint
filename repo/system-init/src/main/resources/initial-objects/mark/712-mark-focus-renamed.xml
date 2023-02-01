@@ -5,24 +5,24 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000713">
-    <name>Focus assignments changed</name>
-    <description>Operation that changed the focus assignment(s)</description>
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000712">
+    <name>Focus renamed</name>
+    <description>Operation that changed the focus name</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <policyRule>
-        <name>focus-assignment-changed</name>
+        <name>focus-renamed</name>
         <policyConstraints>
             <modification>
-                <name>$focus-assignment-changed</name>
+                <name>$focus-renamed</name>
                 <operation>modify</operation>
-                <item>assignment</item>
+                <item>name</item>
             </modification>
         </policyConstraints>
         <focusSelector>
             <type>FocusType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

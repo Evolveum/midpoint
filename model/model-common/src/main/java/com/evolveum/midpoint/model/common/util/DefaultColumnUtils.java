@@ -102,9 +102,9 @@ public class DefaultColumnUtils {
                 .put(MessageTemplateType.class, Arrays.asList(
                         new ColumnWrapper(MessageTemplateType.F_NAME),
                         new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
-                .put(TagType.class, Arrays.asList(
-                        new ColumnWrapper(TagType.F_NAME),
-                        new ColumnWrapper(TagType.F_DESCRIPTION)))
+                .put(MarkType.class, Arrays.asList(
+                        new ColumnWrapper(MarkType.F_NAME),
+                        new ColumnWrapper(MarkType.F_DESCRIPTION)))
                 .put(SimulationResultType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultType.F_NAME),
                         new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
@@ -112,8 +112,7 @@ public class DefaultColumnUtils {
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_EVENT_TAG_REF)))
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE)))
                 .build();
     }
 

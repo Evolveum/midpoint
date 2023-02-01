@@ -636,6 +636,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return createStringResource(sb.toString());
     }
 
+    public String getString(Enum<?> e) {
+        return createStringResource(e).getString();
+    }
+
     public String getString(String resourceKey, Object... objects) {
         return createStringResource(resourceKey, objects).getString();
     }

@@ -80,7 +80,7 @@ CREATE TYPE ObjectType AS ENUM (
     'SHADOW',
     'SIMULATION_RESULT',
     'SYSTEM_CONFIGURATION',
-    'TAG',
+    'MARK',
     'TASK',
     'USER',
     'VALUE_POLICY');
@@ -96,7 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'DELEGATED',
     'INCLUDE',
     'PROJECTION',
-    'PROCESSED_OBJECT_EVENT_TAG',
+    'PROCESSED_OBJECT_EVENT_MARK',
     'OBJECT_CREATE_APPROVER',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
@@ -1962,35 +1962,35 @@ CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulatio
 
 
 
-CREATE TABLE m_processed_object_event_tag (
+CREATE TABLE m_processed_object_event_mark (
   ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
   ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
   processedObjectCid INTEGER NOT NULL,
-  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_TAG') STORED,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_MARK') STORED,
   targetOid UUID NOT NULL, -- soft-references m_object
   targetType ObjectType NOT NULL,
   relationId INTEGER NOT NULL REFERENCES m_uri(id)
 
 ) PARTITION BY LIST(ownerOid);
 
-CREATE TABLE m_processed_object_event_tag_default PARTITION OF m_processed_object_event_tag DEFAULT;
+CREATE TABLE m_processed_object_event_mark_default PARTITION OF m_processed_object_event_mark DEFAULT;
 
 -- endregion
 
--- region Tag
+-- region Mark
 
-CREATE TABLE m_tag (
+CREATE TABLE m_mark (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('TAG') STORED
-        CHECK (objectType = 'TAG')
+    objectType ObjectType GENERATED ALWAYS AS ('MARK') STORED
+        CHECK (objectType = 'MARK')
 )
     INHERITS (m_assignment_holder);
 
-CREATE TRIGGER m_tag_oid_insert_tr BEFORE INSERT ON m_tag
+CREATE TRIGGER m_mark_oid_insert_tr BEFORE INSERT ON m_mark
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_tag_update_tr BEFORE UPDATE ON m_tag
+CREATE TRIGGER m_mark_update_tr BEFORE UPDATE ON m_mark
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_tag_oid_delete_tr AFTER DELETE ON m_tag
+CREATE TRIGGER m_mark_oid_delete_tr AFTER DELETE ON m_mark
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 

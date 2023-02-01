@@ -759,14 +759,14 @@
     </xsd:complexType>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="TagType">
+    <xsd:complexType name="MarkType">
         <xsd:annotation>
             <xsd:documentation>
-                A tag is a "mark" given to an object - currently a prism object, an assignment, or audited/simulation event.
-                Tags are used in various contexts, for example as policy situations or event tags. (More uses are expected
-                in the future.) This object serves as a point of definition of such tags.
+                A mark is a "label" given to an object - currently a prism object, an assignment, or audited/simulation event.
+                Tags are used in various contexts, for example as policy situations or event marks.
+                This object serves as a point of definition of such marks.
 
-                Well-known archetypes: policy situation, event tag.
+                Well-known archetypes: object mark, event mark.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
@@ -782,7 +782,7 @@
                                 It should be globally unique.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.uri</a:displayName>
+                                <a:displayName>MarkType.uri</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -792,19 +792,19 @@
                                 Display properties of the tag. It is used to display the tag in drop-down lists, buttons, etc..
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.display</a:displayName>
+                                <a:displayName>MarkType.display</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="policyRule" type="tns:GlobalPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Global policy rules that can yield this tag (policy situation or event tag).
+                                Global policy rules that can yield this mark (object or event mark).
                                 By including them here they are evaluated automatically, just like if they would be included
-                                in the system configuration. (Provided that this tag is in appropriate lifecycle state.)
+                                in the system configuration. (Provided that this mark is in appropriate lifecycle state.)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.policyRule</a:displayName>
+                                <a:displayName>MarkType.policyRule</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -820,13 +820,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="eventTag" type="tns:EventTagInformationType" minOccurs="0">
+                    <xsd:element name="eventMark" type="tns:EventMarkInformationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Information specific to event tags.
+                                Information specific to event marks.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.eventTag</a:displayName>
+                                <a:displayName>MarkType.eventMark</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -834,12 +834,12 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="tag" type="tns:TagType" substitutionGroup="tns:object"/>
+    <xsd:element name="mark" type="tns:MarkType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="EventTagInformationType">
+    <xsd:complexType name="EventMarkInformationType">
         <xsd:annotation>
             <xsd:documentation>
-                Information specific for event tags.
+                Information specific for event marks.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -848,7 +848,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="domain" type="tns:EventTagDomainType" minOccurs="0">
+            <xsd:element name="domain" type="tns:EventMarkDomainType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of objects on which this tag is applicable.
@@ -863,7 +863,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="eventTagInformation" type="tns:EventTagInformationType"/>
+    <xsd:element name="eventMarkInformation" type="tns:EventMarkInformationType"/>
 
     <xsd:complexType name="TriggerType">
         <xsd:annotation>
@@ -14714,16 +14714,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Tag(s) that are the result when this policy rule is triggered.
-                        These may be implicit if the policy rule is defined as part of tag definition.
+                        Mark(s) that are the result when this policy rule is triggered.
+                        These may be implicit if the policy rule is defined as part of mark definition.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
-                        <a:displayName>PolicyRuleType.tag</a:displayName>
-                        <a:help>PolicyRuleType.tag.help</a:help>
+                        <a:objectReferenceTargetType>c:MarkType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyRuleType.mark</a:displayName>
+                        <a:help>PolicyRuleType.mark.help</a:help>
                         <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -14735,7 +14735,7 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
-                        DEPRECATED. Use tagRef instead.
+                        DEPRECATED. Use markRef instead.
 
                         TODO specify the time of planned removal
                     </xsd:documentation>
@@ -15502,14 +15502,14 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000700">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_EVENT_TAG"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EVENT_MARK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000701">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_POLICY_SITUATION"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_MARK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

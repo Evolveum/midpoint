@@ -5,32 +5,31 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000731">
-    <name>Projection deactivated</name>
-    <description>Operation that deactivated the projection</description>
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000711">
+    <name>Focus deactivated</name>
+    <description>Operation that deactivated the focus</description>
     <documentation>
-        This is an operation that deleted or effectively disabled the projection.
+        This is an operation that deleted or effectively disabled the focus.
         (So, previously it existed and was effectively enabled.)
     </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <policyRule>
-        <name>projection-deactivated</name>
+        <name>focus-deactivated</name>
         <policyConstraints>
             <custom>
-                <name>$projection-deactivated</name>
+                <name>$focus-deactivated</name>
                 <expression>
                     <script>
-                        <code>midpoint.currentProjectionDeactivated</code>
+                        <code>midpoint.focusDeactivated</code>
                     </script>
                 </expression>
             </custom>
         </policyConstraints>
-        <evaluationTarget>projection</evaluationTarget>
         <focusSelector>
             <type>FocusType</type>
         </focusSelector>
     </policyRule>
-</tag>
+</mark>

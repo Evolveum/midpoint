@@ -1432,6 +1432,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public boolean supports(@NotNull Class<? extends ObjectType> type) {
         return !SimulationResultType.class.equals(type)
-                && !TagType.class.equals(type);
+                && !MarkType.class.equals(type);
     }
 }

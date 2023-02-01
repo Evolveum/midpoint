@@ -8,14 +8,14 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil.forEventTagOid;
+import static com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil.forEventMarkOid;
 import static com.evolveum.midpoint.util.DebugUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricAggregationFunctionType.*;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.common.TagManager;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.util.SimulationMetricPartitionDimensionsTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUtil;
@@ -48,7 +48,7 @@ class AggregatedMetricsComputation {
     private static final SimulationMetricAggregationFunctionType DEFAULT_AGGREGATION_FUNCTION = SELECTION_TOTAL_VALUE;
 
     private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
-    private final TagManager tagManager = ModelBeans.get().tagManager;
+    private final MarkManager markManager = ModelBeans.get().markManager;
 
     private final Map<SimulationMetricReference, MetricAggregation> metricAggregations = new HashMap<>();
 
@@ -87,14 +87,14 @@ class AggregatedMetricsComputation {
         }
         LOGGER.trace("Pre-processed {} metrics", metricAggregations.size());
 
-        Collection<TagType> allEventTags = tagManager.getAllEventTags(result);
-        LOGGER.trace("Processing {} event tags", allEventTags.size());
-        for (TagType eventTag : allEventTags) {
+        Collection<MarkType> allEventMarks = markManager.getAllEventMarks(result);
+        LOGGER.trace("Processing {} event marks", allEventMarks.size());
+        for (MarkType eventMark : allEventMarks) {
             metricAggregations.put(
-                    SimulationMetricReference.forTag(eventTag.getOid()),
-                    MetricAggregation.forTag(eventTag));
+                    SimulationMetricReference.forMark(eventMark.getOid()),
+                    MetricAggregation.forMark(eventMark));
         }
-        LOGGER.trace("Pre-processed {} event tags", metricAggregations.size());
+        LOGGER.trace("Pre-processed {} event marks", metricAggregations.size());
     }
 
     void addProcessedObject(ProcessedObjectImpl<?> processedObject, Task task, OperationResult result) throws CommonException {
@@ -135,9 +135,9 @@ class AggregatedMetricsComputation {
             this.domainRestriction = domainRestriction;
         }
 
-        static MetricAggregation forTag(TagType eventTag) {
+        static MetricAggregation forMark(MarkType eventMark) {
             return new MetricAggregation(
-                    forEventTagOid(eventTag.getOid()),
+                    forEventMarkOid(eventMark.getOid()),
                     null,
                     SELECTION_TOTAL_VALUE,
                     null, null);

@@ -58,13 +58,13 @@ public class TestSimulationMetricComputations extends AbstractSchemaTest {
 
         and("value for 712 is OK");
         SimulationMetricValuesType m712 =
-                SimulationResultTypeUtil.getAggregatedMetricValuesByEventTagOid(
+                SimulationResultTypeUtil.getAggregatedMetricValuesByEventMarkOid(
                         sumResult, "00000000-0000-0000-0000-000000000712");
         assertThat(SimulationMetricValuesTypeUtil.getValue(m712)).as("value for 712").isEqualTo(BigDecimal.valueOf(14));
 
         and("value for 716 is OK");
         SimulationMetricValuesType m716 =
-                SimulationResultTypeUtil.getAggregatedMetricValuesByEventTagOid(
+                SimulationResultTypeUtil.getAggregatedMetricValuesByEventMarkOid(
                         sumResult, "00000000-0000-0000-0000-000000000716");
         assertThat(SimulationMetricValuesTypeUtil.getValue(m716)).as("value for 716").isEqualTo(BigDecimal.valueOf(4));
 

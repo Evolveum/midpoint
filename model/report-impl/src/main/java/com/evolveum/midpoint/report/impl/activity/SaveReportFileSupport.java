@@ -180,7 +180,7 @@ class SaveReportFileSupport {
 
     private static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS");
         return formatDate.format(createDate);
     }
 

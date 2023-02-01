@@ -179,8 +179,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        if (repositoryService.supportsTags()) {
-            CommonInitialObjects.addTags(this, initTask, initResult);
+        if (repositoryService.supportsMarks()) {
+            CommonInitialObjects.addMarks(this, initTask, initResult);
         }
     }
 
@@ -1218,7 +1218,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .display()
                 .assertStartTimestampBetween(before, after)
                 .assertEndTimestampBetween(simStartTs, after)
-                .assertMetricValueByEventTag(CommonInitialObjects.TAG_FOCUS_RENAMED.oid, BigDecimal.valueOf(4));
+                .assertMetricValueByEventMark(CommonInitialObjects.MARK_FOCUS_RENAMED.oid, BigDecimal.valueOf(4));
         // TODO other metrics, also classified ones
 
         // @formatter:off

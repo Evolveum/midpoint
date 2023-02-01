@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
                         label = "PageTag.auth.tag.label",
                         description = "PageTag.auth.tag.description")
         })
-public class PageTag extends PageAssignmentHolderDetails<TagType, AssignmentHolderDetailsModel<TagType>> {
+public class PageTag extends PageAssignmentHolderDetails<MarkType, AssignmentHolderDetailsModel<MarkType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -63,18 +63,18 @@ public class PageTag extends PageAssignmentHolderDetails<TagType, AssignmentHold
         super(parameters);
     }
 
-    public PageTag(final PrismObject<TagType> obj) {
+    public PageTag(final PrismObject<MarkType> obj) {
         super(obj);
     }
 
     @Override
-    public Class<TagType> getType() {
-        return TagType.class;
+    public Class<MarkType> getType() {
+        return MarkType.class;
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, IModel<TagType> summaryModel) {
-        return new ObjectSummaryPanel<>(id, TagType.class, summaryModel, getSummaryPanelSpecification()) {
+    protected Panel createSummaryPanel(String id, IModel<MarkType> summaryModel) {
+        return new ObjectSummaryPanel<>(id, MarkType.class, summaryModel, getSummaryPanelSpecification()) {
 
             @Override
             protected String getDefaultIconCssClass() {
@@ -95,13 +95,13 @@ public class PageTag extends PageAssignmentHolderDetails<TagType, AssignmentHold
 
     private List<Class<? extends Containerable>> getAllDetailsTypes() {
         return Arrays.asList(
-                TagType.class,
+                MarkType.class,
                 GlobalPolicyRuleType.class
         );
     }
 
     @Override
-    protected AssignmentHolderDetailsModel<TagType> createObjectDetailsModels(PrismObject<TagType> object) {
+    protected AssignmentHolderDetailsModel<MarkType> createObjectDetailsModels(PrismObject<MarkType> object) {
         return new AssignmentHolderDetailsModel<>(createPrismObjectModel(object), this) {
 
             @Override

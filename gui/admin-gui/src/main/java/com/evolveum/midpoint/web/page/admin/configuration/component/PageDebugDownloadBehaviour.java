@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author lazyman
  */
-public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
+public class PageDebugDownloadBehaviour<T extends ObjectType> extends AjaxDownloadBehaviorFromFile {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugDownloadBehaviour.class);
 
@@ -51,7 +51,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
 
     private boolean exportAll;
-    private Class<? extends ObjectType> type;
+    private Class<T> type;
     private boolean useZip;
     private boolean showAllItems;
     private ObjectQuery query;
@@ -71,7 +71,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         return type;
     }
 
-    public void setType(Class<? extends ObjectType> type) {
+    public void setType(Class<T> type) {
         this.type = type;
     }
 
@@ -163,7 +163,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private void dumpObjectsToStream(final Writer writer, OperationResult result) throws Exception {
         final PageBase page = getPage();
 
-        ResultHandler handler = (object, parentResult) -> {
+        ResultHandler<T> handler = (object, parentResult) -> {
             try {
                 String xml = page.getPrismContext().xmlSerializer().options(createSerializeForExport()).serialize(object);
                 writer.write('\t');

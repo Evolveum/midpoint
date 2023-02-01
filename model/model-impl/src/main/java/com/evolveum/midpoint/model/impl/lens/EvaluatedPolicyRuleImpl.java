@@ -539,16 +539,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         count = value;
     }
 
-    @NotNull Collection<String> getTriggeredEventTags() {
+    @NotNull Collection<String> getTriggeredEventMarks() {
         if (isTriggered()) {
-            return getAllEventTags();
+            return getAllEventMarks();
         } else {
             return Set.of();
         }
     }
 
-    @NotNull Collection<String> getAllEventTags() {
-        return policyRuleBean.getTagRef().stream()
+    @NotNull Collection<String> getAllEventMarks() {
+        return policyRuleBean.getMarkRef().stream()
                 .map(AbstractReferencable::getOid)
                 .collect(Collectors.toSet());
     }

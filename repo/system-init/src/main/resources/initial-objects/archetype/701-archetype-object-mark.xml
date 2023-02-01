@@ -5,13 +5,13 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000700"
+<archetype oid="00000000-0000-0000-0000-000000000701"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Event tag</name>
-    <description>Denotes tags for audit and simulation events</description>
+    <name>Object mark</name>
+    <description>Denotes marks for objects and assignments. Replaces legacy policy situations.</description>
     <assignment>
         <assignmentRelation>
-            <holderType>TagType</holderType>
+            <holderType>MarkType</holderType>
         </assignmentRelation>
     </assignment>
     <archetypeType>structural</archetypeType>

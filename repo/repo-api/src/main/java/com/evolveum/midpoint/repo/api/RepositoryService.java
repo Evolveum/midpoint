@@ -622,8 +622,8 @@ public interface RepositoryService {
     /** Returns `true` if the given object type is supported. */
     boolean supports(@NotNull Class<? extends ObjectType> type);
 
-    default boolean supportsTags() {
-        return supports(TagType.class);
+    default boolean supportsMarks() {
+        return supports(MarkType.class);
     }
 
     /**

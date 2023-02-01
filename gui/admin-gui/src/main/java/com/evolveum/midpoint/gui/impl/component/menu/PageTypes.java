@@ -56,7 +56,7 @@ public enum PageTypes {
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE),
     SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
-    TAG("tags", GuiStyleConstants.CLASS_TAG, PageTags.class, PageTag.class, TagType.COMPLEX_TYPE);
+    TAG("tags", GuiStyleConstants.CLASS_TAG, PageTags.class, PageTag.class, MarkType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 public class AvailableTagSearchItemWrapper extends ChoicesSearchItemWrapper<String> {
 
     public AvailableTagSearchItemWrapper(List<DisplayableValue<String>> availableValues) {
-        super(SimulationResultProcessedObjectType.F_EVENT_TAG_REF, availableValues);
+        super(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, availableValues);
     }
 
     @Override
@@ -34,6 +34,6 @@ public class AvailableTagSearchItemWrapper extends ChoicesSearchItemWrapper<Stri
         }
 
         return PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                .item(getPath()).ref(getValue().getValue(), TagType.COMPLEX_TYPE).buildFilter();
+                .item(getPath()).ref(getValue().getValue(), MarkType.COMPLEX_TYPE).buildFilter();
     }
 }

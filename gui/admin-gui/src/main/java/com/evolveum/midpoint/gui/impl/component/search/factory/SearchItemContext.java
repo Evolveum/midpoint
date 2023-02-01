@@ -15,12 +15,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -28,19 +25,24 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.Nullable;
 
 public class SearchItemContext implements Serializable {
 
 
 //    PrismContainerDefinition<? extends Containerable> containerDefinition;
+
+    private SearchContext additionalSearchContext;
     private SearchItemType item;
 
     @Nullable private ItemDefinition<?> itemDef;
@@ -55,6 +57,7 @@ public class SearchItemContext implements Serializable {
             Class<?> containerType,
             Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType searchItem,
+            SearchContext additionalSearchContext,
             ModelServiceLocator modelServiceLocator) {
 
         this.item = searchItem;
@@ -69,6 +72,7 @@ public class SearchItemContext implements Serializable {
         this.valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
+        this.additionalSearchContext = additionalSearchContext;
     }
 
     private List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
@@ -226,5 +230,9 @@ public class SearchItemContext implements Serializable {
 
     public Class<?> getContainerClassType() {
         return containerType;
+    }
+
+    public SearchContext getAdditionalSearchContext() {
+        return additionalSearchContext;
     }
 }
