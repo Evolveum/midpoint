@@ -111,6 +111,10 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     @Override
+    protected void createBreadcrumb() {
+    }
+
+    @Override
     protected IModel<String> createPageTitleModel() {
         return () -> null;
     }

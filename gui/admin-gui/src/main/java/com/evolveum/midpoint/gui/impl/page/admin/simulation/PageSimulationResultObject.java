@@ -90,6 +90,10 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         initLayout();
     }
 
+    @Override
+    protected void createBreadcrumb() {
+    }
+
     private void initModels() {
         resultModel = new LoadableDetachableModel<>() {
 

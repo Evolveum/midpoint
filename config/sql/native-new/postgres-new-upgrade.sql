@@ -173,7 +173,6 @@ $aa$);
 call apply_change(12, $aa$
     do $$
         begin
-            ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
             -- Temporary code, to migrate from TagType to MarkType
             if 'TAG'::name = any(enum_range(null::ObjectType)::name[]) then
                ALTER TYPE ObjectType RENAME VALUE 'TAG' TO 'MARK';
@@ -182,6 +181,7 @@ call apply_change(12, $aa$
                ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'SYSTEM_CONFIGURATION';
                ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PROJECTION';
             end if;
+            ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
             ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
         end
     $$;
