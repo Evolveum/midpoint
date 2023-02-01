@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
@@ -43,11 +42,11 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
                 .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
                 .id(resultOid);
 
-        String tagOid = getTagOid();
-        if (StringUtils.isNotEmpty(tagOid)) {
+        String markOid = getMarkOid();
+        if (StringUtils.isNotEmpty(markOid)) {
             builder = builder
                     .and()
-                    .ref(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, MarkType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, tagOid).all();
+                    .ref(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, MarkType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, markOid).all();
         }
 
         return builder.build();
@@ -58,7 +57,7 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
         return null;
     }
 
-    protected String getTagOid() {
+    protected String getMarkOid() {
         return null;
     }
 

@@ -49,12 +49,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<List<MarkType>> availableTagsModel;
+    private IModel<List<MarkType>> availableMarksModel;
 
-    public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableTagsModel) {
+    public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
 
-        this.availableTagsModel = availableTagsModel;
+        this.availableMarksModel = availableMarksModel;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     protected SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
 
-        List<DisplayableValue<String>> values = availableTagsModel.getObject().stream()
+        List<DisplayableValue<String>> values = availableMarksModel.getObject().stream()
                 .map(o -> new DisplayableValueImpl<>(
                         o.getOid(),
                         WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
@@ -129,14 +129,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                     // resolve names from markRefs
                     List<String> names = eventMarkRefs.stream()
                             .map(ref -> {
-                                List<MarkType> tags = availableTagsModel.getObject();
-                                MarkType tag = tags.stream()
+                                List<MarkType> marks = availableMarksModel.getObject();
+                                MarkType mark = marks.stream()
                                         .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
                                         .findFirst().orElse(null);
-                                if (tag == null) {
+                                if (mark == null) {
                                     return null;
                                 }
-                                return WebComponentUtil.getDisplayNameOrName(tag.asPrismObject());
+                                return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
                             })
                             .filter(name -> name != null)
                             .collect(Collectors.toList());
@@ -164,9 +164,9 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
         PageParameters params = new PageParameters();
         params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
-        String tagOid = getTagOid();
-        if (tagOid != null) {
-            params.set(PageSimulationResultObject.PAGE_PARAMETER_TAG_OID, tagOid);
+        String markOid = getMarkOid();
+        if (markOid != null) {
+            params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }
         params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
 
@@ -183,8 +183,8 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             }
 
             @Override
-            protected String getTagOid() {
-                return ProcessedObjectsPanel.this.getTagOid();
+            protected String getMarkOid() {
+                return ProcessedObjectsPanel.this.getMarkOid();
             }
         };
     }
@@ -194,7 +194,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         return null;
     }
 
-    protected String getTagOid() {
+    protected String getMarkOid() {
         return null;
     }
 

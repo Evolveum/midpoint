@@ -19,15 +19,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProc
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFactory<String, AvailableTagSearchItemWrapper> {
+public class AvailableMarkItemWrapperFactory extends AbstractSearchItemWrapperFactory<String, AvailableMarkSearchItemWrapper> {
 
     @Override
-    protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
+    protected AvailableMarkSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         SearchContext additionalSearchContext = ctx.getAdditionalSearchContext();
         List<DisplayableValue<String>> availableEventMarks = additionalSearchContext != null ?
                 additionalSearchContext.getAvailableEventMarks() : new ArrayList<>();
 
-        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventMarks);
+        AvailableMarkSearchItemWrapper wrapper = new AvailableMarkSearchItemWrapper(availableEventMarks);
         wrapper.setCanConfigure(false);
         wrapper.setVisible(true);
         return wrapper;

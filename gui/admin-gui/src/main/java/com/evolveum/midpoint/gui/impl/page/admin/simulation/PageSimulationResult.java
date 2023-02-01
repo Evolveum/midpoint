@@ -201,7 +201,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     @Override
                     protected void onOpenPerformed(AjaxRequestTarget target) {
-                        openTagMetricPerformed(target);
+                        openMarkMetricPerformed(target);
                     }
                 });
             }
@@ -214,10 +214,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         redirectBack();
     }
 
-    private void openTagMetricPerformed(AjaxRequestTarget target) {
+    private void openMarkMetricPerformed(AjaxRequestTarget target) {
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
-//        params.add(SimulationPage.PAGE_PARAMETER_TAG_OID, null);    // todo add tag oid somehow
+//        params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, null);    // todo add mark oid somehow
         navigateToNext(PageSimulationResultObjects.class, params);
     }
 

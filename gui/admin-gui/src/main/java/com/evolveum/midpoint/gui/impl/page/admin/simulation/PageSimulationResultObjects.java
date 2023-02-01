@@ -42,8 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
         urls = {
                 @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/objects",
                         matchUrlForSecurity = "/admin/simulations/result/?*/objects"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/objects",
-                        matchUrlForSecurity = "/admin/simulations/result/?*/tag/?*/objects")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/mark/${MARK_OID}/objects",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/mark/?*/objects")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -63,7 +63,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private IModel<SimulationResultType> resultModel;
 
-    private IModel<List<MarkType>> availableTagsModel;
+    private IModel<List<MarkType>> availableMarksModel;
 
     public PageSimulationResultObjects() {
         this(new PageParameters());
@@ -85,11 +85,11 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
         };
 
-        availableTagsModel = new LoadableDetachableModel<>() {
+        availableMarksModel = new LoadableDetachableModel<>() {
 
             @Override
             protected List<MarkType> load() {
-                String[] tagOids = resultModel.getObject().getMetric().stream()
+                String[] markOids = resultModel.getObject().getMetric().stream()
                         .map(m -> m.getRef() != null ? m.getRef().getEventMarkRef() : null)
                         .filter(Objects::nonNull)
                         .map(AbstractReferencable::getOid)
@@ -98,12 +98,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
                 ObjectQuery query = getPrismContext()
                         .queryFor(MarkType.class)
-                        .id(tagOids).build();
+                        .id(markOids).build();
 
-                List<PrismObject<MarkType>> tags = WebModelServiceUtils.searchObjects(
+                List<PrismObject<MarkType>> marks = WebModelServiceUtils.searchObjects(
                         MarkType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
 
-                return tags.stream()
+                return marks.stream()
                         .map(o -> o.asObjectable())
                         .collect(Collectors.toUnmodifiableList());
             }
@@ -139,7 +139,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         };
         add(navigation);
 
-        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableTagsModel) {
+        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableMarksModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
@@ -152,8 +152,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
 
             @Override
-            protected String getTagOid() {
-                String oid = getPageParameterTagOid();
+            protected String getMarkOid() {
+                String oid = getPageParameterMarkOid();
                 if (oid != null && !Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
