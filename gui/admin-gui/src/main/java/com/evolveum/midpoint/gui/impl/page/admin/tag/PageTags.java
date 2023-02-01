@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.tag;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -20,8 +19,10 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -63,7 +64,12 @@ public class PageTags extends PageAdmin {
     }
 
     private void initLayout() {
+        if (!isNativeRepo()) {
+            warn(getString("PageTags.nonNativeRepositoryWarning"));
+        }
+
         Form form = new MidpointForm(ID_FORM);
+        form.add(new VisibleBehaviour(() -> isNativeRepo()));
         add(form);
 
         MainObjectListPanel<MarkType> table = new MainObjectListPanel<>(ID_TABLE, MarkType.class) {
