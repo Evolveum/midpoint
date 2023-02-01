@@ -9,28 +9,31 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="d-flex w-100">
-        <span wicket:id="title" class="flex-grow-1"/>
-        <a class="btn btn-sm p-0" wicket:id="open" wicket:message="title:MetricWidgetPanel.open">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-    </div>
-    <div class="d-flex w-100 gap-2 mt-2">
-        <div class="d-flex flex-column flex-fill gap-1">
-            <div>
-                <span wicket:id="trendBadge"/>
+    <div class="p-3">
+        <div class="d-flex w-100">
+            <span wicket:id="title"/>
+        </div>
+        <div class="d-flex w-100 gap-2 mt-2">
+            <div class="d-flex flex-column flex-fill gap-1">
+                <div>
+                    <span wicket:id="trendBadge"/>
+                </div>
+                <h3 class="mb-0" wicket:id="value"/>
+                <small wicket:id="valueDescription" class="text-secondary"/>
             </div>
-            <h3 wicket:id="value"/>
-            <small wicket:id="valueDescription" class="text-secondary"/>
-        </div>
-        <div class="d-flex align-items-end justify-content-end flex-fill">
-            <!-- todo icon -->
-            <!--<div wicket:id="iconContainer" class="rounded bg-green p-1">
-                <i wicket:id="icon" class="fa-fw fa-solid fa-rocket text-white"></i>
-            </div>-->
-            <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
+            <div class="d-flex align-items-end justify-content-end flex-fill">
+                <!-- todo icon -->
+                <!--<div wicket:id="iconContainer" class="rounded bg-green p-1">
+                    <i wicket:id="icon" class="fa-fw fa-solid fa-rocket text-white"></i>
+                </div>-->
+                <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
+            </div>
         </div>
     </div>
+    <a class="bg-green rounded-bottom text-center p-1" wicket:id="open" wicket:message="">
+        <span class="text-white"><wicket:message key="MetricWidgetPanel.open"/></span>
+        <i class="ml-1 fa-solid fa-circle-arrow-right text-white"></i>
+    </a>
 </wicket:panel>
 </body>
 </html>

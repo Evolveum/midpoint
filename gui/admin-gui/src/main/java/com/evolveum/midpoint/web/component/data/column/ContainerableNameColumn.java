@@ -8,15 +8,6 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import java.util.Collection;
-import java.util.Collections;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
-
-import com.evolveum.midpoint.web.component.util.SelectableRow;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -26,8 +17,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -35,12 +26,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.error.PageOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -133,16 +124,19 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
     protected String handleDefaultValue(SR selectableBean) {
         return getName(selectableBean);
     }
+
     @Override
     protected void processVariables(VariablesMap variablesMap, C rowValue) {
         variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
     }
 
     @Override
-    protected Collection<String> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    protected Collection<String> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+
         return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
-                    MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                    task, task.getResult());
+                MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
+                task, task.getResult());
     }
 
     @Override

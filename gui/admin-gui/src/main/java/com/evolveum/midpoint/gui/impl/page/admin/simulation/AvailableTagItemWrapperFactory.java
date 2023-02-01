@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.factory.AbstractSearchItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.component.search.factory.SearchItemContext;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
 /**
@@ -20,7 +23,14 @@ public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFac
 
     @Override
     protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new AvailableTagSearchItemWrapper( (List) ctx.getAvailableValues());
+        SearchContext additionalSearchContext = ctx.getAdditionalSearchContext();
+        List<DisplayableValue<String>> availableEventTags = additionalSearchContext != null ?
+                additionalSearchContext.getAvailableEventTags() : new ArrayList<>();
+
+        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventTags);
+        wrapper.setCanConfigure(false);
+        wrapper.setVisible(true);
+        return wrapper;
     }
 
     @Override

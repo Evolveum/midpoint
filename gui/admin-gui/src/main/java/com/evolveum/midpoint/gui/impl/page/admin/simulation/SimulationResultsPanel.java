@@ -7,10 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -24,7 +31,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -32,6 +41,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
@@ -87,7 +98,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
+                return getDefaultCompositedIconBuilder("fa-solid fa-trash-can");
             }
 
             @Override
@@ -95,12 +106,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 return null;
             }
         });
-        items.add(new ButtonInlineMenuItem(createStringResource("Delete processed objects")) {
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa-solid fa-trash");
-            }
+        items.add(new InlineMenuItem(createStringResource("Delete processed objects")) {
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -119,16 +125,17 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             XMLGregorianCalendar start = result.getStartTimestamp();
             if (start == null) {
-                return null;    // todo viliam
+                return getString("SimulationResultsPanel.notStartedYet");
             }
 
             XMLGregorianCalendar end = result.getEndTimestamp();
             if (end == null) {
-                // todo viliam
-                return null;
+                end = MiscUtil.asXMLGregorianCalendar(new Date());
             }
 
-            return null;
+            long duration = end.toGregorianCalendar().getTimeInMillis() - start.toGregorianCalendar().getTimeInMillis();
+
+            return DurationFormatUtils.formatDurationWords(duration, true, true);
         }));
         columns.add(new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.executionState")) {
 
@@ -150,5 +157,24 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, object.getOid());
 
         getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+    }
+
+    @Override
+    protected IColumn<SelectableBean<SimulationResultType>, String> createCustomExportableColumn(
+            IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+
+        ItemPath path = WebComponentUtil.getPath(customColumn);
+        if (SimulationResultType.F_START_TIMESTAMP.equivalent(path)) {
+            return createStartTimestampColumn(displayModel);
+        }
+
+        return super.createCustomExportableColumn(displayModel, customColumn, expression);
+    }
+
+    private IColumn<SelectableBean<SimulationResultType>, String> createStartTimestampColumn(IModel<String> displayModel) {
+        return new LambdaColumn<>(displayModel, row -> {
+            XMLGregorianCalendar start = row.getValue().getStartTimestamp();
+            return start != null ? WebComponentUtil.getLongDateTimeFormattedValue(start, getPageBase()) : null;
+        });
     }
 }

@@ -35,17 +35,18 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new TextSearchItemWrapperFactory());
     }
 
-    public static  PropertySearchItemWrapper createPropertySearchItemWrapper(
+    public static PropertySearchItemWrapper createPropertySearchItemWrapper(
             Class<?> type,
             Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType item,
+            SearchContext additionalSearchContext,
             ModelServiceLocator modelServiceLocator) {
 
-        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, modelServiceLocator);
+        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, additionalSearchContext, modelServiceLocator);
 
         AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> searchItemFactory =
                 findSearchItemWrapperFactory(searchItemContext);
-        if (searchItemFactory ==  null) {
+        if (searchItemFactory == null) {
             return null;
         }
         PropertySearchItemWrapper searchItem = searchItemFactory.create(searchItemContext);
@@ -55,7 +56,5 @@ public class SearchConfigurationWrapperFactory {
     private static AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> findSearchItemWrapperFactory(SearchItemContext searchItemContext) {
         return factories.stream().filter(f -> f.match(searchItemContext)).findFirst().orElse(null);
     }
-
-
 
 }

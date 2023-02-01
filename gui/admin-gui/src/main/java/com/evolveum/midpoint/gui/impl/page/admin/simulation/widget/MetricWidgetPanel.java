@@ -77,11 +77,11 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     private void initLayout() {
-        add(AttributeModifier.prepend("class", "d-flex flex-column border rounded-xl bg-white p-3"));
+        add(AttributeModifier.prepend("class", "d-flex flex-column border rounded bg-white"));
 
         Label title = new Label(ID_TITLE, () -> {
             DisplayType display = getModelObject().getDisplay();
-            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
+            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : "Some thing or other";  // todo fix
         });
         add(title);
 

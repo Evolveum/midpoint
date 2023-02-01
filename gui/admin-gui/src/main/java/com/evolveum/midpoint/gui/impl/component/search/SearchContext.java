@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionReportEngineConfigurationType;
-
-import javax.xml.namespace.QName;
 
 public class SearchContext {
 
@@ -23,6 +26,8 @@ public class SearchContext {
 
     private QName assignmentTargetType;
     private ObjectCollectionReportEngineConfigurationType reportCollection;
+
+    private List<DisplayableValue<String>> availableEventTags;
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
@@ -62,5 +67,16 @@ public class SearchContext {
 
     public void setDefinitionOverride(PrismContainerDefinition<? extends Containerable> definitionOverride) {
         this.definitionOverride = definitionOverride;
+    }
+
+    public List<DisplayableValue<String>> getAvailableEventTags() {
+        if (availableEventTags == null) {
+            availableEventTags = new ArrayList<>();
+        }
+        return availableEventTags;
+    }
+
+    public void setAvailableEventTags(List<DisplayableValue<String>> availableEventTags) {
+        this.availableEventTags = availableEventTags;
     }
 }

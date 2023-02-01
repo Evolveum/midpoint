@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.wicket.RestartResponseException;
@@ -25,16 +25,13 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
@@ -61,17 +58,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = SimulationPage.class.getName() + ".";
-
-    private static final String OPERATION_LOAD_RESULT = DOT_CLASS + "loadResult";
-    private static final String OPERATION_LOAD_TAG = DOT_CLASS + "loadTag";
-
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_TABLE = "table";
 
     private IModel<SimulationResultType> resultModel;
 
-    private IModel<Search<SimulationResultProcessedObjectType>> searchModel;
+    private IModel<List<TagType>> availableTagsModel;
 
     public PageSimulationResultObjects() {
         this(new PageParameters());
@@ -93,41 +85,34 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
         };
 
-//        searchModel = new LoadableDetachableModel<>() {
-//            @Override
-//            protected Search<SimulationResultProcessedObjectType> load() {
-//                GenericPageStorage storage = getSessionStorage().getSimulation();
-//                Search search = storage.getSearch();
-//
-//                if (search == null || search.isForceReload()) {
-//                    SearchContext searchCtx = new SearchContext();
-//                    searchCtx.setPanelType(CollectionPanelType.SIMULATION_PROCESSED_OBJECTS);
-//
-//                    SearchBuilder searchBuilder = new SearchBuilder(SimulationResultProcessedObjectType.class)
-//                            .additionalSearchContext(searchCtx)
-//                            .modelServiceLocator(PageSimulationResultObjects.this);
-//                    search = searchBuilder.build();
-//
-//                    AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
-//                            search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
-//                    if (eventTagRefItem != null) {
-//                        List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-//                                TagType.class, null, getPageTask().getResult(), PageSimulationResultObjects.this);
-//
-//                        List<DisplayableValue<String>> values = tags.stream()
-//                                .map(o -> new DisplayableValueImpl<>(
-//                                        o.getOid(),
-//                                        WebComponentUtil.getDisplayNameOrName(o),
-//                                        o.asObjectable().getDescription()))
-//                                .collect(Collectors.toList());
-//                        eventTagRefItem.getAvailableValues().addAll(values);
-//                    }
-//
-//                    storage.setSearch(search);
-//                }
-//                return search;
-//            }
-//        };
+        availableTagsModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<TagType> load() {
+                String[] tagOids = resultModel.getObject().getMetric().stream()
+                        .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
+                        .filter(Objects::nonNull)
+                        .map(AbstractReferencable::getOid)
+                        .filter(Utils::isPrismObjectOidValid)
+                        .distinct().toArray(String[]::new);
+
+                ObjectQuery query = getPrismContext()
+                        .queryFor(TagType.class)
+                        .id(tagOids).build();
+
+                List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
+                        TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
+
+                return tags.stream()
+                        .map(o -> o.asObjectable())
+                        .collect(Collectors.toUnmodifiableList());
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return () -> null;
     }
 
     private void initLayout() {
@@ -145,12 +130,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                PageSimulationResultObjects.this.onBackPerformed(target);
+                PageSimulationResultObjects.this.onBackPerformed();
             }
         };
         add(navigation);
 
-        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE) {
+        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableTagsModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
@@ -171,43 +156,11 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
                 return oid;
             }
-
-            @Override
-            protected Search createSearch() {
-                Search search = super.createSearch();
-
-                AvailableTagSearchItemWrapper eventTagRefItem = (AvailableTagSearchItemWrapper)
-                        search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_TAG_REF);
-                if (eventTagRefItem != null) {
-                    List<String> tagOids = resultModel.getObject().getMetric().stream()
-                            .map(m -> m.getRef() != null ? m.getRef().getEventTagRef() : null)
-                            .filter(ref -> ref != null)
-                            .map(ref -> ref.getOid())
-                            .filter(oid -> Utils.isPrismObjectOidValid(oid))
-                            .distinct().collect(Collectors.toList());
-
-                    ObjectQuery query = getPrismContext().queryFor(TagType.class).id(tagOids.toArray(new String[tagOids.size()])).build();
-
-                    List<PrismObject<TagType>> tags = WebModelServiceUtils.searchObjects(
-                            TagType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
-
-                    List<DisplayableValue<String>> values = tags.stream()
-                            .map(o -> new DisplayableValueImpl<>(
-                                    o.getOid(),
-                                    WebComponentUtil.getDisplayNameOrName(o),
-                                    o.asObjectable().getDescription()))
-                            .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
-                            .collect(Collectors.toList());
-                    eventTagRefItem.getAvailableValues().addAll(values);
-                }
-
-                return search;
-            }
         };
         add(table);
     }
 
-    private void onBackPerformed(AjaxRequestTarget target) {
+    private void onBackPerformed() {
         redirectBack();
     }
 }
