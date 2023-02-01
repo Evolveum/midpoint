@@ -1,10 +1,12 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.data.column.ReportExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import com.evolveum.midpoint.prism.*;
@@ -47,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lskublik
  */
 
-public class ReportObjectsListPanel<C extends Containerable> extends ContainerableListPanel<C, SelectableBean<C>> {
+public class ReportObjectsListPanel<C extends Serializable> extends ContainerableListPanel<C, SelectableBean<C>> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ReportObjectsListPanel.class);
@@ -124,37 +126,36 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected ISelectableDataProvider<SelectableBean<C>> createProvider() {
-        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this, getSearchModel(), null, false) {
+        SelectableBeanDataProvider<C> provider = new SelectableBeanDataProvider<>(this, getSearchModel(), null, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-                    throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
-                QName qNameType = WebComponentUtil.containerClassToQName(getPrismContext(), type);
+            protected List<C> searchObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
+                QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {
                     variables.putAll(getSearchModel().getObject().getFilterVariables(getVariables(), getPageBase()));
                     processReferenceVariables(variables);
                 }
-                List<C> list = (List<C>) getModelInteractionService().searchObjectsFromCollection(getReport().getObjectCollection().getCollection(), qNameType, defaultOptions, query.getPaging(), variables, task, result);
+                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
 
+                List<C> list = (List<C>) getModelInteractionService().searchObjectsFromCollection(getReport().getObjectCollection().getCollection(), qNameType, defaultOptions, query.getPaging(), variables, task, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
                 }
-
-                List<SelectableBean<C>> data = new ArrayList<SelectableBean<C>>();
-                for (C object : list) {
-                    data.add(createDataObjectWrapper(object));
-                }
-                return data;
+                return list;
             }
 
             @Override
-            protected Integer countObjects(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
+            protected boolean match(C selectedValue, C foundValue) {
+                return false;
+            }
+
+            @Override
+            protected Integer countObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
                     throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                 Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
-                QName qNameType = WebComponentUtil.containerClassToQName(getPrismContext(), type);
+                QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {
                     variables.putAll(getSearchModel().getObject().getFilterVariables(getVariables(), getPageBase()));

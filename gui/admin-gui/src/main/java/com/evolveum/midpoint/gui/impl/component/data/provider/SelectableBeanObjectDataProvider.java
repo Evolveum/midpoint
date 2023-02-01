@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -19,25 +18,28 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
 
 /**
  * @author lazyman
  * @author semancik
  */
-public class SelectableBeanObjectDataProvider<O extends ObjectType> extends SelectableBeanContainerDataProvider<O> {
+public class SelectableBeanObjectDataProvider<O extends ObjectType> extends SelectableBeanDataProvider<O> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
@@ -50,22 +52,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     public SelectableBeanObjectDataProvider(Component component, Set<O> selected) {
         super(component, Model.of(), selected, true);
-    }
-
-    public List<SelectableBean<O>> createDataObjectWrappers(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends O>> list = (List) getModelService().searchObjects(type, query, options, task, result);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
-        }
-
-        List<SelectableBean<O>> data = new ArrayList<>();
-        for (PrismObject<? extends O> object : list) {
-            data.add(createDataObjectWrapper(object.asObjectable()));
-        }
-
-        return data;
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
@@ -84,7 +70,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         //TODO result
 
         for (O s : getSelected()) {
-            if (s.getOid().equals(obj.getOid())) {
+            if (match(s, obj)) {
                 selectable.setSelected(true);
                 model.setSelected(true);
             }
@@ -94,57 +80,20 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     @Override
-    protected Integer countObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return getModelService().countObjects(type, getQuery(), currentOptions, task, result);
+    protected boolean match(O selectedValue, O foundValue) {
+        return selectedValue.getOid().equals(foundValue.getOid());
     }
 
     @Override
-    public boolean isOrderingDisabled() {
-        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
-        if (guiObjectListViewType != null) {
-            if (isMemberPanel()) {
-                if (guiObjectListViewType.getAdditionalPanels() != null &&
-                        guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null) {
-                    return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
-                }
-            } else {
-                if (guiObjectListViewType.isDisableSorting() != null) {
-                    return guiObjectListViewType.isDisableSorting();
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean isUseObjectCounting() {
-        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
-        if (guiObjectListViewType != null) {
-            if (isMemberPanel()) {
-                if (guiObjectListViewType.getAdditionalPanels() != null &&
-                        guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null) {
-                    return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
-                }
-            } else {
-                if (guiObjectListViewType.isDisableCounting() != null) {
-                    return !guiObjectListViewType.isDisableCounting();
-                }
-            }
-        }
-        return true;
+    protected Integer countObjects(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions,
+            Task task, OperationResult result) throws CommonException {
+        return getModelService().countObjects(type, getQuery(), currentOptions, task, result);
     }
 
     @Override
     public IModel<SelectableBean<O>> model(SelectableBean<O> object) {
         return new Model<>(object);
-//        return new SelectableObjectModel<>(object) {
-//
-//            @Override
-//            protected PageBase getPageBase() {
-//                return SelectableBeanObjectDataProvider.this.getPageBase();
-//            }
-//        };
     }
 
     protected boolean isMemberPanel() {
@@ -155,14 +104,30 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         this.isMemberPanel = isMemberPanel;
     }
 
+
     @Override
-    protected List<O> searchObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
-        return getModelService().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
+    protected List<O> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
+        return getModelService().searchObjects(type, query, options, task, result)
+                .map(prismObject -> prismObject.asObjectable());
     }
 
     @Override
     public void detach() {
         super.detach();
         getAvailableData().clear();
+    }
+
+    @Override
+    protected GetOperationOptionsBuilder postProcessOptions(GetOperationOptionsBuilder optionsBuilder) {
+        if (isEmptyListOnNullQuery()) {
+            // TODO also for other classes
+            if (ShadowType.class.equals(getType())) {
+                return optionsBuilder
+                        .definitionProcessing(ONLY_IF_EXISTS)
+                        .item(ShadowType.F_FETCH_RESULT).definitionProcessing(FULL)
+                        .item(ShadowType.F_AUXILIARY_OBJECT_CLASS).definitionProcessing(FULL);
+            }
+        }
+        return optionsBuilder;
     }
 }

@@ -164,14 +164,14 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             }
 
             @Override
-            protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+            protected Integer countObjects(Class<AuditEventRecordType> type, ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
                     throws CommonException {
                 return getPageBase().getModelAuditService().countObjects(query, currentOptions, task, result);
             }
 
             @Override
-            protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+            protected List<AuditEventRecordType> searchObjects(Class<AuditEventRecordType> type, ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
                     throws CommonException {
                 return getPageBase().getModelAuditService().searchObjects(query, options, task, result);

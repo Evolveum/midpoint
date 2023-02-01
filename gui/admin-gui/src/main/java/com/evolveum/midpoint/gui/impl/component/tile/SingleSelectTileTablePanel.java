@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
@@ -88,7 +89,7 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 boolean oldState = getModelObject().getValue().isSelected();
-                ((SelectableBeanObjectDataProvider) getProvider()).clearSelectedObjects();
+                ((SelectableBeanDataProvider) getProvider()).clearSelectedObjects();
                 getTilesModel().getObject().forEach(tile -> {
                     tile.setSelected(false);
                     tile.getValue().setSelected(false);
