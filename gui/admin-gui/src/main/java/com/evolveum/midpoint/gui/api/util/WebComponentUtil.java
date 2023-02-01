@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 
-import com.evolveum.midpoint.gui.impl.page.admin.tag.PageMark;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
