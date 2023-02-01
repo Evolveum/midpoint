@@ -3602,7 +3602,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         try (JdbcSession session = mapping.repositoryContext().newJdbcSession().startTransaction()) {
             session.newUpdate(mapping.defaultAlias())
                     .set(mapping.defaultAlias().fullObject, fullObject)
-                    .where(mapping.defaultAlias().oid.eq(SqaleUtils.oidToUUid(oid)))
+                    .where(mapping.defaultAlias().oid.eq(SqaleUtils.oidToUuid(oid)))
                     .execute();
             session.commit();
         }

@@ -305,22 +305,24 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
                         .map(row -> Objects.requireNonNull(row.get(entityPath)).ownerOid)
                         .collect(Collectors.toSet());
 
-                // TODO do we need get options here as well? Is there a scenario where we load container
-                //  and define what to load for referenced/owner object?
-                QueryTableMapping<OS, OQ, OR> mapping = Objects.requireNonNull(ownerMappingSupplier).get();
-                OQ o = mapping.defaultAlias();
-                List<Tuple> result = jdbcSession.newQuery()
-                        .select(o.oid, o.fullObject)
-                        .from(o)
-                        .where(o.oid.in(ownerOids))
-                        .fetch();
-                for (Tuple row : result) {
-                    UUID oid = Objects.requireNonNull(row.get(o.oid));
-                    OS owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), mapping.schemaType());
-                    PrismReference reference = owner.asPrismObject().findReference(referencePath);
-                    refsByOwnerAndTarget.put(oid, reference.getRealValues().stream()
-                            .map(r -> (ObjectReferenceType) r)
-                            .collect(Collectors.groupingBy(r -> r.getOid(), Collectors.toList())));
+                if (!ownerOids.isEmpty()) {
+                    // TODO do we need get options here as well? Is there a scenario where we load container
+                    //  and define what to load for referenced/owner object?
+                    QueryTableMapping<OS, OQ, OR> mapping = Objects.requireNonNull(ownerMappingSupplier).get();
+                    OQ o = mapping.defaultAlias();
+                    List<Tuple> result = jdbcSession.newQuery()
+                            .select(o.oid, o.fullObject)
+                            .from(o)
+                            .where(o.oid.in(ownerOids))
+                            .fetch();
+                    for (Tuple row : result) {
+                        UUID oid = Objects.requireNonNull(row.get(o.oid));
+                        OS owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), mapping.schemaType());
+                        PrismReference reference = owner.asPrismObject().findReference(referencePath);
+                        refsByOwnerAndTarget.put(oid, reference.getRealValues().stream()
+                                .map(r -> (ObjectReferenceType) r)
+                                .collect(Collectors.groupingBy(r -> r.getOid(), Collectors.toList())));
+                    }
                 }
             }
 

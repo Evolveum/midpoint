@@ -188,7 +188,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 // serializedDelta is transient, needed for changed items later
                 deltaRow.serializedDelta = serializedDelta;
                 deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
-                deltaRow.deltaOid = SqaleUtils.oidToUUid(delta.getOid());
+                deltaRow.deltaOid = SqaleUtils.oidToUuid(delta.getOid());
                 deltaRow.deltaType = ChangeType.toChangeTypeType(delta.getChangeType());
             }
 
@@ -212,7 +212,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     deltaRow.fullResult = fullResultForCheckSum;
                 }
             }
-            deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());
+            deltaRow.resourceOid = SqaleUtils.oidToUuid(deltaOperation.getResourceOid());
             if (deltaOperation.getObjectName() != null) {
                 deltaRow.objectNameOrig = deltaOperation.getObjectName().getOrig();
                 deltaRow.objectNameNorm = deltaOperation.getObjectName().getNorm();
@@ -333,7 +333,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 insertBatch.set(qr.recordId, auditRow.id)
                         .set(qr.timestamp, auditRow.timestamp)
                         .set(qr.name, refName)
-                        .set(qr.targetOid, SqaleUtils.oidToUUid(refValue.getOid()))
+                        .set(qr.targetOid, SqaleUtils.oidToUuid(refValue.getOid()))
                         .set(qr.targetType, refValue.getType() != null
                                 ? MObjectType.fromTypeQName(refValue.getType()) : null)
                         .set(qr.targetNameOrig, PolyString.getOrig(targetName))
