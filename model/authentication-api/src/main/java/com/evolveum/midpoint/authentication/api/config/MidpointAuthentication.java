@@ -69,6 +69,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public static final int NO_PROCESSING_MODULE_INDEX = -2;
     public static final int NO_MODULE_FOUND_INDEX = -1;
     private boolean merged = false;
+    private boolean overLockoutMaxAttempts = false;
 
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
@@ -354,6 +355,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         this.merged = merged;
     }
 
+    public boolean isOverLockoutMaxAttempts() {
+        return overLockoutMaxAttempts;
+    }
+
+    public void setOverLockoutMaxAttempts(boolean overLockoutMaxAttempts) {
+        this.overLockoutMaxAttempts = overLockoutMaxAttempts;
+    }
+
     @Override
     public String getName() {
         if (getPrincipal() instanceof MidPointPrincipal) {
@@ -465,13 +474,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return getAuthentications().stream().anyMatch(auth -> AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
     }
 
-    public boolean canRepeatAuthenticationAttempt() {
+    public boolean canRepeatAuthenticationAttempt(CredentialPolicyType credentialsPolicy) {
         if (!(getPrincipal() instanceof MidPointPrincipal)) {
             return false;
         }
         FocusType principal = ((MidPointPrincipal) getPrincipal()).getFocus();
         return !SecurityUtil.isOverFailedLockoutAttempts(principal, getSequence().getIdentifier(),
-                getProcessingModuleAuthentication().getModuleIdentifier(), null);   //todo how to get credentials policy
+                getProcessingModuleAuthentication().getModuleIdentifier(), credentialsPolicy);
     }
 
     public boolean canContinueAfterCredentialsCheckFail() {

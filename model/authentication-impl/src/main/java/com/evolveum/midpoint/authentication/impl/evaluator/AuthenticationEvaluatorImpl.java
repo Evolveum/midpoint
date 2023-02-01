@@ -126,11 +126,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication instanceof MidpointAuthentication && !((MidpointAuthentication) authentication).canContinueAfterCredentialsCheckFail()) {
-//                if (((MidpointAuthentication) authentication).wrongConfiguredSufficientModuleExists()) {
-//                    throw new AccessDeniedException("Wrong authentication modules configuration. Please, contact the system administrator");
-//                } else {
-                    throw new BadCredentialsException("web.security.provider.invalid.credentials");
-//                }
+                throw new BadCredentialsException("web.security.provider.invalid.credentials");
             }
         }
 
@@ -526,12 +522,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     private void recordModuleAuthenticationAttempt(@NotNull MidPointPrincipal principal, @NotNull AuthenticationAttemptDataType authAttemptData,
             @NotNull ConnectionEnvironment connEnv, boolean isSuccess) {
         FocusType focusBefore = principal.getFocus().clone();
-        Integer failedLogins = authAttemptData.getFailedAttempts();
+        processFailedAttempts(authAttemptData, isSuccess);
+
         boolean successLoginAfterFail = false;
-        if (failedLogins != null && failedLogins > 0) {
-            authAttemptData.setFailedAttempts(0);
-            successLoginAfterFail = true;
-        }
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
         event.setFrom(connEnv.getRemoteHostAddress());
@@ -553,6 +546,23 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
             focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
         }
+    }
+
+    private void processFailedAttempts(AuthenticationAttemptDataType authAttemptData, boolean isSuccess) {
+        Integer failedLogins = authAttemptData.getFailedAttempts();
+        if (isSuccess) {
+            if (failedLogins != null && failedLogins > 0) {
+                authAttemptData.setFailedAttempts(0);
+//                successLoginAfterFail = true;  ????
+            }
+        } else {
+            if (failedLogins == null) {
+                authAttemptData.setFailedAttempts(1);
+            } else {
+                authAttemptData.setFailedAttempts(authAttemptData.getFailedAttempts() + 1);
+            }
+        }
+
     }
 
     protected void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,

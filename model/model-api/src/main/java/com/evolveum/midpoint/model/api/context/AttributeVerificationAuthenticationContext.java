@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 public class AttributeVerificationAuthenticationContext  extends AbstractAuthenticationContext{
 
     private Map<ItemPath, String> attributeValuesMap;
+    private AttributeVerificationCredentialsPolicyType policy;
 
     public AttributeVerificationAuthenticationContext(String username, Class<? extends FocusType> principalType, Map<ItemPath, String> attributeValuesMap) {
         this(username, principalType, attributeValuesMap, null);
@@ -36,4 +38,11 @@ public class AttributeVerificationAuthenticationContext  extends AbstractAuthent
         return getAttributeValuesMap();
     }
 
+    public AttributeVerificationCredentialsPolicyType getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(AttributeVerificationCredentialsPolicyType policy) {
+        this.policy = policy;
+    }
 }

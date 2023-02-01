@@ -50,22 +50,22 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            if (mpAuthentication.canRepeatAuthenticationAttempt()) {
-                getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
-                return;
-            }
             if (mpAuthentication.isAuthenticated()) {
                 getRedirectStrategy().sendRedirect(request, response, urlSuffix);
                 return;
             }
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (mpAuthentication.getAuthenticationChannel() != null) {
-                if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
-                    urlSuffix = getPathAfterUnsuccessfulAuthentication(mpAuthentication.getAuthenticationChannel());
-                } else {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
-                }
+            if (!mpAuthentication.isOverLockoutMaxAttempts()) {
+                getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
+                return;
             }
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+//            if (mpAuthentication.getAuthenticationChannel() != null) {
+//                if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
+                    urlSuffix = getPathAfterUnsuccessfulAuthentication(mpAuthentication.getAuthenticationChannel());
+//                } else {
+//                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
+//                }
+//            }
             moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
         }
 

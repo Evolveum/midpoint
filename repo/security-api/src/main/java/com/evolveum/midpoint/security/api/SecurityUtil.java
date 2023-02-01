@@ -152,6 +152,27 @@ public class SecurityUtil {
         return securityQuestionsPolicy;
     }
 
+    public static AttributeVerificationCredentialsPolicyType getEffectiveAttributeVerificationCredentialsPolicy(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        if (creds.getDefault() == null) {
+            return creds.getAttributeVerification();
+        }
+        AttributeVerificationCredentialsPolicyType attrVerificationPolicy = creds.getAttributeVerification();
+        if (attrVerificationPolicy == null) {
+            attrVerificationPolicy = new AttributeVerificationCredentialsPolicyType();
+        } else {
+            attrVerificationPolicy = attrVerificationPolicy.clone();
+        }
+        copyDefaults(creds.getDefault(), attrVerificationPolicy);
+        return attrVerificationPolicy;
+    }
+
 
     public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {

@@ -455,6 +455,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         } else if (topLevelCredentialsPolicy.getNonce() != null) {
             topLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.cloneWithoutId()));
         }
+        if (lowLevelCredentialsPolicy.getAttributeVerification() != null) {
+            mergedPolicy.setAttributeVerification(lowLevelCredentialsPolicy.getAttributeVerification().cloneWithoutId());
+        } else if (topLevelCredentialsPolicy.getAttributeVerification() != null) {
+            mergedPolicy.setAttributeVerification(topLevelCredentialsPolicy.getAttributeVerification().cloneWithoutId());
+        }
         if (lowLevelCredentialsPolicy.getDefault() != null) {
             mergedPolicy.setDefault(lowLevelCredentialsPolicy.getDefault().cloneWithoutId());
         } else if (topLevelCredentialsPolicy.getDefault() != null) {

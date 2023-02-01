@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +76,12 @@ public class AttributeVerificationEvaluatorImpl extends AuthenticationEvaluatorI
     @Override
     protected AttributeVerificationCredentialsPolicyType getEffectiveCredentialPolicy(
             SecurityPolicyType securityPolicy, AttributeVerificationAuthenticationContext authnCtx) {
-
-        return null;
+        AttributeVerificationCredentialsPolicyType policy = authnCtx.getPolicy();
+        if (policy == null) {
+            policy = SecurityUtil.getEffectiveAttributeVerificationCredentialsPolicy(securityPolicy);
+        }
+        authnCtx.setPolicy(policy);
+        return policy;
     }
 
     @Override
