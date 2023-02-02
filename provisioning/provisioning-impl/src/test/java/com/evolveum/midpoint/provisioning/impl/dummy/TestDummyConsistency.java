@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.test.asserter.PendingOperationsAsserter;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -628,6 +629,37 @@ public class TestDummyConsistency extends AbstractDummyTest {
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
+        then();
+        display("Result", result);
+        assertSuccess(result);
+        syncServiceMock.assertNoNotifications();
+
+        assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
+
+        assertSteadyResources();
+    }
+
+    /**
+     * Refresh while the resource is down and in simulation mode.
+     * Nothing should happen - the request to retry the operations should be ignored.
+     */
+    @Test
+    public void test125RefreshAccountMorganCommunicationFailureInSimulationMode() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        clockForward("PT17M");
+
+        syncServiceMock.reset();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+
+        when();
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
         then();
         display("Result", result);
         assertSuccess(result);

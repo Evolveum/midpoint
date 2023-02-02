@@ -287,6 +287,8 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Adding resource object {}", shadow);
 
+            ctx.checkNotInSimulation();
+
             // We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
             // to propagate back to the calling code. Hence the clone.
             ShadowType shadowClone = shadow.clone();
@@ -422,6 +424,8 @@ public class ResourceObjectConverter {
         try {
 
             LOGGER.trace("Deleting resource object {}", shadow);
+
+            ctx.checkNotInSimulation();
 
             checkForCapability(ctx, DeleteCapabilityType.class);
 
@@ -756,6 +760,8 @@ public class ResourceObjectConverter {
         } else {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
+
+        ctx.checkNotInSimulation();
 
         checkForCapability(ctx, UpdateCapabilityType.class);
 
@@ -1732,6 +1738,7 @@ public class ResourceObjectConverter {
         if (operations == null || operations.isEmpty()) {
             return;
         }
+        ctx.checkNotInSimulation();
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
         for (ExecuteProvisioningScriptOperation operation : operations) {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(
