@@ -29,7 +29,15 @@ public class AvailableMarkItemWrapperFactory extends AbstractSearchItemWrapperFa
 
         AvailableMarkSearchItemWrapper wrapper = new AvailableMarkSearchItemWrapper(availableEventMarks);
         wrapper.setCanConfigure(false);
+        
+        return wrapper;
+    }
+
+    @Override
+    public AvailableMarkSearchItemWrapper create(SearchItemContext ctx) {
+        AvailableMarkSearchItemWrapper wrapper = super.create(ctx);
         wrapper.setVisible(true);
+
         return wrapper;
     }
 
