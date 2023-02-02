@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,10 +31,8 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.*;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -60,7 +59,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
-public class PasswordPanel extends InputPanel {
+public class PasswordPanel<F extends FocusType> extends InputPanel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
@@ -75,34 +74,40 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
+    private static final String ID_HINT = "hint";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
     private boolean passwordInputVisible;
     private static boolean clearPasswordInput = false;
     private static boolean setPasswordInput = false;
-    private final IModel<ProtectedStringType> model;
+    private final IModel<ProtectedStringType> passwordModel;
+    private final IModel<ProtectedStringType> hintModel;
+    private PrismObject<F> object;
 
     private boolean isReadOnly;
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        this(id, model, false, model == null || model.getObject() == null);
+    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
+        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
     }
 
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, PrismObject<F> object) {
-        this(id, model, false, model == null || model.getObject() == null, object);
+    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible) {
+        this(id, passwordModel, isReadOnly, isInputVisible, null);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
-        this(id, model, isReadOnly, isInputVisible, null);
-    }
-
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible,
+    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible,
             PrismObject<F> object) {
+        this(id, passwordModel, Model.of(), isReadOnly, isInputVisible, object);
+    }
+
+    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, IModel<ProtectedStringType> hintModel,
+            boolean isReadOnly, boolean isInputVisible, PrismObject<F> object) {
         super(id);
         this.passwordInputVisible = isInputVisible;
-        this.model = model;
+        this.passwordModel = passwordModel;
         this.isReadOnly = isReadOnly;
+        this.object = object;
+        this.hintModel = hintModel;
         initLayout(object);
     }
 
@@ -111,7 +116,7 @@ public class PasswordPanel extends InputPanel {
         super.onInitialize();
     }
 
-    private <F extends FocusType> void initLayout(PrismObject<F> object) {
+    private void initLayout(PrismObject<F> object) {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
@@ -136,7 +141,7 @@ public class PasswordPanel extends InputPanel {
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)) {
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(passwordModel)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -228,6 +233,11 @@ public class PasswordPanel extends InputPanel {
         passwordRemoveLabel.setVisible(false);
         linkContainer.add(passwordRemoveLabel);
 
+        final TextField<String> hint = new TextField<>(ID_HINT, new PasswordModel(hintModel));
+        hint.setOutputMarkupId(true);
+        hint.add(new EnableBehaviour(this::canEditPassword));
+        inputContainer.add(hint);
+
         WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
         buttonBar.add(new VisibleBehaviour(() -> isChangePasswordVisible() || isRemovePasswordVisible()));
         add(buttonBar);
@@ -248,7 +258,7 @@ public class PasswordPanel extends InputPanel {
         AjaxLink<Void> removePassword = new AjaxLink<>(ID_REMOVE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onRemovePassword(model, target);
+                onRemovePassword(passwordModel, target);
             }
         };
         removePassword.add(new VisibleBehaviour(() -> isRemovePasswordVisible()));
@@ -258,11 +268,11 @@ public class PasswordPanel extends InputPanel {
     }
 
     private boolean isChangePasswordVisible() {
-        return !isReadOnly && !passwordInputVisible && model != null && model.getObject() != null;
+        return !isReadOnly && !passwordInputVisible && passwordModel != null && passwordModel.getObject() != null;
     }
 
     protected boolean isRemovePasswordVisible() {
-        return model.getObject() != null && AuthUtil.getPrincipalUser() != null;
+        return passwordModel.getObject() != null && AuthUtil.getPrincipalUser() != null;
         // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
 //        PageBase pageBase = getPageBase();
 //        if (pageBase == null) {
@@ -300,7 +310,7 @@ public class PasswordPanel extends InputPanel {
         return "";
     }
 
-    protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
+    protected ValuePolicyType getValuePolicy(PrismObject<F> object) {
         ValuePolicyType valuePolicyType = null;
         try {
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
@@ -382,7 +392,7 @@ public class PasswordPanel extends InputPanel {
         if (valuePolicy != null) {
             Task task = getPageBase().createAnonymousTask("validation of password");
             try {
-                ProtectedStringType newValue = !setPasswordInput ? new ProtectedStringType() : model.getObject();
+                ProtectedStringType newValue = !setPasswordInput ? new ProtectedStringType() : passwordModel.getObject();
                 return getPageBase().getModelInteractionService().validateValue(
                         newValue, valuePolicy, object, task, task.getResult());
             } catch (Exception e) {
