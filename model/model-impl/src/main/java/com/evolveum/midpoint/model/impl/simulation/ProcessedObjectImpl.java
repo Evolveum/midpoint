@@ -9,14 +9,10 @@ package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -65,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @SuppressWarnings("CommentedOutCode")
 public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
 
-    private String recordId; // TODO consider removal
+    private Long recordId;
     @NotNull private final String transactionId;
     private final String oid; // TODO may be null?
     @NotNull private final Class<O> type;
@@ -83,7 +79,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     private Integer projectionRecords;
 
-    private String focusRecordId;
+    private Long focusRecordId;
 
     @Nullable private final O before;
     @Nullable private final O after;
@@ -102,7 +98,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull ObjectProcessingStateType state,
             @NotNull ParsedMetricValues parsedMetricValues,
             Boolean focus,
-            @Nullable String focusRecordId,
+            @Nullable Long focusRecordId,
             @Nullable O before,
             @Nullable O after,
             @Nullable ObjectDelta<O> delta,
@@ -143,7 +139,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 (O) bean.getAfter(),
                 DeltaConvertor.createObjectDeltaNullable(bean.getDelta()),
                 InternalState.PARSED);
-        obj.setRecordId(bean.getIdentifier());
+        obj.setRecordId(bean.getId());
         obj.setFocusRecordId(bean.getFocusRecordId());
         obj.setProjectionRecords(bean.getProjectionRecords());
         return obj;
@@ -239,11 +235,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 .objectClassName(shadow.getObjectClass());
     }
 
-    String getRecordId() {
+    Long getRecordId() {
         return recordId;
     }
 
-    void setRecordId(String recordId) {
+    private void setRecordId(Long recordId) {
         this.recordId = recordId;
         invalidateCachedBean();
     }
@@ -313,7 +309,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.cachedBean = null;
     }
 
-    void setFocusRecordId(String focusRecordId) {
+    void setFocusRecordId(Long focusRecordId) {
         this.focusRecordId = focusRecordId;
         invalidateCachedBean();
     }
@@ -342,7 +338,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
         try {
             SimulationResultProcessedObjectType bean = new SimulationResultProcessedObjectType()
-                    .identifier(recordId)
                     .transactionId(transactionId)
                     .oid(oid)
                     .type(
@@ -576,6 +571,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     PartitionScope partitionScope() {
         return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
+    }
+
+    void propagateRecordId() {
+        recordId = Objects.requireNonNull(
+                cachedBean != null ? cachedBean.getId() : null,
+                () -> "No cached bean or no ID in it: " + cachedBean);
     }
 
     static class ParsedMetricValues implements DebugDumpable {
