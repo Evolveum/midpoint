@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.JaccardSortingMethod;
-
 import com.github.openjson.JSONObject;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -175,7 +173,6 @@ public class PageRoleMiningSimple extends PageAdmin {
         super.onInitialize();
 
         networkGraphSection();
-        jaccardSection();
 
         List<PrismObject<RoleType>> roles;
         List<PrismObject<UserType>> users;
@@ -273,9 +270,6 @@ public class PageRoleMiningSimple extends PageAdmin {
 
     public void generateJsRBAM() {
 
-        List<AuthorizationType> tempAuthorizationExample = new ArrayList<>();
-
-
         if (authorizationTypeList.isEmpty()) {
             return;
         }
@@ -311,24 +305,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return (Label) get(((PageBase) getPage()).createComponentPath("graph_form", "model_cost_basic"));
     }
 
-    public void jaccardSection() {
-        Form<?> jaccardForm = new Form<>("jaccard_form");
-        jaccardForm.setOutputMarkupId(true);
 
-        AjaxButton jaccardButton = new AjaxButton(
-                "run_process_jaccard", Model.of("Test")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                JaccardSortingMethod jaccardSortingMethod = new JaccardSortingMethod(getPageBase());
-
-                jaccardSortingMethod.sortDescending();
-            }
-        };
-        jaccardButton.setOutputMarkupId(true);
-        jaccardForm.add(jaccardButton);
-        add(jaccardForm);
-
-    }
 
     public void networkGraphSection() {
 
