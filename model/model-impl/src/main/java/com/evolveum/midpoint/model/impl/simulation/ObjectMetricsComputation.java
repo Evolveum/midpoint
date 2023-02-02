@@ -48,16 +48,19 @@ class ObjectMetricsComputation<O extends ObjectType> {
 
     @NotNull private final ProcessedObject<O> processedObject;
     @NotNull private final LensElementContext<O> elementContext;
+    @NotNull private final SimulationResultImpl simulationResult;
     @NotNull private final Collection<SimulationMetricDefinitionType> metricDefinitions;
     @NotNull private final Task task;
 
     private ObjectMetricsComputation(
             @NotNull ProcessedObject<O> processedObject,
             @NotNull LensElementContext<O> elementContext,
+            @NotNull SimulationResultImpl simulationResult,
             @NotNull Collection<SimulationMetricDefinitionType> metricDefinitions,
             @NotNull Task task) {
         this.processedObject = processedObject;
         this.elementContext = elementContext;
+        this.simulationResult = simulationResult;
         this.metricDefinitions = metricDefinitions;
         this.task = task;
     }
@@ -65,16 +68,20 @@ class ObjectMetricsComputation<O extends ObjectType> {
     static <O extends ObjectType> List<SimulationProcessedObjectMetricValueType> computeAll(
             ProcessedObject<O> processedObject,
             LensElementContext<O> elementContext,
+            SimulationResultImpl simulationResult,
             Collection<SimulationMetricDefinitionType> metricDefinitions,
             Task task,
             OperationResult result) throws CommonException {
-        return new ObjectMetricsComputation<>(processedObject, elementContext, metricDefinitions, task)
+        return new ObjectMetricsComputation<>(processedObject, elementContext, simulationResult, metricDefinitions, task)
                 .computeAll(result);
     }
 
     private List<SimulationProcessedObjectMetricValueType> computeAll(OperationResult result) throws CommonException {
         List<SimulationProcessedObjectMetricValueType> values = new ArrayList<>();
         for (SimulationMetricDefinitionType metricDefinition : metricDefinitions) {
+            if (!simulationResult.isCustomMetricEnabled(metricDefinition)) {
+                continue;
+            }
             SimulationMetricComputationType computation = metricDefinition.getComputation();
             if (computation == null) {
                 continue;

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.intest.TestPreviewChanges;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
-import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -92,7 +92,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .name("test100");
 
         when("user is created in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -187,7 +187,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .linkRef(createLinkRefWithFullObject(target));
 
         when("user is created in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -299,7 +299,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         createAssignmentValue(target));
 
         when("user is created in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -384,7 +384,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createLinkRefDelta(userOid, target)),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -455,7 +455,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createAssignmentDelta(userOid, target)),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -548,7 +548,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .replace(ActivationStatusType.ENABLED)
                 .asObjectDelta(user.getOid());
 
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
@@ -588,7 +588,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test200");
 
         when("the account is imported");
-        SimulationResult simResult = importAccountsRequest()
+        TestSimulationResult simResult = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue("test200")
                 .withTaskExecutionMode(getExecutionMode())
@@ -661,7 +661,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
         and("processed objects are OK");
-        SimulationResult simResult = getTaskSimResult(taskOid, result);
+        TestSimulationResult simResult = getTaskSimResult(taskOid, result);
         // @formatter:off
         assertProcessedObjects(simResult)
                 .display()
@@ -748,7 +748,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                                 .targetRef(ARCHETYPE_PERSON.ref()));
 
         when("user is created in simulation");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);

@@ -112,21 +112,12 @@ public class RecomputationActivityHandler
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException {
-            boolean simulate = isPreview();
-            String action = simulate ? "Simulated recomputation" : "Recomputation";
-
-            LOGGER.trace("{} of object {}", action, object);
-
             LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
                     object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
-            LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
+            LOGGER.trace("Recomputation of object {}: context:\n{}", object, syncContext.debugDumpLazily());
 
-            if (simulate) {
-                getActivityHandler().clockwork.previewChanges(syncContext, null, workerTask, result);
-            } else {
-                getActivityHandler().clockwork.run(syncContext, workerTask, result);
-            }
-            LOGGER.trace("{} of object {}: {}", action, object, result.getStatus());
+            getActivityHandler().clockwork.run(syncContext, workerTask, result);
+            LOGGER.trace("Recomputation of object {}: {}", object, result.getStatus());
             return true;
         }
     }

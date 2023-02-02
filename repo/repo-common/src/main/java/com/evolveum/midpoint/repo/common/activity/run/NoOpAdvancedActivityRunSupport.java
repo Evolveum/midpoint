@@ -15,8 +15,8 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.SimulationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
@@ -78,7 +78,7 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     }
 
     @Override
-    public @NotNull String openNewSimulationResult(
+    public @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @NotNull String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
@@ -87,23 +87,8 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     }
 
     @Override
-    public void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result) {
-        throw noModelAvailableException();
-    }
-
-    @Override
-    public void openSimulationResultTransaction(@NotNull String simulationResultOid, @NotNull String number, OperationResult result) {
-        throw noModelAvailableException();
-    }
-
-    @Override
-    public void commitSimulationResultTransaction(@NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
-        throw noModelAvailableException();
-    }
-
-    @Override
-    public @NotNull SimulationDataConsumer getSimulationDataConsumer(
-            @NotNull String simulationResultOid, @NotNull String transactionId) {
+    public @NotNull SimulationResult getSimulationResult(
+            @NotNull String resultOid, @NotNull OperationResult result) {
         throw noModelAvailableException();
     }
 

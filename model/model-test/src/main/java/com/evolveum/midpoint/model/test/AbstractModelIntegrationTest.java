@@ -6903,12 +6903,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
-     * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
-     * {@link SimulationResultManager} - if `simulationDefinition` is present. (To be implemented.)
+     * Simulation deltas are stored in returned {@link TestSimulationResult} and optionally also in the storage provided by the
+     * {@link SimulationResultManager} - if `simulationDefinition` is present.
      */
-    private SimulationResult executeInProductionSimulationMode(
+    private TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
@@ -6920,7 +6920,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * As {@link #executeInProductionSimulationMode(Collection, SimulationDefinitionType, Task, OperationResult)} but
      * in development simulation mode.
      */
-    protected SimulationResult executeDeltasInDevelopmentSimulationMode(
+    protected TestSimulationResult executeDeltasInDevelopmentSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -6930,7 +6930,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
     }
 
-    protected SimulationResult executeInSimulationMode(
+    protected TestSimulationResult executeInSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull TaskExecutionMode mode,
             @NotNull SimulationDefinitionType simulationDefinition,
@@ -6949,19 +6949,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /** Convenience method */
-    protected SimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
         assert isNativeRepository();
-        return executeInProductionSimulationMode(deltas, null, task, result);
+        return executeInProductionSimulationMode(
+                deltas, simulationResultManager.defaultDefinition(), task, result);
     }
 
     /**
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
-    protected SimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
         assert isNativeRepository();
@@ -6973,15 +6974,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 (simResult) -> simulatedCall.execute());
     }
 
-    /** As {@link ProcedureCall} but has {@link SimulationResult} as a parameter. Currently for internal purposes. */
+    /** As {@link ProcedureCall} but has {@link TestSimulationResult} as a parameter. Currently for internal purposes. */
     public interface SimulatedProcedureCall {
-        void execute(SimulationResult simResult) throws CommonException;
+        void execute(TestSimulationResult simResult) throws CommonException;
     }
 
     /**
      * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
      */
-    public @NotNull SimulationResult executeInSimulationMode(
+    public @NotNull TestSimulationResult executeInSimulationMode(
             @NotNull TaskExecutionMode mode,
             @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -6991,11 +6992,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         assert isNativeRepository();
 
-        Holder<SimulationResult> simulationResultHolder = new Holder<>();
+        Holder<TestSimulationResult> simulationResultHolder = new Holder<>();
         simulationResultManager.executeInSimulationMode(mode, simulationDefinition, task, result, () -> {
-            SimulationResult simulationResult = new SimulationResult(task.getSimulationResultOid());
-            simulatedCall.execute(simulationResult);
-            simulationResultHolder.setValue(simulationResult);
+            TestSimulationResult testSimulationResult = new TestSimulationResult(
+                    Objects.requireNonNull(task.getSimulationTransaction())
+                            .getResultOid());
+            simulatedCall.execute(testSimulationResult);
+            simulationResultHolder.setValue(testSimulationResult);
             return null;
         });
         return Objects.requireNonNull(
@@ -7007,10 +7010,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return simulationResultManager.defaultDefinition();
     }
 
-    /** Returns {@link SimulationResult} based on the information stored in the task (activity state containing result ref) */
-    protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
+    /** Returns {@link TestSimulationResult} based on the information stored in the task (activity state containing result ref) */
+    protected @NotNull TestSimulationResult getTaskSimResult(String taskOid, OperationResult result)
             throws CommonException {
-        return SimulationResult.fromSimulationResultOid(
+        return TestSimulationResult.fromSimulationResultOid(
                 getTaskSimulationResultOid(taskOid, result));
     }
 
@@ -7037,24 +7040,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 desc);
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjectsAfter(SimulationResult simResult) throws CommonException {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjectsAfter(TestSimulationResult simResult) throws CommonException {
         return assertProcessedObjects(simResult, "after")
                 .display();
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult)
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult)
             throws CommonException {
         return assertProcessedObjects(simResult, "processed objects");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc)
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult, String desc)
             throws CommonException {
         return assertProcessedObjects(
                 getProcessedObjects(simResult),
                 desc);
     }
 
-    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(SimulationResult simResult)
+    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(TestSimulationResult simResult)
             throws CommonException {
         return simResult.getProcessedObjects(
                 getTestOperationResult());
@@ -7066,13 +7069,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    protected SimulationResultAsserter<Void> assertSimulationResultAfter(SimulationResult simResult)
+    protected SimulationResultAsserter<Void> assertSimulationResultAfter(TestSimulationResult simResult)
             throws SchemaException, ObjectNotFoundException {
         return assertSimulationResult(simResult, "after")
                 .display();
     }
 
-    protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResult simResult, String desc)
+    protected SimulationResultAsserter<Void> assertSimulationResult(String taskOid, String desc)
+            throws CommonException {
+        return assertSimulationResult(
+                getTaskSimResult(taskOid, getTestOperationResult()),
+                desc);
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(TestSimulationResult simResult, String desc)
             throws SchemaException, ObjectNotFoundException {
         return initializeAsserter(
                 SimulationResultAsserter.forResult(

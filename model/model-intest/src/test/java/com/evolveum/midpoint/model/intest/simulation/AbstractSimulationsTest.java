@@ -31,12 +31,14 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
  */
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
-    private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
+    static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
 
     static final TestResource<MarkType> MARK_USER_ADD = new TestResource<>(
             SIM_TEST_DIR, "mark-user-add.xml", "0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf");
     private static final TestResource<MarkType> MARK_USER_DELETE = new TestResource<>(
             SIM_TEST_DIR, "mark-user-delete.xml", "caa2921a-6cf4-4e70-ad2b-bfed278e29cf");
+    private static final TestResource<MarkType> MARK_NONSENSE_MARK = new TestResource<>(
+            SIM_TEST_DIR, "mark-nonsense-mark.xml", "e2dccf40-9bfd-42a1-aa02-48b0f31cdb1c");
 
     private static final TestResource<RoleType> ROLE_PERSON = new TestResource<>(
             SIM_TEST_DIR, "role-person.xml", "ba88cf08-06bc-470f-aeaa-511e86d5ea7f");
@@ -100,8 +102,9 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         }
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
-        repoAdd(MARK_USER_ADD, initResult);
-        repoAdd(MARK_USER_DELETE, initResult);
+        addObject(MARK_USER_ADD, initTask, initResult);
+        addObject(MARK_USER_DELETE, initTask, initResult);
+        addObject(MARK_NONSENSE_MARK, initTask, initResult);
 
         repoAdd(ROLE_PERSON, initResult);
         repoAdd(ROLE_PERSON_DEV, initResult);

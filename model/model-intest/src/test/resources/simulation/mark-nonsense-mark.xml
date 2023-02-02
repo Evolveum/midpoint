@@ -6,16 +6,21 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="caa2921a-6cf4-4e70-ad2b-bfed278e29cf">
-    <name>user-delete</name>
+    oid="e2dccf40-9bfd-42a1-aa02-48b0f31cdb1c">
+    <name>nonsense-mark</name>
+    <description>Always fails. Used to check the exclusion mechanism.</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <policyRule>
         <policyConstraints>
-            <modification>
-                <operation>delete</operation>
-            </modification>
+            <custom>
+                <expression>
+                    <script>
+                        <code>throw new UnsupportedOperationException("nonsense mark")</code>
+                    </script>
+                </expression>
+            </custom>
         </policyConstraints>
         <focusSelector>
             <type>UserType</type>

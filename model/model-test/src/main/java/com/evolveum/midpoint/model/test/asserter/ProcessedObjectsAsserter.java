@@ -48,6 +48,13 @@ public class ProcessedObjectsAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ProcessedObjectsAsserter<RA> assertSizeBetween(int min, int max) {
+        assertThat(processedObjects).as("processed objects")
+                .hasSizeGreaterThanOrEqualTo(min)
+                .hasSizeLessThanOrEqualTo(max);
+        return this;
+    }
+
     public <O extends ObjectType> ProcessedObjectAsserter<O, ProcessedObjectsAsserter<RA>> single() {
         assertSize(1);
         //noinspection unchecked

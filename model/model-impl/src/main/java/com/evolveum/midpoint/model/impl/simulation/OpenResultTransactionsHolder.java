@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -35,29 +36,27 @@ public class OpenResultTransactionsHolder {
     @NotNull private final Map<GlobalTxKey, AggregatedMetricsComputation> transactions = new ConcurrentHashMap<>();
 
     void addProcessedObject(
-            @NotNull String resultOid,
-            @NotNull String transactionId,
             @NotNull ProcessedObjectImpl<?> processedObject,
+            @NotNull SimulationTransaction tx,
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException {
         transactions.computeIfAbsent(
-                        new GlobalTxKey(resultOid, transactionId),
+                        new GlobalTxKey(tx),
                         (k) -> AggregatedMetricsComputation.create(result))
                 .addProcessedObject(processedObject, task, result);
     }
 
-    void removeTransaction(String resultOid, String transactionId) {
-        transactions.remove(
-                new GlobalTxKey(resultOid, transactionId));
+    void removeTransaction(@NotNull SimulationTransaction tx) {
+        transactions.remove(new GlobalTxKey(tx));
     }
 
-    void removeSimulationResult(@NotNull String resultOid) {
+    void removeWholeResult(@NotNull String resultOid) {
         transactions.keySet().removeIf(
                 key -> resultOid.equals(key.resultOid));
     }
 
-    List<SimulationMetricValuesType> getMetricsValues(String resultOid, String transactionId) {
-        AggregatedMetricsComputation computation = transactions.get(new GlobalTxKey(resultOid, transactionId));
+    List<SimulationMetricValuesType> getMetricsValues(SimulationTransaction tx) {
+        AggregatedMetricsComputation computation = transactions.get(new GlobalTxKey(tx));
         return computation != null ? computation.toBeans() : List.of();
     }
 
@@ -66,9 +65,9 @@ public class OpenResultTransactionsHolder {
         @NotNull private final String resultOid;
         @NotNull private final String transactionId;
 
-        private GlobalTxKey(@NotNull String resultOid, @NotNull String transactionId) {
-            this.resultOid = resultOid;
-            this.transactionId = transactionId;
+        private GlobalTxKey(@NotNull SimulationTransaction tx) {
+            this.resultOid = tx.getResultOid();
+            this.transactionId = tx.getTransactionId();
         }
 
         @Override

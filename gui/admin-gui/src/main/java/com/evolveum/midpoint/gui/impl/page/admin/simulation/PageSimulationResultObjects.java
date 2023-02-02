@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -24,15 +23,16 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
@@ -111,12 +111,17 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     @Override
-    protected void createBreadcrumb() {
+    protected IModel<String> createPageTitleModel() {
+        return () -> null;
+    }
+
+    private IModel<String> createTitleModel() {
+        return () -> getString("PageSimulationResultObjects.title");
     }
 
     @Override
-    protected IModel<String> createPageTitleModel() {
-        return () -> null;
+    protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(PageSimulationResultObjects.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     private void initLayout() {
@@ -129,7 +134,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected IModel<String> createTitleModel() {
-                return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+                return PageSimulationResultObjects.this.createTitleModel();
             }
 
             @Override

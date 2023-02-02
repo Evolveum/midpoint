@@ -11,16 +11,21 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.SimulationDataConsumer;
+import com.evolveum.midpoint.task.api.SimulationResult;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
@@ -35,6 +40,12 @@ class SimulationSupport {
     @NotNull private final AbstractActivityRun<?, ?, ?> activityRun;
     @NotNull private final AdvancedActivityRunSupport advancedActivityRunSupport;
 
+    /** TODO */
+    private SimulationResult simulationResult;
+
+    /** TODO */
+    private SimulationTransaction simulationTransaction;
+
     SimulationSupport(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         this.activityRun = activityRun;
         this.advancedActivityRunSupport = activityRun.getBeans().getAdvancedActivityRunSupport();
@@ -45,10 +56,22 @@ class SimulationSupport {
         if (!activityRun.getExecutionModeDefinition().shouldCreateSimulationResult()) {
             return;
         }
+        if (simulationResult != null) {
+            if (InternalsConfig.consistencyChecks) {
+                throw new IllegalStateException("Simulation result is already present");
+            } else {
+                LOGGER.warn("Simulation result is already present for {} - even at the start of the realization", activityRun);
+                return;
+            }
+        }
         var activityState = activityRun.getActivityState();
         if (activityState.getSimulationResultRef() != null) {
-            LOGGER.warn("Simulation result is already present for {} - even at the start of the realization", activityRun);
-            return;
+            if (InternalsConfig.consistencyChecks) {
+                throw new IllegalStateException("Simulation result OID is already present");
+            } else {
+                LOGGER.warn("Simulation result OID is already set for {} - even at the start of the realization", activityRun);
+                return;
+            }
         }
 
         String simResultOid = null;
@@ -62,12 +85,12 @@ class SimulationSupport {
         if (simResultOid == null) {
             try {
                 ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
-                simResultOid =
-                        advancedActivityRunSupport.openNewSimulationResult(
-                                execModeDef.getSimulationDefinition(),
-                                activityRun.getRunningTask().getRootTaskOid(),
-                                execModeDef.getConfigurationSpecification(),
-                                result);
+                simulationResult = advancedActivityRunSupport.createSimulationResult(
+                        execModeDef.getSimulationDefinition(),
+                        activityRun.getRunningTask().getRootTaskOid(),
+                        execModeDef.getConfigurationSpecification(),
+                        result);
+                simResultOid = simulationResult.getResultOid();
             } catch (ConfigurationException e) {
                 throw new ActivityRunException("Couldn't create simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
             }
@@ -77,28 +100,38 @@ class SimulationSupport {
             // TODO issue a warning when re-defining the simulation in a sub-activity
         }
 
-        // We put the simulation result into the current activity to allow fast retrieval when processing the objects,
-        // see getSimulationDataConsumer().
+        // We put the simulation result into the current activity to allow fast retrieval when processing the objects.
         activityState.setSimulationResultOid(simResultOid);
         activityState.flushPendingTaskModificationsChecked(result);
+    }
+
+    void initializeSimulationResult(OperationResult result) throws ActivityRunException {
+        if (simulationResult != null) {
+            return;
+        }
+        ActivityExecutionModeDefinition modeDef = activityRun.getExecutionModeDefinition();
+        if (!modeDef.shouldCreateSimulationResult()) {
+            LOGGER.trace("Skipping initialization of simulation result context; mode definition = {}", modeDef);
+            return;
+        }
+        String simulationResultOid = activityRun.activityState.getSimulationResultOid();
+        LOGGER.trace("Existing simulation result OID: {}", simulationResultOid);
+        stateCheck(simulationResultOid != null,
+                "No simulation result reference in %s even if simulation was requested", this);
+
+        try {
+            simulationResult = advancedActivityRunSupport.getSimulationResult(simulationResultOid, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new ActivityRunException("Couldn't get simulation result context", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
 
     /**
      * Creates the object that will record data into the simulation result object.
      */
-    SimulationDataConsumer getSimulationDataConsumer() {
-        ActivityExecutionModeDefinition modeDef = activityRun.getExecutionModeDefinition();
-        if (!modeDef.shouldCreateSimulationResult()) {
-            LOGGER.trace("Not creating object processing listener; mode definition = {}", modeDef);
-            return null;
-        }
-        String simulationResultOid = activityRun.activityState.getSimulationResultOid();
-        String transactionId = getSimulationResultTxId();
-        LOGGER.trace("Existing simulation result OID: {}, transaction ID: {}", simulationResultOid, transactionId);
-        stateCheck(simulationResultOid != null,
-                "No simulation result reference in %s even if simulation was requested", this);
-
-        return advancedActivityRunSupport.getSimulationDataConsumer(simulationResultOid, transactionId);
+    SimulationTransaction getSimulationTransaction() {
+        return simulationResult != null ?
+                simulationResult.getTransaction(getSimulationResultTxId()) : null;
     }
 
     private int getBucketSequentialNumber() {
@@ -109,11 +142,11 @@ class SimulationSupport {
 
     void closeSimulationResultIfOpenedHere(OperationResult result) throws ActivityRunException {
         if (activityRun.activityState.isSimulationResultCreated()) {
-            String simulationResultOid = activityRun.activityState.getSimulationResultOid();
-            stateCheck(simulationResultOid != null,
+
+            stateCheck(simulationResult != null,
                     "No simulation result reference in %s even it should be there (created=true)", this);
             try {
-                advancedActivityRunSupport.closeSimulationResult(simulationResultOid, activityRun.getRunningTask(), result);
+                simulationResult.close(result);
             } catch (ObjectNotFoundException e) {
                 throw new ActivityRunException("Couldn't close simulation result", FATAL_ERROR, PERMANENT_ERROR, e);
             }
@@ -124,17 +157,16 @@ class SimulationSupport {
         return activityRun.getActivityPath() + "#" + getBucketSequentialNumber();
     }
 
-    void openSimulationResultTransaction(OperationResult result) {
-        String resultOid = activityRun.activityState.getSimulationResultOid();
-        if (resultOid != null) {
-            advancedActivityRunSupport.openSimulationResultTransaction(resultOid, getSimulationResultTxId(), result);
+    void openSimulationTransaction(OperationResult result) {
+        if (simulationResult != null) {
+            simulationTransaction = simulationResult.openTransaction(getSimulationResultTxId(), result);
         }
     }
 
-    void commitSimulationResultTransaction(OperationResult result) {
-        String resultOid = activityRun.activityState.getSimulationResultOid();
-        if (resultOid != null) {
-            advancedActivityRunSupport.commitSimulationResultTransaction(resultOid, getSimulationResultTxId(), result);
+    void commitSimulationTransaction(OperationResult result) {
+        if (simulationTransaction != null) {
+            simulationTransaction.commit(result);
+            simulationTransaction = null;
         }
     }
 }

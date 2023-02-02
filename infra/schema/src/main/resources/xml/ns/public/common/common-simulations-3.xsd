@@ -203,6 +203,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this metric enabled by default?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="computation" type="tns:SimulationMetricComputationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -629,7 +636,7 @@
                 <pre>
                     Matches "include" | Matches "exclude" | Used in simulation
                     ------------------+-------------------+-------------------
-                            no        |         no        |        yes
+                            no        |         no        | according to default
                            yes        |         no        |        yes
                             no        |        yes        |         no
                            yes        |        yes        |        yes
@@ -666,7 +673,7 @@
                 <pre>
                     Matches "include" | Matches "exclude" | Used in simulation
                     ------------------+-------------------+-------------------
-                            no        |         no        |        yes
+                            no        |         no        | according to default
                            yes        |         no        |        yes
                             no        |        yes        |         no
                            yes        |        yes        |        yes

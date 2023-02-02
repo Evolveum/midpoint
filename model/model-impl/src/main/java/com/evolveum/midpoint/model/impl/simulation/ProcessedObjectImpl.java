@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.simulation;
 
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.DebugDumpable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.schema.simulation.PartitionScope;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -60,6 +62,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * TODO decide on the purpose and implementation of this class - the duplication of properties and fragility when setting them
  *  becomes unbearable
  */
+@SuppressWarnings("CommentedOutCode")
 public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
 
     private String recordId; // TODO consider removal
@@ -163,7 +166,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      */
     public static <O extends ObjectType> @Nullable ProcessedObjectImpl<O> create(
             @NotNull LensElementContext<O> elementContext,
-            @NotNull String transactionId,
+            @NotNull SimulationTransactionImpl simulationTransaction,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
@@ -193,7 +196,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         // We may consider returning null if anyState is null (meaning that the delta is MODIFY/DELETE with null stateBefore)
 
         var processedObject = new ProcessedObjectImpl<>(
-                transactionId,
+                simulationTransaction.getTransactionId(),
                 elementContext.getOid(),
                 type,
                 determineShadowDiscriminator(anyState),
@@ -204,7 +207,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ParsedMetricValues.fromEventMarks(
                         elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()),
                 isFocus,
-                null, // later
+                null, // provided later
                 stateBefore,
                 stateAfter,
                 delta,
@@ -214,6 +217,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ObjectMetricsComputation.computeAll(
                         processedObject,
                         elementContext,
+                        simulationTransaction.getSimulationResult(),
                         ModelBeans.get().simulationResultManager.getMetricDefinitions(),
                         task,
                         result));
@@ -242,10 +246,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     void setRecordId(String recordId) {
         this.recordId = recordId;
         invalidateCachedBean();
-    }
-
-    public @NotNull String getTransactionId() {
-        return transactionId;
     }
 
     @Override
@@ -304,10 +304,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return focus;
     }
 
-    public Integer getProjectionRecords() {
-        return projectionRecords;
-    }
-
     void setProjectionRecords(Integer projectionRecords) {
         this.projectionRecords = projectionRecords;
         invalidateCachedBean();
@@ -315,10 +311,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     private void invalidateCachedBean() {
         this.cachedBean = null;
-    }
-
-    public String getFocusRecordId() {
-        return focusRecordId;
     }
 
     void setFocusRecordId(String focusRecordId) {
@@ -438,7 +430,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 '}';
     }
 
-//    private Collection<String> geteventMarksDebugDump() {
+//    private Collection<String> getEventMarksDebugDump() {
 //        if (eventMarksMap != null) {
 //            return eventMarksMap.entrySet().stream()
 //                    .map(e -> getTagDebugDump(e))
@@ -447,16 +439,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 //            return eventMarks;
 //        }
 //    }
-
-    private String getTagDebugDump(Map.Entry<String, MarkType> tagEntry) {
-        String tagOid = tagEntry.getKey();
-        MarkType tag = tagEntry.getValue();
-        if (tag != null) {
-            return getOrig(tag.getName()) + " (" + tagOid + ")";
-        } else {
-            return tagOid;
-        }
-    }
+//
+//    private String getTagDebugDump(Map.Entry<String, MarkType> tagEntry) {
+//        String tagOid = tagEntry.getKey();
+//        MarkType tag = tagEntry.getValue();
+//        if (tag != null) {
+//            return getOrig(tag.getName()) + " (" + tagOid + ")";
+//        } else {
+//            return tagOid;
+//        }
+//    }
 
     @Override
     public @Nullable O getAfterOrBefore() {
@@ -578,7 +570,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         if (eventMarksMap != null) {
             return;
         }
-        eventMarksMap = ModelCommonBeans.get().markManager.resolveTagNames(
+        eventMarksMap = ModelCommonBeans.get().markManager.resolveMarkNames(
                 parsedMetricValues.getMatchingEventMarks(), result);
     }
 
@@ -628,16 +620,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         @NotNull Collection<String> getMatchingEventMarks() {
             return valueMap.entrySet().stream()
-                    .filter(e -> e.getKey().isTag())
+                    .filter(e -> e.getKey().isMark())
                     .filter(e -> e.getValue().inSelection)
-                    .map(e -> e.getKey().getTagOid())
+                    .map(e -> e.getKey().getMarkOid())
                     .collect(Collectors.toSet());
         }
 
         @NotNull Collection<String> getAllConsideredEventMarks() {
             return valueMap.keySet().stream()
-                    .filter(ref -> ref.isTag())
-                    .map(ref -> ref.getTagOid())
+                    .filter(ref -> ref.isMark())
+                    .map(ref -> ref.getMarkOid())
                     .collect(Collectors.toSet());
         }
 
@@ -653,7 +645,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         @Override
         public String debugDump(int indent) {
-            return null;
+            StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ParsedMetricValues.class, indent);
+            DebugUtil.debugDumpWithLabel(sb, "values", valueMap, indent + 1);
+            return sb.toString();
         }
 
         @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReferenceType ref) {
@@ -669,6 +663,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         MetricValue(@NotNull BigDecimal value, boolean inSelection) {
             this.value = value;
             this.inSelection = inSelection;
+        }
+
+        @Override
+        public String toString() {
+            return value + " (" + (inSelection ? "in" : "out") + ")";
         }
     }
 

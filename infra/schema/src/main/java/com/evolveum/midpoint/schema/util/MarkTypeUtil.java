@@ -44,4 +44,10 @@ public class MarkTypeUtil {
                     return target == null || target == OBJECT;
                 });
     }
+
+    public static boolean isEnabledByDefault(@NotNull MarkType mark) {
+        EventMarkInformationType eventMarkInfo = mark.getEventMark();
+        Boolean enabledByDefault = eventMarkInfo != null ? eventMarkInfo.isEnabledByDefault() : null;
+        return !Boolean.FALSE.equals(enabledByDefault);
+    }
 }

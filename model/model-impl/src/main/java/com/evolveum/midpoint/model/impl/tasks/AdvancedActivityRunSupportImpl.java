@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.task.api.SimulationResult;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +53,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.SimulationDataConsumer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -149,40 +150,20 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public @NotNull String openNewSimulationResult(
+    public @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @NotNull String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             OperationResult result)
             throws ConfigurationException {
         return simulationResultManager
-                .openNewSimulationResult(definition, rootTaskOid, configurationSpecification, result)
-                .getResultOid();
+                .createSimulationResult(definition, rootTaskOid, configurationSpecification, result);
     }
 
     @Override
-    public @NotNull SimulationDataConsumer getSimulationDataConsumer(
-            @NotNull String simulationResultOid, @NotNull String transactionId) {
+    public @NotNull SimulationResult getSimulationResult(
+            @NotNull String resultOid, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         return simulationResultManager
-                .newSimulationContext(simulationResultOid)
-                .getSimulationDataConsumer(transactionId);
-    }
-
-    @Override
-    public void closeSimulationResult(@NotNull String simulationResultOid, Task task, OperationResult result)
-            throws ObjectNotFoundException {
-        simulationResultManager.closeSimulationResult(simulationResultOid, task, result);
-    }
-
-    @Override
-    public void openSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
-        simulationResultManager.openSimulationResultTransaction(simulationResultOid, transactionId, result);
-    }
-
-    @Override
-    public void commitSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
-        simulationResultManager.commitSimulationResultTransaction(simulationResultOid, transactionId, result);
+                .getSimulationResult(resultOid, result);
     }
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -96,5 +98,6 @@ public class PageSimulationResults extends PageAdmin {
 
     @Override
     protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(PageSimulationResults.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 }
