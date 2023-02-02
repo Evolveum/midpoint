@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -76,8 +77,38 @@ public class TestTask extends TestResource<TaskType> {
         test.waitForTaskFinish(oid, true, startTime, defaultTimeout, true);
     }
 
+    public void restart(OperationResult result) throws CommonException {
+        test.restartTask(oid, result);
+    }
+
+    public void runFor(long howLong, OperationResult result) throws CommonException {
+        restart(result);
+        MiscUtil.sleepCatchingInterruptedException(howLong);
+        suspend();
+    }
+
+    public TaskAsserter<Void> doAssert(String message) throws SchemaException, ObjectNotFoundException {
+        return test.assertTask(oid, message);
+    }
+
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {
-        return test.assertTask(oid, "after")
-                .display();
+        return doAssert("after").display();
+    }
+
+    public void suspend() throws CommonException {
+        test.suspendTask(oid);
+    }
+
+    public void resume(OperationResult result) throws CommonException {
+        test.taskManager.resumeTask(
+                test.taskManager.getTaskPlain(oid, result),
+                result);
+    }
+
+    // FIXME very primitive implementation
+    public void resumeAndWaitForFinish(OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        resume(result);
+        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, true);
     }
 }

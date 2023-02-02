@@ -31,7 +31,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
  */
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
-    private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
+    static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
 
     static final TestResource<MarkType> MARK_USER_ADD = new TestResource<>(
             SIM_TEST_DIR, "mark-user-add.xml", "0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf");

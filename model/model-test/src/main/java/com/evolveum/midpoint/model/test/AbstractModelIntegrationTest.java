@@ -7075,6 +7075,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .display();
     }
 
+    protected SimulationResultAsserter<Void> assertSimulationResult(String taskOid, String desc)
+            throws CommonException {
+        return assertSimulationResult(
+                getTaskSimResult(taskOid, getTestOperationResult()),
+                desc);
+    }
+
     protected SimulationResultAsserter<Void> assertSimulationResult(TestSimulationResult simResult, String desc)
             throws SchemaException, ObjectNotFoundException {
         return initializeAsserter(
