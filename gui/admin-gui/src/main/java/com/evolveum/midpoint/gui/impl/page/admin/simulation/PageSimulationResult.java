@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -190,7 +191,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected IModel<String> createTitleModel() {
-                return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+                return PageSimulationResult.this.createTitleModel();
             }
 
             @Override
@@ -242,7 +243,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void onBackPerformed(AjaxRequestTarget target) {
-        //todo implement
         redirectBack();
     }
 
@@ -332,10 +332,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         return label;
     }
 
-    @Override
-    protected void createBreadcrumb() {
-    }
-
     private String getTaskName() {
         TaskType task = rootTaskModel.getObject();
         if (task == null) {
@@ -354,5 +350,19 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         PageParameters params = new PageParameters();
         params.set(OnePageParameterEncoder.PARAMETER, task.getOid());
         navigateToNext(PageTask.class, params);
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return () -> null;
+    }
+
+    private IModel<String> createTitleModel() {
+        return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
     }
 }
