@@ -98,7 +98,7 @@ public class PolyStringEditorPanel extends InputPanel {
         localizedValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isNotEmpty(localizedValue)));
         add(localizedValueContainer);
 
-        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, ((PageBase) getPage()).createStringResource("PolyStringEditorPanel.localizedValue"));
+        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, createStringResource("PolyStringEditorPanel.localizedValue"));
         localizedValueLabel.setOutputMarkupId(true);
         localizedValueLabel.add(new VisibleBehaviour(() -> showFullData));
         localizedValueContainer.add(localizedValueLabel);
@@ -134,7 +134,7 @@ public class PolyStringEditorPanel extends InputPanel {
         originValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isEmpty(localizedValue)));
         add(originValueContainer);
 
-        Label origValueLabel = new Label(ID_ORIG_VALUE_LABEL, ((PageBase) getPage()).createStringResource("PolyStringEditorPanel.origValue"));
+        Label origValueLabel = new Label(ID_ORIG_VALUE_LABEL, createStringResource("PolyStringEditorPanel.origValue"));
         origValueLabel.setOutputMarkupId(true);
         origValueLabel.add(new VisibleBehaviour(() -> showFullData));
         originValueContainer.add(origValueLabel);
@@ -348,7 +348,7 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private String getLocalizedPolyStringValue() {
-        return ((PageBase) getPage()).getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
+        return getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
     }
 
     private IModel<List<String>> getLanguageChoicesModel() {
