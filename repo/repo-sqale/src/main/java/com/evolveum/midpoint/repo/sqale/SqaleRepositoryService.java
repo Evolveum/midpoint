@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -619,7 +620,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
-    @SuppressWarnings("resource")
     private <T extends ObjectType> void replaceObject(
             @NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
             PrismObject<T> newObject)
@@ -1465,7 +1465,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
             // order by the whole ref - this is a trick working only for repo and uses all PK columns
-            paging.addOrderingInstruction(ItemPath.SELF_PATH, OrderDirection.ASCENDING);
+            paging.addOrderingInstruction(ItemPath.create(PrismConstants.T_SELF), OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
@@ -1535,29 +1535,28 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return null;
         }
 
-        String lastProcessedOid = lastProcessedRef.getOid();
-        if (providedOrdering == null || providedOrdering.isEmpty()) {
-            // TODO IDEA:
-            //  We can't just slap another filter to the the existing ref query - because we need to modify:
-            //  1. owned-by part with owner OID (and later also CID, etc.)
-            //  2. ref filter with target OID and relation + somehow formulate that we want "greater than" refs
-            //  PK for ref tables: PRIMARY KEY (ownerOid, relationId, targetOid)
+        // Special kind of value for ref filter comparison + the definition for filters:
+        RefItemFilterProcessor.ReferenceRowValue refComparableValue =
+                new RefItemFilterProcessor.ReferenceRowValue(
+                        Objects.requireNonNull(PrismValueUtil.getParentObject(lastProcessedRef.asReferenceValue()))
+                                .getOid(),
+                        lastProcessedRef.getRelation(),
+                        lastProcessedRef.getOid());
+        PrismReferenceDefinition refDef = lastProcessedRef.asReferenceValue().getDefinition();
 
-            // TODO how to formulate additional condition for reference query? We would need ownerOid + reference,
-            //  and we're not even talking about deeply nested refs (with container owner, not object directly).
-            return prismContext()
-                    .queryFor(ObjectType.class) // ignored TODO hopefully!
-                    .item(OID_PATH).gt(lastProcessedOid).buildFilter();
+        if (providedOrdering == null || providedOrdering.isEmpty()) {
+            // ObjectType is not used, but we want simple filter, not ownedBy for reference search.
+            return prismContext().queryFor(ObjectType.class)
+                    .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
+                    .buildFilter();
         }
 
         if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
             boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
-            S_ConditionEntry filter = null; // TODO
-//                    prismContext()
-//                    .queryForReferenceOwnedBy(lastProcessedRef.getCompileTimeClass())
-//                    .item(orderByPath);
+            S_ConditionEntry filter = prismContext().queryFor(ObjectType.class)
+                    .item(orderByPath);
             //noinspection rawtypes
             Item<PrismValue, ItemDefinition<Item>> item = null; // TODO lastProcessedRef.findItem(orderByPath);
             if (item.size() > 1) {
@@ -1586,7 +1585,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                                 .block()
                                 .item(orderByPath).eq(realValue).matchingOrig()
                                 .and()
-                                .item(OID_PATH).gt(lastProcessedOid)
+                                .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
                                 .endBlock()
                                 .buildFilter();
                     } else {
@@ -1594,7 +1593,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                                 .block()
                                 .item(orderByPath).eq(realValue).matchingOrig()
                                 .and()
-                                .item(OID_PATH).lt(lastProcessedOid)
+                                .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
                                 .endBlock()
                                 .buildFilter();
                     }
@@ -1604,7 +1603,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                                 .block()
                                 .item(orderByPath).eq(realValue)
                                 .and()
-                                .item(OID_PATH).gt(lastProcessedOid)
+                                .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
                                 .endBlock()
                                 .buildFilter();
                     } else {
@@ -1612,7 +1611,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                                 .block()
                                 .item(orderByPath).eq(realValue)
                                 .and()
-                                .item(OID_PATH).lt(lastProcessedOid)
+                                .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
                                 .endBlock()
                                 .buildFilter();
                     }
