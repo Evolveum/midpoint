@@ -58,7 +58,7 @@ class SimulationSupport {
         }
         if (simulationResult != null) {
             if (InternalsConfig.consistencyChecks) {
-                throw new IllegalStateException("Simulation result OID is already present");
+                throw new IllegalStateException("Simulation result is already present");
             } else {
                 LOGGER.warn("Simulation result is already present for {} - even at the start of the realization", activityRun);
                 return;
@@ -67,7 +67,7 @@ class SimulationSupport {
         var activityState = activityRun.getActivityState();
         if (activityState.getSimulationResultRef() != null) {
             if (InternalsConfig.consistencyChecks) {
-                throw new IllegalStateException("Simulation result is already present");
+                throw new IllegalStateException("Simulation result OID is already present");
             } else {
                 LOGGER.warn("Simulation result OID is already set for {} - even at the start of the realization", activityRun);
                 return;
