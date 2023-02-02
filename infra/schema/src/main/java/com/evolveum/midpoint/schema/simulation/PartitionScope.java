@@ -30,13 +30,21 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMet
 public class PartitionScope {
 
     private final QName objectType;
+    private final String structuralArchetypeOid;
     private final String resourceOid;
     private final ShadowKindType kind;
     private final String intent;
     private final Set<QName> allDimensions;
 
-    public PartitionScope(QName objectType, String resourceOid, ShadowKindType kind, String intent, Set<QName> allDimensions) {
+    public PartitionScope(
+            QName objectType,
+            String structuralArchetypeOid,
+            String resourceOid,
+            ShadowKindType kind,
+            String intent,
+            Set<QName> allDimensions) {
         this.objectType = objectType;
+        this.structuralArchetypeOid = structuralArchetypeOid;
         this.resourceOid = resourceOid;
         this.kind = kind;
         this.intent = intent;
@@ -45,10 +53,12 @@ public class PartitionScope {
 
     public static PartitionScope fromBean(SimulationMetricPartitionScopeType scope, Set<QName> availableDimensions) {
         if (scope == null) {
-            return new PartitionScope(null, null, null, null, availableDimensions);
+            return new PartitionScope(
+                    null, null, null, null, null, availableDimensions);
         } else {
             return new PartitionScope(
                     ifAvailable(scope.getTypeName(), availableDimensions, F_TYPE_NAME),
+                    ifAvailable(scope.getStructuralArchetypeOid(), availableDimensions, F_STRUCTURAL_ARCHETYPE_OID),
                     ifAvailable(scope.getResourceOid(), availableDimensions, F_RESOURCE_OID),
                     ifAvailable(scope.getKind(), availableDimensions, F_KIND),
                     ifAvailable(scope.getIntent(), availableDimensions, F_INTENT),
@@ -76,6 +86,7 @@ public class PartitionScope {
         }
         PartitionScope that = (PartitionScope) o;
         return Objects.equals(objectType, that.objectType)
+                && Objects.equals(structuralArchetypeOid, that.structuralArchetypeOid)
                 && Objects.equals(resourceOid, that.resourceOid)
                 && kind == that.kind
                 && Objects.equals(intent, that.intent)
@@ -84,18 +95,22 @@ public class PartitionScope {
 
     @Override
     public int hashCode() {
-        return Objects.hash(objectType, resourceOid, kind, intent);
+        return Objects.hash(objectType, structuralArchetypeOid, resourceOid, kind, intent);
     }
 
     public SimulationMetricPartitionScopeType toBean() {
         SimulationMetricPartitionScopeType bean = new SimulationMetricPartitionScopeType()
                 .typeName(objectType)
+                .structuralArchetypeOid(structuralArchetypeOid)
                 .resourceOid(resourceOid)
                 .kind(kind)
                 .intent(intent);
         List<QName> nullDimensions = bean.getNullDimensions();
         if (objectType == null && allDimensions.contains(F_TYPE_NAME)) {
             nullDimensions.add(F_TYPE_NAME);
+        }
+        if (structuralArchetypeOid == null && allDimensions.contains(F_STRUCTURAL_ARCHETYPE_OID)) {
+            nullDimensions.add(F_STRUCTURAL_ARCHETYPE_OID);
         }
         if (resourceOid == null && allDimensions.contains(F_RESOURCE_OID)) {
             nullDimensions.add(F_RESOURCE_OID);

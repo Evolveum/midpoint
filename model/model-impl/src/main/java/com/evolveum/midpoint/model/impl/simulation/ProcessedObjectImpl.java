@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil.getTargetNameOrOid;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -65,6 +67,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @NotNull private final String transactionId;
     private final String oid; // TODO may be null?
     @NotNull private final Class<O> type;
+    @Nullable private final ObjectReferenceType structuralArchetypeRef;
     @NotNull private final QName typeName;
     private final ShadowDiscriminatorType shadowDiscriminator;
     private final PolyStringType name;
@@ -93,6 +96,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull String transactionId,
             String oid,
             @NotNull Class<O> type,
+            @Nullable ObjectReferenceType structuralArchetypeRef,
             ShadowDiscriminatorType shadowDiscriminator,
             PolyStringType name,
             @NotNull ObjectProcessingStateType state,
@@ -107,6 +111,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.oid = oid;
         this.type = type;
         this.typeName = ObjectTypes.getObjectType(type).getTypeQName();
+        this.structuralArchetypeRef = structuralArchetypeRef;
         this.shadowDiscriminator = shadowDiscriminator;
         this.name = name;
         this.state = state;
@@ -129,6 +134,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 bean.getTransactionId(),
                 bean.getOid(),
                 (Class<O>) type,
+                bean.getStructuralArchetypeRef(),
                 bean.getResourceObjectCoordinates(),
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
@@ -195,6 +201,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 simulationTransaction.getTransactionId(),
                 elementContext.getOid(),
                 type,
+                elementContext instanceof LensFocusContext<?> ?
+                        ((LensFocusContext<?>) elementContext).getStructuralArchetypeRef() : null,
                 determineShadowDiscriminator(anyState),
                 anyState.getName(),
                 delta != null ?
@@ -256,6 +264,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     public @NotNull QName getTypeName() {
         return typeName;
+    }
+
+    private @Nullable String getStructuralArchetypeOid() {
+        return Referencable.getOid(structuralArchetypeRef);
     }
 
     public String getResourceOid() {
@@ -342,6 +354,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .oid(oid)
                     .type(
                             PrismContext.get().getSchemaRegistry().determineTypeForClass(type))
+                    .structuralArchetypeRef(structuralArchetypeRef)
                     .resourceObjectCoordinates(shadowDiscriminator != null ? shadowDiscriminator.clone() : null)
                     .name(name)
                     .state(state)
@@ -388,6 +401,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilder(getClass(), indent);
         sb.append(" of ").append(type.getSimpleName());
+        if (structuralArchetypeRef != null) {
+            sb.append("/").append(getTargetNameOrOid(structuralArchetypeRef));
+        }
         sb.append(" ").append(oid);
         sb.append(" (").append(name).append("): ");
         sb.append(state);
@@ -570,7 +586,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     PartitionScope partitionScope() {
-        return new PartitionScope(getTypeName(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
+        return new PartitionScope(getTypeName(), getStructuralArchetypeOid(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
     }
 
     void propagateRecordId() {

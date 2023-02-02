@@ -861,6 +861,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="structuralArchetypeOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value of the "structural archetype OID" dimension. Applies only to focus objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="resourceOid" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -950,6 +957,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.type</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="structuralArchetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Structural archetype of the object processed. Applies only to focal objects (assignment holders).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.structuralArchetypeRef</a:displayName>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
