@@ -978,7 +978,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return "";
         }
         PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
-        ItemDefinition def = containerDefinition.findItemDefinition(column.getPath().getItemPath());
+        ItemPath path = WebComponentUtil.getPath(column);
+        if (path == null) {
+            LOGGER.warn("Cannot get displayName for column {} because path is not defined", column);
+            return "";
+        }
+        ItemDefinition def = containerDefinition.findItemDefinition(path);
         if (def == null) {
             return "";
         }
