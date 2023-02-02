@@ -14,7 +14,6 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
@@ -88,13 +88,11 @@ class ProcessedObjectsWriter {
 
             // Setting links between focus and its projections
             if (focusRecord != null) {
-                focusRecord.setRecordId(generateRecordId());
                 focusRecord.setProjectionRecords(projectionRecords.size());
                 storeProcessedObjects(List.of(focusRecord), task, result);
             }
 
             for (ProcessedObjectImpl<ShadowType> projectionRecord : projectionRecords) {
-                projectionRecord.setRecordId(generateRecordId());
                 projectionRecord.setFocusRecordId(focusRecord != null ? focusRecord.getRecordId() : null);
             }
             storeProcessedObjects(projectionRecords, task, result);
@@ -103,16 +101,6 @@ class ProcessedObjectsWriter {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
         }
-    }
-
-    // TODO remove
-    /**
-     * Generates the ID for the "processed object" record. Should be unique within a simulation result.
-     *
-     * Later, this may be done right in the repository service.
-     */
-    private String generateRecordId() {
-        return ModelCommonBeans.get().lightweightIdentifierGenerator.generate().toString();
     }
 
     private <O extends ObjectType> ProcessedObjectImpl<O> createProcessedObject(
@@ -141,15 +129,24 @@ class ProcessedObjectsWriter {
             LOGGER.trace("Going to store processed object into {}: {}", simulationTransaction, processedObject);
             getOpenResultTransactionsHolder().addProcessedObject(processedObject, simulationTransaction, task, result);
         }
+        Collection<SimulationResultProcessedObjectType> processedObjectsBeans = ProcessedObjectImpl.toBeans(processedObjects);
         List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                 .item(SimulationResultType.F_PROCESSED_OBJECT)
-                .addRealValues(ProcessedObjectImpl.toBeans(processedObjects))
+                .addRealValues(processedObjectsBeans)
                 .asItemDeltas();
         ModelBeans.get().cacheRepositoryService.modifyObject(
                 SimulationResultType.class,
                 simulationTransaction.getResultOid(),
                 modifications,
                 result);
+        // Repository seems to generate PCV IDs in processedObjectsBeans. We propagate them back to ProcessedObject instances.
+        //
+        // TODO This is fragile. Actually, the repository is NOT obliged to do so, and does it more-or-less by accident.
+        //  (For example, it narrows incoming deltas, sometimes cloning them, so the PCV IDs may get lost in the process.)
+        //  But for this particular case it seems to work.
+        for (ProcessedObjectImpl<?> processedObject : processedObjects) {
+            processedObject.propagateRecordId();
+        }
     }
 
     private static OpenResultTransactionsHolder getOpenResultTransactionsHolder() {

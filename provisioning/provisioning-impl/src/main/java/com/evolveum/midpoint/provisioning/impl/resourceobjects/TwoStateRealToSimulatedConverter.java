@@ -93,8 +93,7 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     <S> boolean convertProperty(N nativeValue, ShadowType shadow, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         LOGGER.trace("Creating attribute for simulated {}: {}", description, simulatingAttributeName);
 
         ResourceAttribute<S> simulatingAttribute =
@@ -109,8 +108,7 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     private <S> S determineSimulatingAttributeRealValue(N nativeValue,
-            ResourceAttribute<S> simulatingAttribute) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ResourceAttribute<S> simulatingAttribute) {
 
         if (nativeValue == null || nativePositiveValue.equals(nativeValue)) {
             return getPositiveSimulationValue(simulatingAttribute);
@@ -142,8 +140,7 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     <S> PropertyModificationOperation<S> convertDelta(N nativeValue, ShadowType shadow, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         PropertyDelta<S> simulatingAttributeDelta;
         ResourceAttribute<S> simulatingAttribute = createEmptySimulatingAttribute(shadow, result);
         if (simulatingAttribute == null) {
@@ -183,8 +180,7 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     private <S> ResourceAttribute<S> createEmptySimulatingAttribute(ShadowType shadow,
-            OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException {
         LOGGER.trace("Name of the simulating attribute for {}: {}", description, simulatingAttributeName);
 
         ResourceAttributeDefinition<?> attributeDefinition = ctx.findAttributeDefinition(simulatingAttributeName);
@@ -203,9 +199,7 @@ class TwoStateRealToSimulatedConverter<N> {
         return (ResourceAttribute<S>) attributeDefinition.instantiate(simulatingAttributeName);
     }
 
-    private <S> S getPositiveSimulationValue(ResourceAttribute<S> simulatingAttribute)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private <S> S getPositiveSimulationValue(ResourceAttribute<S> simulatingAttribute) {
         if (simulatedPositiveValues.isEmpty()) {
             return null;
         } else {
@@ -214,9 +208,7 @@ class TwoStateRealToSimulatedConverter<N> {
         }
     }
 
-    private <S> S getNegativeSimulationValue(ResourceAttribute<S> simulatingAttribute)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private <S> S getNegativeSimulationValue(ResourceAttribute<S> simulatingAttribute) {
         if (simulatedNegativeValues.isEmpty()) {
             return null;
         } else {

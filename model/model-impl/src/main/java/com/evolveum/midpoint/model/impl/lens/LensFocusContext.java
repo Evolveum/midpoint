@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,6 +146,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void setArchetypes(List<ArchetypeType> archetypes) {
         this.archetypes = archetypes;
+    }
+
+    /** Precondition: context is "complete" i.e. {@link #archetypes} are filled in. */
+    public ObjectReferenceType getStructuralArchetypeRef() throws SchemaException {
+        return ObjectTypeUtil.createObjectRef(
+                ArchetypeTypeUtil.getStructuralArchetype(
+                        MiscUtil.stateNonNull(archetypes, () -> "Information about archetypes is not present")));
     }
 
     public ObjectTemplateType getFocusTemplate() {

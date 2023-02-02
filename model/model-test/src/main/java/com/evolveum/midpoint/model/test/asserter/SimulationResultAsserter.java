@@ -79,6 +79,10 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public SimulationResultType getObjectable() {
+        return simulationResult;
+    }
+
     @Override
     protected String desc() {
         return getDetails();

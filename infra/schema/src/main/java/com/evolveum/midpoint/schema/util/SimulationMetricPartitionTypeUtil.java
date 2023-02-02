@@ -24,6 +24,7 @@ public class SimulationMetricPartitionTypeUtil {
 
     public static final Set<QName> ALL_DIMENSIONS = Set.of(
             SimulationMetricPartitionScopeType.F_TYPE_NAME,
+            SimulationMetricPartitionScopeType.F_STRUCTURAL_ARCHETYPE_OID,
             SimulationMetricPartitionScopeType.F_RESOURCE_OID,
             SimulationMetricPartitionScopeType.F_KIND,
             SimulationMetricPartitionScopeType.F_INTENT);

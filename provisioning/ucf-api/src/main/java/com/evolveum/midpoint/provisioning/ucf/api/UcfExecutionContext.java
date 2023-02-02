@@ -200,4 +200,19 @@ public class UcfExecutionContext {
     public Task getTask() {
         return task;
     }
+
+    public void checkNotInSimulation() {
+        if (!task.isPersistentExecution()) {
+            LOGGER.error("MidPoint tried to execute an operation on {}. This is unexpected, as the task is running in simulation"
+                            + " mode ({}). Please report this as a bug.",
+                    resource, task.getExecutionMode());
+            throw new IllegalStateException("Invoking 'modifying' connector operation while being in a simulation mode");
+        }
+    }
+
+    public static void checkNotInSimulation(@Nullable UcfExecutionContext ctx) {
+        if (ctx != null) {
+            ctx.checkNotInSimulation();
+        }
+    }
 }
