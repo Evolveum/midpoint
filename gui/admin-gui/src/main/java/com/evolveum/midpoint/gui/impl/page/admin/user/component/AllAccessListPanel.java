@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -42,6 +43,7 @@ import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -249,6 +251,25 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         };
         columns.add(why);
 
+
+        var since = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("Since")) {
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ObjectReferenceType>> iModel) {
+                AssignmentType assignmentType = getAssignment(iModel.getObject().getValue());
+                if (assignmentType == null) {
+                    return () -> "";
+                }
+                MetadataType metadataType = assignmentType.getMetadata();
+                if (metadataType == null) {
+                    return null;
+                }
+                return () -> WebComponentUtil.formatDate(metadataType.getCreateTimestamp());
+
+            };
+
+        };
+        columns.add(since);
+
         var activationColumn = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("Activation")) {
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<ObjectReferenceType>> iModel) {
@@ -295,7 +316,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 continue;
             }
             String path = segments.stream()
-//                            .map(segment -> getResolvedTarget(segment.getTargetRef()))
                     .map(segment -> WebComponentUtil.getEffectiveName(segment.getTargetRef(), AbstractRoleType.F_DISPLAY_NAME, getPageBase(), "resolveName", true))
                     .collect(Collectors.joining(" -> "));
             resolvedPaths.add(path);
@@ -324,10 +344,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
     }
 
     private <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
-//        UserType user = getObjectDetailsModels().getObjectType();
-//        Optional<ObjectReferenceType> ref = user.getRoleMembershipRef().stream().filter(r -> r.equals(rowValue)).findFirst();
-
-
         PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
         if (valueMetadataContainer == null) {
             return null;
@@ -341,8 +357,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 .map(valueMetadata -> valueMetadata.getProvenance())
                 .collect(Collectors.toList());
 
-//        ProvenanceMetadataType provenanceMetadataType = provenance.getRealValue();
-//        return provenanceMetadataType;
     }
     private <R extends AbstractRoleType> R getResolvedTarget(ObjectReferenceType rowValue) {
         if (rowValue.getObject() != null) {

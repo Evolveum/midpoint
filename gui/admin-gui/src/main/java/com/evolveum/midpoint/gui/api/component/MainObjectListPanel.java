@@ -332,36 +332,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return false;
     }
 
-    private CsvDownloadButtonPanel createDownloadButton(String buttonId) {
-        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
-                isRawOrNoFetchOption(getOptions());
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DataTable<?, ?> getDataTable() {
-                return getTable().getDataTable();
-            }
-
-            @Override
-            protected String getFilename() {
-                return getType().getSimpleName() +
-                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-            }
-
-        };
-        exportDataLink.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-            }
-        });
-        return exportDataLink;
-    }
-
     private AjaxCompositedIconButton createCreateReportButton(String buttonId) {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
@@ -437,20 +407,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
-
-    private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (options == null) {
-            return false;
-        }
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (Boolean.TRUE.equals(option.getOptions().getRaw()) ||
-                    Boolean.TRUE.equals(option.getOptions().getNoFetch())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected boolean isCreateNewObjectEnabled() {
         return !isCollectionViewPanel() || !getNewObjectInfluencesList().isEmpty();
     }

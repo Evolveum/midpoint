@@ -13,9 +13,6 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -84,10 +81,10 @@ public class AssignmentsUtil {
 
     public static IModel<String> createActivationTitleModel(ActivationType activationType,
             PageBase basePanel) {
-        return () -> createAssignemntActivationKey(activationType, basePanel);
+        return () -> createAssignmentActivationKey(activationType, basePanel);
     }
 
-    private static String createAssignemntActivationKey(ActivationType activation, PageBase basePanel) {
+    private static String createAssignmentActivationKey(ActivationType activation, PageBase basePanel) {
         if (activation == null) {
             return "";
         }
