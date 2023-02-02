@@ -105,8 +105,8 @@ public interface CommonInitialObjects {
             SystemObjectsType.MARK_PROJECTION_PASSWORD_CHANGED.value());
 
 
-    AbstractTestResource<TagType> MARK_PROTECTED_SHADOW = new ClassPathTestResource<>(
-            TAGS, "750-mark-protected-shadow.xml",
+    AbstractTestResource<MarkType> MARK_PROTECTED_SHADOW = new ClassPathTestResource<>(
+            MARKS, "750-mark-protected-shadow.xml",
             SystemObjectsType.MARK_PROTECTED_SHADOW.value());
 
 

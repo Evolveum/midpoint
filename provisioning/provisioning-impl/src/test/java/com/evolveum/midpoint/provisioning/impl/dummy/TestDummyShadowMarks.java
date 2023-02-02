@@ -79,9 +79,9 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
             "initial-objects/archetype", "702-archetype-shadow-mark.xml",
             SystemObjectsType.ARCHETYPE_SHADOW_MARK.value());
 
-    private static final AbstractTestResource<TagType> TAG_PROTECTED_SHADOW = new ClassPathTestResource<>(
-            "initial-objects/tag", "750-tag-protected-shadow.xml",
-            SystemObjectsType.TAG_PROTECTED_SHADOW.value());
+    private static final AbstractTestResource<MarkType> TAG_PROTECTED_SHADOW = new ClassPathTestResource<>(
+            "initial-objects/mark", "750-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED_SHADOW.value());
 
     private String drakeAccountOid;
 
@@ -163,7 +163,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         assertNull("" + account + " is not protected", account.asObjectable().isProtectedObject());
 
         PolicyStatementType policyStat = new PolicyStatementType()
-                .markRef(SystemObjectsType.TAG_PROTECTED_SHADOW.value(), TagType.COMPLEX_TYPE)
+                .markRef(SystemObjectsType.MARK_PROTECTED_SHADOW.value(), MarkType.COMPLEX_TYPE)
                 .type(PolicyStatementTypeType.APPLY);
 
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
@@ -179,6 +179,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
         assertSteadyResource();
     }
+
 
     @Test
     public void test201GetProtectedAccountShadow() throws Exception {
@@ -408,7 +409,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
 
         PolicyStatementType policyStat = new PolicyStatementType()
-                .markRef(SystemObjectsType.TAG_PROTECTED_SHADOW.value(), TagType.COMPLEX_TYPE)
+                .markRef(SystemObjectsType.MARK_PROTECTED_SHADOW.value(), MarkType.COMPLEX_TYPE)
                 .type(PolicyStatementTypeType.APPLY);
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
                 .createModificationDeleteContainer(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_POLICY_STATEMENT, policyStat);

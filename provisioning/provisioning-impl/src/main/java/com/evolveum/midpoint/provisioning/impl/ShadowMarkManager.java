@@ -24,12 +24,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowProvisioningPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+
 
 @Component
 public class ShadowMarkManager {
@@ -50,22 +51,22 @@ public class ShadowMarkManager {
         instance = null;
     }
 
-    public Collection<TagType> getShadowMarks(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
+    public Collection<MarkType> getShadowMarks(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
         // FIXME: Consider caching of all shadow marks and doing post-filter only
-        if (!cacheRepositoryService.supportsTags() || tagRefs.isEmpty()) {
+        if (!cacheRepositoryService.supportsMarks() || tagRefs.isEmpty()) {
             return List.of();
         }
         String[] tagRefIds = tagRefs.stream().map(t -> t.getOid()).collect(Collectors.toList()).toArray(new String[0]);
-        ObjectQuery query = prismContext.queryFor(TagType.class)
+        ObjectQuery query = prismContext.queryFor(MarkType.class)
             //.item(TagType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
              // Tag is Shadow Marks
-            .item(TagType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
+            .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
             .and()
             // Tag is assigned to shadow
             .id(tagRefIds)
             .build();
         try {
-            return asObjectables(cacheRepositoryService.searchObjects(TagType.class, query, null, result));
+            return asObjectables(cacheRepositoryService.searchObjects(MarkType.class, query, null, result));
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
@@ -73,7 +74,7 @@ public class ShadowMarkManager {
 
     public ShadowProvisioningPolicyType getShadowMarkPolicy(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
         var ret = new ShadowProvisioningPolicyType();
-        Collection<TagType>  marks = getShadowMarks(tagRefs, result);
+        Collection<MarkType>  marks = getShadowMarks(tagRefs, result);
 
         // Account is protected if any of shadow marks set it to protected.
         boolean isProtected = marks.stream().anyMatch(
@@ -111,7 +112,7 @@ public class ShadowMarkManager {
             for (var policy : shadow.getPolicyStatement()) {
                 if ( PolicyStatementTypeType.EXCLUDE.equals(policy.getType())
                         && policy.getMarkRef() != null
-                        && SystemObjectsType.TAG_PROTECTED_SHADOW.value().equals(policy.getMarkRef().getOid())) {
+                        && SystemObjectsType.MARK_PROTECTED_SHADOW.value().equals(policy.getMarkRef().getOid())) {
                     return false;
                 }
             }

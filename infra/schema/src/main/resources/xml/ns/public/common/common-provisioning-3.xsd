@@ -4315,7 +4315,7 @@
                                Tags and Shadow marks assigned to the shadow.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:TagType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>

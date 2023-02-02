@@ -611,7 +611,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         for (SelectableBean<ShadowType> shadow : selected) {
             try {
                 var policyStat = new PolicyStatementType()
-                        .markRef(SystemObjectsType.TAG_PROTECTED_SHADOW.value(), TagType.COMPLEX_TYPE)
+                        .markRef(SystemObjectsType.MARK_PROTECTED_SHADOW.value(), MarkType.COMPLEX_TYPE)
                         .type(PolicyStatementTypeType.APPLY);
                 var delta = getPageBase().getPrismContext().deltaFactory().object()
                         .createModificationAddContainer(ShadowType.class,
