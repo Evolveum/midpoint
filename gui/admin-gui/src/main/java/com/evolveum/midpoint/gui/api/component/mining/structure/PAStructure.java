@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining;
+package com.evolveum.midpoint.gui.api.component.mining.structure;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -21,11 +21,7 @@ public class PAStructure extends Selectable<RoleMiningStructureList> implements 
 
 
     public static final String F_NAME = "roleObject";
-    public static final String F_ROLE_MEMBERS_OID_LIST = "roleMembers";
     public static final String F_TOTAL_RESULT = "objectTotalResult";
-    public static final String F_RESULT_ARRAY = "objectPartialResult";
-    public static final String F_STATIC_INDEX = "staticIndex";
-    public static final String F_AUTHORIZATION = "authorizationTypeList";
 
     PrismObject<RoleType> roleObject;
     List<AuthorizationType> authorizationTypeList;

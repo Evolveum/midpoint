@@ -9,9 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.role;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.JaccardSortingMethod;
+
+import com.github.openjson.JSONObject;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -37,13 +42,23 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.mining.*;
+import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RoleAnalyseHelper;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.RoleAnalyseStructure;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.rbam.UA;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.CombinationHelperAlgorithm;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RBAMAlgorithm;
+import com.evolveum.midpoint.gui.api.component.mining.structure.PAStructure;
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMiningStructureList;
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMiningUserStructure;
+import com.evolveum.midpoint.gui.api.component.mining.structure.UPStructure;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -107,8 +122,23 @@ public class PageRoleMiningSimple extends PageAdmin {
     private static final String ID_DATATABLE_MINING_MAIN = "datatable_mining_main";
     private static final String ID_DATATABLE_DETAILS = "datatable_details";
     private static final String ID_DATATABLE_EXTRA = "datatable_extra";
+    private static final String ID_DATATABLE_RBAM_UA = "datatableRBAM";
+
+    private static final String ID_NETWORK_GRAPH_FORM = "graph_form";
+    private static final String ID_NETWORK_GRAPH_CONTAINER = "network_graph_container_auth";
+    private static final String ID_MODEL_COST = "model_cost";
+    private static final String ID_BASIC_MODEL_COST = "model_cost_basic";
+    private static final String ID_INPUT_SIGMA = "weight_o";
+    private static final String ID_INPUT_TAU = "weight_t";
+    private static final String ID_SUBMIT_WEIGHTS = "ajax_submit_link_weights";
+    private static final String ID_HIDE_GRAPH = "network_graph_ajax_link_auth";
 
     boolean searchMode = true;  //false: user   true: role
+
+    double weightSigma = 0;
+    double weightTau = 1 / (double) (11);
+    double modelCost = 0;
+    double modelCostBasic = 0;
 
     List<List<String>> basicCombResult;
     int basicCombMinIntersection = 4; //default 4 role;
@@ -122,8 +152,16 @@ public class PageRoleMiningSimple extends PageAdmin {
 
     List<PAStructure> permissionStructureList;
     List<AuthorizationType> authorizationTypeList;
-
+    List<RoleAnalyseStructure> roleAnalyseStructures;
     List<UPStructure> upStructuresList;
+
+    String jaccardJavaScriptChart;
+    String javaScriptNetworkAuth;
+
+    boolean containerVisibilityAuth = true;
+    int usersCount = 0;
+
+    List<UA> uaList = new ArrayList<>();
 
     private static final List<String> SEARCH_ENGINES = Arrays.asList("JACCARD", "RM", "RH", "PA", "UP", "UA", "URM", "RHM");
     public String selected = "JACCARD";
@@ -133,43 +171,19 @@ public class PageRoleMiningSimple extends PageAdmin {
     }
 
     @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(PageRoleMiningSimple.class, "js/jaccard_chart_sortable.js")));
-
-        List<String> objectName = new ArrayList<>();
-        List<Double> totalJaccard = new ArrayList<>();
-        List<List<Double>> partialJaccardMap = new ArrayList<>();
-        List<Integer> staticIndex = new ArrayList<>();
-
-        for (RoleMiningStructureList jaccardDataStructure : roleMiningStructureLists) {
-            objectName.add(jaccardDataStructure.getUserObject().getName().toString());
-            totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
-            partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
-            staticIndex.add(jaccardDataStructure.getStaticIndex());
-        }
-
-        String javaScript = "jaccard_chart_sortable('"
-                + objectName + "', '"
-                + totalJaccard + "', '"
-                + partialJaccardMap + "', '"
-                + jaccardThreshold + "', '"
-                + staticIndex + "');";
-
-        response.render(OnDomReadyHeaderItem.forScript(javaScript));
-    }
-
-    @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        networkGraphSection();
+        jaccardSection();
 
         List<PrismObject<RoleType>> roles;
         List<PrismObject<UserType>> users;
         try {
             roles = getRoles();
             users = getUsers();
+            usersCount = users.size();
+
         } catch (CommonException e) {
             throw new RuntimeException("Failed to load basic role mining list: " + e);
         }
@@ -207,9 +221,181 @@ public class PageRoleMiningSimple extends PageAdmin {
         secondaryForm.add(choiceTableDropdown(roles));
         secondaryForm.add(generateTableJC(roleMiningStructureLists));
 
+        jaccardChartJS();
+
+        secondaryForm.add(generateTableRBAM(uaList));
+
     }
 
-    private Form<?> choiceTableDropdown(List<PrismObject<RoleType>> roles) {
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        responseRenderJaccardChart(response, jaccardJavaScriptChart);
+        responseRenderAuthGraph(response, javaScriptNetworkAuth);
+    }
+
+    void responseRenderJaccardChart(@NotNull IHeaderResponse response, String javaScript) {
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(PageRoleMiningSimple.class, "js/jaccard_chart_sortable.js")));
+
+        response.render(OnDomReadyHeaderItem.forScript(javaScript));
+    }
+
+    void responseRenderAuthGraph(@NotNull IHeaderResponse response, String javaScript) {
+
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(PageRoleMiningSimple.class, "js/network_graph_auth.js")));
+
+        response.render(OnDomReadyHeaderItem.forScript(javaScript));
+    }
+
+    void jaccardChartJS() {
+        List<String> objectName = new ArrayList<>();
+        List<Double> totalJaccard = new ArrayList<>();
+        List<List<Double>> partialJaccardMap = new ArrayList<>();
+        List<Integer> staticIndex = new ArrayList<>();
+
+        for (RoleMiningStructureList jaccardDataStructure : roleMiningStructureLists) {
+            objectName.add(jaccardDataStructure.getUserObject().getName().toString());
+            totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
+            partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
+            staticIndex.add(jaccardDataStructure.getStaticIndex());
+        }
+
+        jaccardJavaScriptChart = "jaccard_chart_sortable('"
+                + objectName + "', '"
+                + totalJaccard + "', '"
+                + partialJaccardMap + "', '"
+                + jaccardThreshold + "', '"
+                + staticIndex + "');";
+    }
+
+    public void generateJsRBAM() {
+
+        List<AuthorizationType> tempAuthorizationExample = new ArrayList<>();
+
+
+        if (authorizationTypeList.isEmpty()) {
+            return;
+        }
+
+        if(upStructuresList.isEmpty()){
+            return;
+        }
+
+        int usersCount = upStructuresList.size();
+        double vC = 0;
+
+        RBAMAlgorithm algorithm = new RBAMAlgorithm(upStructuresList, authorizationTypeList, usersCount, weightSigma, weightTau, vC);
+        algorithm.preprocess();
+        uaList = algorithm.getUaList();
+        modelCost = algorithm.getUpdatedModelCost();
+        modelCostBasic = algorithm.getBasicModelCost();
+        getCostLabel().setDefaultModelObject("Cost: " + modelCost);
+        getCostBasicLabel().setDefaultModelObject("Basic cost: " + modelCostBasic);
+
+        List<JSONObject> jsonObjectIds = algorithm.getJsonIds();
+        List<JSONObject> jsonObjectEdges = algorithm.getJsonEdges();
+
+        javaScriptNetworkAuth = "network_graph_auth('"
+                + jsonObjectIds + "', '"
+                + jsonObjectEdges + "');";
+    }
+
+    protected Label getCostLabel() {
+        return (Label) get(((PageBase) getPage()).createComponentPath("graph_form", "model_cost"));
+    }
+
+    protected Label getCostBasicLabel() {
+        return (Label) get(((PageBase) getPage()).createComponentPath("graph_form", "model_cost_basic"));
+    }
+
+    public void jaccardSection() {
+        Form<?> jaccardForm = new Form<>("jaccard_form");
+        jaccardForm.setOutputMarkupId(true);
+
+        AjaxButton jaccardButton = new AjaxButton(
+                "run_process_jaccard", Model.of("Test")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                JaccardSortingMethod jaccardSortingMethod = new JaccardSortingMethod(getPageBase());
+
+                jaccardSortingMethod.sortDescending();
+            }
+        };
+        jaccardButton.setOutputMarkupId(true);
+        jaccardForm.add(jaccardButton);
+        add(jaccardForm);
+
+    }
+
+    public void networkGraphSection() {
+
+        Label costModel = new Label(ID_MODEL_COST, Model.of("Cost: " + modelCost));
+        costModel.setOutputMarkupId(true);
+        costModel.setOutputMarkupPlaceholderTag(true);
+
+        Label costModelBasic = new Label(ID_BASIC_MODEL_COST, Model.of("Basic cost: " + modelCostBasic));
+        costModelBasic.setOutputMarkupId(true);
+        costModelBasic.setOutputMarkupPlaceholderTag(true);
+
+        final TextField<Double> weightO = new TextField<>(ID_INPUT_SIGMA, Model.of(weightSigma));
+        weightO.setOutputMarkupId(true);
+
+        final TextField<Double> weightT = new TextField<>(
+                ID_INPUT_TAU, Model.of(weightTau));
+        weightT.setOutputMarkupId(true);
+
+        Form<?> graphForm = new Form<>(ID_NETWORK_GRAPH_FORM);
+        graphForm.setOutputMarkupId(true);
+        graphForm.add(weightO);
+        graphForm.add(weightT);
+
+        graphForm.add(WebComponentUtil.createHelp("weight_o_info"));
+        graphForm.add(WebComponentUtil.createHelp("weight_t_info"));
+        add(graphForm);
+
+        AjaxSubmitLink ajaxSubmitDropdown = new AjaxSubmitLink(ID_SUBMIT_WEIGHTS, graphForm) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                weightSigma = weightO.getModelObject();
+                weightTau = weightT.getModelObject();
+                generateJsRBAM();
+                target.appendJavaScript(javaScriptNetworkAuth);
+                getBoxedTableRBAM().replaceWith(generateTableRBAM(uaList));
+                target.add(getBoxedTableRBAM());
+                getCostLabel().setDefaultModelObject("Cost: " + modelCost);
+                getCostBasicLabel().setDefaultModelObject("Basic cost: " + modelCostBasic);
+                target.add(getCostLabel());
+                target.add(getCostBasicLabel());
+            }
+        };
+        graphForm.add(ajaxSubmitDropdown);
+
+        WebMarkupContainer networkGraphContainerAuth = new WebMarkupContainer(ID_NETWORK_GRAPH_CONTAINER);
+        networkGraphContainerAuth.setOutputMarkupId(true);
+        networkGraphContainerAuth.setOutputMarkupPlaceholderTag(true);
+        graphForm.add(networkGraphContainerAuth);
+
+        AjaxButton networkGraphButtonAuth = new AjaxButton(
+                ID_HIDE_GRAPH, Model.of("Show/Hide network auth graph")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+                generateJsRBAM();
+                target.appendJavaScript(javaScriptNetworkAuth);
+
+                containerVisibilityAuth = !containerVisibilityAuth;
+                target.add(networkGraphContainerAuth.setVisible(containerVisibilityAuth));
+            }
+        };
+        graphForm.add(networkGraphButtonAuth);
+        graphForm.add(costModel);
+        graphForm.add(costModelBasic);
+    }
+
+    private @NotNull Form<?> choiceTableDropdown(List<PrismObject<RoleType>> roles) {
         DropDownChoice<String> listSites = new DropDownChoice<>(
                 "dropdown_choice", new PropertyModel<>(this, "selected"), SEARCH_ENGINES);
 
@@ -278,7 +464,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return formDropdown;
     }
 
-    private AjaxButton createResetTablePanel() {
+    private @NotNull AjaxButton createResetTablePanel() {
         AjaxButton ajaxLinkPanel = new AjaxButton("reset_table", Model.of("Reset table")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -299,7 +485,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return ajaxLinkPanel;
     }
 
-    private AjaxButton createGeneratePanel(List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
+    private @NotNull AjaxButton createGeneratePanel(List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
         AjaxButton ajaxLinkAssign = new AjaxButton(ID_GENERATE_DATA_PANEL, Model.of("Generate data")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -616,8 +802,6 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    //EXTRA
-
     public BoxedTablePanel<RoleMiningStructureList> generateTableJC(
             List<RoleMiningStructureList> roleMiningStructureLists) {
 
@@ -751,6 +935,33 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
+    public BoxedTablePanel<UA> generateTableRBAM(
+            List<UA> uaList) {
+
+        RoleMiningProvider<UA> provider = new RoleMiningProvider<>(
+                this, new ListModel<>(uaList) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void setObject(List<UA> object) {
+                super.setObject(object);
+            }
+
+        }, false);
+
+        //provider.setSort(PAStructure.F_NAME, SortOrder.ASCENDING);
+
+        BoxedTablePanel<UA> table = new BoxedTablePanel<>(
+                ID_DATATABLE_RBAM_UA, provider, initColumnsRBAM(),
+                null, true, false);
+        table.setOutputMarkupId(true);
+        table.getDataTable().setItemsPerPage(30);
+        table.enableSavePageSize();
+
+        return table;
+    }
+
     public BoxedTablePanel<UPStructure> generateTableUP(
             List<UPStructure> upStructuresList) {
 
@@ -813,7 +1024,11 @@ public class PageRoleMiningSimple extends PageAdmin {
         return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_MINING_MAIN));
     }
 
-    public List<IColumn<RoleMiningStructureList, String>> initColumnsUA(List<PrismObject<RoleType>> roles) {
+    protected BoxedTablePanel<?> getBoxedTableRBAM() {
+        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_SECONDARY_FORM, ID_DATATABLE_RBAM_UA));
+    }
+
+    public List<IColumn<RoleMiningStructureList, String>> initColumnsUA(@NotNull List<PrismObject<RoleType>> roles) {
 
         List<IColumn<RoleMiningStructureList, String>> columns = new ArrayList<>();
 
@@ -1214,7 +1429,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return columns;
     }
 
-    public List<IColumn<PAStructure, String>> initColumnsRM(List<RoleMiningStructureList> roleMiningStructureLists) {
+    public List<IColumn<PAStructure, String>> initColumnsRM(@NotNull List<RoleMiningStructureList> roleMiningStructureLists) {
 
         List<IColumn<PAStructure, String>> columns = new ArrayList<>();
 
@@ -1493,15 +1708,15 @@ public class PageRoleMiningSimple extends PageAdmin {
                     double confidence = new RoleAnalyseHelper().confidenceR2R1(
                             parent, child, upStructuresList, upStructuresList.size());
 
-                    if (modelObject.containsAll(columnObject)) {
+                    if (parent.equals(child)) {
+                        cellItem.add(new AttributeAppender("class", " bg-warning"));
+                    } else if (checkParent) {
+                        cellItem.add(new AttributeAppender("class", " bg-danger"));
+                    } else {
+                        cellItem.add(new AttributeAppender("class", " bg-primary"));
+                    }
 
-                        if (parent.equals(child)) {
-                            cellItem.add(new AttributeAppender("class", " table-warning"));
-                        } else if (checkParent) {
-                            cellItem.add(new AttributeAppender("class", " table-success"));
-                        } else {
-                            cellItem.add(new AttributeAppender("class", " table-dark"));
-                        }
+                    if (modelObject.containsAll(columnObject)) {
 
                         cellItem.add(new Label(componentId, (Math.round(confidence * 100.0) / 100.0))
                                 .add(new AttributeAppender("class", " row")));
@@ -1519,9 +1734,11 @@ public class PageRoleMiningSimple extends PageAdmin {
                 @Override
                 public Component getHeader(String componentId) {
                     String headerName = permissionStructureList.get(finalI).getRoleObject().getName().toString();
-                    DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+                    DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
+                            WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
 
-                    return new AjaxLinkTruncatePanel(componentId, createStringResource(headerName), createStringResource(headerName), displayType) {
+                    return new AjaxLinkTruncatePanel(
+                            componentId, createStringResource(headerName), createStringResource(headerName), displayType) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             RoleType object = permissionStructureList.get(finalI).getRoleObject().asObjectable();
@@ -1938,6 +2155,181 @@ public class PageRoleMiningSimple extends PageAdmin {
         return columns;
     }
 
+    public List<IColumn<UA, String>> initColumnsRBAM() {
+
+        List<IColumn<UA, String>> columns = new ArrayList<>();
+
+        columns.add(new IconColumn<>(null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<UA> rowModel) {
+
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            }
+        });
+
+        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+
+            @Override
+            public IModel<?> getDataModel(IModel<UA> iModel) {
+                return null;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UA>> item, String componentId,
+                    IModel<UA> rowModel) {
+
+                item.add(new AjaxLinkPanel(componentId, createStringResource(rowModel.getObject().getUserUP().getUserObject().getName())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        UserType object = rowModel.getObject().getUserUP().getUserObject().asObjectable();
+                        PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
+                    }
+                });
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, createStringResource("RoleMining.name.column"));
+            }
+
+        });
+
+        IColumn<UA, String> column;
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Permission")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UA>> cellItem,
+                    String componentId, IModel<UA> model) {
+
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("{");
+                for (int i = 0; i < model.getObject().getUserUP().getAssignPermission().size(); i++) {
+                    stringBuilder.append(model.getObject().getUserUP().getAssignPermission().get(i).getName()).append(", ");
+                }
+                stringBuilder.append("}");
+                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<UA> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Candidate roles")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UA>> cellItem,
+                    String componentId, IModel<UA> model) {
+
+                Set<Integer> keys = model.getObject().getCandidateRoleSet().keySet();
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("{");
+                for (Integer key : keys) {
+                    stringBuilder.append(key).append(", ");
+                }
+                stringBuilder.append("}");
+                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<UA> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Candidate roles permission")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UA>> cellItem,
+                    String componentId, IModel<UA> model) {
+
+                Set<Integer> keys = model.getObject().getCandidateRoleSet().keySet();
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Integer key : keys) {
+                    List<AuthorizationType> authorizationTypes = model.getObject().getCandidateRoleSet().get(key);
+                    stringBuilder.append("{");
+                    for (int i = 0; i < authorizationTypes.size(); i++) {
+                        stringBuilder.append(authorizationTypes.get(i).getName()).append(", ");
+                    }
+                    stringBuilder.append("} + ");
+                }
+                stringBuilder.append(". ");
+
+                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")
+                        .replace("+ .", " "))
+                );
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<UA> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Status")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UA>> cellItem,
+                    String componentId, IModel<UA> model) {
+
+                if (!model.getObject().isCorrelateStatus()) {
+                    cellItem.add(new Label(componentId, "UNPROCESSED"));
+                } else {
+                    cellItem.add(new Label(componentId, "PROCESSED"));
+                }
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<UA> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        return columns;
+    }
+
     public List<IColumn<UPStructure, String>> initColumnsUP() {
 
         List<IColumn<UPStructure, String>> columns = new ArrayList<>();
@@ -2032,9 +2424,10 @@ public class PageRoleMiningSimple extends PageAdmin {
                     List<AuthorizationType> modelObject = model.getObject().getAssignPermission();
 
                     if (modelObject.contains(authorizationType)) {
-                        filledCell(cellItem, componentId);
+                        cellItem.add(new AttributeAppender("class", " table-dark"));
+                        cellItem.add(new Label(componentId, "1"));
                     } else {
-                        emptyCell(cellItem, componentId);
+                        cellItem.add(new Label(componentId, "0"));
                     }
 
                 }
@@ -2050,7 +2443,8 @@ public class PageRoleMiningSimple extends PageAdmin {
                     String headerName = authorizationType.getName() == null ? "Undefined" : authorizationType.getName();
                     DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_LOCK_STATUS);
 
-                    return new AjaxLinkTruncatePanel(componentId, createStringResource(headerName), createStringResource(headerName), displayType) {
+                    return new AjaxLinkTruncatePanel(
+                            componentId, createStringResource(headerName), createStringResource(headerName), displayType) {
                         @Override
                         public boolean isEnabled() {
                             return false;
@@ -2210,7 +2604,7 @@ public class PageRoleMiningSimple extends PageAdmin {
                             percentageIntersection = ((((double) iterateMembersIntersection) / modelMembersSize)) * 100.00;
                         }
                     }
-                    System.out.println(percentageIntersection);
+                    //    System.out.println(percentageIntersection);
 
                     if (modelUserObjectId.equals(columnUserObjectId)) {
                         cellItem.add(new AttributeAppender("class", " table-warning"));
@@ -2297,7 +2691,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return columns;
     }
 
-    private void ajaxLinkExecuteJacquardMining(List<PrismObject<UserType>> users, Form<?> secondForm) {
+    private void ajaxLinkExecuteJacquardMining(List<PrismObject<UserType>> users, @NotNull Form<?> secondForm) {
         AjaxButton ajaxLinkPanel = new AjaxButton(ID_JACCARD_AJAX_LINK, Model.of("Execute intersection search")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -2358,9 +2752,11 @@ public class PageRoleMiningSimple extends PageAdmin {
         }
     }
 
-    private void fillPermissionStructureList(List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
+    private void fillPermissionStructureList(@NotNull List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
         authorizationTypeList = new ArrayList<>();
         permissionStructureList = new ArrayList<>();
+        roleAnalyseStructures = new ArrayList<>();
+
         for (int i = 0; i < roles.size(); i++) {
             PrismObject<RoleType> roleTypePrismObject = roles.get(i);
             List<PrismObject<UserType>> roleMembers = new RoleMiningFilter().getRoleMembers(
@@ -2378,10 +2774,12 @@ public class PageRoleMiningSimple extends PageAdmin {
             permissionStructureList.add(
                     new PAStructure(roles.get(i),
                             roleMembers, totalResult, null, authorizationList, i));
+
+            analyseFillRoleStructure(roles.get(i).asObjectable(), roleMembers, authorizationList);
         }
     }
 
-    private void fillJaccardData(List<RoleMiningUserStructure> roleMiningUserStructureList) {
+    private void fillJaccardData(@NotNull List<RoleMiningUserStructure> roleMiningUserStructureList) {
 
         roleMiningStructureLists = new ArrayList<>();
         int dataCount = roleMiningUserStructureList.size();
@@ -2415,7 +2813,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
     }
 
-    private void jaccardThresholdSubmit(Form<?> mainForm, List<RoleMiningUserStructure> roleMiningData) {
+    private void jaccardThresholdSubmit(@NotNull Form<?> mainForm, List<RoleMiningUserStructure> roleMiningData) {
         final TextField<Double> inputThreshold = new TextField<>(ID_JACCARD_THRESHOLD_INPUT, Model.of(jaccardThreshold));
         inputThreshold.setOutputMarkupId(true);
 
@@ -2466,7 +2864,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         }
     }
 
-    private void basicOperationHelper(Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
+    private void basicOperationHelper(@NotNull Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
 
         Label repeatingCountBasicTable = new Label(ID_LABEL_DUPLICATES_BASIC, Model.of("0 duplicates"));
         repeatingCountBasicTable.setOutputMarkupId(true);
@@ -2541,7 +2939,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         mainForm.add(duplicateRolesComb);
     }
 
-    private void searchSelector(Form<?> mainForm) {
+    private void searchSelector(@NotNull Form<?> mainForm) {
 
         AjaxButton buttonNextResult = new AjaxButton(ID_BUTTON_NEXT_RESULT) {
             @Override
@@ -2636,28 +3034,28 @@ public class PageRoleMiningSimple extends PageAdmin {
         ((PageBase) getPage()).navigateToNext(pageClass, parameters);
     }
 
-    private void emptyCell(Item<?> cellItem, String componentId) {
+    private void emptyCell(@NotNull Item<?> cellItem, String componentId) {
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void filledCell(Item<?> cellItem, String componentId) {
+    private void filledCell(@NotNull Item<?> cellItem, String componentId) {
         cellItem.add(new AttributeAppender("class", " table-dark"));
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void algMatchedCell(Item<?> cellItem, String componentId) {
+    private void algMatchedCell(@NotNull Item<?> cellItem, String componentId) {
         cellItem.add(new AttributeAppender("class", " table-info"));
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void tableStyle(Item<?> cellItem) {
+    private void tableStyle(@NotNull Item<?> cellItem) {
         cellItem.getParent().getParent().add(AttributeAppender.replace("class", " d-flex"));
         cellItem.getParent().getParent().add(AttributeAppender.replace("style", " height:40px"));
         cellItem.add(new AttributeAppender("style", " width:40px; height:40px; border: 1px solid #f4f4f4;"));
         cellItem.add(AttributeAppender.remove("class"));
     }
 
-    private List<ObjectReferenceType> getRoleObjectReferenceTypes(AssignmentHolderType object) {
+    private List<ObjectReferenceType> getRoleObjectReferenceTypes(@NotNull AssignmentHolderType object) {
         return IntStream.range(0, object.getRoleMembershipRef().size())
                 .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
                         .equals("RoleType")).mapToObj(i -> object.getRoleMembershipRef().get(i)).collect(Collectors.toList());
@@ -2673,11 +3071,7 @@ public class PageRoleMiningSimple extends PageAdmin {
     }
 
     private List<PrismObject<RoleType>> getRoles() throws CommonException {
-        String loadAllUsers = DOT_CLASS + "getAllUsers";
-        OperationResult result = new OperationResult(loadAllUsers);
-        Task task = ((PageBase) getPage()).createSimpleTask(loadAllUsers);
-
-        return new RoleMiningFilter().filterRoles(((PageBase) getPage()).getModelService(), task, result);
+        return new RoleMiningFilter().filterRoles(((PageBase) getPage()));
     }
 
     private List<RoleMiningUserStructure> getRoleMiningData(List<PrismObject<UserType>> users) {
@@ -2685,10 +3079,7 @@ public class PageRoleMiningSimple extends PageAdmin {
     }
 
     private List<PrismObject<UserType>> getUsers() throws CommonException {
-        String loadAllUsers = DOT_CLASS + "getAllUsers";
-        OperationResult result = new OperationResult(loadAllUsers);
-        Task task = ((PageBase) getPage()).createSimpleTask(loadAllUsers);
-        return new RoleMiningFilter().filterUsers(((PageBase) getPage()).getModelService(), task, result);
+        return new RoleMiningFilter().filterUsers(((PageBase) getPage()));
     }
 
     private List<PrismObject<UserType>> getMembers(String objectId) {
@@ -2707,7 +3098,7 @@ public class PageRoleMiningSimple extends PageAdmin {
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
     }
 
-    List<List<String>> getMatrix(List<PrismObject<UserType>> users) {
+    List<List<String>> getMatrix(@NotNull List<PrismObject<UserType>> users) {
 
         List<List<String>> matrix = new ArrayList<>();
 
@@ -2767,4 +3158,11 @@ public class PageRoleMiningSimple extends PageAdmin {
         return (MainObjectListPanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_DETAILS));
     }
 
+    private void analyseFillRoleStructure(RoleType roleType, List<PrismObject<UserType>> roleMembers,
+            List<AuthorizationType> authorizationTypeList) {
+        roleAnalyseStructures.add(
+                new RoleAnalyseStructure(roleType, roleMembers, authorizationTypeList)
+        );
+    }
 }
+

@@ -13,6 +13,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.gui.api.component.mining.*;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RoleAnalyseHelper;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.CombinationHelperAlgorithm;
+import com.evolveum.midpoint.gui.api.component.mining.structure.JaccardDataStructure;
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMembersList;
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMiningUserStructure;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -1998,7 +2003,7 @@ public class PageRoleMiningOld extends PageAdmin {
         OperationResult result = new OperationResult(loadAllUsers);
         Task task = ((PageBase) getPage()).createSimpleTask(loadAllUsers);
 
-        return new RoleMiningFilter().filterRoles(((PageBase) getPage()).getModelService(), task, result);
+        return new RoleMiningFilter().filterRoles(((PageBase) getPage()));
     }
 
     public List<RoleMembersList> getRolesAndMembers(List<PrismObject<RoleType>> roles) throws CommonException {
@@ -2017,7 +2022,7 @@ public class PageRoleMiningOld extends PageAdmin {
         String loadAllUsers = DOT_CLASS + "getAllUsers";
         OperationResult result = new OperationResult(loadAllUsers);
         Task task = ((PageBase) getPage()).createSimpleTask(loadAllUsers);
-        return new RoleMiningFilter().filterUsers(((PageBase) getPage()).getModelService(), task, result);
+        return new RoleMiningFilter().filterUsers(((PageBase) getPage()));
     }
 
     private List<PrismObject<UserType>> getMembers(String objectId) {

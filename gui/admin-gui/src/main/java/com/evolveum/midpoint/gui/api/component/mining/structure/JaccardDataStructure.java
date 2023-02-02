@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining;
+package com.evolveum.midpoint.gui.api.component.mining.structure;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -16,8 +16,6 @@ import java.util.ArrayList;
 public class JaccardDataStructure implements Serializable {
 
     public static final String F_NAME = "userObject";
-    public static final String F_RESULT_ARRAY = "objectPartialResult";
-    public static final String F_SUM_RESULT = "objectTotalResult";
 
     public PrismObject<UserType> getUserObject() {
         return userObject;

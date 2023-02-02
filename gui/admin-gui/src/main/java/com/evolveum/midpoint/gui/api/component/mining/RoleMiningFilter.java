@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMembersList;
+import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMiningUserStructure;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,26 +30,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleMiningFilter implements Serializable {
 
-    public List<PrismObject<UserType>> filterUsers(ModelService modelService,
-            Task task, OperationResult result) throws CommonException {
+    public List<PrismObject<UserType>> filterUsers(PageBase pageBase) {
+
+        String string = DOT_CLASS + "filterUsers";
+        OperationResult result = new OperationResult(string);
+        Task task = pageBase.createSimpleTask(string);
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class).build();
 
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
+        List<PrismObject<UserType>> users = null;
+        try {
+            users = pageBase.getModelService().searchObjects(UserType.class, query, null, task, result);
+        } catch (CommonException e) {
+            e.printStackTrace();
+        }
 
-        users.sort(Comparator.comparing(p -> p.getName().toString()));
+        if (users != null) {
+            users.sort(Comparator.comparing(p -> p.getName().toString()));
+        }
 
         return users;
     }
 
-    public List<PrismObject<RoleType>> filterRoles(ModelService modelService,
-            Task task, OperationResult result) throws CommonException {
+    public List<PrismObject<RoleType>> filterRoles(PageBase pageBase) {
 
+        String string = DOT_CLASS + "filterROLES";
+        OperationResult result = new OperationResult(string);
+        Task task = pageBase.createSimpleTask(string);
         ObjectQuery query = PrismContext.get().queryFor(RoleType.class).build();
 
-        List<PrismObject<RoleType>> roles = modelService.searchObjects(RoleType.class, query, null, task, result);
+        List<PrismObject<RoleType>> roles = null;
+        try {
+            roles = pageBase.getModelService().searchObjects(RoleType.class, query, null, task, result);
+        } catch (CommonException e) {
+            e.printStackTrace();
+        }
 
-        roles.sort(Comparator.comparing(p -> p.getName().toString()));
+        if (roles != null) {
+            roles.sort(Comparator.comparing(p -> p.getName().toString()));
+        }
 
         return roles;
     }
@@ -76,12 +97,11 @@ public class RoleMiningFilter implements Serializable {
 
     private List<PrismObject<UserType>> getMembers(ModelService modelService,
             Task task, OperationResult result, String objectId) throws CommonException {
-            ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(objectId).build();
 
         return modelService.searchObjects(UserType.class, query, null, task, result);
     }
-
 
     public List<PrismObject<UserType>> getRoleMembers(PageBase pageBase, String objectId) {
         String getMembers = DOT_CLASS + "getRolesMembers";
@@ -102,13 +122,6 @@ public class RoleMiningFilter implements Serializable {
         return roleTypePrismObject.getAuthorization();
     }
 
-    public ArrayList<Integer> coordinates(int xCoordinate, int yCoordinate) {
-        ArrayList<Integer> arrayList = new ArrayList<>();
-        arrayList.add(xCoordinate);
-        arrayList.add(yCoordinate);
-        return arrayList;
-    }
-
     public List<String> roleObjectIdRefType(AssignmentHolderType object) {
         return IntStream.range(0, object.getRoleMembershipRef().size())
                 .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
@@ -116,15 +129,31 @@ public class RoleMiningFilter implements Serializable {
 
     }
 
+    public List<RoleType> getUserRoles(UserType userObject, PageBase pageBase) {
+        List<RoleType> roleTypeList = new ArrayList<>();
+        List<String> rolesIds = roleObjectIdRefType(userObject);
+        for (int i = 0; i < rolesIds.size(); i++) {
+            String oid = rolesIds.get(i);
+            OperationResult result = new OperationResult(DOT_CLASS + "getRoles");
+            Task task = pageBase.createSimpleTask(DOT_CLASS + "getRoles");
+            try {
+                roleTypeList.add(pageBase.getModelService().getObject(RoleType.class, oid, null, task, result).asObjectable());
+            } catch (CommonException e) {
+                e.printStackTrace();
+            }
+        }
 
-    protected PrismObject<RoleType> getRoleByOid(String oid, PageBase pageBase) throws CommonException {
+        return roleTypeList;
+    }
+
+    public PrismObject<RoleType> getRoleByOid(String oid, PageBase pageBase) throws CommonException {
         String getRole = DOT_CLASS + "getRole";
         OperationResult result = new OperationResult(getRole);
         Task task = pageBase.createSimpleTask(getRole);
         return pageBase.getModelService().getObject(RoleType.class, oid, null, task, result);
     }
 
-    protected List<ObjectReferenceType> getRoleObjectReferenceTypes(AssignmentHolderType object) {
+    public List<ObjectReferenceType> getRoleObjectReferenceTypes(AssignmentHolderType object) {
         return IntStream.range(0, object.getRoleMembershipRef().size())
                 .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
                         .equals("RoleType")).mapToObj(i -> object.getRoleMembershipRef().get(i)).collect(Collectors.toList());

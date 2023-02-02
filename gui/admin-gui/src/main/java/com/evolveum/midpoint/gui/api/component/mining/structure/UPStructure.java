@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining;
+package com.evolveum.midpoint.gui.api.component.mining.structure;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -18,9 +18,6 @@ import java.util.List;
 public class UPStructure extends Selectable<RoleMiningStructureList> implements Serializable {
 
     public static final String F_NAME = "userObject";
-    public static final String F_ROLES = "assignRolesObjectIds";
-    public static final String F_PERMISSION = "assignPermission";
-    public static final String F_STATIC_INDEX = "staticIndex";
 
     PrismObject<UserType> userObject;
     List<String> assignRolesObjectIds;
@@ -53,10 +50,6 @@ public class UPStructure extends Selectable<RoleMiningStructureList> implements 
 
     public List<AuthorizationType> getAssignPermission() {
         return assignPermission;
-    }
-
-    public void setAssignPermission(List<AuthorizationType> assignPermission) {
-        this.assignPermission = assignPermission;
     }
 
     public int getStaticIndex() {

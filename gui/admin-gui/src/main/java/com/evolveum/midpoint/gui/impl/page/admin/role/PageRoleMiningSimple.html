@@ -11,13 +11,18 @@
 
 <body>
 
+
 <wicket:extend>
     <wicket:child/>
 
 
     <div class="border-top my-3 row justify-content-center">
-        <h2 class="col-xl-7 text-center"> <wicket:message key="Role.mining.ua.table.caption"/></h2>
-        <h2 class="col-xl-5 text-center"> <wicket:message key="Role.mining.basic.table.caption"/></h2>
+        <h2 class="col-xl-7 text-center">
+            <wicket:message key="Role.mining.ua.table.caption"/>
+        </h2>
+        <h2 class="col-xl-5 text-center">
+            <wicket:message key="Role.mining.basic.table.caption"/>
+        </h2>
     </div>
 
     <div class="col-xl-12">
@@ -30,7 +35,7 @@
                         <div class="row col justify-content-start">
                             <span class="btn btn-warning" wicket:id="generate_data_panel">
                             </span>
-                            <button class="btn btn-default" wicket:id="reset_table">
+                            <button class="btn btn-default  ml-4" wicket:id="reset_table">
                             </button>
                         </div>
                         <div class="row col justify-content-end btn-group btn-group-sm ">
@@ -151,16 +156,16 @@
                     </div>
                 </div>
                 <br/>
-            <div class="col-auto me-auto">
-                <form wicket:id="form_dropdown">
-                    <div class="row">
+                <div class="col-auto me-auto">
+                    <form wicket:id="form_dropdown">
+                        <div class="row ml-4">
 
-                        <select class="btn btn-default dropdown-toggle" wicket:id="dropdown_choice" style="width: 200px"></select>
-                        <input class="btn btn-default" wicket:id="ajax_submit_link_dropdown" type="submit" value="Display"/>
+                            <select class="btn btn-default dropdown-toggle" wicket:id="dropdown_choice" style="width: 200px"></select>
+                            <input class="btn btn-default" wicket:id="ajax_submit_link_dropdown" type="submit" value="Display"/>
 
-                    </div>
-                </form>
-            </div>
+                        </div>
+                    </form>
+                </div>
 
             </div>
 
@@ -168,7 +173,54 @@
                 <div wicket:id="datatable_extra" class="col overflow-auto"></div>
             </div>
 
+            <div>
+                <div wicket:id="datatableRBAM" class="col overflow-auto"></div>
+            </div>
+
         </form>
+
+        <form wicket:id="graph_form">
+
+            <br/>
+            <div class="row">
+                <button wicket:id="network_graph_ajax_link_auth" type="button" class="btn btn-primary"></button>
+
+
+                <div class="ml-4">
+                    <input class="form-control" style="width: 100px" wicket:id="weight_o" type="text" placeholder="o" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&sigma;
+                    <i wicket:id="weight_o_info" wicket:message="title:Role.rbac.weight.o.help"></i>
+                </div>
+
+
+                <div>
+                    <input class="form-control" style="width: 100px" wicket:id="weight_t" type="text" placeholder="t" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&tau;
+                    <i wicket:id="weight_t_info" wicket:message="title:Role.rbac.weight.t.help"></i>
+                </div>
+
+                <input class="btn btn-default" wicket:id="ajax_submit_link_weights" type="submit" value="Execute"/>
+
+                <div class="ml-4 btn btn-default" wicket:id="model_cost" type="text"></div>
+                <div class="ml-4 btn btn-default" wicket:id="model_cost_basic" type="text"></div>
+            </div>
+
+
+            <div wicket:id="network_graph_container_auth">
+                <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+                <div id="network_graph_auth" style="height:1000px;background-color: white"></div>
+            </div>
+        </form>
+
+
+        <form wicket:id="jaccard_form">
+            <button wicket:id="run_process_jaccard" type="button" class="btn btn-primary"></button>
+        </form>
+
+
     </div>
 </wicket:extend>
 

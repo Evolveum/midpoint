@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org" lang="en">
+
+<body>
+
+
+<wicket:extend>
+    <wicket:child/>
+
+
+    <div class="col-xl-12">
+        <form wicket:id="secondary_form" class="clearfix form-horizontal">
+
+            <div>
+                <div wicket:id="datatableRBAM" class="col overflow-auto"></div>
+            </div>
+
+        </form>
+
+        <form wicket:id="graph_form">
+
+            <br/>
+            <div class="row">
+                <button wicket:id="network_graph_ajax_link_auth" type="button" class="btn btn-primary"></button>
+
+
+                <div class="ml-4">
+                    <input class="form-control" style="width: 100px" wicket:id="weight_o" type="text" placeholder="o" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&sigma;
+                    <i wicket:id="weight_o_info" wicket:message="title:Role.rbac.weight.o.help"></i>
+                </div>
+
+
+                <div>
+                    <input class="form-control" style="width: 100px" wicket:id="weight_t" type="text" placeholder="t" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&tau;
+                    <i wicket:id="weight_t_info" wicket:message="title:Role.rbac.weight.t.help"></i>
+                </div>
+
+                <input class="btn btn-default" wicket:id="ajax_submit_link_weights" type="submit" value="Execute"/>
+
+                <div class="ml-4 btn btn-default" wicket:id="model_cost" type="text"></div>
+                <div class="ml-4 btn btn-default" wicket:id="model_cost_basic" type="text"></div>
+            </div>
+
+
+            <div wicket:id="network_graph_container_auth">
+                <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+                <div id="network_graph_auth" style="height:1000px;background-color: white"></div>
+            </div>
+        </form>
+
+
+        <form wicket:id="jaccard_form">
+            <button wicket:id="run_process_jaccard" type="button" class="btn btn-primary"></button>
+        </form>
+
+
+    </div>
+</wicket:extend>
+
+</body>
+
+
+</html>

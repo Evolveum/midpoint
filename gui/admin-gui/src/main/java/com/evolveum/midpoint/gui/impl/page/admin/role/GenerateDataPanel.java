@@ -19,7 +19,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.mining.RoleMiningDataGenerator;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RoleMiningDataGenerator;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,7 +43,6 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
     private static final String ID_FORM = "form";
     private static final String ID_AJAX_LINK_SUBMIT_USER_FORM = "ajax_submit_link_user";
     private static final String ID_AJAX_LINK_SUBMIT_ROLE_FORM = "ajax_submit_link_role";
-
 
     List<PrismObject<UserType>> users;
     List<PrismObject<RoleType>> roles;
@@ -112,7 +111,6 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
         ajaxLinkAssignAuth.setOutputMarkupId(true);
         form.add(ajaxLinkAssignAuth);
 
-
         AjaxButton ajaxLinkUnassign = new AjaxButton(ID_UNASSIGN, Model.of("Unassign roles")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -123,7 +121,6 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
         };
         ajaxLinkUnassign.setOutputMarkupId(true);
         form.add(ajaxLinkUnassign);
-
 
         Form<?> formGenerateUser = new Form<Void>(ID_FORM_GENERATE_USER);
 

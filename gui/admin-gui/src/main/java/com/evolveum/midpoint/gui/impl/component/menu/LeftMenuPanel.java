@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningRBAM;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -393,6 +395,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
         roleMenu.addMenuItem(new MenuItem("Role mining (old)", PageRoleMiningOld.class));
         roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
+        roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
+
 
         return roleMenu;
     }

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining;
+package com.evolveum.midpoint.gui.api.component.mining.analyse.tools;
 
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,15 +39,35 @@ public class RoleMiningDataGenerator {
         if (size >= 8) {
             probabilityGenerator.addGroupProbability(7, 0.2d);
             probabilityGenerator.addGroupProbability(8, 0.3d);
-            probabilityGenerator.addGroupProbability(3, 0.4d);
+            probabilityGenerator.addGroupProbability(3, 0.3d);
             probabilityGenerator.addGroupProbability(4, 0.5d);
             probabilityGenerator.addGroupProbability(5, 0.5d);
             probabilityGenerator.addGroupProbability(6, 0.3d);
-        } else {
+        } else if (size >= 4) {
+            probabilityGenerator.addGroupProbability(1, 0.3d);
+            probabilityGenerator.addGroupProbability(2, 0.3d);
+            probabilityGenerator.addGroupProbability(3, 0.3d);
+            probabilityGenerator.addGroupProbability(4, 0.1d);
+        }else {
             return 1;
         }
         return probabilityGenerator.getRandomNumber();
     }
+
+
+    int generateAuthGroupSize(int size) {
+        ProbabilityGenerator probabilityGenerator = new ProbabilityGenerator();
+        if (size >= 4) {
+            probabilityGenerator.addGroupProbability(1, 0.3d);
+            probabilityGenerator.addGroupProbability(2, 0.3d);
+            probabilityGenerator.addGroupProbability(3, 0.3d);
+            probabilityGenerator.addGroupProbability(4, 0.1d);
+        }else {
+            return 1;
+        }
+        return probabilityGenerator.getRandomNumber();
+    }
+
 
     public void generateUser(PageBase pageBase, int count, List<PrismObject<UserType>> userList) {
         OperationResult result = new OperationResult("Generate UserType object");
@@ -202,10 +223,6 @@ public class RoleMiningDataGenerator {
         authorizationTemp.add("C");
         authorizationTemp.add("D");
         authorizationTemp.add("E");
-        authorizationTemp.add("F");
-        authorizationTemp.add("G");
-        authorizationTemp.add("H");
-        authorizationTemp.add("I");
 
         OperationResult result = new OperationResult("Add authorization");
 
@@ -215,13 +232,15 @@ public class RoleMiningDataGenerator {
 
 
                 if (authorizationCount == 0) {
-                    int groupSize = generateRolesGroupSize(authorizationTemp.size());
+                    int groupSize = generateAuthGroupSize(authorizationTemp.size());
 
+                    int startIndex = new Random().nextInt(((authorizationTemp.size() - groupSize)) + 1);
 
                     for (int i = 0; i < groupSize; i++) {
                         RoleType roleType = role.asObjectable();
                         AuthorizationType authorizationType = new AuthorizationType();
-                        authorizationType.setName(authorizationTemp.get(i));
+                        authorizationType.setName(authorizationTemp.get(startIndex + i));
+
 
                         try {
                             Task task = pageBase.createSimpleTask("Add authorization");

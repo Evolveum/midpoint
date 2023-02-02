@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining;
+package com.evolveum.midpoint.gui.api.component.mining.structure;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,9 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class RoleMiningStructureList extends Selectable<RoleMiningStructureList> implements Serializable {
 
     public static final String F_NAME = "userObject";
-    public static final String F_ROLES_OID_LIST = "roleObjectRef";
     public static final String F_SUM_RESULT = "objectTotalResult";
-    public static final String F_RESULT_ARRAY = "objectPartialResult";
 
     PrismObject<UserType> userObject;
     List<String> roleObjectRef;
