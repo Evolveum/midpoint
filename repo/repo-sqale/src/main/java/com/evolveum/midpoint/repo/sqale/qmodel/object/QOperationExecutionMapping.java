@@ -149,18 +149,20 @@ public class QOperationExecutionMapping<OR extends MObject>
                         .map(row -> Objects.requireNonNull(row.get(entityPath)).ownerOid)
                         .collect(Collectors.toSet());
 
-                // TODO do we need get options here as well? Is there a scenario where we load container
-                //  and define what to load for referenced/owner object?
-                QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
-                List<Tuple> result = jdbcSession.newQuery()
-                        .select(o.oid, o.fullObject)
-                        .from(o)
-                        .where(o.oid.in(ownerOids))
-                        .fetch();
-                for (Tuple row : result) {
-                    UUID oid = Objects.requireNonNull(row.get(o.oid));
-                    ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
-                    owners.put(oid, owner);
+                if (!ownerOids.isEmpty()) {
+                    // TODO do we need get options here as well? Is there a scenario where we load container
+                    //  and define what to load for referenced/owner object?
+                    QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
+                    List<Tuple> result = jdbcSession.newQuery()
+                            .select(o.oid, o.fullObject)
+                            .from(o)
+                            .where(o.oid.in(ownerOids))
+                            .fetch();
+                    for (Tuple row : result) {
+                        UUID oid = Objects.requireNonNull(row.get(o.oid));
+                        ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                        owners.put(oid, owner);
+                    }
                 }
             }
 

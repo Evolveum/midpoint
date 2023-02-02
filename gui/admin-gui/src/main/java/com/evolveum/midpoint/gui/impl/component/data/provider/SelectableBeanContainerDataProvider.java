@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -27,8 +26,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
 /**
  * @author lazyman
@@ -66,11 +63,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     @Override
     protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
         cache.put(new TypedCacheKey(getQuery(), getType()), newSize);
-    }
-
-    @Override
-    public IModel<SelectableBean<C>> model(SelectableBean<C> selectableBean) {
-        return null;
     }
 
     @Override

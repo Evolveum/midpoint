@@ -21,9 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AvailableTagSearchItemWrapper extends ChoicesSearchItemWrapper<String> {
+public class AvailableMarkSearchItemWrapper extends ChoicesSearchItemWrapper<String> {
 
-    public AvailableTagSearchItemWrapper(List<DisplayableValue<String>> availableValues) {
+    public AvailableMarkSearchItemWrapper(List<DisplayableValue<String>> availableValues) {
         super(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, availableValues);
     }
 

@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -27,7 +25,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -114,31 +111,12 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     @Override
     protected List<IColumn<SelectableBean<SimulationResultType>, String>> createDefaultColumns() {
         List<IColumn<SelectableBean<SimulationResultType>, String>> columns = super.createDefaultColumns();
-        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> {
-            SimulationResultType result = row.getValue();
-
-            XMLGregorianCalendar start = result.getStartTimestamp();
-            if (start == null) {
-                return getString("SimulationResultsPanel.notStartedYet");
-            }
-
-            XMLGregorianCalendar end = result.getEndTimestamp();
-            if (end == null) {
-                end = MiscUtil.asXMLGregorianCalendar(new Date());
-            }
-
-            long duration = end.toGregorianCalendar().getTimeInMillis() - start.toGregorianCalendar().getTimeInMillis();
-            if (duration < 0) {
-                return null;
-            }
-
-            return DurationFormatUtils.formatDurationWords(duration, true, true);
-        }));
+        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> PageSimulationResult.createResultDurationText(row.getValue(), this)));
         columns.add(new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.executionState")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
-                Component label = PageSimulationResult.createTaskStateLabel(id, () -> model.getObject().getValue(), getPageBase());
+                Component label = PageSimulationResult.createTaskStateLabel(id, () -> model.getObject().getValue(), null, getPageBase());
                 item.add(label);
             }
         });

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.tag;
+package com.evolveum.midpoint.gui.impl.page.admin.mark;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,32 +38,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPage
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/tag")
+                @Url(mountUrl = "/admin/mark")
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAGS_ALL_URL,
-                        label = "PageTag.auth.tag.label",
-                        description = "PageTag.auth.tag.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAG_URL,
-                        label = "PageTag.auth.tag.label",
-                        description = "PageTag.auth.tag.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARKS_ALL_URL,
+                        label = "PageTag.auth.mark.label",
+                        description = "PageTag.auth.mark.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARK_URL,
+                        label = "PageTag.auth.mark.label",
+                        description = "PageTag.auth.mark.description")
         })
-public class PageTag extends PageAssignmentHolderDetails<MarkType, AssignmentHolderDetailsModel<MarkType>> {
+public class PageMark extends PageAssignmentHolderDetails<MarkType, AssignmentHolderDetailsModel<MarkType>> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageTag.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageMark.class);
 
-    public PageTag() {
+    public PageMark() {
         super();
     }
 
-    public PageTag(PageParameters parameters) {
+    public PageMark(PageParameters parameters) {
         super(parameters);
     }
 
-    public PageTag(final PrismObject<MarkType> obj) {
+    public PageMark(final PrismObject<MarkType> obj) {
         super(obj);
     }
 

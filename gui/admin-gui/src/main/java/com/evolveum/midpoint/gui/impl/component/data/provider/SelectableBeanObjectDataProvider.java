@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -32,8 +35,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
 
 /**
  * @author lazyman
@@ -89,11 +90,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result) throws CommonException {
         return getModelService().countObjects(type, getQuery(), currentOptions, task, result);
-    }
-
-    @Override
-    public IModel<SelectableBean<O>> model(SelectableBean<O> object) {
-        return new Model<>(object);
     }
 
     protected boolean isMemberPanel() {

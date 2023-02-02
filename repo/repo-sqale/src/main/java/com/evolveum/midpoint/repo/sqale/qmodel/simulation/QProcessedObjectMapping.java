@@ -99,7 +99,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
             JdbcSession jdbcSession) throws SchemaException {
         MProcessedObject row = initRowObject(object, ownerRow);
         //row.oid
-        row.oid = SqaleUtils.oidToUUid(object.getOid());
+        row.oid = SqaleUtils.oidToUuid(object.getOid());
         if (object.getName() != null) {
             row.nameOrig = object.getName().getOrig();
             row.nameNorm = object.getName().getNorm();

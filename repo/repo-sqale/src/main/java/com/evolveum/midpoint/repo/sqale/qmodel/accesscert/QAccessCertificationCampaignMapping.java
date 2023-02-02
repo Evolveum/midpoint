@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
 import java.util.*;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
@@ -163,7 +162,7 @@ public class QAccessCertificationCampaignMapping
         var query = jdbcSession.newQuery()
                 .from(qcase)
                 .select(casesMapping.selectExpressions(qcase, options))
-                .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())));
+                .where(qcase.ownerOid.eq(SqaleUtils.oidToUuid(base.getOid())));
         // Load all / changed containers
 
         Collection<Long> idsToFetch = casesToFetch(options);

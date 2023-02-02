@@ -13,6 +13,9 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -79,40 +82,35 @@ public class AssignmentsUtil {
 
     }
 
-    public static String createActivationTitleModel(ActivationType activation, String defaultTitle, PageBase basePanel) {
-        if (activation == null) {
-            return defaultTitle;
-        }
-        return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
+    public static IModel<String> createActivationTitleModel(ActivationType activationType,
+            PageBase basePanel) {
+        return () -> createAssignemntActivationKey(activationType, basePanel);
     }
 
-    public static String createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
-            PageBase basePanel) {
-        IModel<String> label = new IModel<String>() {
-            private static final long serialVersionUID = 1L;
+    private static String createAssignemntActivationKey(ActivationType activation, PageBase basePanel) {
+        if (activation == null) {
+            return "";
+        }
+        ActivationStatusType status = WebModelServiceUtils.getAssignmentEffectiveStatus(null, activation, basePanel);
 
-            @Override
-            public String getObject() {
-                String strEnabled = basePanel.createStringResource(administrativeStatus, "lower", "ActivationStatusType.null")
-                        .getString();
+        String strEnabled = basePanel.createStringResource(status, "lower", "ActivationStatusType.null")
+                .getString();
 
-                if (validFrom != null && validTo != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-                            MiscUtil.asDate(validFrom),
-                            MiscUtil.asDate(validTo));
-                } else if (validFrom != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
-                            MiscUtil.asDate(validFrom));
-                } else if (validTo != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
-                            MiscUtil.asDate(validTo));
-                }
+        XMLGregorianCalendar validFrom = activation.getValidFrom();
+        XMLGregorianCalendar validTo = activation.getValidTo();
+        if (validFrom != null && validTo != null) {
+            return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
+                    MiscUtil.asDate(validFrom),
+                    MiscUtil.asDate(validTo));
+        } else if (validFrom != null) {
+            return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
+                    MiscUtil.asDate(validFrom));
+        } else if (validTo != null) {
+            return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
+                    MiscUtil.asDate(validTo));
+        }
 
-                return strEnabled;
-            }
-        };
-
-        return label.getObject();
+        return strEnabled;
     }
 
     public static IModel<String> createActivationTitleModelExperimental(AssignmentType assignmentType, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {

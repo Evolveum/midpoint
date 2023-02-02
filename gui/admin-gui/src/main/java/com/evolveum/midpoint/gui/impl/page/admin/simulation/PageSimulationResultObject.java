@@ -52,8 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
         urls = {
                 @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/object/${CONTAINER_ID}",
                         matchUrlForSecurity = "/admin/simulations/result/?*/object/?*"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/object/${CONTAINER_ID}",
-                        matchUrlForSecurity = "/admin/simulations/result/?*/tag/?*/object/?*")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/mark/${MARK_OID}/object/${CONTAINER_ID}",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/mark/?*/object/?*")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,

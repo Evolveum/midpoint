@@ -11,10 +11,13 @@ import static com.evolveum.midpoint.schema.util.SimulationMetricReferenceTypeUti
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,14 +40,19 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -81,6 +89,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private IModel<SimulationResultType> resultModel;
 
+    private IModel<TaskType> rootTaskModel;
+
     private IModel<List<ResultDetail>> detailsModel;
 
     public PageSimulationResult() {
@@ -102,6 +112,19 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             }
         };
 
+        rootTaskModel = new LoadableDetachableModel<>() {
+            @Override
+            protected TaskType load() {
+                SimulationResultType result = resultModel.getObject();
+                if (result == null || result.getRootTaskRef() == null) {
+                    return null;
+                }
+
+                PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), PageSimulationResult.this);
+                return task != null ? task.asObjectable() : null;
+            }
+        };
+
         detailsModel = new LoadableModel<>() {
 
             @Override
@@ -111,19 +134,28 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getStartTimestamp())))));
                 list.add(new ResultDetail("PageSimulationResult.endTimestamp",
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getEndTimestamp())))));
-                list.add(new ResultDetail("PageSimulationResult.finishedIn", () -> "30 minutes")); // todo proper calculation
+                list.add(new ResultDetail("PageSimulationResult.finishedIn", () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
                 list.add(new ResultDetail("PageSimulationResult.rootTask", null) {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new Label(id); // todo task name with link
+                        AjaxButton link = new AjaxButton(id, () -> getTaskName()) {
+
+                            @Override
+                            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                redirectToTaskDetails();
+                            }
+                        };
+                        link.add(new VisibleBehaviour(() -> rootTaskModel.getObject() != null));
+
+                        return link;
                     }
                 });
                 list.add(new ResultDetail("PageSimulationResult.taskStatus", null) {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return createTaskStateLabel(id, resultModel, PageSimulationResult.this);
+                        return createTaskStateLabel(id, resultModel, rootTaskModel, PageSimulationResult.this);
                     }
                 });
                 list.add(new ResultDetail("PageSimulationResult.productionConfiguration", null) {
@@ -201,7 +233,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     @Override
                     protected void onOpenPerformed(AjaxRequestTarget target) {
-                        openTagMetricPerformed(target);
+                        openMarkMetricPerformed(target);
                     }
                 });
             }
@@ -214,10 +246,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         redirectBack();
     }
 
-    private void openTagMetricPerformed(AjaxRequestTarget target) {
+    private void openMarkMetricPerformed(AjaxRequestTarget target) {
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
-//        params.add(SimulationPage.PAGE_PARAMETER_TAG_OID, null);    // todo add tag oid somehow
+//        params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, null);    // todo add mark oid somehow
         navigateToNext(PageSimulationResultObjects.class, params);
     }
 
@@ -239,15 +271,41 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         }
     }
 
-    public static Component createTaskStateLabel(String id, IModel<SimulationResultType> model, PageBase page) {
+    public static String createResultDurationText(SimulationResultType result, Component panel) {
+        XMLGregorianCalendar start = result.getStartTimestamp();
+        if (start == null) {
+            return panel.getString("SimulationResultsPanel.notStartedYet");
+        }
+
+        XMLGregorianCalendar end = result.getEndTimestamp();
+        if (end == null) {
+            end = MiscUtil.asXMLGregorianCalendar(new Date());
+        }
+
+        long duration = end.toGregorianCalendar().getTimeInMillis() - start.toGregorianCalendar().getTimeInMillis();
+        if (duration < 0) {
+            return null;
+        }
+
+        return DurationFormatUtils.formatDurationWords(duration, true, true);
+    }
+
+    public static Component createTaskStateLabel(String id, IModel<SimulationResultType> model, IModel<TaskType> taskModel, PageBase page) {
         IModel<TaskExecutionStateType> stateModel = () -> {
-            SimulationResultType result = model.getObject();
-            if (result == null || result.getRootTaskRef() == null) {
-                return null;
+            TaskType task;
+            if (taskModel != null) {
+                task = taskModel.getObject();
+            } else {
+                SimulationResultType result = model.getObject();
+                if (result == null || result.getRootTaskRef() == null) {
+                    return null;
+                }
+
+                PrismObject<TaskType> obj = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
+                task = obj != null ? obj.asObjectable() : null;
             }
 
-            PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
-            return task != null ? task.asObjectable().getExecutionState() : null;
+            return task != null ? task.getExecutionState() : null;
         };
 
         Label label = new Label(id, () -> {
@@ -276,5 +334,25 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     @Override
     protected void createBreadcrumb() {
+    }
+
+    private String getTaskName() {
+        TaskType task = rootTaskModel.getObject();
+        if (task == null) {
+            return null;
+        }
+
+        return WebComponentUtil.getDisplayNameOrName(task.asPrismObject());
+    }
+
+    private void redirectToTaskDetails() {
+        TaskType task = rootTaskModel.getObject();
+        if (task == null) {
+            return;
+        }
+
+        PageParameters params = new PageParameters();
+        params.set(OnePageParameterEncoder.PARAMETER, task.getOid());
+        navigateToNext(PageTask.class, params);
     }
 }
