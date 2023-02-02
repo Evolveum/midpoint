@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -82,7 +84,8 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
                 .findObjectDefinitionByType(objectType);
         PrismObject<O> prismObject;
         try {
-            prismObject = objectDef.instantiate();
+            prismObject = parentPage.getPrismContext().createObject((Class<O>)WebComponentUtil.qnameToClass(parentPage.getPrismContext(), objectType));
+//            parentPage.getPrismContext().adopt(prismObject);
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
             throw new RestartResponseException(parentPage);
@@ -123,6 +126,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
         OperationResult result = task.getResult();
         WrapperContext context = new WrapperContext(task, result);
         context.setShowEmpty(true);
+        context.setCreateIfEmpty(true);
         context.setAuthzPhase(authorizationPhase);
         //TODO: enforce required fields???? what is it?
         PrismObjectWrapper<O> objectWrapper = null;

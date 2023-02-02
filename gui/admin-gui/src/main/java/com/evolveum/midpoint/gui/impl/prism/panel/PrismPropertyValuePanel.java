@@ -36,7 +36,7 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
 
     @Override
     protected Component createDefaultPanel(String id) {
-            if (getPageBase().getApplication().usesDevelopmentConfig()) {
+            if (getPageAdminLTE().getApplication().usesDevelopmentConfig()) {
                 return new ErrorPanel(id, createStringResource("Cannot create component for: " + getModelObject().getParent().getItem()));
             } else {
                 Label noComponent = new Label(id);
