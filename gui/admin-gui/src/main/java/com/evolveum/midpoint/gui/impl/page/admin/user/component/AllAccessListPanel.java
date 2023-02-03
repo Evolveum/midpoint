@@ -109,7 +109,8 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
             @Override
             protected ItemDefinition<?> getContainerDefinitionForColumns() {
-                PrismReferenceDefinition refDef = (PrismReferenceDefinition) getPrismContext().getSchemaRegistry().findItemDefinitionByType(ObjectReferenceType.COMPLEX_TYPE);
+                PrismReferenceDefinition refDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                        .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
                 return getPageBase().getModelInteractionService().refDefinitionWithConcreteTargetRefType(refDef, AbstractRoleType.COMPLEX_TYPE);
             }
 
