@@ -58,6 +58,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             SIM_TEST_DIR, "archetype-person-dev-archetype.xml", "be5bf6fb-11ce-40a8-b588-ec44cf051523");
     private static final TestResource<ArchetypeType> ARCHETYPE_PERSON_DEV_TEMPLATE = new TestResource<>(
             SIM_TEST_DIR, "archetype-person-dev-template.xml", "be7f8541-64ec-4bee-a5c3-855923ae9b90");
+    static final TestResource<ArchetypeType> ARCHETYPE_CUSTOMER = new TestResource<>(
+            SIM_TEST_DIR, "archetype-customer.xml", "075ebbed-f3b9-4bac-90c2-bb8811121636");
 
     private static final String ATTR_TYPE_NAME = "type";
 //    private static final ItemName ATTR_TYPE_ITEM_NAME = new ItemName(NS_RI, ATTR_TYPE_NAME);
@@ -115,6 +117,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         repoAdd(ARCHETYPE_PERSON, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_ARCHETYPE, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_TEMPLATE, initResult);
+        repoAdd(ARCHETYPE_CUSTOMER, initResult);
 
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);

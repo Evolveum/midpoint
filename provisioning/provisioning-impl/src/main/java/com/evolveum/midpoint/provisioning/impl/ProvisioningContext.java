@@ -477,9 +477,9 @@ public class ProvisioningContext {
     }
 
     /**
-     * Returns true if the definition of the current resource object is in "production" lifecycle state
+     * Returns `true` if the definition of the current resource object is in "production" lifecycle state
      * (`active` or `deprecated`). This determines the behavior of some processing components, as described in
-     * https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/.
+     * https://docs.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/.
      */
     public boolean isObjectDefinitionInProduction() {
         if (!SimulationUtil.isInProduction(resource)) {
@@ -658,5 +658,27 @@ public class ProvisioningContext {
 
     public boolean isProductionConfigurationTask() {
         return task.getExecutionMode().isProductionConfiguration();
+    }
+
+    public boolean isInSimulation() {
+        return !task.isPersistentExecution();
+    }
+
+    /**
+     * This is a check that we are not going to cause any modification on a resource.
+     *
+     * This method should be called before any modifying connector operation, as well as before any such operation is called
+     * at the level of provisioning module itself - to ensure that e.g. no changes are queued for maintenance mode or
+     * operation grouping scenarios.
+     *
+     * @see UcfExecutionContext#checkNotInSimulation()
+     */
+    public void checkNotInSimulation() {
+        if (isInSimulation()) {
+            LOGGER.error("MidPoint tried to execute an operation on {}. This is unexpected, as the task is running in simulation"
+                            + " mode ({}). Please report this as a bug. Resource object definition: {}",
+                    resource, task.getExecutionMode(), resourceObjectDefinition);
+            throw new IllegalStateException("Invoking 'modifying' provisioning operation while being in a simulation mode");
+        }
     }
 }

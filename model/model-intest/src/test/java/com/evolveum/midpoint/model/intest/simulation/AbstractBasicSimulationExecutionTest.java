@@ -12,12 +12,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
+
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -89,7 +93,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         given("a user");
         UserType user = new UserType()
-                .name("test100");
+                .name("test100")
+                .assignment(new AssignmentType()
+                        .targetRef(ARCHETYPE_CUSTOMER.oid, ArchetypeType.COMPLEX_TYPE));
 
         when("user is created in simulation");
         TestSimulationResult simResult =
@@ -104,7 +110,20 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertNoNewObjects(result);
 
         and("simulation result is OK");
-        assertSimulationResultAfter(simResult); // TODO some asserts here
+        SimulationResultType resultBean = assertSimulationResultAfter(simResult) // TODO some asserts here
+                .assertMetricValueByEventMark(MARK_USER_ADD.oid, BigDecimal.ONE)
+                .getObjectable();
+
+        // TODO write an asserter for this
+        SimulationMetricValuesType mv =
+                SimulationResultTypeUtil.getAggregatedMetricValuesByEventMarkOid(resultBean, MARK_USER_ADD.oid);
+        displayDumpable("metric value", mv);
+        List<SimulationMetricPartitionType> partitions = mv.getPartition();
+        assertThat(partitions).as("metric partitions").hasSize(1);
+        SimulationMetricPartitionScopeType scope = partitions.get(0).getScope();
+        assertThat(scope.getTypeName()).as("type name").isEqualTo(UserType.COMPLEX_TYPE);
+        assertThat(scope.getStructuralArchetypeOid()).as("archetype OID").isEqualTo(ARCHETYPE_CUSTOMER.oid);
+
         // @formatter:off
         assertProcessedObjects(simResult)
                 .display()
@@ -132,10 +151,33 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         and("the model context is OK");
         ModelContext<?> modelContext = simResult.getLastModelContext();
         displayDumpable("model context", modelContext);
-        assertUserPrimaryAndSecondaryDeltas(modelContext);
+        assertUserPrimaryAndSecondaryDeltasWithArchetype(modelContext);
     }
 
-    private void assertUserPrimaryAndSecondaryDeltas(ModelContext<?> modelContext) {
+    private void assertUserPrimaryAndSecondaryDeltasWithArchetype(ModelContext<?> modelContext) {
+        ModelElementContext<?> focusContext = modelContext.getFocusContextRequired();
+        // @formatter:off
+        assertDelta(focusContext.getPrimaryDelta(), "primary delta")
+                .display()
+                .assertAdd()
+                .objectToAdd()
+                    .assertItems(UserType.F_NAME, UserType.F_ASSIGNMENT); // The primary delta is that simple
+        assertDelta(focusContext.getSummarySecondaryDelta(), "summary secondary delta")
+                .display()
+                .assertModify()
+                .assertModifiedExclusive( // This list may change if projector internals change
+                        PATH_ACTIVATION_EFFECTIVE_STATUS,
+                        PATH_ACTIVATION_ENABLE_TIMESTAMP,
+                        FocusType.F_ITERATION,
+                        FocusType.F_ITERATION_TOKEN,
+                        FocusType.F_METADATA,
+                        FocusType.F_ROLE_MEMBERSHIP_REF,
+                        FocusType.F_ARCHETYPE_REF,
+                        ItemPath.create(FocusType.F_ASSIGNMENT, 1L)); // effective status + metadata
+        // @formatter:on
+    }
+
+    private void assertUserPrimaryAndSecondaryDeltasNoArchetype(ModelContext<?> modelContext) {
         ModelElementContext<?> focusContext = modelContext.getFocusContextRequired();
         // @formatter:off
         assertDelta(focusContext.getPrimaryDelta(), "primary delta")
@@ -238,7 +280,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         // The user deltas are the same as in test100.
         // The linkRef delta is audited but (currently) it is not among secondary deltas.
-        assertUserPrimaryAndSecondaryDeltas(modelContext);
+        assertUserPrimaryAndSecondaryDeltasNoArchetype(modelContext);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertThat(projectionContexts).as("projection contexts").hasSize(1);

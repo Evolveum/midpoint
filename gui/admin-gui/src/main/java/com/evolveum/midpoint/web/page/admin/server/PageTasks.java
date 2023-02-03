@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -121,13 +118,13 @@ public class PageTasks extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
                 ObjectReferenceType objectRef = bean.getValue().getObjectRef();
                 if (objectRef != null) {
                     objectRef.asReferenceValue().clearParent();
                 }
-                return Model.of(objectRef);
+                return Model.ofList(Collections.singletonList(objectRef));
 
             }
         });

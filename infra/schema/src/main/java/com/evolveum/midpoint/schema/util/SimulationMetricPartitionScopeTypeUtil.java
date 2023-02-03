@@ -31,6 +31,9 @@ public class SimulationMetricPartitionScopeTypeUtil {
         if (scope.getTypeName() != null) {
             dimensions.add(SimulationMetricPartitionScopeType.F_TYPE_NAME);
         }
+        if (scope.getStructuralArchetypeOid() != null) {
+            dimensions.add(SimulationMetricPartitionScopeType.F_STRUCTURAL_ARCHETYPE_OID);
+        }
         if (scope.getResourceOid() != null) {
             dimensions.add(SimulationMetricPartitionScopeType.F_RESOURCE_OID);
         }

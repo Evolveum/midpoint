@@ -131,6 +131,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 task,
                 result);
         ctx.assertDefinition();
+        ctx.checkNotInSimulation();
 
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
 

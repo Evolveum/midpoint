@@ -77,6 +77,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         try {
             ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(repoShadow, task, result);
             ctx.assertDefinition();
+            ctx.checkNotInSimulation();
         } catch (ObjectNotFoundException ex) {
             // If the force option is set, delete shadow from the repo even if the resource does not exist.
             if (ProvisioningOperationOptions.isForce(options)) {
