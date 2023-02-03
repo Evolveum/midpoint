@@ -588,6 +588,18 @@ public interface ModelInteractionService {
             PrismContainerDefinition<AssignmentType> orig, QName targetType);
 
     /**
+     * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation
+     *
+     * This allows for using more specific definition when searching for definitions for dereference, in GUI search or columns
+     * where we are sure (on other criteria) only assignment types we are processing have concrete target type.
+     *
+     * @param orig Original definition of Assignment Type
+     * @param targetType Concrete target type
+     */
+    PrismReferenceDefinition refDefinitionWithConcreteTargetRefType(
+            PrismReferenceDefinition orig, QName targetType);
+
+    /**
      * Executes the code in `functionCall` parameter ({@link SimulatedFunctionCall}) in the simulation mode (`mode` parameter),
      * with the provided simulation result definition.
      *

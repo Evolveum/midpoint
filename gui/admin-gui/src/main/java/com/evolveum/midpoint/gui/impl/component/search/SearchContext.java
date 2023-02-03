@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionRepo
 public class SearchContext {
 
     private ResourceObjectDefinition resourceObjectDefinition;
-    private PrismContainerDefinition<? extends Containerable> definitionOverride;
+    private ItemDefinition<?> definitionOverride;
 
     private CollectionPanelType collectionPanelType;
 
@@ -63,11 +64,11 @@ public class SearchContext {
         this.reportCollection = reportCollection;
     }
 
-    public PrismContainerDefinition<? extends Containerable> getDefinitionOverride() {
+    public ItemDefinition<?> getDefinitionOverride() {
         return definitionOverride;
     }
 
-    public void setDefinitionOverride(PrismContainerDefinition<? extends Containerable> definitionOverride) {
+    public void setDefinitionOverride(ItemDefinition<?> definitionOverride) {
         this.definitionOverride = definitionOverride;
     }
 

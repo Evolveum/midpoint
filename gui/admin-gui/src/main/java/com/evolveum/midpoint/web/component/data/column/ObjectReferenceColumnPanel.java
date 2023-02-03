@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -40,7 +41,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     private void initLayout() {
         CompositedIconPanel iconPanel = new CompositedIconPanel(ID_IMAGE, createCompositedIconModel());
         add(iconPanel);
-        LinkPanel label = new LinkPanel(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(getModelObject())) {
+        LinkPanel label = new LinkPanel(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(getResolvedTarget())) {
             @Override
             public void onClick() {
                 WebComponentUtil.dispatchToObjectDetailsPage(getModelObject(), ObjectReferenceColumnPanel.this, false);
@@ -48,6 +49,24 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         };
         add(label);
 
+    }
+
+    private <R extends AbstractRoleType> PrismObject<R> getResolvedTarget() {
+        ObjectReferenceType rowValue = getModelObject();
+        if (rowValue == null) {
+            return null;
+        }
+        if (rowValue.getObject() != null) {
+            return rowValue.getObject();
+        }
+
+        if (rowValue.getOid() != null) {
+            PrismObject<R> resolvedTarget = WebModelServiceUtils.loadObject(rowValue, getPageBase());
+            if (resolvedTarget != null) {
+                return resolvedTarget;
+            }
+        }
+        return null;
     }
 
     private IModel<CompositedIcon> createCompositedIconModel() {

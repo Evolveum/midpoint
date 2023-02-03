@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 import com.evolveum.midpoint.prism.*;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanReferenceDataProvider;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.data.column.AssignmentPathPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -40,6 +42,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,6 +98,20 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
             @Override
             protected List<IColumn<SelectableBean<ObjectReferenceType>, String>> createDefaultColumns() {
                 return createAllAccessesColumns();
+            }
+
+            @Override
+            protected SearchContext createAdditionalSearchContext() {
+                SearchContext ctx = new SearchContext();
+                ctx.setDefinitionOverride(getContainerDefinitionForColumns());
+                return ctx;
+            }
+
+            @Override
+            protected ItemDefinition<?> getContainerDefinitionForColumns() {
+                PrismReferenceDefinition refDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                        .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
+                return getPageBase().getModelInteractionService().refDefinitionWithConcreteTargetRefType(refDef, AbstractRoleType.COMPLEX_TYPE);
             }
 
             @Override
@@ -181,14 +198,18 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectReferenceType>>> cellItem, String componentId, IModel<SelectableBean<ObjectReferenceType>> rowModel) {
-                RepeatingView repeatingView = new RepeatingView(componentId);
-                cellItem.add(repeatingView);
-
-                List<String> paths = resolvedPaths(rowModel.getObject());
-                for (String path : paths) {
-                    Label pathLabel = new Label(repeatingView.newChildId(), path);
-                    repeatingView.add(pathLabel);
+                List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
+                if (metadataValues == null) {
+                    return;
                 }
+                List<AssignmentPathType> assignmentPaths = new ArrayList<>();
+                for (ProvenanceMetadataType metadataType : metadataValues) {
+                    assignmentPaths.addAll(metadataType.getAssignmentPath());
+                }
+
+                AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(assignmentPaths));
+                cellItem.add(panel);
+
             }
 
             @Override
