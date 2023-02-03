@@ -166,7 +166,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         MetricWidgetPanel widget = new MetricWidgetPanel(id, model) {
 
             @Override
-            protected void onOpenPerformed(AjaxRequestTarget target) {
+            protected void onMoreInfoPerformed(AjaxRequestTarget target) {
                 // todo implement
             }
         };

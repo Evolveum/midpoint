@@ -269,13 +269,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
         return new LambdaColumn<>(displayModel, row -> {
             SimulationResultProcessedObjectType object = row.getValue();
-            QName type = object.getType();
-            if (type == null) {
+            if (object == null || object.getType() == null) {
                 return null;
             }
 
+            QName type = object.getType();
             ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
             String key = WebComponentUtil.createEnumResourceKey(ot);
+
             return getPageBase().getString(key);
         });
     }

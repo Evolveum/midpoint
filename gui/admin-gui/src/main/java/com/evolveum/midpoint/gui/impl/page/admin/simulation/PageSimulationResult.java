@@ -233,7 +233,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 item.add(new MetricWidgetPanel(ID_WIDGET, item.getModel()) {
 
                     @Override
-                    protected void onOpenPerformed(AjaxRequestTarget target) {
+                    protected void onMoreInfoPerformed(AjaxRequestTarget target) {
                         openMarkMetricPerformed(target);
                     }
                 });
