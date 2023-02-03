@@ -11,7 +11,7 @@
 <wicket:panel>
     <div class="p-3">
         <div class="d-flex w-100">
-            <span wicket:id="title"/>
+            <span class="text-truncate" wicket:id="title"/>
         </div>
         <div class="d-flex w-100 gap-2 mt-2">
             <div class="d-flex flex-column flex-fill gap-1">
@@ -22,15 +22,12 @@
                 <small wicket:id="valueDescription" class="text-secondary"/>
             </div>
             <div class="d-flex align-items-end justify-content-end flex-fill">
-                <!-- todo icon -->
-                <!--<div wicket:id="iconContainer" class="rounded bg-green p-1">
-                    <i wicket:id="icon" class="fa-fw fa-solid fa-rocket text-white"></i>
-                </div>-->
+                <div wicket:id="icon" class="rounded p-1"/>
                 <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
             </div>
         </div>
     </div>
-    <a class="bg-green rounded-bottom text-center p-1" wicket:id="open" wicket:message="">
+    <a class="bg-green rounded-bottom text-center p-1" wicket:id="moreInfo" wicket:message="">
         <span class="text-white"><wicket:message key="MetricWidgetPanel.open"/></span>
         <i class="ml-1 fa-solid fa-circle-arrow-right text-white"></i>
     </a>

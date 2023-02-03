@@ -339,7 +339,7 @@ public interface RepositoryService {
 
 
     @Experimental
-    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) {
+    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         throw new UnsupportedOperationException("Not supported yet");
     }
 

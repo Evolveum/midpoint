@@ -50,14 +50,15 @@ public class ShadowRefreshActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MyWorkDefinition.class);
+        handlerRegistry.unregister(
+                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
     }
 
     @Override
@@ -102,6 +103,12 @@ public class ShadowRefreshActivityHandler
         public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
             return super.createReportingCharacteristics()
                     .actionsExecutedStatisticsSupported(true);
+        }
+
+        @Override
+        public void beforeRun(OperationResult result) {
+            super.beforeRun(result);
+            ensureNoPreviewNorDryRun();
         }
 
         @Override

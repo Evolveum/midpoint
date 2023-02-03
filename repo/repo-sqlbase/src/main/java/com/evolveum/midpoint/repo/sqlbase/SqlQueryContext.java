@@ -219,15 +219,18 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         for (ObjectOrdering ordering : orderings) {
             ItemPath orderByItemPath = ordering.getOrderBy();
             Expression<?> expression = orderingPath(orderByItemPath);
-            if (!(expression instanceof ComparableExpressionBase)) {
+            if (expression instanceof ComparableExpressionBase) {
+                if (ordering.getDirection() == OrderDirection.DESCENDING) {
+                    sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).desc());
+                } else {
+                    sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).asc());
+                }
+            } else if (expression instanceof SqlOrderableExpression) {
+                // For corner cases you can declare ordering by the whole table, which is treated differently.
+                ((SqlOrderableExpression) expression).orderBy(sqlQuery, ordering);
+            } else {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);
-            }
-
-            if (ordering.getDirection() == OrderDirection.DESCENDING) {
-                sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).desc());
-            } else {
-                sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).asc());
             }
         }
     }

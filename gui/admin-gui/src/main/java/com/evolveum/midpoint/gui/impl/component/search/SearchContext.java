@@ -30,6 +30,8 @@ public class SearchContext {
 
     private List<DisplayableValue<String>> availableEventMarks;
 
+    private String selectedEventMark;
+
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
     }
@@ -79,5 +81,13 @@ public class SearchContext {
 
     public void setAvailableEventMarks(List<DisplayableValue<String>> availableEventMarks) {
         this.availableEventMarks = availableEventMarks;
+    }
+
+    public String getSelectedEventMark() {
+        return selectedEventMark;
+    }
+
+    public void setSelectedEventMark(String selectedEventMark) {
+        this.selectedEventMark = selectedEventMark;
     }
 }

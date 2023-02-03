@@ -56,6 +56,11 @@ public final class MultiPropagationActivityRun
     }
 
     @Override
+    public void beforeRun(OperationResult result) {
+        ensureNoPreviewNorDryRun();
+    }
+
+    @Override
     public boolean processItem(@NotNull ResourceType resource,
             @NotNull ItemProcessingRequest<ResourceType> request,
             RunningTask workerTask, OperationResult result)

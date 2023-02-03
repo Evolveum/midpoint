@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,9 +13,13 @@ import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
+import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.mapping.SqlOrderableExpression;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -27,7 +31,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * @param <OR> type of the owner row
  */
 public class QReference<R extends MReference, OR> extends FlexibleRelationalPathBase<R>
-        implements QOwnedBy<OR> {
+        implements QOwnedBy<OR>, SqlOrderableExpression {
 
     private static final long serialVersionUID = -466419569179455042L;
 
@@ -74,5 +78,17 @@ public class QReference<R extends MReference, OR> extends FlexibleRelationalPath
     public BooleanExpression isOwnedBy(OR ownerRow) {
         throw new UnsupportedOperationException(
                 "isOwnedBy not supported for abstract reference table");
+    }
+
+    /**
+     * Special case ordering used to paginate iterative reference search strictly sequentially.
+     */
+    @Override
+    public void orderBy(SQLQuery<?> sqlQuery, ObjectOrdering ordering) {
+        if (ordering.getDirection() == OrderDirection.DESCENDING) {
+            sqlQuery.orderBy(ownerOid.desc(), relationId.desc(), targetOid.desc());
+        } else {
+            sqlQuery.orderBy(ownerOid.asc(), relationId.asc(), targetOid.asc());
+        }
     }
 }

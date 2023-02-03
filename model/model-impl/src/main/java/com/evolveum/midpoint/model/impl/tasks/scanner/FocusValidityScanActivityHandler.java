@@ -36,14 +36,15 @@ public class FocusValidityScanActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 FocusValidityScanWorkDefinition.class, FocusValidityScanWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                FocusValidityScanWorkDefinition.class);
+        handlerRegistry.unregister(
+                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, FocusValidityScanWorkDefinition.class);
     }
 
     @Override

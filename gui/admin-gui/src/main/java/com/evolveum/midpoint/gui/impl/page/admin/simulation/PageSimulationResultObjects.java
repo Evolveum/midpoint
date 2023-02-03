@@ -170,6 +170,16 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     private void onBackPerformed() {
-        redirectBack();
+        if (canRedirectBack()) {
+            redirectBack();
+            return;
+        }
+
+        clearBreadcrumbs();
+
+        PageParameters params = new PageParameters();
+        params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultModel.getObject().getOid());
+
+        navigateToNext(PageSimulationResult.class, params);
     }
 }

@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -106,6 +108,11 @@ public class RecomputationActivityHandler
         public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
             return super.createReportingCharacteristics()
                     .actionsExecutedStatisticsSupported(true);
+        }
+
+        @Override
+        public void beforeRun(OperationResult result) {
+            ensureNoDryRun();
         }
 
         @Override
