@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

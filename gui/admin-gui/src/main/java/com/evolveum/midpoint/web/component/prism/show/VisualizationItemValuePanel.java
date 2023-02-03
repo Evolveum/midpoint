@@ -97,7 +97,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         link.add(visibleIfReference);
         add(link);
 
-        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, () -> getModelObject() != null ? WebComponentUtil.translateMessage(getModelObject().getAdditionalText()) : null);
+        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new AdditionalLabelModel());
         add(additionalText);
     }
 
@@ -157,6 +157,20 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
             }
 
             return value;
+        }
+    }
+
+    private class AdditionalLabelModel implements IModel<String> {
+        @Override
+        public String getObject() {
+            VisualizationItemValue val = getModelObject();
+            if (val == null) {
+                return null;
+            }
+            if (val.getSourceValue() != null && val.getSourceValue() instanceof PrismReferenceValue) {
+                return "[" + WebComponentUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase()) + "]";
+            }
+            return WebComponentUtil.translateMessage(getModelObject().getAdditionalText());
         }
     }
 }
