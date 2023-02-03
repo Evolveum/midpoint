@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -262,7 +263,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     @Override
                     protected void onMoreInfoPerformed(AjaxRequestTarget target) {
-                        openMarkMetricPerformed(target);
+                        openMarkMetricPerformed(target, item.getModelObject());
                     }
                 });
             }
@@ -275,10 +276,25 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         redirectBack();
     }
 
-    private void openMarkMetricPerformed(AjaxRequestTarget target) {
+    private void openMarkMetricPerformed(AjaxRequestTarget target, DashboardWidgetType widget) {
+        if (widget == null || widget.getData() == null) {
+            return;
+        }
+
+        DashboardWidgetDataType data = widget.getData();
+        if (data.getMetricRef() == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = data.getMetricRef().getEventMarkRef();
+        if (ref == null || StringUtils.isEmpty(ref.getOid())) {
+            return;
+        }
+
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
-//        params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, null);    // todo add mark oid somehow
+        params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, ref.getOid());
+
         navigateToNext(PageSimulationResultObjects.class, params);
     }
 

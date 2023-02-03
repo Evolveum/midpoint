@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -15,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
@@ -36,26 +32,13 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
     protected ObjectQuery getCustomizeContentQuery() {
         String resultOid = getSimulationResultOid();
 
-        S_FilterExit builder = getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
+        return getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
                 .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
-                .id(resultOid);
-
-        String markOid = getMarkOid();
-        if (StringUtils.isNotEmpty(markOid)) {
-            builder = builder
-                    .and()
-                    .ref(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, MarkType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, markOid).all();
-        }
-
-        return builder.build();
+                .id(resultOid).build();
     }
 
     @NotNull
     protected String getSimulationResultOid() {
-        return null;
-    }
-
-    protected String getMarkOid() {
         return null;
     }
 }

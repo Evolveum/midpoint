@@ -289,13 +289,18 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         };
     }
 
-    private boolean isMoreInfoVisible() {
+    protected boolean isMoreInfoVisible() {
         DashboardWidgetDataType data = getModelObject().getData();
-        if (data == null || data.getMetricRef() == null) {
+        if (data == null) {
             return false;
         }
 
-        return !metricValues.getObject().isEmpty();
+        SimulationMetricReferenceType ref = data.getMetricRef();
+        if (ref == null || ref.getEventMarkRef() == null) {
+            return false;
+        }
+
+        return StringUtils.isNotEmpty(data.getStoredData()) || !metricValues.getObject().isEmpty();
     }
 
     protected void onMoreInfoPerformed(AjaxRequestTarget target) {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.factory.AbstractSearchItemWrapperFactory;
@@ -27,9 +28,14 @@ public class AvailableMarkItemWrapperFactory extends AbstractSearchItemWrapperFa
         List<DisplayableValue<String>> availableEventMarks = additionalSearchContext != null ?
                 additionalSearchContext.getAvailableEventMarks() : new ArrayList<>();
 
+        DisplayableValue<String> selected = availableEventMarks.stream()
+                .filter(d -> Objects.equals(d.getValue(), additionalSearchContext.getSelectedEventMark()))
+                .findFirst().orElse(null);
+
         AvailableMarkSearchItemWrapper wrapper = new AvailableMarkSearchItemWrapper(availableEventMarks);
         wrapper.setCanConfigure(false);
-        
+        wrapper.setValue(selected);
+
         return wrapper;
     }
 
