@@ -9,18 +9,16 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefinitionType;
@@ -35,21 +33,21 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     private static final String LEGACY_HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
-    @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired ActivityHandlerRegistry handlerRegistry;
     @Autowired ProvisioningService provisioningService;
     @Autowired ShadowsFacade shadowsFacade;
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 PropagationWorkDefinition.class, PropagationWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                PropagationWorkDefinition.class);
+        handlerRegistry.unregister(
+                PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, PropagationWorkDefinition.class);
     }
 
     @Override

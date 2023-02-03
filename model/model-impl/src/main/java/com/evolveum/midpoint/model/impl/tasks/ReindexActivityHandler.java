@@ -106,6 +106,7 @@ public class ReindexActivityHandler
         @Override
         public void beforeRun(OperationResult result) throws CommonException {
             getActivityHandler().securityEnforcer.authorizeAll(getRunningTask(), result);
+            ensureNoPreviewNorDryRun();
         }
 
         @Override

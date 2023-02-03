@@ -77,6 +77,12 @@ public final class FocusValidityScanPartialRun
     }
 
     @Override
+    public void beforeRun(OperationResult result) {
+        super.beforeRun(result);
+        ensureNoDryRun();
+    }
+
+    @Override
     public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
         TimeValidityPolicyConstraintType validityConstraint = getValidityConstraint();
         return ObjectQueryUtil.addConjunctions(

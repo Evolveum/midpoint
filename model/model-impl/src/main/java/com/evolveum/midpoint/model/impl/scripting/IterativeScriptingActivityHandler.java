@@ -68,7 +68,7 @@ public class IterativeScriptingActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> getExecutionSupplier() {
-        return MyRunSpecifics::new;
+        return MyRun::new;
     }
 
     @Override
@@ -91,11 +91,10 @@ public class IterativeScriptingActivityHandler
         return "iterative-scripting";
     }
 
-    static final class MyRunSpecifics extends
+    static final class MyRun extends
             SearchBasedActivityRun<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
-        MyRunSpecifics(
-                @NotNull ActivityRunInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
             super(context, shortName);
             setInstanceReady();
         }
@@ -105,6 +104,9 @@ public class IterativeScriptingActivityHandler
             return super.createReportingCharacteristics()
                     .actionsExecutedStatisticsSupported(true);
         }
+
+        // We allow dry run mode, as it is conceivable that the script
+        // could check for it. (To be decided.)
 
         @Override
         public boolean processItem(@NotNull ObjectType object,

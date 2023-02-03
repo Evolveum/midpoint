@@ -127,6 +127,7 @@ public class ObjectIntegrityCheckActivityHandler
         @Override
         public void beforeRun(OperationResult result) {
             ensureNoWorkerThreads();
+            ensureNoPreviewNorDryRun();
         }
 
         @Override

@@ -61,7 +61,7 @@ final class SearchBasedMockActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult opResult) {
+    public void beforeRun(OperationResult result) {
         getRecorder().recordRealizationStartTimestamp(
                 activityState.getRealizationStartTimestamp());
     }

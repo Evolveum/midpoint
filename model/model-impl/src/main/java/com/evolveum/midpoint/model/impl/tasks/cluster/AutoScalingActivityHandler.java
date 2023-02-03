@@ -34,14 +34,15 @@ public class AutoScalingActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE, null,
+        handlerRegistry.register(
+                ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE, null,
                 AutoScalingWorkDefinition.class, AutoScalingWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE, null,
-                AutoScalingWorkDefinition.class);
+        handlerRegistry.unregister(
+                ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE, null, AutoScalingWorkDefinition.class);
     }
 
     @Override
