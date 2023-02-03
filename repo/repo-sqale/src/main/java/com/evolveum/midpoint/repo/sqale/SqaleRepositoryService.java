@@ -1010,7 +1010,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
-            paging.addOrderingInstruction(OID_PATH, OrderDirection.ASCENDING);
+            // We want to order OID in the same direction as the provided ordering.
+            // This is also reflected by GT/LT conditions in lastOidCondition() method.
+            paging.addOrderingInstruction(OID_PATH,
+                    providedOrdering != null && providedOrdering.size() == 1
+                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
+                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
@@ -1494,8 +1499,13 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
-            // order by the whole ref - this is a trick working only for repo and uses all PK columns
-            paging.addOrderingInstruction(ItemPath.create(PrismConstants.T_SELF), OrderDirection.ASCENDING);
+            // Order by the whole ref - this is a trick working only for repo and uses all PK columns.
+            // We want to order the ref in the same direction as the provided ordering.
+            // This is also reflected by GT/LT conditions in lastOidCondition() method.
+            paging.addOrderingInstruction(ItemPath.create(PrismConstants.T_SELF),
+                    providedOrdering != null && providedOrdering.size() == 1
+                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
+                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
