@@ -163,7 +163,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     }
 
     public void setDslQuery(String dslQuery) {
-        axiomQueryWrapper = new AxiomQueryWrapper();
+        axiomQueryWrapper = new AxiomQueryWrapper(null);
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
