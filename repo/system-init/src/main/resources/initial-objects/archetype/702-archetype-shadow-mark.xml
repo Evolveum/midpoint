@@ -11,7 +11,7 @@
     <description>Denotes tags for shadow marking</description>
     <assignment>
         <assignmentRelation>
-            <holderType>TagType</holderType>
+            <holderType>MarkType</holderType>
         </assignmentRelation>
     </assignment>
     <archetypeType>structural</archetypeType>
