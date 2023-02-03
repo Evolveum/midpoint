@@ -606,4 +606,31 @@ public abstract class AbstractActivityRun<
     protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
         simulationSupport.closeSimulationResultIfOpenedHere(result);
     }
+
+    /**
+     * Use this to disallow running activities that do not honor preview and/or dry-run mode, to avoid any confusion of the user.
+     */
+    protected void ensureNoPreviewNorDryRun() {
+        ensureNoPreview();
+        ensureNoDryRun();
+    }
+
+    private void ensureNoPreview() {
+        if (isPreview()) {
+            throw new IllegalStateException("This activity cannot be run in simulation (preview) mode");
+        }
+    }
+
+    protected void ensureNoDryRun() {
+        if (isDryRun()) {
+            throw new IllegalStateException("This activity cannot be run in dry run mode");
+        }
+    }
+
+    protected void ensureFullExecution() {
+        ExecutionModeType mode = getActivityExecutionMode();
+        if (mode != ExecutionModeType.FULL) {
+            throw new IllegalStateException("This activity can be run in full execution mode only. Requested mode: " + mode);
+        }
+    }
 }

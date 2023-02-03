@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import org.apache.wicket.Component;
@@ -260,6 +261,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public CorrelationService getCorrelationService() {
+                return null;
+            }
+
+            @Override
+            public SimulationResultManager getSimulationResultManager() {
                 return null;
             }
         };

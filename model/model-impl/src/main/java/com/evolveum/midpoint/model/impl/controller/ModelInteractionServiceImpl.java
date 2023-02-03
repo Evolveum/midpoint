@@ -2285,6 +2285,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public PrismReferenceDefinition refDefinitionWithConcreteTargetRefType(PrismReferenceDefinition orig, QName targetType) {
+        var transformed = TransformableReferenceDefinition.of(orig);
+        transformed.setTargetTypeName(targetType);
+        return transformed;
+    }
+
+    @Override
     public <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,

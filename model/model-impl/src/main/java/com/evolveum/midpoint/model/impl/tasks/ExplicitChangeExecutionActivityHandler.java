@@ -58,14 +58,15 @@ public class ExplicitChangeExecutionActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MyWorkDefinition.class);
+        handlerRegistry.unregister(
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
     }
 
     @Override
@@ -96,6 +97,11 @@ public class ExplicitChangeExecutionActivityHandler
                 @NotNull ActivityRunInstantiationContext<MyWorkDefinition, ExplicitChangeExecutionActivityHandler> context) {
             super(context, "Explicit change execution");
             setInstanceReady();
+        }
+
+        @Override
+        public void beforeRun(OperationResult result) {
+            ensureNoDryRun();
         }
 
         @Override

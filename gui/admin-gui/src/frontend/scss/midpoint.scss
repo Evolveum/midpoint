@@ -1773,6 +1773,25 @@ th.debug-list-buttons {
   }
 }
 
+.assignmentPath {
+  list-style: none;
+  margin-bottom: 0px;
+
+  & > li {
+
+    & + li {
+      margin-left: 10px;
+
+      &::before {
+        color: $text-muted;
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f061";
+      }
+    }
+  }
+}
+
 @each $breakpoint in map-keys($grid-breakpoints) {
   $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
   @include media-breakpoint-up($breakpoint, $grid-breakpoints) {

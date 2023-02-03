@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
@@ -58,6 +59,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @Override
+    protected boolean isUseStorageSearch(Search search) {
+        return false;
+    }
+
+    @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
@@ -74,6 +80,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                 .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
                 .collect(Collectors.toList());
         ctx.setAvailableEventMarks(values);
+        ctx.setSelectedEventMark(getMarkOid());
 
         return ctx;
     }
@@ -181,11 +188,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             protected @NotNull String getSimulationResultOid() {
                 return ProcessedObjectsPanel.this.getSimulationResultOid();
             }
-
-            @Override
-            protected String getMarkOid() {
-                return ProcessedObjectsPanel.this.getMarkOid();
-            }
         };
     }
 
@@ -269,13 +271,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
         return new LambdaColumn<>(displayModel, row -> {
             SimulationResultProcessedObjectType object = row.getValue();
-            QName type = object.getType();
-            if (type == null) {
+            if (object == null || object.getType() == null) {
                 return null;
             }
 
+            QName type = object.getType();
             ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
             String key = WebComponentUtil.createEnumResourceKey(ot);
+
             return getPageBase().getString(key);
         });
     }

@@ -167,7 +167,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
      * If they exist, they were probably left there from the previously suspended (and now resumed) execution.
      */
     void deleteTransactionIfPresent(String simulationResultOid, String transactionId, OperationResult result) {
-        // TODO implement
+        try {
+            repository.deleteSimulatedProcessedObjects(simulationResultOid, transactionId, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new SystemException(e);
+        }
     }
 
     @Override

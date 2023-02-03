@@ -19,6 +19,10 @@ public class AxiomQueryWrapper extends AbstractQueryWrapper {
     //TODO
     private ItemDefinition<?> containerDefinitionOverride;
 
+    public AxiomQueryWrapper(ItemDefinition<?> containerDefinitionOverride) {
+        this.containerDefinitionOverride = containerDefinitionOverride;
+    }
+
     public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException {
         if (StringUtils.isEmpty(dslQuery)) {
             return null;

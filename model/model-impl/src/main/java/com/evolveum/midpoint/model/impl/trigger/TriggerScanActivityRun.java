@@ -53,6 +53,7 @@ final class TriggerScanActivityRun
     @Override
     public void beforeRun(OperationResult result) {
         super.beforeRun(result);
+        ensureNoDryRun();
         itemProcessor = new TriggerScanItemProcessor(this);
     }
 

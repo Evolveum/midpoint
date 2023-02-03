@@ -76,6 +76,7 @@ public final class ShadowIntegrityCheckActivityRun
     public void beforeRun(OperationResult result)
             throws CommonException {
         ensureNoWorkerThreads();
+        ensureNoPreviewNorDryRun();
 
         ExecutionModeType executionMode = getActivityDefinition().getExecutionMode();
         configuration = new ShadowCheckConfiguration(LOGGER, getWorkDefinition(), executionMode);

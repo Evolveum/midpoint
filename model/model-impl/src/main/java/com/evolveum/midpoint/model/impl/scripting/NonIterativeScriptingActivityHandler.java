@@ -57,14 +57,15 @@ public class NonIterativeScriptingActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MyWorkDefinition.class);
+        handlerRegistry.unregister(
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
     }
 
     @Override

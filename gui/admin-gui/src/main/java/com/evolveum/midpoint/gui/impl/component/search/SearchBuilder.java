@@ -186,8 +186,11 @@ public class SearchBuilder<C extends Serializable> {
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
+    public ItemDefinition<?> getDefinitionOverride() {
+        return additionalSearchContext == null ? null : additionalSearchContext.getDefinitionOverride();
+    }
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
-        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper();
+        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
 

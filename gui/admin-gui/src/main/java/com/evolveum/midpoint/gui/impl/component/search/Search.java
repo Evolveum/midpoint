@@ -163,7 +163,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     }
 
     public void setDslQuery(String dslQuery) {
-        axiomQueryWrapper = new AxiomQueryWrapper();
+        axiomQueryWrapper = new AxiomQueryWrapper(null);
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
@@ -227,6 +227,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         try {
             query = queryWrapper.createQuery(getTypeClass(), pageBase, variables);
         } catch (Exception e) {
+            LOGGER.warn("Cannot create query: {}", e.getMessage(), e);
             queryWrapper.setAdvancedError(createErrorMessage(e));
         }
 //        if (query == null) {

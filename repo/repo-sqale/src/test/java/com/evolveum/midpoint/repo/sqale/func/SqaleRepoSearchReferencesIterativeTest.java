@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.AfterMethod;
@@ -18,15 +21,25 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor.ReferenceRowValue;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -51,6 +64,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
+    private QObjectReference<MObject> qMembershipRef;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -72,6 +86,8 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         repositoryService.addObject(new UserType()
                 .name("α-user-0001")
                 .asPrismObject(), null, result);
+
+        qMembershipRef = QObjectReferenceMapping.getForRoleMembership().defaultAlias();
     }
 
     @BeforeMethod
@@ -90,13 +106,14 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         queryRecorder.clearBufferAndStartRecording();
 
-        given("special query comparing on reference value (SELF path for reference search)");
+        given("special query comparing and ordering on reference value (SELF path for reference search)");
         String targetOid = UUID.randomUUID().toString();
         String ownerOid = UUID.randomUUID().toString();
         ObjectQuery query = prismContext
                 .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
                 .and()
                 .item(ItemPath.SELF_PATH).gt(new ReferenceRowValue(ownerOid, relation1, targetOid))
+                .asc(PrismConstants.T_SELF) // ItemPath.SELF_PATH is refused, because it's empty path
                 .build();
 
         when("reference search is executed");
@@ -105,15 +122,18 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         then("operation is success");
         assertThatOperationResult(operationResult).isSuccess();
 
-        and("query contains expected WHERE with appropriate parameter values");
+        and("query contains expected WHERE and ORDER BY with appropriate parameter values");
         display(queryRecorder.dumpQueryBuffer());
         SqlRecorder.QueryEntry queryEntry = queryRecorder.getQueryBuffer().stream()
                 .filter(q -> q.sql.startsWith("select refrm.ownerOid"))
                 .findFirst().orElseThrow();
         assertThat(queryEntry.sql)
+                // Special "reference table" comparing by SELF:
                 .contains("where u.oid = refrm.ownerOid) and (refrm.ownerOid > ?"
                         + " or refrm.ownerOid = ? and refrm.relationId > ?"
-                        + " or refrm.ownerOid = ? and refrm.relationId = ? and refrm.targetOid > ?)");
+                        + " or refrm.ownerOid = ? and refrm.relationId = ? and refrm.targetOid > ?)")
+                // Special "reference table" ordering by SELF:
+                .contains("order by refrm.ownerOid asc, refrm.relationId asc, refrm.targetOid asc");
         String relationId1 = cachedUriId(relation1).toString();
         assertThat(queryEntry.params)
                 // Grouped by OR, final 10000 is the sanity limit.
@@ -123,7 +143,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                         "10000");
     }
 
-    /*
     @Test
     public void test100SearchIterativeWithNoneFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
@@ -135,9 +154,9 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 .none()
                 .build();
 
-        when("calling search iterative");
+        when("calling search reference iterative");
         SearchResultMetadata searchResultMetadata =
-                searchObjectsIterative(query, operationResult);
+                searchReferencesIterative(query, operationResult);
 
         then("no operation is performed");
         assertThatOperationResult(operationResult).isSuccess();
@@ -145,21 +164,38 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(searchResultMetadata.getApproxNumberOfAllResults()).isZero();
         // this is not the main part, just documenting that currently we short circuit the operation
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 0);
         // this is important - no actual search was called
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE, 0);
     }
 
     @Test
-    public void test110SearchIterativeWithEmptyFilter() throws Exception {
+    public void test105SearchIterativeWithEmptyFilterFails() {
+        OperationResult operationResult = createOperationResult();
+
+        expect("calling search reference iterative with empty query (null filter) fails");
+        assertThatThrownBy(() ->
+                searchReferencesIterative(prismContext.queryFactory().createQuery(), operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Invalid filter for reference search: null");
+
+        assertThatOperationResult(operationResult).isFatalError();
+    }
+
+    @Test
+    public void test110SearchIterativeWithoutRefFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
-        when("calling search iterative with null query");
-        SearchResultMetadata metadata =
-                searchObjectsIterative(null, operationResult);
+        given("simple query for reference search");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .build();
+
+        when("calling search reference iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and reports the handled objects");
         assertThatOperationResult(operationResult).isSuccess();
@@ -171,11 +207,17 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
         and("search operations were called");
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type (here User) were processed");
-        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+        assertThat(testHandler.getCounter()).isEqualTo(count(qMembershipRef));
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE,
+                // even without explicit order, strict order should affect the page queries
+                (int) queryRecorder.getQueryBuffer().stream()
+                        .filter(e -> e.sql.contains("order by refrm.ownerOid asc"))
+                        .count());
     }
 
     @Test
@@ -185,15 +227,17 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         pm.clearGlobalPerformanceInformation();
 
         given("total result count not multiple of the page size");
-        long totalCount = count(QObject.CLASS);
+        long totalCount = count(qMembershipRef);
         int iterativePageSize = 47;
         repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
         assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
         queryRecorder.clearBufferAndStartRecording();
 
-        when("calling search iterative with null query");
-        SearchResultMetadata metadata =
-                searchObjectsIterative(null, operationResult);
+        when("calling search iterative with unrestricted query");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .build();
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and reports the handled objects");
         assertThatOperationResult(operationResult).isSuccess();
@@ -205,22 +249,25 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
         and("search operations were called");
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type were processed");
-        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+        assertThat(testHandler.getCounter()).isEqualTo(count(qMembershipRef));
 
         and("last iteration query has proper conditions");
         List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
-                .filter(e -> e.sql.contains("order by u.oid asc"))
+                .filter(e -> e.sql.contains("order by refrm.ownerOid asc, refrm.relationId asc, refrm.targetOid asc"))
                 .collect(Collectors.toList());
         assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
         SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
         // we want to be sure no accidental filter accumulation happens
-        assertThat(lastEntry.sql).contains("where u.oid > ?\norder by u.oid asc");
+        assertThat(lastEntry.sql).contains("where exists (select 1\nfrom m_user u\nwhere u.oid = refrm.ownerOid)"
+                + " and (refrm.ownerOid > ? or refrm.ownerOid = ? and refrm.relationId > ?"
+                + " or refrm.ownerOid = ? and refrm.relationId = ? and refrm.targetOid > ?)");
     }
 
+    /*
     @Test
     public void test112SearchIterativeWithLastPageNotFullWithAndFilter() throws Exception {
         // Like test111 but detects error when conditions are accumulating in provided AND filter with each page.
@@ -236,7 +283,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         queryRecorder.clearBufferAndStartRecording();
 
         when("calling search iterative with query containing condition");
-        SearchResultMetadata metadata = searchObjectsIterative(
+        SearchResultMetadata metadata = searchReferencesIterative(
                 prismContext.queryFor(UserType.class)
                         .not().item(UserType.F_NAME).isNull() // not null, matches all users
                         .and()
@@ -281,7 +328,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         testHandler.setStoppingPredicate(u -> u.getOid().compareTo(midOid) >= 0);
 
         when("calling search iterative with null query");
-        SearchResultMetadata metadata = searchObjectsIterative(null, operationResult);
+        SearchResultMetadata metadata = searchReferencesIterative(null, operationResult);
 
         then("result metadata is not null and reports partial result (because of the break)");
         assertThat(metadata).isNotNull();
@@ -312,7 +359,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 .build();
 
         when("calling search iterative");
-        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and not partial result");
         assertThat(metadata).isNotNull();
@@ -341,7 +388,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 .build();
 
         when("calling search iterative");
-        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and not partial result");
         assertThatOperationResult(operationResult).isSuccess();
@@ -380,7 +427,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 .build();
 
         when("calling search iterative");
-        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and not partial result");
         assertThatOperationResult(operationResult).isSuccess();
@@ -412,7 +459,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 .build();
 
         when("calling search iterative");
-        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
 
         then("result metadata is not null and not partial result");
         assertThat(metadata).isNotNull();
@@ -427,22 +474,21 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         and("specified amount of objects was processed");
         assertThat(testHandler.getCounter()).isEqualTo(COUNT_OF_CREATED_USERS - 100);
     }
+    */
 
     @SafeVarargs
-    private SearchResultMetadata searchObjectsIterative(
+    private SearchResultMetadata searchReferencesIterative(
             ObjectQuery query,
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
 
         displayQuery(query);
-        return repositoryService.searchObjectsIterative(
-                UserType.class,
+        return repositoryService.searchReferencesIterative(
                 query,
                 testHandler,
                 selectorOptions != null && selectorOptions.length != 0
                         ? List.of(selectorOptions) : null,
-                true, // this boolean is actually ignored (assumed to be true) by new repo
                 operationResult);
     }
 
@@ -451,7 +497,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 && metadata.getApproxNumberOfAllResults() % getConfiguredPageSize() == 0;
 
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE,
                 metadata.getApproxNumberOfAllResults() / getConfiguredPageSize()
                         + (lastRowCausingPartialResult ? 0 : 1));
     }
@@ -464,10 +510,10 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     /**
      * Counts processed objects and changes user's employee number (test+count).
      */
-    private class TestResultHandler implements ObjectHandler<ObjectReferenceType> {
+    private static class TestResultHandler implements ObjectHandler<ObjectReferenceType> {
 
         private final AtomicInteger counter = new AtomicInteger();
-        private Predicate<UserType> stoppingPredicate;
+        private Predicate<ObjectReferenceType> stoppingPredicate;
 
         public void reset() {
             counter.set(0);
@@ -478,29 +524,18 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
             return counter.get();
         }
 
-        public void setStoppingPredicate(Predicate<UserType> stoppingPredicate) {
+        public void setStoppingPredicate(Predicate<ObjectReferenceType> stoppingPredicate) {
             this.stoppingPredicate = stoppingPredicate;
         }
 
         @Override
-        public boolean handle(ObjectReferenceType object, OperationResult parentResult) {
-            System.out.println("object = " + object);
-            /* TODO
-            UserType user = object.asObjectable();
+        public boolean handle(ObjectReferenceType ref, OperationResult parentResult) {
             try {
-                repositoryService.modifyObject(UserType.class, user.getOid(),
-                        prismContext.deltaFor(UserType.class)
-                                .item(UserType.F_EMPLOYEE_NUMBER)
-                                .replace(getTestNumber() + "-" + counter.getAndIncrement())
-                                .asObjectDelta(user.getOid())
-                                .getModifications(),
-                        parentResult);
+                counter.getAndIncrement();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            return !stoppingPredicate.test(user); // true means continue, so we need NOT
-            */
-            return true;
+            return !stoppingPredicate.test(ref); // true means continue, so we need NOT
         }
     }
 }

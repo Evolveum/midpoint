@@ -15,8 +15,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -25,6 +25,9 @@ public class AvailableMarkSearchItemWrapper extends ChoicesSearchItemWrapper<Str
 
     public AvailableMarkSearchItemWrapper(List<DisplayableValue<String>> availableValues) {
         super(SimulationResultProcessedObjectType.F_EVENT_MARK_REF, availableValues);
+
+        setApplyFilter(true);
+        setVisible(true);
     }
 
     @Override

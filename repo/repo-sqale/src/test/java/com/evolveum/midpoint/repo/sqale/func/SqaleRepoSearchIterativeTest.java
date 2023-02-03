@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -291,11 +291,13 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(15);
+        queryRecorder.clearBufferAndStartRecording();
 
         given("query with custom ordering");
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .asc(UserType.F_COST_CENTER)
-                .maxSize(47) // see the limit below
+                .desc(UserType.F_COST_CENTER)
+                .maxSize(20) // see the limit below, also should be more than 1 page (see 15 above)
                 .build();
 
         when("calling search iterative");
@@ -314,15 +316,18 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         and("all objects were processed");
         QUser u = aliasFor(QUser.class);
+        assertThat(count(u, u.employeeNumber.startsWith(getTestNumber() + '-')))
+                .isEqualTo(testHandler.getCounter())
+                .isEqualTo(20);
         try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             List<String> result = jdbcSession.newQuery()
                     .from(u)
-                    .orderBy(u.costCenter.asc(), u.oid.asc())
+                    .orderBy(u.costCenter.desc(), u.oid.desc())
                     .select(u.employeeNumber)
-                    .limit(47) // must match the maxSize above
+                    .limit(20) // must match the maxSize above
                     .fetch();
 
-            for (int i = 1; i < result.size(); i++) {
+            for (int i = 0; i < result.size(); i++) {
                 assertThat(result.get(i)).isEqualTo(getTestNumber() + "-" + i); // order matches
             }
         }

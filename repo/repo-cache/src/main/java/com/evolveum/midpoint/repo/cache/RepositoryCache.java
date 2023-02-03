@@ -172,6 +172,7 @@ public class RepositoryCache implements RepositoryService, Cache {
         return modificationOpHandler.addObject(object, options, parentResult);
     }
 
+    @Override
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
             @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
@@ -217,6 +218,12 @@ public class RepositoryCache implements RepositoryService, Cache {
         // TODO implement properly, currently only to support tests, probably not used via cache in normal code
         return repositoryService.modifyObjectDynamically(
                 type, oid, getOptions, modificationsSupplier, modifyOptions, parentResult);
+    }
+
+    @Override
+    public ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid,
+            @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return repositoryService.deleteSimulatedProcessedObjects(oid, transactionId, parentResult);
     }
 
     @NotNull
