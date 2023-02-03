@@ -25,6 +25,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -109,18 +111,21 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 "MidPointTheme.createSparkline('#" + comp.getMarkupId() + "', " + options + ", " + data + ");"));
     }
 
+    private @NotNull DashboardWidgetDataType getWidgetData() {
+        DashboardWidgetType widget = getModelObject();
+        if (widget == null || widget.getData() == null) {
+            return new DashboardWidgetDataType();
+        }
+
+        return widget.getData();
+    }
+
     private void initModels() {
         markModel = new LoadableDetachableModel<>() {
             @Override
             protected MarkType load() {
-                DashboardWidgetType widget = getModelObject();
-                if (widget == null || widget.getData() == null || widget.getData().getMetricRef() == null) {
-                    return null;
-                }
-
-                DashboardWidgetDataType data = widget.getData();
-                SimulationMetricReferenceType metricRef = data.getMetricRef();
-                if (metricRef.getEventMarkRef() == null) {
+                SimulationMetricReferenceType metricRef = getWidgetData().getMetricRef();
+                if (metricRef == null || metricRef.getEventMarkRef() == null) {
                     return null;
                 }
 
@@ -133,21 +138,19 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             @Override
             protected List<SimulationMetricValuesType> load() {
-                DashboardWidgetType widget = getModelObject();
-                if (widget == null || widget.getData() == null || widget.getData().getMetricRef() == null) {
-                    return Collections.emptyList();
-                }
-
-                DashboardWidgetDataType data = widget.getData();
+                DashboardWidgetDataType data = getWidgetData();
                 SimulationMetricReferenceType metricRef = data.getMetricRef();
 
                 ObjectFilter filter = createObjectFilter(data.getCollection());
-                if (filter == null) {
+                if (filter == null || metricRef == null) {
                     return Collections.emptyList();
                 }
 
                 ObjectQuery query = getPrismContext().queryFor(SimulationResultType.class)
-                        .filter(filter).build();
+                        .filter(filter)
+                        .asc(SimulationResultType.F_START_TIMESTAMP)
+                        .maxSize(10)
+                        .build();
 
                 PageBase page = getPageBase();
                 OperationResult result = page.getPageTask().getResult();
@@ -168,7 +171,14 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             @Override
             protected SimulationMetricDefinitionType load() {
-                return null;// todo
+                SimulationMetricReferenceType ref = getWidgetData().getMetricRef();
+                if (ref == null || ref.getEventMarkRef() != null || ref.getIdentifier() == null) {
+                    return null;
+                }
+
+                PageBase page = getPageBase();
+                SimulationResultManager sm = page.getSimulationResultManager();
+                return sm.getMetricDefinition(ref.getIdentifier());
             }
         };
     }
@@ -244,13 +254,21 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         IModel<CompositedIcon> iconModel = () -> createIcon();
 
         CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel);
-        icon.add(new VisibleBehaviour(() -> metricValues.getObject().isEmpty() && iconModel.getObject() != null));
+        icon.add(new VisibleBehaviour(() -> isIconVisible(iconModel)));
         add(icon);
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
-        chartContainer.add(new VisibleBehaviour(() -> !metricValues.getObject().isEmpty()));
+        chartContainer.add(new VisibleBehaviour(() -> !isIconVisible(iconModel)));
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
+    }
+
+    private boolean isIconVisible(IModel<CompositedIcon> iconModel) {
+        if (iconModel.getObject() == null) {
+            return false;
+        }
+
+        return metricValues.getObject().isEmpty();
     }
 
     private IModel<String> createValueModel() {
@@ -290,11 +308,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     protected boolean isMoreInfoVisible() {
-        DashboardWidgetDataType data = getModelObject().getData();
-        if (data == null) {
-            return false;
-        }
-
+        DashboardWidgetDataType data = getWidgetData();
         SimulationMetricReferenceType ref = data.getMetricRef();
         if (ref == null || ref.getEventMarkRef() == null) {
             return false;

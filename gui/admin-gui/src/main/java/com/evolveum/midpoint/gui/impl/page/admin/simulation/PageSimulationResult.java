@@ -204,6 +204,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         add(navigation);
 
         ListView<ResultDetail> details = new ListView<>(ID_DETAILS, detailsModel) {
+
             @Override
             protected void populateItem(ListItem<ResultDetail> item) {
                 item.add(new Label(ID_LABEL, () -> getString(item.getModelObject().label)));
@@ -212,7 +213,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         };
         add(details);
 
-        IModel<List<DashboardWidgetType>> data = new LoadableDetachableModel<List<DashboardWidgetType>>() {
+        IModel<List<DashboardWidgetType>> data = new LoadableDetachableModel<>() {
+
             @Override
             protected List<DashboardWidgetType> load() {
                 List<SimulationMetricValuesType> metrics = resultModel.getObject().getMetric();

@@ -146,7 +146,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                     visualization = getModelInteractionService().visualizeDelta(delta, task, result);
                 } catch (SchemaException | ExpressionEvaluationException e) {
-                    throw new SystemException(e);        // TODO
+                    LOGGER.debug("Couldn't convert and visualize delta", e);
+
+                    throw new SystemException(e);
                 }
 
                 if (LOGGER.isTraceEnabled()) {
