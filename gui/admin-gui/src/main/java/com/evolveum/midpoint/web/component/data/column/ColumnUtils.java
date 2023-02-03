@@ -597,14 +597,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                String name;
-                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                if (object == null) {
-                    name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase, true);
-                } else {
-                    name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME, true);
-                }
-                return Model.of(name);
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
             }
 
             @Override
@@ -652,7 +645,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase, true));
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), true, pageBase));
             }
 
             @Override
@@ -785,43 +778,37 @@ public class ColumnUtils {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")) {
+        columns.add(new AjaxLinkColumn<>(createStringResource("pageCases.table.objectRef")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> iModel) {
-                return (IModel<String>) () -> {
-                    CaseType caseModelObject = iModel.getObject().getValue();
-                    if (caseModelObject == null) {
-                        return "";
-                    }
-                    AssignmentHolderType objectRef = WebComponentUtil.getObjectFromAddDeltaForCase(caseModelObject);
-                    if (objectRef != null) {
-                        return WebComponentUtil.getEffectiveName(objectRef, AbstractRoleType.F_DISPLAY_NAME);
-                    } else if (caseModelObject.getObjectRef() != null
-                            && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())) {
-                        if (caseModelObject.getObjectRef().getObject() != null) {
-                            return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
-                                    AbstractRoleType.F_DISPLAY_NAME);
-                        } else {
-                            try {
-                                return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
-                                        pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
-                            } catch (Exception ex) {
-                                LOGGER.error("Unable find the object for reference: {}", caseModelObject.getObjectRef());
-                            }
-                        }
-                    }
-                    return "";
-                };
+            public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseModelObject = rowModel.getObject().getValue();
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseModelObject.getObjectRef(), true, pageBase));
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, getDataModel(rowModel)));
+            protected IModel<String> createLinkModel(IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseType = rowModel.getObject().getValue();
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
             }
 
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseType = rowModel.getObject().getValue();
 
-        };
-        columns.add(column);
+                dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+            }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseType = rowModel.getObject().getValue();
+                PrismObject object = caseType.getObjectRef().getObject();
+                // Do not generate link if the object has not been created yet.
+                // Check the version to see if it has not been created.
+                return object != null && object.getVersion() != null;
+            }
+        });
 
         if (!isDashboard) {
             columns.add(createCaseActorsColumn(pageBase));
@@ -1040,7 +1027,7 @@ public class ColumnUtils {
         if (referencesList != null) {
             referencesList.forEach(reference -> {
                 AjaxLinkPanel referenceAjaxLinkPanel = new AjaxLinkPanel(multilineLinkPanel.newChildId(),
-                        Model.of(WebModelServiceUtils.resolveReferenceName(reference.clone(), pageBase, true))) {
+                        Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(reference, true, pageBase))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
