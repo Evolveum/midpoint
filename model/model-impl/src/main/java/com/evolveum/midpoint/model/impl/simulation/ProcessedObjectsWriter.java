@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,11 +66,18 @@ class ProcessedObjectsWriter {
     }
 
     private void write(@NotNull OperationResult result) {
-        if (!(data instanceof SimulationDataImpl)) {
+        if (data instanceof FullOperationSimulationDataImpl) {
+            writeFullData(((FullOperationSimulationDataImpl) data), result);
+        } else if (data instanceof SingleDeltaSimulationDataImpl<?>) {
+            writeSingleDelta(((SingleDeltaSimulationDataImpl<?>) data), result);
+        } else {
             LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
             return;
         }
-        LensContext<?> lensContext = ((SimulationDataImpl) data).getLensContext();
+    }
+
+    private void writeFullData(FullOperationSimulationDataImpl fullData, OperationResult result) {
+        LensContext<?> lensContext = fullData.getLensContext();
         try {
             LOGGER.trace("Storing {} into {}", lensContext, simulationTransaction);
 
@@ -104,17 +113,27 @@ class ProcessedObjectsWriter {
     }
 
     private <O extends ObjectType> ProcessedObjectImpl<O> createProcessedObject(
-            @Nullable LensElementContext<O> elementContext, OperationResult result) {
-        if (elementContext == null) {
+            @Nullable LensElementContext<O> elementContext, OperationResult result) throws CommonException {
+        if (elementContext != null) {
+            return ProcessedObjectImpl.create(elementContext, simulationTransaction, task, result);
+        } else {
             return null;
         }
+    }
+
+    private <E extends ObjectType> void writeSingleDelta(SingleDeltaSimulationDataImpl<E> data, OperationResult result) {
+        LensElementContext<E> elementContext = data.getElementContext();
+        ObjectDelta<E> simulationDelta = data.getSimulationDelta();
         try {
-            return ProcessedObjectImpl.create(elementContext, simulationTransaction, task, result);
+            LOGGER.trace("Storing delta in {} into {}", elementContext, simulationTransaction);
+
+            ProcessedObjectImpl<E> processedObject =
+                    ProcessedObjectImpl.createSingleDelta(elementContext, simulationDelta, simulationTransaction, task, result);
+            storeProcessedObjects(List.of(processedObject), task, result);
+
         } catch (CommonException e) {
-            // TODO do we need more precise error reporting here?
-            //  Or should we conceal some of these exceptions? (Probably not.)
-            throw new SystemException(
-                    "Couldn't process or store the simulation object processing record: " + e.getMessage(), e);
+            // TODO which exception to treat?
+            throw SystemException.unexpected(e, "when storing processed object information");
         }
     }
 

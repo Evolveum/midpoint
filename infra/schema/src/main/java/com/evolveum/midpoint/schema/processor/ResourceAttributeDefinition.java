@@ -279,6 +279,9 @@ public interface ResourceAttributeDefinition<T>
      */
     boolean isDisplayNameAttribute();
 
-    /** @see ItemRefinedDefinitionType#getCorrelator() () */
+    /** @see ItemRefinedDefinitionType#getCorrelator() */
     @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition();
+
+    /** TODO */
+    @Nullable ItemChangeApplicationModeType getChangeApplicationMode();
 }

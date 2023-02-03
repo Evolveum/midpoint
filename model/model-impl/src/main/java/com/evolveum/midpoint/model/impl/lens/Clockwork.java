@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.simulation.SimulationDataImpl;
+import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
 
 import com.evolveum.midpoint.task.api.SimulationTransaction;
 
@@ -181,8 +181,8 @@ public class Clockwork {
 
     private void writeSimulationData(LensContext<?> context, Task task, OperationResult result) {
         SimulationTransaction transactionContext = task.getSimulationTransaction();
-        if (transactionContext != null) {
-            transactionContext.writeSimulationData(SimulationDataImpl.with(context), task, result);
+        if (task.isSimulatedExecution() && transactionContext != null) {
+            transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
         }
     }
 

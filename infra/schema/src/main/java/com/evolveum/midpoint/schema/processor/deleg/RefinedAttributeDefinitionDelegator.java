@@ -147,5 +147,10 @@ public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinit
     }
 
     @Override
+    default @Nullable ItemChangeApplicationModeType getChangeApplicationMode() {
+        return delegate().getChangeApplicationMode();
+    }
+
+    @Override
     ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
 }

@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -170,6 +172,25 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull LensElementContext<O> elementContext,
             @NotNull SimulationTransactionImpl simulationTransaction,
             @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException {
+        return createInternal(elementContext, null, simulationTransaction, task, result);
+    }
+
+    @Experimental
+    static <O extends ObjectType> ProcessedObjectImpl<O> createSingleDelta(
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull ObjectDelta<O> simulationDelta,
+            @NotNull SimulationTransactionImpl simulationTransaction,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException {
+        return createInternal(elementContext, simulationDelta, simulationTransaction, task, result);
+    }
+
+    private static <O extends ObjectType> @Nullable ProcessedObjectImpl<O> createInternal(
+            @NotNull LensElementContext<O> elementContext,
+            @Nullable ObjectDelta<O> singleDelta,
+            @NotNull SimulationTransactionImpl simulationTransaction,
+            @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
 
@@ -188,7 +209,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
         @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
         @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
-        @Nullable ObjectDelta<O> delta = elementContext.getSummaryExecutedDelta();
+        @Nullable ObjectDelta<O> delta = singleDelta != null ? singleDelta : elementContext.getSummaryExecutedDelta();
         if (anyState == null || stateBefore == null && delta == null) {
             // Nothing to report on here. Note that for shadows it's possible that stateBefore and delta are null but
             // stateAfter is "PCV(null)" - due to the way of computation of objectNew for shadows
@@ -208,8 +229,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta != null ?
                         ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()) :
                         ObjectProcessingStateType.UNMODIFIED,
-                ParsedMetricValues.fromEventMarks(
-                        elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()),
+                singleDelta == null ?
+                        ParsedMetricValues.fromEventMarks(
+                                elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()) :
+                        new ParsedMetricValues(Map.of()), // Ignoring metrics in single-delta mode
                 isFocus,
                 null, // provided later
                 stateBefore,
@@ -217,14 +240,19 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta,
                 InternalState.CREATING);
 
-        processedObject.addComputedMetricValues(
-                ObjectMetricsComputation.computeAll(
-                        processedObject,
-                        elementContext,
-                        simulationTransaction.getSimulationResult(),
-                        ModelBeans.get().simulationResultManager.getMetricDefinitions(),
-                        task,
-                        result));
+        if (singleDelta == null) {
+            processedObject.addComputedMetricValues(
+                    ObjectMetricsComputation.computeAll(
+                            processedObject,
+                            elementContext,
+                            simulationTransaction.getSimulationResult(),
+                            ModelBeans.get().simulationResultManager.getMetricDefinitions(),
+                            task,
+                            result));
+        } else {
+            // Ignoring metrics in single-delta mode
+            processedObject.addComputedMetricValues(List.of());
+        }
 
         return processedObject;
     }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -165,6 +168,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void setExpandedFocusTemplate(ObjectTemplateType expandedFocusTemplate) {
         this.expandedFocusTemplate = expandedFocusTemplate;
+        identityManagementConfiguration = null;
+        indexingConfiguration = null;
+        itemChangeApplicationModeConfiguration = null;
     }
 
     public boolean isFocusTemplateSetExplicitly() {
@@ -185,6 +191,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             indexingConfiguration = IndexingConfigurationImpl.of(expandedFocusTemplate);
         }
         return indexingConfiguration;
+    }
+
+    @Override
+    @NotNull
+    ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration() throws ConfigurationException {
+        return ItemChangeApplicationModeConfiguration.of(expandedFocusTemplate);
     }
 
     public LifecycleStateModelType getLifecycleModel() {

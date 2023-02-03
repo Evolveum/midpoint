@@ -93,6 +93,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     /** Delta to execute. Can be different from the elementContext.delta. Refined during processing. */
     @NotNull private ObjectDelta<E> delta;
 
+    /**
+     * Delta that was really executed (or attempted to be executed). It is the {@link #delta} minus items
+     * whose changes should not be applied.
+     */
+    private ObjectDelta<E> deltaForExecution;
+
     /** How should we resolve conflicts? */
     private final ConflictResolutionType conflictResolution;
 
@@ -164,6 +170,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
         OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
         try {
+            deltaForExecution = delta; // Overwritten only if needed; present here e.g. because of potential exceptions
             if (delta.getChangeType() == ChangeType.ADD) {
                 executeAddition(result);
             } else if (delta.getChangeType() == ChangeType.MODIFY) {
@@ -360,11 +367,11 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     @NotNull
     private LensObjectDeltaOperation<E> addToExecutedDeltas(OperationResult result) throws SchemaException {
-        if (!delta.hasCompleteDefinition()) { // TODO reconsider this
+        if (!deltaForExecution.hasCompleteDefinition()) { // TODO reconsider this
             throw new SchemaException("object delta does not have complete definition");
         }
         LensObjectDeltaOperation<E> objectDeltaOp = LensUtil.createObjectDeltaOperation(
-                delta.clone(), result, elementContext, null, resource);
+                deltaForExecution.clone(), result, elementContext, null, resource);
         LOGGER.trace("Recording executed delta:\n{}", lazy(() -> objectDeltaOp.shorterDebugDump(1)));
         elementContext.addToExecutedDeltas(objectDeltaOp);
         return objectDeltaOp;
@@ -441,6 +448,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
 
+            deltaForExecution = processChangeApplicationMode(result);
+            objectToAdd = deltaForExecution.getObjectToAdd();
             String oid;
             if (task.isPersistentExecution()) {
                 oid = executeRealAddition(objectToAdd, result);
@@ -577,16 +586,23 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 return;
             }
 
+            deltaForExecution = processChangeApplicationMode(result);
             if (task.isPersistentExecution()) {
                 executeRealModification(objectClass, result);
             }
-            task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
-                    context.getChannel(), null);
+            task.recordObjectActionExecuted(
+                    baseObject, objectClass, delta.getOid(), ChangeType.MODIFY, context.getChannel(), null);
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
-                    context.getChannel(), t);
+            task.recordObjectActionExecuted(
+                    baseObject, objectClass, delta.getOid(), ChangeType.MODIFY, context.getChannel(), t);
             throw t;
         }
+    }
+
+    private @NotNull ObjectDelta<E> processChangeApplicationMode(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return new ChangeModeApplication<>(elementContext, delta, task)
+                .execute(result);
     }
 
     private void executeRealModification(Class<E> objectClass, OperationResult result)
@@ -594,21 +610,25 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
             ConflictDetectedException {
         if (TaskType.class.isAssignableFrom(objectClass)) {
-            b.taskManager.modifyTask(delta.getOid(), delta.getModifications(), result);
+            b.taskManager.modifyTask(
+                    deltaForExecution.getOid(), deltaForExecution.getModifications(), result);
         } else if (NodeType.class.isAssignableFrom(objectClass)) {
-            b.cacheRepositoryService.modifyObject(NodeType.class, delta.getOid(), delta.getModifications(), result);
+            b.cacheRepositoryService.modifyObject(
+                    NodeType.class, deltaForExecution.getOid(), deltaForExecution.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectClass)) {
             String oid = modifyProvisioningObject(result);
-            if (!oid.equals(delta.getOid())) {
+            if (!oid.equals(deltaForExecution.getOid())) {
+                deltaForExecution.setOid(oid);
                 delta.setOid(oid);
                 LensUtil.setContextOid(context, elementContext, oid);
             }
         } else {
-            FocusConstraintsChecker.clearCacheForDelta(delta.getModifications());
+            FocusConstraintsChecker.clearCacheForDelta(deltaForExecution.getModifications());
             ModificationPrecondition<E> precondition = createRepoModificationPrecondition();
             try {
                 b.cacheRepositoryService.modifyObject(
-                        objectClass, delta.getOid(), delta.getModifications(), precondition, null, result);
+                        objectClass, deltaForExecution.getOid(), deltaForExecution.getModifications(),
+                        precondition, null, result);
             } catch (PreconditionViolationException e) {
                 throw new ConflictDetectedException(e);
             }
@@ -619,8 +639,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, PolicyViolationException {
 
-        Class<E> objectClass = delta.getObjectTypeClass();
-        String oid = delta.getOid();
+        Class<E> objectClass = deltaForExecution.getObjectTypeClass();
+        String oid = deltaForExecution.getOid();
         PrismObject<E> objectToModify = null;
         try {
             Collection<SelectorOptions<GetOperationOptions>> getOptions = b.schemaService.getOperationOptionsBuilder()
@@ -646,7 +666,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
             String updatedOid =
-                    b.provisioningService.modifyObject(objectClass, oid, delta.getModifications(), scripts, options, task, result);
+                    b.provisioningService.modifyObject(
+                            objectClass, oid, deltaForExecution.getModifications(), scripts, options, task, result);
             determineLivenessFromObject(objectToModify);
             return updatedOid;
         } catch (ObjectNotFoundException e) {

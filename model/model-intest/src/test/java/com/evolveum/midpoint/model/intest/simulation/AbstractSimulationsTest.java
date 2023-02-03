@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.intest.simulation;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -24,6 +25,7 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
@@ -61,14 +63,28 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     static final TestResource<ArchetypeType> ARCHETYPE_CUSTOMER = new TestResource<>(
             SIM_TEST_DIR, "archetype-customer.xml", "075ebbed-f3b9-4bac-90c2-bb8811121636");
 
-    private static final String ATTR_TYPE_NAME = "type";
+    private static final String ATTR_TYPE = "type";
+    private static final String ATTR_TELEPHONE_NUMBER = "telephoneNumber";
+    private static final String ATTR_MAIL = "mail";
+
+    static final ItemName ATTR_RI_TELEPHONE_NUMBER = new ItemName(NS_RI, ATTR_TELEPHONE_NUMBER);
+    static final ItemName ATTR_RI_MAIL = new ItemName(NS_RI, ATTR_MAIL);
+
 //    private static final ItemName ATTR_TYPE_ITEM_NAME = new ItemName(NS_RI, ATTR_TYPE_NAME);
 
     static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_TARGET = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-production-target.xml",
             "3f8d6dee-9663-496f-a718-b3c27234aca7",
-            "simple-production-target");
+            "simple-production-target",
+            controller -> {
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_TELEPHONE_NUMBER, String.class, false, false);
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_MAIL, String.class, false, false);
+            });
     static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_TARGET = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-target.xml",
@@ -81,7 +97,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "simple-production-source",
             controller -> controller.addAttrDef(
                     controller.getDummyResource().getAccountObjectClass(),
-                    ATTR_TYPE_NAME, String.class, false, false));
+                    ATTR_TYPE, String.class, false, false));
     private static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-source.xml",

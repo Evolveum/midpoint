@@ -2285,12 +2285,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <X> X executeInSimulationMode(
+    public <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result,
-            SimulationResultManager.@NotNull SimulatedFunctionCall<X> functionCall) throws CommonException {
-        return simulationResultManager.executeInSimulationMode(mode, simulationDefinition, task, result, functionCall);
+            @NotNull SimulationResultManager.SimulatedFunctionCall<X> functionCall) throws CommonException {
+        return simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, functionCall);
     }
 }

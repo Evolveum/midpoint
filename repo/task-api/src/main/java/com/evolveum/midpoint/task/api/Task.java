@@ -1006,6 +1006,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return getExecutionMode().isPersistent();
     }
 
+    default boolean isSimulatedExecution() {
+        return getExecutionMode().isSimulation();
+    }
+
     default boolean isProductionConfiguration() {
         return getExecutionMode().isProductionConfiguration();
     }
