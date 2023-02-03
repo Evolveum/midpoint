@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -337,11 +338,26 @@ public class AssignmentPolicyAspectPart {
                 assignment.isBeingDeleted() ? "Deleted" :
                         "Modified";
 
-        return new LocalizableMessageBuilder()
-                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
-                .arg(ObjectTypeUtil.createDisplayInformation(target, false))
-                .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
-                .build();
+        QName relation = assignment.getNormalizedRelation();
+
+        if (relation == null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
+                    .arg(ObjectTypeUtil.createDisplayInformation(target, false))
+                    .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+                    .build();
+        } else {
+            LocalizableMessage relationMessage = new LocalizableMessageBuilder()
+                    .key("relation." + relation.getLocalPart())
+                    .build();
+
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
+                    .arg(ObjectTypeUtil.createDisplayInformation(target, false))
+                    .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+                    .arg(relationMessage)
+                    .build();
+        }
     }
 
     // creates an ObjectDelta that will be executed after successful approval of the given assignment
