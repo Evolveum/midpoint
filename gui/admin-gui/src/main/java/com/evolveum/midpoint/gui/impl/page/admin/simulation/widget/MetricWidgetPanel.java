@@ -41,6 +41,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -52,16 +54,19 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(MetricWidgetPanel.class);
+
     private static final String ID_TITLE = "title";
-    private static final String ID_OPEN = "open";
+    private static final String ID_MORE_INFO = "moreInfo";
     private static final String ID_TREND_BADGE = "trendBadge";
     private static final String ID_VALUE = "value";
     private static final String ID_VALUE_DESCRIPTION = "valueDescription";
     private static final String ID_ICON = "icon";
-    private static final String ID_ICON_CONTAINTER = "iconContainer";
     private static final String ID_CHART_CONTAINER = "chartContainer";
 
     private IModel<List<SimulationMetricValuesType>> metricValues;
+
+    private IModel<MarkType> markModel;
 
     private IModel<SimulationMetricDefinitionType> metricDefinition;
 
@@ -105,6 +110,25 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     private void initModels() {
+        markModel = new LoadableDetachableModel<>() {
+            @Override
+            protected MarkType load() {
+                DashboardWidgetType widget = getModelObject();
+                if (widget == null || widget.getData() == null || widget.getData().getMetricRef() == null) {
+                    return null;
+                }
+
+                DashboardWidgetDataType data = widget.getData();
+                SimulationMetricReferenceType metricRef = data.getMetricRef();
+                if (metricRef.getEventMarkRef() == null) {
+                    return null;
+                }
+
+                PrismObject<MarkType> mark = WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), getPageBase());
+                return mark != null ? mark.asObjectable() : null;
+            }
+        };
+
         metricValues = new LoadableDetachableModel<>() {
 
             @Override
@@ -154,10 +178,12 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             return null;
         }
 
+        PageBase page = getPageBase();
+
         SearchFilterType search;
         if (collection.getCollectionRef() != null) {
             com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject<ObjectCollectionType> obj = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+            PrismObject<ObjectCollectionType> obj = WebModelServiceUtils.loadObject(collectionRef, page);
             if (obj == null) {
                 return null;
             }
@@ -175,10 +201,8 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         try {
             return getPageBase().getQueryConverter().createObjectFilter(SimulationResultType.class, search);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            //todo viliam
-//            LOGGER.debug("Couldn't create search filter", ex);
-//            page.error("Couldn't create search filter, reason: " + ex.getMessage());
+            LOGGER.debug("Couldn't create search filter", ex);
+            page.error("Couldn't create search filter, reason: " + ex.getMessage());
         }
 
         return null;
@@ -193,14 +217,14 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         });
         add(title);
 
-        AjaxLink open = new AjaxLink<>(ID_OPEN) {
+        AjaxLink moreInfo = new AjaxLink<>(ID_MORE_INFO) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onMoreInfoPerformed(target);
             }
         };
-        open.add(new VisibleBehaviour(() -> isMoreInfoVisible()));
-        add(open);
+        moreInfo.add(new VisibleBehaviour(() -> isMoreInfoVisible()));
+        add(moreInfo);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
@@ -217,12 +241,11 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         Label valueDescription = new Label(ID_VALUE_DESCRIPTION, createDescriptionModel());
         add(valueDescription);
 
-        WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINTER);
-        iconContainer.add(new VisibleBehaviour(() -> metricValues.getObject().isEmpty()));
-        add(iconContainer);
+        IModel<CompositedIcon> iconModel = () -> createIcon();
 
-        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, () -> createIcon());
-        iconContainer.add(icon);
+        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel);
+        icon.add(new VisibleBehaviour(() -> metricValues.getObject().isEmpty() && iconModel.getObject() != null));
+        add(icon);
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
         chartContainer.add(new VisibleBehaviour(() -> !metricValues.getObject().isEmpty()));
@@ -232,6 +255,11 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
     private IModel<String> createValueModel() {
         return () -> {
+            DashboardWidgetDataType data = getModelObject().getData();
+            if (data != null && data.getStoredData() != null) {
+                return data.getStoredData();
+            }
+
             List<SimulationMetricValuesType> values = metricValues.getObject();
             if (values.isEmpty()) {
                 return null;
@@ -244,7 +272,21 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     private IModel<String> createDescriptionModel() {
-        return () -> "jklo";
+        return () -> {
+            DisplayType display = getModelObject().getDisplay();
+            if (display != null && display.getTooltip() != null) {
+                return WebComponentUtil.getTranslatedPolyString(display.getTooltip());
+            }
+
+            MarkType mark = markModel.getObject();
+            if (mark == null || mark.getDisplay() == null) {
+                return null;
+            }
+
+            display = mark.getDisplay();
+
+            return WebComponentUtil.getTranslatedPolyString(display.getTooltip());
+        };
     }
 
     private boolean isMoreInfoVisible() {
@@ -261,12 +303,18 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     private CompositedIcon createIcon() {
-        DisplayType display = metricDefinition.getObject().getDisplay();
+        DisplayType display = getModelObject().getDisplay();
+        if (display == null) {
+            if (markModel.getObject() != null) {
+                display = markModel.getObject().getDisplay();
+            } else if (metricDefinition.getObject() != null) {
+                display = metricDefinition.getObject().getDisplay();
+            }
+        }
+
         if (display == null) {
             return null;
         }
-
-        // todo should we try to load MarkType -> display if it's mark metric?
 
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(display), IconCssStyle.CENTER_STYLE)

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -141,6 +142,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @Override
             public CorrelationService getCorrelationService() {
+                return null;
+            }
+
+            @Override
+            public SimulationResultManager getSimulationResultManager() {
                 return null;
             }
         };
