@@ -58,6 +58,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -740,6 +742,34 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid,
+            @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        // Should we select
+        var operationResult = parentResult.createSubresult("deleteSimulatedProcessedObjects");
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<SimulationResultType, QObject<MObject>, MObject> update = prepareUpdateContext(jdbcSession, SimulationResultType.class, SqaleUtils.oidToUuidMandatory(oid));
+
+
+            QProcessedObject alias = QProcessedObjectMapping.getProcessedObjectMapping().defaultAlias();
+            jdbcSession.newDelete(alias)
+                .where(alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
+                        .and(alias.transactionId.eq(transactionId))
+                        )
+                .execute();
+            update.finishExecutionOwn();
+            jdbcSession.commit();
+            return new ModifyObjectResult<>(update.getPrismObject(), update.getPrismObject(), Collections.emptyList());
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
         }
     }
 
