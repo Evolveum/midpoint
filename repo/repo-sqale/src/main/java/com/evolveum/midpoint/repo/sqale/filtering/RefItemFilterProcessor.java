@@ -208,15 +208,20 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter
         FilterOperation operation = operation(filter);
         ReferenceRowValue ref = filter.getSingleValue().getRealValue();
         QObjectReference<?> refPath = (QObjectReference<?>) context.path();
+
+        UUID ownerOid = SqaleUtils.oidToUuidMandatory(ref.ownerOid);
+        UUID targetOid = SqaleUtils.oidToUuidMandatory(ref.targetOid);
+        int relationId = ((SqaleQueryContext<?, ?, ?>) context).searchCachedRelationId(ref.relation);
         if (operation.operator == Ops.GT) {
-            UUID ownerOid = SqaleUtils.oidToUuidMandatory(ref.ownerOid);
-            UUID targetOid = SqaleUtils.oidToUuidMandatory(ref.targetOid);
-            int relationId = ((SqaleQueryContext<?, ?, ?>) context).searchCachedRelationId(ref.relation);
             return refPath.ownerOid.gt(ownerOid)
                     .or(refPath.ownerOid.eq(ownerOid).and(relationIdPath.gt(relationId)))
                     .or(refPath.ownerOid.eq(ownerOid).and(relationIdPath.eq(relationId)).and(oidPath.gt(targetOid)));
+        } else if (operation.operator == Ops.LT) {
+            return refPath.ownerOid.lt(ownerOid)
+                    .or(refPath.ownerOid.eq(ownerOid).and(relationIdPath.lt(relationId)))
+                    .or(refPath.ownerOid.eq(ownerOid).and(relationIdPath.eq(relationId)).and(oidPath.lt(targetOid)));
         }
-        return null;
+        throw new QueryException("Special case internal reference filter supports only GT/LT - filter: " + filter);
     }
 
     public static class ReferenceRowValue implements Serializable {
