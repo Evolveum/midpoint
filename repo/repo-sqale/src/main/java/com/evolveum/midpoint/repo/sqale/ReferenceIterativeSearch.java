@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectHandler;
@@ -38,6 +39,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Logic details for {@link SqaleRepositoryService#searchReferencesIterative}.
+ *
+ * [NOTE]
+ * This class uses prism-impl, because query factory does not support owned-by filter.
+ * Query factory is also mostly deprecated, but maybe it's not a bad idea to have it for cases like this.
  */
 public class ReferenceIterativeSearch {
 
@@ -63,12 +68,12 @@ public class ReferenceIterativeSearch {
                     ? originalPaging.getOrderingInstructions()
                     : null;
             if (providedOrdering != null && providedOrdering.size() > 1) {
-                throw new RepositoryException("searchReferencesIterative() does not support ordering"
+                throw new QueryException("searchReferencesIterative() does not support ordering"
                         + " by multiple paths (yet): " + providedOrdering);
             }
 
-            ObjectQuery pagedQuery = repoService.prismContext().queryFactory().createQuery();
-            ObjectPaging paging = repoService.prismContext().queryFactory().createPaging();
+            ObjectQuery pagedQuery = getQueryFactory().createQuery();
+            ObjectPaging paging = getQueryFactory().createPaging();
             if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
@@ -153,7 +158,7 @@ public class ReferenceIterativeSearch {
     private ObjectFilter lastRefFilter(
             ObjectReferenceType lastProcessedRef,
             ObjectFilter originalFilter,
-            List<? extends ObjectOrdering> providedOrdering) throws SchemaException, ObjectNotFoundException {
+            List<? extends ObjectOrdering> providedOrdering) throws SchemaException, ObjectNotFoundException, QueryException {
         if (lastProcessedRef == null) {
             return originalFilter;
         }
@@ -162,87 +167,28 @@ public class ReferenceIterativeSearch {
         ObjectFilter filter = originalFilter.clone();
 
         // Special kind of value for ref filter comparison + the definition for filters:
-        if (providedOrdering != null && providedOrdering.size() == 1) {
+        if (providedOrdering == null || providedOrdering.isEmpty()) {
+            return repoService.prismContext().queryFor(ObjectType.class)
+                    .filter(filter)
+                    .and()
+                    .item(ItemPath.SELF_PATH, lastProcessedRef.asReferenceValue().getDefinition())
+                    .gt(lastProcessedRefToRowValue(lastProcessedRef))
+                    .buildFilter();
+
+        } else if (providedOrdering.size() == 1) {
             ObjectOrdering objectOrdering = providedOrdering.get(0);
             ItemPath orderByPath = objectOrdering.getOrderBy();
             if (orderByPath.startsWithObjectReference()) {
-                filter = lastRefFilterWithTargetItemOrder(lastProcessedRef, filter, objectOrdering);
+                return lastRefFilterWithTargetItemOrder(lastProcessedRef, filter, objectOrdering);
             } else if (orderByPath.startsWithParent()) {
-                return lastRefFilterWithParentItemOrder(lastProcessedRef, filter, objectOrdering);
+                return processParentItemOrder(lastProcessedRef, filter, objectOrdering);
             } else {
-                // TODO throw, but first utilize the code below in the cases above ;-)
-                boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
-                S_ConditionEntry filterBuilder = null;
-
-                //noinspection rawtypes
-                Item<PrismValue, ItemDefinition<Item>> item = null; // TODO lastProcessedRef.findItem(orderByPath);
-                if (item.size() > 1) {
-                    throw new IllegalArgumentException(
-                            "Multi-value property for ordering is forbidden - item: " + item);
-                } else if (item.isEmpty()) {
-                    // TODO what if it's nullable? is it null-first or last?
-                    // See: https://www.postgresql.org/docs/13/queries-order.html
-                    // "By default, null values sort as if larger than any non-null value; that is,
-                    // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
-                } else {
-                /*
-                TODO: fix notes
-                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there is a couple of differences.
-                This one seems bloated, but each branch is simple; on the other hand it's not obvious what is different in each.
-                Also, audit version does not require polystring treatment.
-                Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
-                    boolean isPolyString = QNameUtil.match(
-                            PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
-                    Object realValue = item.getRealValue();
-                    if (isPolyString) {
-                        // We need to use matchingOrig for polystring, see MID-7860
-                        if (asc) {
-                            return filterBuilder.gt(realValue).matchingOrig().or()
-                                    .block()
-                                    .item(orderByPath).eq(realValue).matchingOrig()
-                                    .and()
-                                    .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-                                    .endBlock()
-                                    .buildFilter();
-                        } else {
-                            return filterBuilder.lt(realValue).matchingOrig().or()
-                                    .block()
-                                    .item(orderByPath).eq(realValue).matchingOrig()
-                                    .and()
-                                    .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
-                                    .endBlock()
-                                    .buildFilter();
-                        }
-                    } else {
-                        if (asc) {
-                            return filterBuilder.gt(realValue).or()
-                                    .block()
-                                    .item(orderByPath).eq(realValue)
-                                    .and()
-                                    .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-                                    .endBlock()
-                                    .buildFilter();
-                        } else {
-                            return filterBuilder.lt(realValue).or()
-                                    .block()
-                                    .item(orderByPath).eq(realValue)
-                                    .and()
-                                    .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
-                                    .endBlock()
-                                    .buildFilter();
-                        }
-                    }
-                 */
-                }
+                throw new QueryException("Reference search supports only sorting starting with @/ or ../");
             }
+        } else {
+            throw new QueryException("searchReferencesIterative() does not support ordering"
+                    + " by multiple paths (yet): " + providedOrdering);
         }
-
-        return repoService.prismContext().queryFor(ObjectType.class)
-                .filter(filter)
-                .and()
-                .item(ItemPath.SELF_PATH, lastProcessedRef.asReferenceValue().getDefinition())
-                .gt(lastProcessedRefToRowValue(lastProcessedRef))
-                .buildFilter();
     }
 
     private ObjectFilter lastRefFilterWithTargetItemOrder(
@@ -257,31 +203,35 @@ public class ReferenceIterativeSearch {
         return filter; // TODO
     }
 
-    private ObjectFilter lastRefFilterWithParentItemOrder(
-            ObjectReferenceType lastProcessedRef, ObjectFilter filter, ObjectOrdering objectOrdering)
-            throws SchemaException, ObjectNotFoundException {
+    private ObjectFilter processParentItemOrder(
+            ObjectReferenceType lastProcessedRef, ObjectFilter filter, ObjectOrdering objectOrdering) {
         if (filter instanceof OwnedByFilter) {
-            return lastRefFilterWithParentItemOrderSimple(lastProcessedRef, (OwnedByFilter) filter, objectOrdering);
+            return processOwnedByForParentItemOrder(lastProcessedRef, (OwnedByFilter) filter, objectOrdering);
+        } else if (filter instanceof AndFilter) {
+            // Modify the owned-by filter just like above, the rest stays as-is.
+            AndFilter andFilter = getQueryFactory().createAnd();
+            for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+                if (condition instanceof OwnedByFilter) {
+                    andFilter.addCondition(processOwnedByForParentItemOrder(
+                            lastProcessedRef, (OwnedByFilter) condition, objectOrdering));
+                } else {
+                    andFilter.addCondition(condition);
+                }
+            }
+            return andFilter;
+        } else {
+            throw new IllegalArgumentException(
+                    "Filter for reference search iteration must by either OWNED-BY or AND."
+                            + " Used filter: " + filter);
         }
-        return filter; // TODO and case
     }
 
-    private ObjectFilter lastRefFilterWithParentItemOrderSimple(
+    private ObjectFilter processOwnedByForParentItemOrder(
             ObjectReferenceType lastProcessedRef, OwnedByFilter filter, ObjectOrdering objectOrdering) {
         ItemPath itemPathInOwner = objectOrdering.getOrderBy().rest();
         PrismObject<?> owner = Objects.requireNonNull(
                 PrismValueUtil.getParentObject(lastProcessedRef.asReferenceValue()));
         Item<PrismValue, ItemDefinition<?>> orderByItem = owner.findItem(itemPathInOwner);
-
-        /*
-        return filterBuilder.gt(realValue).or()
-        .block()
-        .item(orderByPath).eq(realValue)
-        .and()
-        .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-        .endBlock()
-        .buildFilter();
-         */
 
         ObjectFilter ownerFilter = filter.getFilter();
         if (ownerFilter == null) {
@@ -290,10 +240,11 @@ public class ReferenceIterativeSearch {
                     constructStrictReferenceOrderingCondition(
                             lastProcessedRef, orderByItem, itemPathInOwner, objectOrdering));
         } else {
-            // We will add the condition to the ownerFilter:
-
+            return OwnedByFilterImpl.create(filter.getType(), filter.getPath(),
+                    getQueryFactory().createAnd(ownerFilter,
+                            constructStrictReferenceOrderingCondition(
+                                    lastProcessedRef, orderByItem, itemPathInOwner, objectOrdering)));
         }
-        return null;
     }
 
     private ObjectFilter constructStrictReferenceOrderingCondition(
@@ -359,5 +310,10 @@ public class ReferenceIterativeSearch {
                         lastProcessedRef.getRelation(),
                         lastProcessedRef.getOid());
         return refComparableValue;
+    }
+
+    @NotNull
+    private QueryFactory getQueryFactory() {
+        return repoService.prismContext().queryFactory();
     }
 }

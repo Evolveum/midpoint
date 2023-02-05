@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor.ReferenceRowValue;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -66,9 +67,9 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
     private final TestResultHandler testHandler = new TestResultHandler();
 
-    // default page size for iterative search, reset before each test
-    private static final int ITERATION_PAGE_SIZE = 100;
-    private static final int COUNT_OF_CREATED_REFS = ITERATION_PAGE_SIZE * 4;
+    private static final int DEFAULT_TEST_ITERATION_PAGE_SIZE = 100; // see resetTestHandlerAndStats
+    private static final int USER_COUNT = 150;
+    private static final int COUNT_OF_CREATED_REFS = USER_COUNT * 4;
 
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
@@ -84,16 +85,18 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         String role2Oid = repositoryService.addObject(new RoleType()
                 .name("role2")
                 .asPrismObject(), null, result);
+        String role3Oid = repositoryService.addObject(new RoleType()
+                .name("role3")
+                .asPrismObject(), null, result);
 
         // we will create four refs in each user, that's four full iteration "pages" of data
-        for (int i = 1; i <= ITERATION_PAGE_SIZE; i++) {
-            String targetOid = UUID.randomUUID().toString();
+        for (int i = 1; i <= USER_COUNT; i++) {
             UserType user = new UserType()
                     .name(String.format("user-%05d", i))
                     .roleMembershipRef(role1Oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
                     .roleMembershipRef(role2Oid, RoleType.COMPLEX_TYPE, relation1)
-                    .roleMembershipRef(targetOid, RoleType.COMPLEX_TYPE, relation1)
-                    .roleMembershipRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE, relation2);
+                    .roleMembershipRef(role2Oid, RoleType.COMPLEX_TYPE, relation2)
+                    .roleMembershipRef(role3Oid, RoleType.COMPLEX_TYPE, relation1);
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
 
@@ -101,9 +104,11 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     }
 
     @BeforeMethod
-    public void resetTestHandler() {
+    public void resetTestHandlerAndStats() {
         testHandler.reset();
-        repositoryConfiguration.setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(DEFAULT_TEST_ITERATION_PAGE_SIZE);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
     }
 
     @AfterMethod
@@ -156,8 +161,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test100SearchIterativeWithNoneFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
 
         given("query with top level NONE filter");
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -196,8 +199,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test110SearchIterativeWithoutRefFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
 
         given("simple query for reference search");
         ObjectQuery query = prismContext
@@ -234,8 +235,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test111SearchIterativeWithLastPageNotFull() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
 
         given("total result count not multiple of the page size");
         long totalCount = count(qMembershipRef);
@@ -281,8 +280,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test115SearchIterativeWithBreakingConditionCheckingOidOrdering() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
         queryRecorder.clearBufferAndStartRecording();
 
         String midOid = "80000000-0000-0000-0000-000000000000";
@@ -313,16 +310,9 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                         qMembershipRef.ownerOid.lt(UUID.fromString(midOid))) + 1);
     }
 
-    private static String ownerOid(ObjectReferenceType ref) {
-        return Objects.requireNonNull(PrismValueUtil.getParentObject(ref.asReferenceValue()))
-                .getOid();
-    }
-
     @Test
     public void test120SearchIterativeWithMaxSize() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
 
         given("query with maxSize specified");
         ObjectQuery query = prismContext
@@ -350,8 +340,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test125SearchIterativeWithCustomOrderingByTargetItem() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
         // We want to test multiple iteration search, as that shows potential errors in lastRefFilter() method.
         repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
         queryRecorder.clearBufferAndStartRecording();
@@ -359,6 +347,8 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         given("query with custom ordering by target item");
         ObjectQuery query = prismContext
                 .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                // Only first 35 users, to get more various role names into 120 results.
+                .item(UserType.F_NAME).le("user-00035").matchingOrig()
                 .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
                 // We want to cover refs with two different target OID values:
                 .maxSize(120)
@@ -399,19 +389,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         }
     }
 
-    private void compareRowsWithProcessedRefs(List<MReference> result) {
-        for (int i = 0; i < result.size(); i++) {
-            MReference refRow = result.get(i);
-            ObjectReferenceType processedRef = testHandler.processedRefs.get(i);
-            assertThat(refRow.ownerOid.toString()).describedAs("owner OID for row %d", i)
-                    .isEqualTo(ownerOid(processedRef));
-            assertThat(refRow.relationId).describedAs("relation for row %d", i)
-                    .isEqualTo(cachedUriId(processedRef.getRelation()));
-            assertThat(refRow.targetOid.toString()).describedAs("target OID for row %d", i)
-                    .isEqualTo(processedRef.getOid());
-        }
-    }
-
     @Test
     public void test130SearchIterativeWithCustomOrderingByOwnerItemDesc() throws Exception {
         OperationResult operationResult = createOperationResult();
@@ -435,6 +412,8 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata.isPartialResults()).isFalse();
 
         and("multiple iterations were called");
+        assertThat(operationRecordedCount(REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE))
+                .isGreaterThan(1);
 
         and("all objects were processed");
         /*
@@ -461,10 +440,106 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test131SearchIterativeWithOwnerConditionAndOrdering() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(15); // to ensure multiple pages
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by owner item with owner condition");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .item(UserType.F_NAME).contains("1").matchingOrig()
+                .desc(PrismConstants.T_PARENT, UserType.F_NAME)
+                .maxSize(47) // see the limit below
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("multiple iterations were called");
+        assertThat(operationRecordedCount(REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE))
+                .isGreaterThan(1);
+
+        and("all objects were processed");
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qu).on(qMembershipRef.ownerOid.eq(qu.oid)) // for order only
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.like("%1%")))
+                            .exists())
+                    .orderBy(qu.nameNorm.desc(),
+                            qMembershipRef.ownerOid.desc(),
+                            qMembershipRef.relationId.desc(),
+                            qMembershipRef.targetOid.desc())
+                    .limit(47) // must match the maxSize above
+                    .fetch());
+        }
+    }
+
+    @Test
+    public void test132SearchIterativeWithOwnerConditionAndOrderingAndAdditionalRefCondition() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(15); // to ensure multiple pages
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by owner item with owner condition and another root ref condition");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .item(UserType.F_NAME).contains("1").matchingOrig()
+                .and()
+                .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, relation1)
+                .desc(PrismConstants.T_PARENT, UserType.F_NAME)
+                .maxSize(47) // see the limit below
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("multiple iterations were called");
+        assertThat(operationRecordedCount(REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE))
+                .isGreaterThan(1);
+
+        and("all objects were processed");
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qu).on(qMembershipRef.ownerOid.eq(qu.oid)) // for order only
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.like("%1%")))
+                            .exists()
+                            .and(qMembershipRef.relationId.eq(cachedUriId(relation1)))
+                            .and(qMembershipRef.targetType.eq(MObjectType.ROLE)))
+                    .orderBy(qu.nameNorm.desc(),
+                            qMembershipRef.ownerOid.desc(),
+                            qMembershipRef.relationId.desc(),
+                            qMembershipRef.targetOid.desc())
+                    .limit(47) // must match the maxSize above
+                    .fetch());
+        }
+    }
+
+    @Test
     public void test135SearchIterativeWithOffset() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
 
         given("query with offset specified");
         ObjectQuery query = prismContext
@@ -513,6 +588,25 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
                 REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE_PAGE,
                 metadata.getApproxNumberOfAllResults() / getConfiguredPageSize()
                         + (lastRowCausingPartialResult ? 0 : 1));
+    }
+
+    private void compareRowsWithProcessedRefs(List<MReference> result) {
+        assertThat(testHandler.processedRefs).as("number of processed refs").hasSize(result.size());
+        for (int i = 0; i < result.size(); i++) {
+            MReference refRow = result.get(i);
+            ObjectReferenceType processedRef = testHandler.processedRefs.get(i);
+            assertThat(refRow.ownerOid.toString()).describedAs("owner OID for row %d", i)
+                    .isEqualTo(ownerOid(processedRef));
+            assertThat(refRow.relationId).describedAs("relation for row %d", i)
+                    .isEqualTo(cachedUriId(processedRef.getRelation()));
+            assertThat(refRow.targetOid.toString()).describedAs("target OID for row %d", i)
+                    .isEqualTo(processedRef.getOid());
+        }
+    }
+
+    private static String ownerOid(ObjectReferenceType ref) {
+        return Objects.requireNonNull(PrismValueUtil.getParentObject(ref.asReferenceValue()))
+                .getOid();
     }
 
     private int getConfiguredPageSize() {

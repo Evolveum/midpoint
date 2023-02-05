@@ -320,6 +320,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    protected int operationRecordedCount(String opKind) {
+        Map<String, OperationPerformanceInformation> pmAllData =
+                getPerformanceMonitor()
+                        .getGlobalPerformanceInformation().getAllData();
+        OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
+        return operationInfo != null ? operationInfo.getInvocationCount() : 0;
+    }
+
     /** Creates a reference with specified type and default relation. */
     protected PrismReferenceValue ref(String targetOid, QName targetType) {
         return ref(targetOid, targetType, null);
