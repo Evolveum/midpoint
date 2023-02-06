@@ -46,12 +46,12 @@ The user template object definition could look like this one:
         </description>
 
 		<mapping>
-			<description>
+	    	    <description>
                 Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
-            </description>
+                       </description>
 			<strength>weak</strength>
 			<source>
 				<path>$user/givenName</path>
@@ -71,6 +71,17 @@ The user template object definition could look like this one:
 				<path>$user/fullName</path>
 			</target>
 		</mapping>
+
+                <item>
+                    <description>
+                    Item handling details, specifically in this case an override for display name
+                    and item being emphasized which means that it will always be displayed in the user
+                    interfaces (even if they are empty).
+                    </description>
+                    <ref>emailAddress</ref>
+                    <displayName>Email Address</displayName>
+                    <emphasized>true</emphasized>
+                </item>
 
     </objectTemplate>
 
