@@ -201,7 +201,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                         return label;
                     }
                 });
-                items.add(new DetailsTableItem(createStringResource(""), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
                 // todo implement
 
                 return items;
