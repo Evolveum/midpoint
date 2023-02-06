@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -305,4 +308,9 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
      */
     protected abstract String getItemType();
 
+    public boolean isVisible(Task task) {
+        return SimulationUtil.isVisible(getLifecycleState(), task.getExecutionMode());
+    }
+
+    abstract String getLifecycleState();
 }

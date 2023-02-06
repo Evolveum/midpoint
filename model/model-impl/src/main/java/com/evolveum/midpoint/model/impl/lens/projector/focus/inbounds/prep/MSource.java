@@ -168,13 +168,20 @@ abstract class MSource implements DebugDumpable {
     abstract @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
+            boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) throws SchemaException, ConfigurationException;
 
     /**
      * Returns true if the mapping(s) for given item on this source should be skipped.
      */
-    boolean shouldBeMappingSkipped(String itemDescription, boolean ignored, PropertyLimitations limitations) {
+    boolean shouldBeMappingSkipped(
+            String itemDescription, boolean executionModeVisible, boolean ignored, PropertyLimitations limitations) {
+        if (!executionModeVisible) {
+            LOGGER.trace("Mapping(s) for {} will be skipped because the item is not visible in current execution mode",
+                    itemDescription);
+            return true;
+        }
         if (ignored) {
             LOGGER.trace("Mapping(s) for {} will be skipped because the item is ignored", itemDescription);
             return true;

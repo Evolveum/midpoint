@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.processor;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -284,4 +286,12 @@ public interface ResourceAttributeDefinition<T>
 
     /** TODO */
     @Nullable ItemChangeApplicationModeType getChangeApplicationMode();
+
+    /** TODO */
+    @Nullable String getLifecycleState();
+
+    /** TODO */
+    default boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
+        return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
+    }
 }

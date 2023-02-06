@@ -3948,10 +3948,11 @@
                         Lifecycle state of the item. Production configuration consists (by default) of `active`
                         and `deprecated` ones. Development configuration consists (by default) of `active` and
                         `proposed` ones. If the item is not in the configuration, it is ignored by the processing
-                        at the model level (...)
+                        at the model level - no inbound nor outbound mappings are evaluated for it, as well as no
+                        (outbound) reconciliation is carried out. The effect is similar to setting "ignore" processing
+                        on the model level.
 
-                        TODO specify this more precisely
-                        TODO implement
+                        Currently supported only for resource object items (attributes and associations).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>

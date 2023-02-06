@@ -236,6 +236,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().getChangeApplicationMode();
     }
 
+    @Override
+    public @Nullable String getLifecycleState() {
+        return getRefinedAttributeDefinition().getLifecycleState();
+    }
+
     @NotNull
     @Override
     public ResourceAttribute<T> instantiate() {

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -1864,13 +1865,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /** Is the resource or object class/type visible for the current task execution mode? */
     public boolean isVisible() throws SchemaException, ConfigurationException {
-        if (!lensContext.isProductionConfigurationTask()) {
-            return true; // temporary (in the future, not all the elements will be visible in non-production configuration)
-        }
         if (resource == null) {
             throw new IllegalStateException("No resource"); // temporary
         }
-        return SimulationUtil.isInProduction(resource, getStructuralObjectDefinition());
+        return SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
+    }
+
+    private @NotNull TaskExecutionMode getTaskExecutionMode() {
+        return lensContext.getTaskExecutionMode();
     }
 
     public boolean hasResource() {

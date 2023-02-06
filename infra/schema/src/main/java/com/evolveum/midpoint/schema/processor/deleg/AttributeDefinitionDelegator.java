@@ -205,6 +205,12 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
+    @Nullable
+    default String getLifecycleState() {
+        return delegate().getLifecycleState();
+    }
+
+    @Override
     default ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         return null;
     }

@@ -39,8 +39,9 @@ public class OutboundProcessor {
     @Autowired private Clock clock;
 
     <AH extends AssignmentHolderType>
-    void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         ProjectionContextKey key = projCtx.getKey();
         if (projCtx.isDelete()) {

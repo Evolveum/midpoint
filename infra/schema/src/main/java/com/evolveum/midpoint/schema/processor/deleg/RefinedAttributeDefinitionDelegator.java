@@ -152,5 +152,11 @@ public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinit
     }
 
     @Override
+    @Nullable
+    default String getLifecycleState() {
+        return delegate().getLifecycleState();
+    }
+
+    @Override
     ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
 }
