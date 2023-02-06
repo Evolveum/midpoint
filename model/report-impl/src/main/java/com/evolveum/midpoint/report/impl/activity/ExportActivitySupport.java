@@ -95,18 +95,17 @@ public class ExportActivitySupport extends ReportActivitySupport {
                     runningTask,
                     result);
         } else if (Containerable.class.isAssignableFrom(type)) {
-            // Temporary - until iterative search is available
+            // TODO: Temporary - until iterative search is available
             Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
             SearchResultList<? extends Containerable> values =
                     modelService.searchContainers(containerableType, query, options, runningTask, result);
             //noinspection unchecked
             values.forEach(value -> ((ObjectHandler<Containerable>) handler).handle(value, result));
         } else if (Referencable.class.isAssignableFrom(type)) {
-            // Temporary - until iterative search is available
-            SearchResultList<ObjectReferenceType> values =
-                    modelService.searchReferences(query, options, runningTask, result);
             //noinspection unchecked
-            values.forEach(value -> ((ObjectHandler<ObjectReferenceType>) handler).handle(value, result));
+            modelService.searchReferencesIterative(query,
+                    (value, lResult) -> ((ObjectHandler<ObjectReferenceType>) handler).handle(value, lResult),
+                    options, runningTask, result);
         } else {
             throw new UnsupportedOperationException("Unsupported object type for report: " + type);
         }
