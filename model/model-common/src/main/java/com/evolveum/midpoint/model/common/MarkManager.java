@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,11 +162,15 @@ public class MarkManager {
             return true;
         }
         SimulationTransaction simulationTransaction = task.getSimulationTransaction();
-        if (simulationTransaction == null) {
-            return false; // Event marks are currently used only for simulations
-        } else {
+        if (simulationTransaction != null) {
             return simulationTransaction.getSimulationResult().isEventMarkEnabled(mark);
         }
+        if (!task.isSimulatedExecution()) {
+            return false; // Event marks are currently used only for simulations
+        }
+        // We have no simulation [result] definition, so no custom inclusion/exclusion of event marks.
+        // Hence, the default setting has to be applied.
+        return MarkTypeUtil.isEnabledByDefault(mark);
     }
 
     /** Temporary */
