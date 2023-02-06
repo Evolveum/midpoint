@@ -48,7 +48,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
-    private static final String ID_FORGET_PASSWORD = "forgotPassword";
+    private static final String ID_FORGET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_FORM = "form";

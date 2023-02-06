@@ -9,7 +9,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <form method="post" wicket:id="form">
+    <form method="post" wicket:id="form" class="justify-content-end">
         <div class="input-group mb-3">
             <input name="username" type="text" class="form-control" wicket:message="placeholder:PageLogin.username">
             <div class="input-group-append">
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary login-button">
                 <wicket:message key="PageLogin.signIn"/>
             </button>
         </div>
@@ -35,13 +35,13 @@
         <div wicket:id="csrfField"/>
     </form>
 
+    <div class="d-flex justify-content-end mb-1">
+        <a wicket:id="resetPassword" class="text-center login-button"><wicket:message key="PageLogin.resetPassword"/></a>
+    </div>
+    <div class="d-flex justify-content-end mb-0">
+        <a wicket:id="selfRegistration" class="text-center login-button"><wicket:message key="PageLogin.selfRegistration"/></a>
+    </div>
 
-    <p class="mb-1">
-        <a wicket:id="forgotPassword"><wicket:message key="PageLogin.forgetPassword"/></a>
-    </p>
-    <p class="mb-0">
-        <a wicket:id="selfRegistration" class="text-center"><wicket:message key="PageLogin.selfRegistration"/></a>
-    </p>
 </wicket:extend>
 
 </html>
