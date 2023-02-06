@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,8 +45,6 @@ import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -78,14 +75,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResult.class);
-
-    private static final String DOT_CLASS = PageSimulationResult.class.getName() + ".";
-
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
-    private static final String ID_LABEL = "label";
-    private static final String ID_VALUE = "value";
     private static final String ID_WIDGETS = "widgets";
     private static final String ID_WIDGET = "widget";
 
@@ -93,7 +84,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private IModel<TaskType> rootTaskModel;
 
-    private IModel<List<ResultDetail>> detailsModel;
+    private IModel<List<DetailsTableItem>> detailsModel;
 
     private IModel<List<DashboardWidgetType>> metricsModel;
 
@@ -132,14 +123,15 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         detailsModel = new LoadableModel<>() {
 
             @Override
-            protected List<ResultDetail> load() {
-                List<ResultDetail> list = new ArrayList<>();
-                list.add(new ResultDetail("PageSimulationResult.startTimestamp",
+            protected List<DetailsTableItem> load() {
+                List<DetailsTableItem> list = new ArrayList<>();
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.startTimestamp"),
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getStartTimestamp())))));
-                list.add(new ResultDetail("PageSimulationResult.endTimestamp",
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.endTimestamp"),
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getEndTimestamp())))));
-                list.add(new ResultDetail("PageSimulationResult.finishedIn", () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
-                list.add(new ResultDetail("PageSimulationResult.rootTask", null) {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.finishedIn"),
+                        () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.rootTask"), null) {
 
                     @Override
                     public Component createValueComponent(String id) {
@@ -155,14 +147,14 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         return link;
                     }
                 });
-                list.add(new ResultDetail("PageSimulationResult.status", null) {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.status"), null) {
 
                     @Override
                     public Component createValueComponent(String id) {
                         return createTaskStateLabel(id, resultModel, rootTaskModel, PageSimulationResult.this);
                     }
                 });
-                list.add(new ResultDetail("PageSimulationResult.productionConfiguration", () -> {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.productionConfiguration"), () -> {
 
                     ConfigurationSpecificationType specification = resultModel.getObject().getConfigurationUsed();
                     if (specification == null || BooleanUtils.isNotFalse(specification.isProductionConfiguration())) {
@@ -242,14 +234,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         };
         add(navigation);
 
-        ListView<ResultDetail> details = new ListView<>(ID_DETAILS, detailsModel) {
-
-            @Override
-            protected void populateItem(ListItem<ResultDetail> item) {
-                item.add(new Label(ID_LABEL, () -> getString(item.getModelObject().label)));
-                item.add(item.getModelObject().createValueComponent(ID_VALUE));
-            }
-        };
+        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
+                () -> "fa-solid fa-circle-question",
+                createStringResource("PageSimulationResult.details"),
+                detailsModel);
         add(details);
 
         ListView<DashboardWidgetType> widgets = new ListView<>(ID_WIDGETS, metricsModel) {
@@ -293,24 +281,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, ref.getOid());
 
         navigateToNext(PageSimulationResultObjects.class, params);
-    }
-
-    private static class ResultDetail implements Serializable {
-
-        String label;
-
-        IModel<String> value;
-
-        public ResultDetail(String label, IModel<String> value) {
-            this.label = label;
-            this.value = value;
-        }
-
-        public Component createValueComponent(String id) {
-            Label label = new Label(id, value);
-            label.setRenderBodyOnly(true);
-            return label;
-        }
     }
 
     public static String createResultDurationText(SimulationResultType result, Component panel) {

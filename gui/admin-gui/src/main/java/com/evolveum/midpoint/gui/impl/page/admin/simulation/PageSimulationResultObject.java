@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -71,11 +72,14 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResultObject.class);
 
     private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_DETAILS = "details";
     private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
 
     private IModel<SimulationResultProcessedObjectType> objectModel;
+
+    private IModel<List<DetailsTableItem>> detailsModel;
 
     private IModel<VisualizationDto> changesModel;
 
@@ -133,6 +137,18 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
+        detailsModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<DetailsTableItem> load() {
+                List<DetailsTableItem> items = new ArrayList<>();
+
+                // todo implement
+
+                return items;
+            }
+        };
+
         changesModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -175,7 +191,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected IModel<String> createTitleModel() {
                 return () ->
                         WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                                + "(" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+                                + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
             }
 
             @Override
@@ -184,6 +200,12 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
         add(navigation);
+
+        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
+                () -> "fa-solid fa-circle-question",
+                createStringResource("PageSimulationResultObject.details"),
+                detailsModel);
+        add(details);
 
         VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
         add(panel);

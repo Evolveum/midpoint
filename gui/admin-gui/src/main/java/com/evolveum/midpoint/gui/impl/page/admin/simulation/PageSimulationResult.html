@@ -12,22 +12,7 @@
 
     <div class="row">
         <div class="col-3">
-            <div class="card">
-                <div class="card-header d-flex gap-2 align-items-center">
-                    <i class="mr-1 fa-solid fa-circle-question"></i>
-                    <h5 class="mb-0">
-                        <wicket:message key="PageSimulationResult.details"/>
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table">
-                        <tr wicket:id="details">
-                            <td wicket:id="label"/>
-                            <td><span wicket:id="value"/></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+            <div wicket:id="details"/>
         </div>
         <div class="col-9 row gap-3">
             <div class="col-2" wicket:id="widgets">
