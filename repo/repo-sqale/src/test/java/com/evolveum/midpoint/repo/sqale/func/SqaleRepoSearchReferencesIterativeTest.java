@@ -62,7 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Each test can take a bit longer (~500ms) because the handler updates the objects
  * to mark them for later assertions, so there's actually a lot of repository calls.
  */
-// TODO add to the suite
 public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
     private final TestResultHandler testHandler = new TestResultHandler();
@@ -214,8 +213,9 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
-        // page cookie is not null and it's OID in UUID format
-        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+        assertThat(metadata.getPagingCookie())
+                // OID are assumed at the beginning and end, but I don't want to complicate the regex.
+                .matches(".{8}-.{4}-.{4}-.{4}-.{12}\\|\\{https://random.org/ns}rel-2\\|.{8}-.{4}-.{4}-.{4}-.{12}");
 
         and("search operations were called");
         assertOperationRecordedCount(
@@ -254,8 +254,9 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
-        // page cookie is not null and it's OID in UUID format
-        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+        assertThat(metadata.getPagingCookie())
+                // OID are assumed at the beginning and end, but I don't want to complicate the regex.
+                .matches(".{8}-.{4}-.{4}-.{4}-.{12}\\|\\{https://random.org/ns}rel-2\\|.{8}-.{4}-.{4}-.{4}-.{12}");
 
         and("search operations were called");
         assertOperationRecordedCount(
@@ -327,6 +328,10 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
+        assertThat(metadata.getPagingCookie())
+                // OID are assumed at the beginning and end, but I don't want to complicate the regex.
+                .matches(".{8}-.{4}-.{4}-.{4}-.{12}\\|\\{http://midpoint.evolveum.com/xml/ns/public/common/org-3}default"
+                        + "\\|.{8}-.{4}-.{4}-.{4}-.{12}");
 
         and("search operations were called");
         assertOperationRecordedCount(
@@ -335,58 +340,6 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
         and("specified amount of objects was processed");
         assertThat(testHandler.getCounter()).isEqualTo(101);
-    }
-
-    @Test
-    public void test125SearchIterativeWithCustomOrderingByTargetItem() throws Exception {
-        OperationResult operationResult = createOperationResult();
-        // We want to test multiple iteration search, as that shows potential errors in lastRefFilter() method.
-        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
-        queryRecorder.clearBufferAndStartRecording();
-
-        given("query with custom ordering by target item");
-        ObjectQuery query = prismContext
-                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
-                // Only first 35 users, to get more various role names into 120 results.
-                .item(UserType.F_NAME).le("user-00035").matchingOrig()
-                .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
-                // We want to cover refs with two different target OID values:
-                .maxSize(120)
-                .build();
-
-        when("calling search iterative");
-        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
-
-        then("result metadata is not null and not partial result");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
-        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
-
-        and("search operations were called");
-        assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
-        assertTypicalPageOperationCount(metadata);
-
-        and("all expected refs were processed");
-        QAbstractRole<?> qar = QAbstractRoleMapping.getAbstractRoleMapping().defaultAlias();
-        QUser qu = aliasFor(QUser.class);
-        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
-            // This is the expected query for the search above:
-            compareRowsWithProcessedRefs(jdbcSession.newQuery()
-                    .select(qMembershipRef)
-                    .from(qMembershipRef)
-                    .leftJoin(qar).on(qMembershipRef.targetOid.eq(qar.oid))
-                    .where(sqlRepoContext.newQuery().from(qu)
-                            .where(qu.oid.eq(qMembershipRef.ownerOid))
-                            .exists())
-                    .orderBy(qar.nameNorm.asc(),
-                            qMembershipRef.ownerOid.asc(),
-                            qMembershipRef.relationId.asc(),
-                            qMembershipRef.targetOid.asc())
-                    .limit(120) // must match the maxSize above
-                    .fetch());
-        }
     }
 
     @Test
@@ -562,6 +515,221 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
         and("specified amount of objects was processed");
         assertThat(testHandler.getCounter()).isEqualTo(COUNT_OF_CREATED_REFS - 150);
+    }
+
+    @Test
+    public void test140SearchIterativeWithCustomOrderingByTargetItem() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        // We want to test multiple iteration search, as that shows potential errors in lastRefFilter() method.
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by target item");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                // Only first 35 users, to get more various role names into 120 results.
+                .item(UserType.F_NAME).le("user-00035").matchingOrig()
+                .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
+                // We want to cover refs with two different target OID values/names:
+                .maxSize(120)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all expected refs were processed");
+        QAbstractRole<?> qar = QAbstractRoleMapping.getAbstractRoleMapping().defaultAlias();
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            // This is the expected query for the search above:
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qar).on(qMembershipRef.targetOid.eq(qar.oid))
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.loe("user-00035")))
+                            .exists())
+                    .orderBy(qar.nameNorm.asc(),
+                            qMembershipRef.ownerOid.asc(),
+                            qMembershipRef.relationId.asc(),
+                            qMembershipRef.targetOid.asc())
+                    .limit(120) // must match the maxSize above
+                    .fetch());
+        }
+    }
+
+    @Test
+    public void test141SearchIterativeWithRefFilterAndOrderingByTargetItem() throws Exception {
+        // Like test140, but ref search filter is not OWNED-BY only but AND(OWNED-BY + REF).
+        OperationResult operationResult = createOperationResult();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by target item and root ref filter");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .item(UserType.F_NAME).le("user-00035").matchingOrig()
+                .and()
+                .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, relation1) // matches role2 and role3
+                .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all expected refs were processed");
+        QAbstractRole<?> qar = QAbstractRoleMapping.getAbstractRoleMapping().defaultAlias();
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            // This is the expected query for the search above:
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qar).on(qMembershipRef.targetOid.eq(qar.oid))
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.loe("user-00035")))
+                            .exists())
+                    .where(qMembershipRef.relationId.eq(cachedUriId(relation1)))
+                    .orderBy(qar.nameNorm.asc(),
+                            qMembershipRef.ownerOid.asc(),
+                            qMembershipRef.relationId.asc(),
+                            qMembershipRef.targetOid.asc())
+                    .fetch());
+        }
+    }
+
+    @Test
+    public void test142SearchIterativeWithRefFilterWithTargetFilterAndOrderingByTargetItem() throws Exception {
+        // Like test141, but REF filter inside AND has also predefined target filter.
+        OperationResult operationResult = createOperationResult();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by target item and root ref filter with nested target filter");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .item(UserType.F_NAME).le("user-00035").matchingOrig()
+                .and()
+                .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, relation1) // matches role2 and role3
+                .item(RoleType.F_COST_CENTER).isNull() // all match, we just want some target filter
+                .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all expected refs were processed");
+        QAbstractRole<?> qar = QAbstractRoleMapping.getAbstractRoleMapping().defaultAlias();
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            // This is query with equivalent results for the search above:
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qar).on(qMembershipRef.targetOid.eq(qar.oid)
+                            .and(qar.costCenter.isNull()))
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.loe("user-00035")))
+                            .exists())
+                    .where(qMembershipRef.relationId.eq(cachedUriId(relation1)))
+                    .orderBy(qar.nameNorm.asc(),
+                            qMembershipRef.ownerOid.asc(),
+                            qMembershipRef.relationId.asc(),
+                            qMembershipRef.targetOid.asc())
+                    .fetch());
+        }
+    }
+
+    @Test
+    public void test143SearchIterativeWithMoreRefFiltersAndOrderingByTargetItem() throws Exception {
+        // Like test141, but with two root REF filters.
+        OperationResult operationResult = createOperationResult();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        queryRecorder.clearBufferAndStartRecording();
+
+        given("query with custom ordering by target item and multiple root ref filters");
+        ObjectQuery query = prismContext
+                .queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .item(UserType.F_NAME).le("user-00035").matchingOrig()
+                .and()
+                .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, relation1) // matches role2 and role3
+                .and()
+                .ref(ItemPath.SELF_PATH) // matches role2 and role3
+                .item(RoleType.F_COST_CENTER).isNull() // all match, we just want some target filter
+                .asc(PrismConstants.T_OBJECT_REFERENCE, RoleType.F_NAME)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchReferencesIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_REFERENCES_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all expected refs were processed");
+        QAbstractRole<?> qar = QAbstractRoleMapping.getAbstractRoleMapping().defaultAlias();
+        QUser qu = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            // This is query with equivalent results for the search above:
+            compareRowsWithProcessedRefs(jdbcSession.newQuery()
+                    .select(qMembershipRef)
+                    .from(qMembershipRef)
+                    .leftJoin(qar).on(qMembershipRef.targetOid.eq(qar.oid)
+                            .and(qar.costCenter.isNull()))
+                    .where(sqlRepoContext.newQuery().from(qu)
+                            .where(qu.oid.eq(qMembershipRef.ownerOid)
+                                    .and(qu.nameOrig.loe("user-00035")))
+                            .exists())
+                    .where(qMembershipRef.relationId.eq(cachedUriId(relation1)))
+                    .orderBy(qar.nameNorm.asc(),
+                            qMembershipRef.ownerOid.asc(),
+                            qMembershipRef.relationId.asc(),
+                            qMembershipRef.targetOid.asc())
+                    .fetch());
+        }
     }
 
     @SafeVarargs
