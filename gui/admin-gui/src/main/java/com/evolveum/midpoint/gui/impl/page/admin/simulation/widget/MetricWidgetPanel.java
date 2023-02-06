@@ -8,9 +8,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -223,7 +225,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         Label title = new Label(ID_TITLE, () -> {
             DisplayType display = getModelObject().getDisplay();
-            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : "Some thing or other";  // todo fix
+            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
         });
         add(title);
 
@@ -238,11 +240,12 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
-            badge.setCssClass("badge badge-success trend trend-success");   // todo viliam
+            badge.setCssClass("badge badge-success trend trend-success");   // todo implement properly and make visible
             badge.setIconCssClass("fa-solid fa-arrow-trend-up mr-1");
             badge.setText("+3,14%");
             return badge;
         });
+        trendBadge.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(trendBadge);
 
         Label value = new Label(ID_VALUE, createValueModel());
@@ -285,8 +288,14 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             BigDecimal value = SimulationMetricValuesTypeUtil.getValue(values.get(values.size() - 1));
 
-            return value.toString();
+            return formatValue(value, getPageBase().getPrincipal().getLocale());
         };
+    }
+
+    public static String formatValue(BigDecimal value, Locale locale) {
+        NumberFormat numberFormat = NumberFormat.getInstance(locale);
+        numberFormat.setMaximumFractionDigits(3);
+        return numberFormat.format(value);
     }
 
     private IModel<String> createDescriptionModel() {

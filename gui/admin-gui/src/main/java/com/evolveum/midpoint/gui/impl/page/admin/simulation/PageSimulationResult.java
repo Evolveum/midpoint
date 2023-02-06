@@ -7,6 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -24,8 +45,6 @@ import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -34,29 +53,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -79,14 +75,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResult.class);
-
-    private static final String DOT_CLASS = PageSimulationResult.class.getName() + ".";
-
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
-    private static final String ID_LABEL = "label";
-    private static final String ID_VALUE = "value";
     private static final String ID_WIDGETS = "widgets";
     private static final String ID_WIDGET = "widget";
 
@@ -94,7 +84,9 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private IModel<TaskType> rootTaskModel;
 
-    private IModel<List<ResultDetail>> detailsModel;
+    private IModel<List<DetailsTableItem>> detailsModel;
+
+    private IModel<List<DashboardWidgetType>> metricsModel;
 
     public PageSimulationResult() {
         this(new PageParameters());
@@ -131,14 +123,15 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         detailsModel = new LoadableModel<>() {
 
             @Override
-            protected List<ResultDetail> load() {
-                List<ResultDetail> list = new ArrayList<>();
-                list.add(new ResultDetail("PageSimulationResult.startTimestamp",
+            protected List<DetailsTableItem> load() {
+                List<DetailsTableItem> list = new ArrayList<>();
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.startTimestamp"),
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getStartTimestamp())))));
-                list.add(new ResultDetail("PageSimulationResult.endTimestamp",
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.endTimestamp"),
                         () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getEndTimestamp())))));
-                list.add(new ResultDetail("PageSimulationResult.finishedIn", () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
-                list.add(new ResultDetail("PageSimulationResult.rootTask", null) {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.finishedIn"),
+                        () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.rootTask"), null) {
 
                     @Override
                     public Component createValueComponent(String id) {
@@ -154,66 +147,28 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         return link;
                     }
                 });
-                list.add(new ResultDetail("PageSimulationResult.taskStatus", null) {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.status"), null) {
 
                     @Override
                     public Component createValueComponent(String id) {
                         return createTaskStateLabel(id, resultModel, rootTaskModel, PageSimulationResult.this);
                     }
                 });
-                list.add(new ResultDetail("PageSimulationResult.productionConfiguration", null) {
+                list.add(new DetailsTableItem(createStringResource("PageSimulationResult.productionConfiguration"), () -> {
 
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, () -> {
-                            ConfigurationSpecificationType specification = resultModel.getObject().getConfigurationUsed();
-                            if (specification == null || BooleanUtils.isNotFalse(specification.isProductionConfiguration())) {
-                                return getString("PageSimulationResult.production");
-                            }
-
-                            return getString("PageSimulationResult.development");
-                        });
-                        label.add(AttributeModifier.replace("class", "badge badge-success"));
-                        return label;
+                    ConfigurationSpecificationType specification = resultModel.getObject().getConfigurationUsed();
+                    if (specification == null || BooleanUtils.isNotFalse(specification.isProductionConfiguration())) {
+                        return getString("PageSimulationResult.production");
                     }
-                });
+
+                    return getString("PageSimulationResult.development");
+                }));
 
                 return list;
             }
         };
-    }
 
-    private void initLayout() {
-        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
-
-            @Override
-            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
-                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-            }
-
-            @Override
-            protected IModel<String> createTitleModel() {
-                return PageSimulationResult.this.createTitleModel();
-            }
-
-            @Override
-            protected void onBackPerformed(AjaxRequestTarget target) {
-                PageSimulationResult.this.onBackPerformed(target);
-            }
-        };
-        add(navigation);
-
-        ListView<ResultDetail> details = new ListView<>(ID_DETAILS, detailsModel) {
-
-            @Override
-            protected void populateItem(ListItem<ResultDetail> item) {
-                item.add(new Label(ID_LABEL, () -> getString(item.getModelObject().label)));
-                item.add(item.getModelObject().createValueComponent(ID_VALUE));
-            }
-        };
-        add(details);
-
-        IModel<List<DashboardWidgetType>> data = new LoadableDetachableModel<>() {
+        metricsModel = new LoadableDetachableModel<>() {
 
             @Override
             protected List<DashboardWidgetType> load() {
@@ -221,12 +176,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 return metrics.stream().map(m -> {
 
                     BigDecimal value = SimulationMetricValuesTypeUtil.getValue(m);
+                    String storedData = MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
 
                     DashboardWidgetType dw = new DashboardWidgetType();
                     dw.beginData()
                             .sourceType(DashboardWidgetSourceTypeType.METRIC)
                             .metricRef(m.getRef())
-                            .storedData(value.toString())
+                            .storedData(storedData)
                             .end();
 
                     SimulationMetricReferenceType metricRef = m.getRef();
@@ -256,8 +212,35 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 }).collect(Collectors.toList());
             }
         };
+    }
 
-        ListView<DashboardWidgetType> widgets = new ListView<>(ID_WIDGETS, data) {
+    private void initLayout() {
+        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
+
+            @Override
+            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            protected IModel<String> createTitleModel() {
+                return PageSimulationResult.this.createTitleModel();
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                PageSimulationResult.this.onBackPerformed(target);
+            }
+        };
+        add(navigation);
+
+        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
+                () -> "fa-solid fa-circle-question",
+                createStringResource("PageSimulationResult.details"),
+                detailsModel);
+        add(details);
+
+        ListView<DashboardWidgetType> widgets = new ListView<>(ID_WIDGETS, metricsModel) {
 
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
@@ -300,24 +283,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         navigateToNext(PageSimulationResultObjects.class, params);
     }
 
-    private static class ResultDetail implements Serializable {
-
-        String label;
-
-        IModel<String> value;
-
-        public ResultDetail(String label, IModel<String> value) {
-            this.label = label;
-            this.value = value;
-        }
-
-        public Component createValueComponent(String id) {
-            Label label = new Label(id, value);
-            label.setRenderBodyOnly(true);
-            return label;
-        }
-    }
-
     public static String createResultDurationText(SimulationResultType result, Component panel) {
         XMLGregorianCalendar start = result.getStartTimestamp();
         if (start == null) {
@@ -358,7 +323,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
         Label label = new Label(id, () -> {
             if (model.getObject().getEndTimestamp() != null) {
-                return null;
+                return page.getString("PageSimulationResult.finished");
             }
 
             TaskExecutionStateType state = stateModel.getObject();

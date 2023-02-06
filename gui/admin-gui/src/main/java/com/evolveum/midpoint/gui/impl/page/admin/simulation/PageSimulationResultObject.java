@@ -7,11 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -39,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
@@ -71,11 +76,14 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResultObject.class);
 
     private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_DETAILS = "details";
     private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
 
     private IModel<SimulationResultProcessedObjectType> objectModel;
+
+    private IModel<List<DetailsTableItem>> detailsModel;
 
     private IModel<VisualizationDto> changesModel;
 
@@ -133,6 +141,73 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
+        detailsModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<DetailsTableItem> load() {
+                List<DetailsTableItem> items = new ArrayList<>();
+
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.projectionCount"),
+                        () -> "" + objectModel.getObject().getProjectionRecords()));
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.state"), null) {
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return GuiSimulationsUtil.createProcessedObjectStateLabel(id, objectModel);
+                    }
+                });
+
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.structuralArchetype"),
+                        new LoadableDetachableModel<>() {
+                            @Override
+                            protected String load() {
+                                SimulationResultProcessedObjectType object = objectModel.getObject();
+                                if (object.getStructuralArchetypeRef() == null) {
+                                    return null;
+                                }
+
+                                return WebModelServiceUtils.resolveReferenceName(object.getStructuralArchetypeRef(), PageSimulationResultObject.this);
+                            }
+                        }) {
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(() -> objectModel.getObject().getStructuralArchetypeRef() != null);
+                    }
+                });
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.marks"), null) {
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        IModel<String> model = new LoadableDetachableModel<>() {
+
+                            @Override
+                            protected String load() {
+                                SimulationResultProcessedObjectType object = objectModel.getObject();
+
+                                Object[] names = object.getEventMarkRef().stream()
+                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, PageSimulationResultObject.this))
+                                        .filter(name -> name != null)
+                                        .sorted()
+                                        .toArray();
+
+                                return StringUtils.joinWith("\n", names);
+                            }
+                        };
+
+                        MultiLineLabel label = new MultiLineLabel(id, model);
+                        label.setRenderBodyOnly(true);
+
+                        return label;
+                    }
+                });
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+                // todo implement
+
+                return items;
+            }
+        };
+
         changesModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -175,7 +250,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected IModel<String> createTitleModel() {
                 return () ->
                         WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                                + "(" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+                                + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
             }
 
             @Override
@@ -184,6 +259,12 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
         add(navigation);
+
+        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
+                () -> "fa-solid fa-circle-question",
+                createStringResource("PageSimulationResultObject.details"),
+                detailsModel);
+        add(details);
 
         VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
         add(panel);

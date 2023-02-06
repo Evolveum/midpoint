@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.RefFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
@@ -72,8 +73,8 @@ public class ReferenceIterativeSearch {
                         + " by multiple paths (yet): " + providedOrdering);
             }
 
-            ObjectQuery pagedQuery = getQueryFactory().createQuery();
-            ObjectPaging paging = getQueryFactory().createPaging();
+            ObjectQuery pagedQuery = queryFactory().createQuery();
+            ObjectPaging paging = queryFactory().createPaging();
             if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
@@ -116,7 +117,7 @@ public class ReferenceIterativeSearch {
                     if (!handler.handle(object, operationResult)) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal + 1)
-                                .pagingCookie(lastProcessedRef.getOid())
+                                .pagingCookie(pagingCookie(lastProcessedRef))
                                 .partialResults(true);
                     }
                     handledObjectsTotal += 1;
@@ -124,7 +125,7 @@ public class ReferenceIterativeSearch {
                     if (maxSize != null && handledObjectsTotal >= maxSize) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal)
-                                .pagingCookie(lastProcessedRef.getOid());
+                                .pagingCookie(pagingCookie(lastProcessedRef));
                     }
                 }
 
@@ -132,8 +133,7 @@ public class ReferenceIterativeSearch {
                     return new SearchResultMetadata()
                             .approxNumberOfAllResults(handledObjectsTotal)
                             .pagingCookie(lastProcessedRef != null
-                                    // TODO owner OID + relation
-                                    ? lastProcessedRef.getOid() : null);
+                                    ? pagingCookie(lastProcessedRef) : null);
                 }
                 pagedQuery.getPaging().setOffset(null);
             }
@@ -143,6 +143,11 @@ public class ReferenceIterativeSearch {
             long opHandle = repoService.registerOperationStart(OP_SEARCH_REFERENCES_ITERATIVE, ObjectReferenceType.class);
             repoService.registerOperationFinish(opHandle);
         }
+    }
+
+    private String pagingCookie(ObjectReferenceType lastProcessedRef) {
+        return Objects.requireNonNull(PrismValueUtil.getParentObject(lastProcessedRef.asReferenceValue()))
+                .getOid() + '|' + lastProcessedRef.getRelation() + '|' + lastProcessedRef.getOid();
     }
 
     /**
@@ -195,12 +200,55 @@ public class ReferenceIterativeSearch {
             ObjectReferenceType lastProcessedRef, ObjectFilter filter, ObjectOrdering objectOrdering)
             throws SchemaException, ObjectNotFoundException {
         PrismReferenceValue refValue = lastProcessedRef.asReferenceValue();
-        if (refValue.getObject() == null) {
-            // TODO find the real value of the item for comparison condition
+        PrismObject<?> target = refValue.getObject();
+        if (target == null) {
             Class<? extends ObjectType> targetType = repoService.sqlRepoContext().qNameToSchemaClass(refValue.getTargetType());
-            ObjectType target = repoService.readByOid(targetType, SqaleUtils.oidToUuid(refValue.getOid()), null);
+            target = repoService.readByOid(targetType, SqaleUtils.oidToUuid(refValue.getOid()), null).asPrismObject();
         }
-        return filter; // TODO
+
+        ItemPath itemPathInTarget = objectOrdering.getOrderBy().rest(); // skipping the dereference (@) part
+        Item<PrismValue, ItemDefinition<?>> orderByItem = target.findItem(itemPathInTarget);
+
+        if (filter instanceof OwnedByFilter) {
+            // There is no ref filter and we will add it to enforce strict ordering.
+            return queryFactory().createAnd(filter,
+                    // Not really equal in this case. ;-)
+                    RefFilterImpl.createReferenceEqual(
+                            ItemPath.SELF_PATH,
+                            lastProcessedRef.asReferenceValue().getDefinition(),
+                            (Collection<PrismReferenceValue>) null,
+                            constructStrictReferenceOrderingCondition(
+                                    lastProcessedRef, orderByItem, itemPathInTarget, objectOrdering)));
+        } else if (filter instanceof AndFilter) {
+            // There is/are some ref filter(s) and we will amend it/them to enforce strict ordering.
+            AndFilter andFilter = queryFactory().createAnd();
+            for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+                if (condition instanceof RefFilter) {
+                    andFilter.addCondition(processRefForTargetItemOrder(
+                            lastProcessedRef, (RefFilter) condition, objectOrdering, itemPathInTarget, orderByItem));
+                } else {
+                    andFilter.addCondition(condition);
+                }
+            }
+            return andFilter;
+        } else {
+            throw new IllegalArgumentException(
+                    "Filter for reference search iteration must by either OWNED-BY or AND."
+                            + " Used filter: " + filter);
+        }
+    }
+
+    private ObjectFilter processRefForTargetItemOrder(
+            ObjectReferenceType lastProcessedRef, RefFilter filter, ObjectOrdering objectOrdering,
+            ItemPath itemPathInTarget, Item<PrismValue, ItemDefinition<?>> orderByItem) {
+        ObjectFilter targetFilter = filter.getFilter();
+        ObjectFilter strictOrderingCondition = constructStrictReferenceOrderingCondition(
+                lastProcessedRef, orderByItem, itemPathInTarget, objectOrdering);
+        return RefFilterImpl.createReferenceEqual(filter.getPath(), filter.getDefinition(),
+                PrismValueCollectionsUtil.cloneCollection(filter.getValues()), // clone to avoid parent reset error
+                targetFilter == null
+                        ? strictOrderingCondition
+                        : queryFactory().createAnd(targetFilter, strictOrderingCondition));
     }
 
     private ObjectFilter processParentItemOrder(
@@ -209,7 +257,7 @@ public class ReferenceIterativeSearch {
             return processOwnedByForParentItemOrder(lastProcessedRef, (OwnedByFilter) filter, objectOrdering);
         } else if (filter instanceof AndFilter) {
             // Modify the owned-by filter just like above, the rest stays as-is.
-            AndFilter andFilter = getQueryFactory().createAnd();
+            AndFilter andFilter = queryFactory().createAnd();
             for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
                 if (condition instanceof OwnedByFilter) {
                     andFilter.addCondition(processOwnedByForParentItemOrder(
@@ -241,7 +289,7 @@ public class ReferenceIterativeSearch {
                             lastProcessedRef, orderByItem, itemPathInOwner, objectOrdering));
         } else {
             return OwnedByFilterImpl.create(filter.getType(), filter.getPath(),
-                    getQueryFactory().createAnd(ownerFilter,
+                    queryFactory().createAnd(ownerFilter,
                             constructStrictReferenceOrderingCondition(
                                     lastProcessedRef, orderByItem, itemPathInOwner, objectOrdering)));
         }
@@ -313,7 +361,7 @@ public class ReferenceIterativeSearch {
     }
 
     @NotNull
-    private QueryFactory getQueryFactory() {
+    private QueryFactory queryFactory() {
         return repoService.prismContext().queryFactory();
     }
 }

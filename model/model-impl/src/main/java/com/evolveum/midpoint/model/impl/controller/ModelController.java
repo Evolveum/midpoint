@@ -803,103 +803,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    @Override
-    public SearchResultList<ObjectReferenceType> searchReferences(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-
-        Objects.requireNonNull(query, "Query must be provided for reference search");
-        Validate.notNull(parentResult, "Result type must not be null.");
-
-        ModelImplUtils.validatePaging(query.getPaging());
-
-        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
-                .addParam(OperationResult.PARAM_QUERY, query);
-
-        try {
-            options = preProcessOptionsSecurity(options, task, operationResult);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
-            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
-
-            if (isFilterNone(query, operationResult)) {
-                return new SearchResultList<>(new ArrayList<>());
-            }
-
-            SearchResultList<ObjectReferenceType> list;
-            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
-            try {
-                logQuery(query);
-
-                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
-                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
-                }
-                list = cacheRepositoryService.searchReferences(query, options, operationResult);
-            } catch (SchemaException | RuntimeException e) {
-                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
-                throw e;
-            } finally {
-                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                exitModelMethod();
-            }
-
-            // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
-            // Also, reconsider the order/nesting of enter/exitModelMethod and operationResult.close().
-            // Should we do this out of op-result try/finally? How are exceptions handled here?
-            return list;
-        } finally {
-            operationResult.close();
-            operationResult.cleanup();
-        }
-    }
-
-    @Override
-    public Integer countReferences(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
-
-        Objects.requireNonNull(query, "Query must be provided for reference search");
-        Validate.notNull(parentResult, "Result type must not be null.");
-
-        OperationResult operationResult = parentResult.createSubresult(COUNT_REFERENCES)
-                .addParam(OperationResult.PARAM_QUERY, query);
-
-        try {
-            options = preProcessOptionsSecurity(options, task, operationResult);
-
-            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
-
-            if (isFilterNone(query, operationResult)) {
-                return 0;
-            }
-
-            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
-            try {
-                logQuery(query);
-
-                return cacheRepositoryService.countReferences(query, options, operationResult);
-            } catch (RuntimeException e) {
-                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
-                throw e;
-            } finally {
-                exitModelMethod();
-            }
-        } finally {
-            operationResult.close();
-            operationResult.cleanup();
-        }
-    }
-
-    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult options) {
-        // TODO:
-        // 1. extract owner object type from OWNED-BY query (if it's a container type, follow up to the object type)
-        // 2. use it for securityEnforcer.preProcessObjectFilter()
-        // 3. add filters to the owned-by filter as necessary
-        return query;
-    }
-
     // See MID-6323 in Jira
 
     private boolean isFilterNone(ObjectQuery query, OperationResult result) {
@@ -1140,6 +1043,162 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.cleanup();
         }
     }
+
+    // region search-references
+    @Override
+    public SearchResultList<ObjectReferenceType> searchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        ModelImplUtils.validatePaging(query.getPaging());
+
+        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            options = preProcessOptionsSecurity(options, task, operationResult);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+            if (isFilterNone(query, operationResult)) {
+                return new SearchResultList<>(new ArrayList<>());
+            }
+
+            SearchResultList<ObjectReferenceType> list;
+            // TODO caching and reference search are probably unknown territory at this moment.
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            try {
+                logQuery(query);
+
+                list = cacheRepositoryService.searchReferences(query, options, operationResult);
+            } catch (SchemaException | RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+
+            // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
+            return list;
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+
+    @Override
+    public Integer countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        OperationResult operationResult = parentResult.createSubresult(COUNT_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            options = preProcessOptionsSecurity(options, task, operationResult);
+
+            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+            if (isFilterNone(query, operationResult)) {
+                return 0;
+            }
+
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            try {
+                logQuery(query);
+
+                return cacheRepositoryService.countReferences(query, options, operationResult);
+            } catch (RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+
+    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult options) {
+        // TODO:
+        // 1. extract owner object type from OWNED-BY query (if it's a container type, follow up to the object type)
+        // 2. use it for securityEnforcer.preProcessObjectFilter()
+        // 3. add filters to the owned-by filter as necessary
+        return query;
+    }
+
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+        OP_LOGGER.trace("MODEL OP enter searchReferencesIterative({}, {})", query, options);
+
+        ModelImplUtils.validatePaging(query.getPaging());
+        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            Collection<SelectorOptions<GetOperationOptions>> processedOptions =
+                    preProcessOptionsSecurity(options, task, operationResult);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(processedOptions);
+
+            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+            if (isFilterNone(processedQuery, operationResult)) {
+                LOGGER.trace("Skipping search because filter is NONE");
+                return null;
+            }
+
+            ObjectHandler<ObjectReferenceType> internalHandler = (ref, lResult) -> {
+                // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
+
+                PrismReferenceValue refValue = ref.asReferenceValue();
+                if (OP_LOGGER.isTraceEnabled()) {
+                    OP_LOGGER.trace("MODEL OP handle searchReferencesIterative({}, {}):\n{}",
+                            query, options, refValue.debugDump(1));
+                } else {
+                    OP_LOGGER.debug("MODEL OP handle searchReferencesIterative({}, {}): {}",
+                            query, options, refValue);
+                }
+
+                return handler.handle(ref, lResult);
+            };
+
+            SearchResultMetadata metadata;
+            try {
+                enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+                logQuery(processedQuery);
+
+                metadata = cacheRepositoryService.searchReferencesIterative(
+                        processedQuery, internalHandler, processedOptions, operationResult);
+            } catch (SchemaException | RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+
+            return metadata;
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+    // endregion
 
     @Override
     public OperationResult testResource(String resourceOid, Task task, OperationResult result)

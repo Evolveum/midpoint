@@ -41,6 +41,6 @@ public class RoundedIconColumn<T, S> extends AbstractColumn<T, S> {
     }
 
     protected IModel<IResource> createPreferredImage(IModel<T> model) {
-        return null;
+        return () -> null;
     }
 }

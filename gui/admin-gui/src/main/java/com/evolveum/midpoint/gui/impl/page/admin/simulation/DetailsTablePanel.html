@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card-header d-flex gap-2 align-items-center">
+        <i class="mr-1" wicket:id="icon"/>
+        <h5 class="mb-0" wicket:id="title"/>
+    </div>
+    <div class="card-body p-0">
+        <table class="table">
+            <tr wicket:id="details">
+                <td wicket:id="label"/>
+                <td><span wicket:id="value"/></td>
+            </tr>
+        </table>
+    </div>
+</wicket:panel>
+</html>
