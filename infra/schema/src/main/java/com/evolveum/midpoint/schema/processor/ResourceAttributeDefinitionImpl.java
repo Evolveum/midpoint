@@ -879,6 +879,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @Nullable ItemChangeApplicationModeType getChangeApplicationMode() {
+        return customizationBean.getChangeApplicationMode();
+    }
+
+    @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         //noinspection OptionalAssignedToNull
         if (structuredType == null) {

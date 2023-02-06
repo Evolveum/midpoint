@@ -9,18 +9,14 @@ package com.evolveum.midpoint.model.api.simulation;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-
-import com.evolveum.midpoint.task.api.SimulationResult;
-import com.evolveum.midpoint.task.api.SimulationTransaction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricDefinitionType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.SimulationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -28,6 +24,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 public interface SimulationResultManager {
@@ -68,12 +65,12 @@ public interface SimulationResultManager {
             throws SchemaException;
 
     /**
-     * See {@link ModelInteractionService#executeInSimulationMode(TaskExecutionMode, SimulationDefinitionType, Task,
+     * See {@link ModelInteractionService#executeWithSimulationResult(TaskExecutionMode, SimulationDefinitionType, Task,
      * OperationResult, SimulatedFunctionCall)}.
      *
      * When in `functionCall`, the {@link Task#getSimulationTransaction()} returns non-null value for the task.
      */
-    <X> X executeInSimulationMode(
+    <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,

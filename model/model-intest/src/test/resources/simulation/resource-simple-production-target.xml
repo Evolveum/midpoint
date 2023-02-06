@@ -61,6 +61,26 @@
                     </source>
                 </outbound>
             </attribute>
+            <attribute>
+                <ref>ri:telephoneNumber</ref>
+                <changeApplicationMode>report</changeApplicationMode>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>telephoneNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:mail</ref>
+                <changeApplicationMode>ignore</changeApplicationMode>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>emailAddress</path>
+                    </source>
+                </outbound>
+            </attribute>
             <activation>
                 <administrativeStatus>
                     <outbound/>

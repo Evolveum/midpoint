@@ -47,7 +47,6 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -183,18 +182,28 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws SchemaException, ObjectNotFoundException {
         PrismObject<T> object;
         long opHandle = registerOperationStart(OP_GET_OBJECT, type);
-        try (JdbcSession jdbcSession =
-                sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try {
             //noinspection unchecked
-            object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
-                    .asPrismObject();
-            jdbcSession.commit();
+            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
         } finally {
             registerOperationFinish(opHandle);
         }
 
         invokeConflictWatchers((w) -> w.afterGetObject(object));
 
+        return object;
+    }
+
+    /** Read object with internally created JDBC session/transaction. */
+    <T extends ObjectType> T readByOid(
+            Class<T> type, UUID oidUuid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException {
+        T object;
+        try (JdbcSession jdbcSession =
+                sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            object = readByOid(jdbcSession, type, oidUuid, options);
+            jdbcSession.commit();
+        }
         return object;
     }
 
@@ -753,13 +762,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<SimulationResultType, QObject<MObject>, MObject> update = prepareUpdateContext(jdbcSession, SimulationResultType.class, SqaleUtils.oidToUuidMandatory(oid));
 
-
             QProcessedObject alias = QProcessedObjectMapping.getProcessedObjectMapping().defaultAlias();
             jdbcSession.newDelete(alias)
-                .where(alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
-                        .and(alias.transactionId.eq(transactionId))
-                        )
-                .execute();
+                    .where(alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
+                            .and(alias.transactionId.eq(transactionId))
+                    )
+                    .execute();
             update.finishExecutionOwn();
             jdbcSession.commit();
             return new ModifyObjectResult<>(update.getPrismObject(), update.getPrismObject(), Collections.emptyList());
@@ -1378,7 +1386,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    public SearchResultList<ObjectReferenceType> executeSearchReferences(
+    SearchResultList<ObjectReferenceType> executeSearchReferences(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             String operationKind)
@@ -1463,8 +1471,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // Here only for checks, to make it throw sooner than inside per-page calls.
             determineMapping(query.getFilter());
 
-            return executeSearchReferencesIterative(query, handler, options, operationResult);
-        } catch (RepositoryException | RuntimeException e) {
+            return new ReferenceIterativeSearch(this)
+                    .execute(query, handler, options, operationResult);
+        } catch (ObjectNotFoundException | RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
@@ -1473,199 +1482,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.close();
         }
     }
-
-    private SearchResultMetadata executeSearchReferencesIterative(
-            @NotNull ObjectQuery originalQuery,
-            ObjectHandler<ObjectReferenceType> handler,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult operationResult) throws RepositoryException, SchemaException {
-        try {
-            ObjectPaging originalPaging = originalQuery.getPaging();
-            // this is total requested size of the search
-            Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
-            Integer offset = originalPaging != null ? originalPaging.getOffset() : null;
-
-            List<? extends ObjectOrdering> providedOrdering = originalPaging != null
-                    ? originalPaging.getOrderingInstructions()
-                    : null;
-            if (providedOrdering != null && providedOrdering.size() > 1) {
-                throw new RepositoryException("searchReferencesIterative() does not support ordering"
-                        + " by multiple paths (yet): " + providedOrdering);
-            }
-
-            ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
-            ObjectPaging paging = prismContext().queryFactory().createPaging();
-            if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
-                originalPaging.getOrderingInstructions().forEach(o ->
-                        paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
-            }
-            // Order by the whole ref - this is a trick working only for repo and uses all PK columns.
-            // We want to order the ref in the same direction as the provided ordering.
-            // This is also reflected by GT/LT conditions in lastOidCondition() method.
-            paging.addOrderingInstruction(ItemPath.create(PrismConstants.T_SELF),
-                    providedOrdering != null && providedOrdering.size() == 1
-                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
-                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
-            pagedQuery.setPaging(paging);
-
-            int pageSize = Math.min(
-                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
-                    defaultIfNull(maxSize, Integer.MAX_VALUE));
-            pagedQuery.getPaging().setMaxSize(pageSize);
-            pagedQuery.getPaging().setOffset(offset);
-
-            ObjectReferenceType lastProcessedRef = null;
-            int handledObjectsTotal = 0;
-
-            while (true) {
-                if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
-                    // relevant only for the last page
-                    pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
-                }
-
-                // null safe, even for both nulls - don't use filterAnd which mutates original AND filter
-                pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
-                        originalQuery.getFilter(),
-                        lastRefCondition(lastProcessedRef, providedOrdering)));
-
-                // we don't call public searchReferences to avoid subresults and query simplification
-                logSearchInputParameters(ObjectReferenceType.class, pagedQuery, "Search object iterative page");
-                List<ObjectReferenceType> objects = executeSearchReferences(
-                        pagedQuery, options, OP_SEARCH_REFERENCES_ITERATIVE_PAGE);
-
-                // process page results
-                for (ObjectReferenceType object : objects) {
-                    lastProcessedRef = object;
-                    if (!handler.handle(object, operationResult)) {
-                        return new SearchResultMetadata()
-                                .approxNumberOfAllResults(handledObjectsTotal + 1)
-                                .pagingCookie(lastProcessedRef.getOid())
-                                .partialResults(true);
-                    }
-                    handledObjectsTotal += 1;
-
-                    if (maxSize != null && handledObjectsTotal >= maxSize) {
-                        return new SearchResultMetadata()
-                                .approxNumberOfAllResults(handledObjectsTotal)
-                                .pagingCookie(lastProcessedRef.getOid());
-                    }
-                }
-
-                if (objects.isEmpty() || objects.size() < pageSize) {
-                    return new SearchResultMetadata()
-                            .approxNumberOfAllResults(handledObjectsTotal)
-                            .pagingCookie(lastProcessedRef != null
-                                    // TODO owner OID + relation
-                                    ? lastProcessedRef.getOid() : null);
-                }
-                pagedQuery.getPaging().setOffset(null);
-            }
-        } finally {
-            // This just counts the operation and adds zero/minimal time not to confuse user
-            // with what could be possibly very long duration.
-            long opHandle = registerOperationStart(OP_SEARCH_REFERENCES_ITERATIVE, ObjectReferenceType.class);
-            registerOperationFinish(opHandle);
-        }
-    }
-
-    private ObjectFilter lastRefCondition(
-            ObjectReferenceType lastProcessedRef,
-            List<? extends ObjectOrdering> providedOrdering) {
-        if (lastProcessedRef == null) {
-            return null;
-        }
-
-        // Special kind of value for ref filter comparison + the definition for filters:
-        RefItemFilterProcessor.ReferenceRowValue refComparableValue =
-                new RefItemFilterProcessor.ReferenceRowValue(
-                        Objects.requireNonNull(PrismValueUtil.getParentObject(lastProcessedRef.asReferenceValue()))
-                                .getOid(),
-                        lastProcessedRef.getRelation(),
-                        lastProcessedRef.getOid());
-        PrismReferenceDefinition refDef = lastProcessedRef.asReferenceValue().getDefinition();
-
-        if (providedOrdering == null || providedOrdering.isEmpty()) {
-            // ObjectType is not used, but we want simple filter, not ownedBy for reference search.
-            return prismContext().queryFor(ObjectType.class)
-                    .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-                    .buildFilter();
-        }
-
-        if (providedOrdering.size() == 1) {
-            ObjectOrdering objectOrdering = providedOrdering.get(0);
-            ItemPath orderByPath = objectOrdering.getOrderBy();
-            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
-            S_ConditionEntry filter = prismContext().queryFor(ObjectType.class)
-                    .item(orderByPath);
-            //noinspection rawtypes
-            Item<PrismValue, ItemDefinition<Item>> item = null; // TODO lastProcessedRef.findItem(orderByPath);
-            if (item.size() > 1) {
-                throw new IllegalArgumentException(
-                        "Multi-value property for ordering is forbidden - item: " + item);
-            } else if (item.isEmpty()) {
-                // TODO what if it's nullable? is it null-first or last?
-                // See: https://www.postgresql.org/docs/13/queries-order.html
-                // "By default, null values sort as if larger than any non-null value; that is,
-                // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
-            } else {
-                /*
-                TODO: fix notes
-                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there is a couple of differences.
-                This one seems bloated, but each branch is simple; on the other hand it's not obvious what is different in each.
-                Also, audit version does not require polystring treatment.
-                Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
-                 */
-                boolean isPolyString = QNameUtil.match(
-                        PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
-                Object realValue = item.getRealValue();
-                if (isPolyString) {
-                    // We need to use matchingOrig for polystring, see MID-7860
-                    if (asc) {
-                        return filter.gt(realValue).matchingOrig().or()
-                                .block()
-                                .item(orderByPath).eq(realValue).matchingOrig()
-                                .and()
-                                .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-                                .endBlock()
-                                .buildFilter();
-                    } else {
-                        return filter.lt(realValue).matchingOrig().or()
-                                .block()
-                                .item(orderByPath).eq(realValue).matchingOrig()
-                                .and()
-                                .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
-                                .endBlock()
-                                .buildFilter();
-                    }
-                } else {
-                    if (asc) {
-                        return filter.gt(realValue).or()
-                                .block()
-                                .item(orderByPath).eq(realValue)
-                                .and()
-                                .item(ItemPath.SELF_PATH, refDef).gt(refComparableValue)
-                                .endBlock()
-                                .buildFilter();
-                    } else {
-                        return filter.lt(realValue).or()
-                                .block()
-                                .item(orderByPath).eq(realValue)
-                                .and()
-                                .item(ItemPath.SELF_PATH, refDef).lt(refComparableValue)
-                                .endBlock()
-                                .buildFilter();
-                    }
-                }
-            }
-        }
-
-        throw new IllegalArgumentException(
-                "Shouldn't get here with check in executeSearchObjectsIterative()");
-    }
-
     // endregion
 
     @Override
+
     public <O extends ObjectType> boolean isDescendant(
             PrismObject<O> object, String ancestorOrgOid) {
         Validate.notNull(object, "object must not be null");

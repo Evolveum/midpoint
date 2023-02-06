@@ -99,7 +99,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("user is created in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -230,7 +230,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("user is created in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -342,7 +342,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("user is created in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -427,7 +427,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("account is linked in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(createLinkRefDelta(userOid, target)),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -498,7 +498,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("account is linked in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(createAssignmentDelta(userOid, target)),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -591,7 +591,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .asObjectDelta(user.getOid());
 
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -791,7 +791,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("user is created in simulation");
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 

@@ -200,6 +200,11 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
+    default @Nullable ItemChangeApplicationModeType getChangeApplicationMode() {
+        return delegate().getChangeApplicationMode();
+    }
+
+    @Override
     default ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         return null;
     }

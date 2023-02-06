@@ -200,7 +200,7 @@ public class SynchronizationRequest {
     public TestSimulationResult executeOnForegroundSimulated(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
         stateCheck(taskExecutionMode.isSimulation(), "No simulation? Mode = %s", taskExecutionMode);
-        return test.executeInSimulationMode(
+        return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
                 task,

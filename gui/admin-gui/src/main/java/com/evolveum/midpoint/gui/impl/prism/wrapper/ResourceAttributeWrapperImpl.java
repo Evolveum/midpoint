@@ -231,6 +231,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().getCorrelatorDefinition();
     }
 
+    @Override
+    public @Nullable ItemChangeApplicationModeType getChangeApplicationMode() {
+        return getRefinedAttributeDefinition().getChangeApplicationMode();
+    }
+
     @NotNull
     @Override
     public ResourceAttribute<T> instantiate() {

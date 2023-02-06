@@ -62,7 +62,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .asObjectDelta(user.getOid());
 
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -119,7 +119,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .asObjectDelta(user.getOid());
 
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 
@@ -166,7 +166,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                 .asObjectDelta(user.getOid());
 
         TestSimulationResult simResult =
-                executeInSimulationMode(
+                executeWithSimulationResult(
                         List.of(delta),
                         getExecutionMode(), getDefaultSimulationDefinition(), task, result);
 

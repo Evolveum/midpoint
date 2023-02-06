@@ -6913,7 +6913,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull OperationResult result)
             throws CommonException {
         assert isNativeRepository();
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationDefinition, task, result);
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationDefinition, task, result);
     }
 
     /**
@@ -6927,25 +6927,37 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull OperationResult result)
             throws CommonException {
         assert isNativeRepository();
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
     }
 
-    protected TestSimulationResult executeInSimulationMode(
+    protected TestSimulationResult executeWithSimulationResult(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull TaskExecutionMode mode,
-            @NotNull SimulationDefinitionType simulationDefinition,
+            @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
         assert isNativeRepository();
-        return executeInSimulationMode(
+        return executeWithSimulationResult(deltas, null, mode, simulationDefinition, task, result);
+    }
+
+    protected TestSimulationResult executeWithSimulationResult(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable ModelExecuteOptions options,
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        assert isNativeRepository();
+        return executeWithSimulationResult(
                 mode,
                 simulationDefinition,
                 task,
                 result,
                 (simResult) ->
                         modelService.executeChanges(
-                                deltas, null, task, List.of(simResult.contextRecordingListener()), result));
+                                deltas, options, task, List.of(simResult.contextRecordingListener()), result));
     }
 
     /** Convenience method */
@@ -6966,7 +6978,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
         assert isNativeRepository();
-        return executeInSimulationMode(
+        return executeWithSimulationResult(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
                 simulationDefinition,
                 task,
@@ -6982,9 +6994,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
      */
-    public @NotNull TestSimulationResult executeInSimulationMode(
+    public @NotNull TestSimulationResult executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
-            @NotNull SimulationDefinitionType simulationDefinition,
+            @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull SimulatedProcedureCall simulatedCall)
@@ -6993,7 +7005,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert isNativeRepository();
 
         Holder<TestSimulationResult> simulationResultHolder = new Holder<>();
-        simulationResultManager.executeInSimulationMode(mode, simulationDefinition, task, result, () -> {
+        simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, () -> {
             TestSimulationResult testSimulationResult = new TestSimulationResult(
                     Objects.requireNonNull(task.getSimulationTransaction())
                             .getResultOid());

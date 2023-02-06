@@ -237,7 +237,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public <X> X executeInSimulationMode(
+    public <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -245,8 +245,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             @NotNull SimulatedFunctionCall<X> functionCall)
             throws CommonException {
 
-        argCheck(mode.isSimulation(),
-                "Requested an execution in simulation mode, but the mode provided is not a simulation one: %s", mode);
         argCheck(task.isTransient(), "Not supported for persistent tasks: %s", task);
         SimulationResultImpl simulationResult =
                 createSimulationResult(simulationDefinition, null, mode.toConfigurationSpecification(), result);
@@ -257,8 +255,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         X returnValue;
         try {
-            task.setSimulationTransaction(
-                    simulationTransaction);
+            task.setSimulationTransaction(simulationTransaction);
             returnValue = functionCall.execute();
         } finally {
             task.setSimulationTransaction(null);

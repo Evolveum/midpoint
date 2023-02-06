@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefine
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
@@ -960,7 +961,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
+        resetCompositeObjectDefinition();
+    }
+
+    private void resetCompositeObjectDefinition() {
         compositeObjectDefinition = null;
+        itemChangeApplicationModeConfiguration = null;
     }
 
     @Override
@@ -1874,5 +1880,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isAdministrativeStatusSupported() throws SchemaException, ConfigurationException {
         return resource != null
                 && CapabilityUtil.isActivationStatusCapabilityEnabled(resource, getStructuralObjectDefinition());
+    }
+
+    @Override
+    @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException {
+        return ItemChangeApplicationModeConfiguration.of(getCompositeObjectDefinition());
     }
 }

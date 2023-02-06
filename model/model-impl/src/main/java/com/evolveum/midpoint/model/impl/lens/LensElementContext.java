@@ -21,9 +21,12 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
@@ -109,6 +112,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Security policy related to this object. (It looks like it is currently filled-in only for focus.)
      */
     private transient SecurityPolicyType securityPolicy;
+
+    /** TODO */
+    transient ItemChangeApplicationModeConfiguration itemChangeApplicationModeConfiguration;
 
     /**
      * Everything related to policy rules evaluation and processing.
@@ -894,5 +900,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public @NotNull Collection<String> getAllConsideredEventMarks() {
         return policyRulesContext.getAllConsideredEventMarks();
     }
+
+    public @NotNull ItemChangeApplicationModeConfiguration getItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException {
+        if (itemChangeApplicationModeConfiguration == null) {
+            itemChangeApplicationModeConfiguration = createItemChangeApplicationModeConfiguration();
+        }
+        return itemChangeApplicationModeConfiguration;
+    }
+
+    abstract @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException;
     //endregion
 }

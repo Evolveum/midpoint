@@ -607,7 +607,7 @@ public interface ModelInteractionService {
      *
      * Requires the native repository.
      */
-    <X> X executeInSimulationMode(
+    <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
