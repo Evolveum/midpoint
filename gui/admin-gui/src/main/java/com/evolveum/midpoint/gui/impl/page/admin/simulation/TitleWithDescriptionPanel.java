@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
@@ -45,6 +46,7 @@ public class TitleWithDescriptionPanel extends BasePanel {
                 onTitleClicked(target);
             }
         };
+        link.add(new EnableBehaviour(() -> isTitleLinkEnabled()));
         add(link);
 
         Label title = new Label(ID_TITLE, getModel());
@@ -53,6 +55,10 @@ public class TitleWithDescriptionPanel extends BasePanel {
         Label description = new Label(ID_DESCRIPTION, this.description);
         description.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.description.getObject())));
         link.add(description);
+    }
+
+    protected boolean isTitleLinkEnabled() {
+        return true;
     }
 
     protected void onTitleClicked(AjaxRequestTarget target) {

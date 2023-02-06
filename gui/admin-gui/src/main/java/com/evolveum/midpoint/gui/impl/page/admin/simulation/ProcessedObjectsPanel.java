@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.IResource;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
@@ -87,18 +86,19 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        // TODO
         return new RoundedIconColumn<>(null) {
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                return null;    // todo icon of type or icon from object
-                // todo type & resourceObjectCoordinates use based on type (for shadow type)...
-            }
+                SimulationResultProcessedObjectType object = model.getObject().getValue();
+                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
+                if (obj == null || obj.asPrismObject() == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
+                }
 
-            @Override
-            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                return () -> null;
+                return new DisplayType()
+                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
             }
         };
     }
@@ -118,7 +118,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 IModel<String> title = () -> {
-                    // todo if bean.getValue == null ||  bean.getResult is not success - show warning/error with some text instead of name
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
                     if (obj == null || obj.getName() == null) {
                         return getString("ProcessedObjectsPanel.unnamed");
@@ -154,6 +153,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
 
                     @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return rowModel.getObject().getValue() != null;
+                    }
+
+                    @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         onObjectNameClicked(target, rowModel.getObject());
                     }
@@ -165,7 +169,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
-            // todo implement case where there was a problem loading object for row
             return;
         }
 
