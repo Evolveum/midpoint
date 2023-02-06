@@ -1,27 +1,19 @@
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
@@ -47,8 +39,8 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 WebComponentUtil.dispatchToObjectDetailsPage(getModelObject(), ObjectReferenceColumnPanel.this, false);
             }
         };
-        add(label);
 
+        add(label);
     }
 
     private <R extends AbstractRoleType> PrismObject<R> getResolvedTarget() {
@@ -56,6 +48,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         if (rowValue == null) {
             return null;
         }
+
         if (rowValue.getObject() != null) {
             return rowValue.getObject();
         }
@@ -66,12 +59,16 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 return resolvedTarget;
             }
         }
+
         return null;
     }
 
     private IModel<CompositedIcon> createCompositedIconModel() {
         return () -> {
             ObjectReferenceType ref = getModelObject();
+            if (ref == null) {
+                return null;
+            }
 
             PrismObject<? extends ObjectType> object = ref.getObject();
             if (object != null) {
