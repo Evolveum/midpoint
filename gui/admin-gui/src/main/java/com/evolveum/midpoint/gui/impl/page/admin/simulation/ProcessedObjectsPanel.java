@@ -11,16 +11,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -34,7 +31,6 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
@@ -234,55 +230,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
-                Label label = new Label(id, () -> {
-                    ObjectProcessingStateType state = row.getObject().getValue().getState();
-                    if (state == null) {
-                        return null;
-                    }
-
-                    return getString(WebComponentUtil.createEnumResourceKey(state));
-                });
-                label.add(AttributeModifier.append("class", () -> {
-                    ObjectProcessingStateType state = row.getObject().getValue().getState();
-                    if (state == null) {
-                        return null;
-                    }
-
-                    String badge = "";
-                    switch (state) {
-                        case UNMODIFIED:
-                            badge = "badge-secondary";
-                            break;
-                        case ADDED:
-                            badge = "badge-success";
-                            break;
-                        case DELETED:
-                            badge = "badge-danger";
-                            break;
-                        case MODIFIED:
-                            badge = "badge-info";
-                            break;
-                    }
-
-                    return "badge " + badge;
-                }));
-                item.add(label);
+                item.add(GuiSimulationsUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> {
-            SimulationResultProcessedObjectType object = row.getValue();
-            if (object == null || object.getType() == null) {
-                return null;
-            }
-
-            QName type = object.getType();
-            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
-            String key = WebComponentUtil.createEnumResourceKey(ot);
-
-            return getPageBase().getString(key);
-        });
+        return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
     }
 }

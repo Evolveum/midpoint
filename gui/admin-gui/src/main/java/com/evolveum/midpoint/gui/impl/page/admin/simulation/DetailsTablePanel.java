@@ -69,8 +69,13 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
             @Override
             protected void populateItem(ListItem<DetailsTableItem> item) {
-                item.add(new Label(ID_LABEL, () -> item.getModelObject().getLabel().getObject()));
-                item.add(item.getModelObject().createValueComponent(ID_VALUE));
+                DetailsTableItem data = item.getModelObject();
+                item.add(new Label(ID_LABEL, () -> data.getLabel().getObject()));
+                item.add(data.createValueComponent(ID_VALUE));
+
+                if (data.isVisible() != null) {
+                    item.add(data.isVisible());
+                }
             }
         };
         add(details);

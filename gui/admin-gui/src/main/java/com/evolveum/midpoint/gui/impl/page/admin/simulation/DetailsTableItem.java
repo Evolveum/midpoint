@@ -13,6 +13,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -39,5 +41,9 @@ public class DetailsTableItem implements Serializable {
         Label label = new Label(id, value);
         label.setRenderBodyOnly(true);
         return label;
+    }
+
+    public VisibleBehaviour isVisible() {
+        return null;
     }
 }
