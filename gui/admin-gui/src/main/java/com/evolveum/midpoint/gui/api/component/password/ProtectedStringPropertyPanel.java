@@ -12,8 +12,11 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -22,35 +25,42 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar
  */
-public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringType> {
+public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedStringType> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_PASSWORD_PANEL= "passwordPanel";
+    private static final String ID_PANEL = "panel";
 
-    public PasswordPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemPanelSettings settings){
+    public ProtectedStringPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemPanelSettings settings){
         super(id, model, settings);
     }
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
+        ItemName itemName = item.getModelObject() != null ? item.getModelObject().getParent().getItemName() : null;
+        Component panel;
+        if (PasswordType.F_HINT.equivalent(itemName)) {
+            panel = new PasswordHintPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()), null,
+                    getModelObject() != null && getModelObject().isReadOnly());
+        } else {
+            panel = new PasswordPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null,
-                getPrismObjectParentIfExist()){
-            private static final long serialVersionUID = 1L;
+                    getPrismObjectParentIfExist()) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void changePasswordPerformed(){
-                PrismPropertyValueWrapper<ProtectedStringType> itemModel = item.getModelObject();
-                if (itemModel != null){
-                    itemModel.setStatus(ValueStatus.MODIFIED);
+                @Override
+                protected void changePasswordPerformed() {
+                    PrismPropertyValueWrapper<ProtectedStringType> itemModel = item.getModelObject();
+                    if (itemModel != null) {
+                        itemModel.setStatus(ValueStatus.MODIFIED);
+                    }
                 }
-            }
 
-        };
-        passwordPanel.setOutputMarkupId(true);
-        item.add(passwordPanel);
-        return passwordPanel;
+            };
+        }
+        panel.setOutputMarkupId(true);
+        item.add(panel);
+        return panel;
     }
 
     private <O extends ObjectType> PrismObject<O>getPrismObjectParentIfExist() {

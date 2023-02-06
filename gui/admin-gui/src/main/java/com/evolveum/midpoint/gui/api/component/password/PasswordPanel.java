@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -59,7 +60,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
-public class PasswordPanel<F extends FocusType> extends InputPanel {
+public class PasswordPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
@@ -74,7 +75,6 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
-    private static final String ID_HINT = "hint";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
@@ -82,9 +82,6 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
     private static boolean clearPasswordInput = false;
     private static boolean setPasswordInput = false;
     private final IModel<ProtectedStringType> passwordModel;
-    private final IModel<ProtectedStringType> hintModel;
-    private PrismObject<F> object;
-
     private boolean isReadOnly;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
@@ -95,19 +92,11 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         this(id, passwordModel, isReadOnly, isInputVisible, null);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible,
-            PrismObject<F> object) {
-        this(id, passwordModel, Model.of(), isReadOnly, isInputVisible, object);
-    }
-
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, IModel<ProtectedStringType> hintModel,
-            boolean isReadOnly, boolean isInputVisible, PrismObject<F> object) {
+    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> object) {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.passwordModel = passwordModel;
         this.isReadOnly = isReadOnly;
-        this.object = object;
-        this.hintModel = hintModel;
         initLayout(object);
     }
 
@@ -116,7 +105,7 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         super.onInitialize();
     }
 
-    private void initLayout(PrismObject<F> object) {
+    private <F extends FocusType> void initLayout(PrismObject<F> object) {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
@@ -141,7 +130,7 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(passwordModel)) {
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringModel(passwordModel)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -157,10 +146,10 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
-        password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType())));
+        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
+                new ProtectedStringModel(Model.of(new ProtectedStringType())));
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(new EnableBehaviour(this::canEditPassword));
@@ -233,10 +222,7 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         passwordRemoveLabel.setVisible(false);
         linkContainer.add(passwordRemoveLabel);
 
-        final TextField<String> hint = new TextField<>(ID_HINT, new PasswordModel(hintModel));
-        hint.setOutputMarkupId(true);
-        hint.add(new EnableBehaviour(this::canEditPassword));
-        inputContainer.add(hint);
+        WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
 
         WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
         buttonBar.add(new VisibleBehaviour(() -> isChangePasswordVisible() || isRemovePasswordVisible()));
@@ -287,7 +273,7 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
     }
 
     private String initPasswordValidation() {
-        return  "initPasswordValidation({\n"
+        return "initPasswordValidation({\n"
                 + "container: $('#progress-bar-container'),\n"
                 + "hierarchy: {\n"
                 + "    '0': ['progress-bar-danger', '" + PageBase.createStringResourceStatic("PasswordPanel.strength.veryWeak").getString() + "'],\n"
@@ -310,7 +296,7 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         return "";
     }
 
-    protected ValuePolicyType getValuePolicy(PrismObject<F> object) {
+    protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
         ValuePolicyType valuePolicyType = null;
         try {
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
@@ -428,83 +414,13 @@ public class PasswordPanel<F extends FocusType> extends InputPanel {
         }
     }
 
-    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-        private static final long serialVersionUID = 1L;
-
-        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            super("blur");
-        }
-
-        @Override
-        protected void onUpdate(AjaxRequestTarget target) {
-        }
-    }
-
-    private static class PasswordModel implements IModel<String> {
-        private static final long serialVersionUID = 1L;
-
-        IModel<ProtectedStringType> psModel;
-
-        PasswordModel(IModel<ProtectedStringType> psModel) {
-            this.psModel = psModel;
-        }
-
-        @Override
-        public void detach() {
-            // Nothing to do
-        }
-
-        private Protector getProtector() {
-            return ((MidPointApplication) Application.get()).getProtector();
-        }
-
-        @Override
-        public String getObject() {
-            ProtectedStringType ps = psModel.getObject();
-            if (ps == null) {
-                return null;
-            } else {
-                try {
-                    return getProtector().decryptString(ps);
-                } catch (EncryptionException e) {
-                    throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
-                }
-            }
-        }
-
-        @Override
-        public void setObject(String object) {
-            if (clearPasswordInput) {
-                clearPasswordInput = false;
-                setPasswordInput = false;
-                return;
-            }
-            setPasswordInput = true;
-            if (object == null) {
-                psModel.setObject(null);
-            } else {
-                if (psModel.getObject() == null) {
-                    psModel.setObject(new ProtectedStringType());
-                } else {
-                    psModel.getObject().clear();
-                }
-                psModel.getObject().setClearValue(object);
-                try {
-                    getProtector().encrypt(psModel.getObject());
-                } catch (EncryptionException e) {
-                    throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
-                }
-            }
-        }
-    }
-
     protected void changePasswordPerformed() {
+    }
+    protected boolean isPasswordLimitationPanelVisible() {
+        return true;
     }
 
     protected void updatePasswordValidation(AjaxRequestTarget target) {
     }
 
-    protected boolean isPasswordLimitationPanelVisible() {
-        return true;
-    }
 }

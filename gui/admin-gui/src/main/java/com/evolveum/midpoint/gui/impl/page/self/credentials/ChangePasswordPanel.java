@@ -8,8 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordHintPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.component.password.ProtectedStringModel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -46,7 +48,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
@@ -64,6 +65,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_PASSWORD_PANEL = "passwordPanel";
     private static final String ID_CURRENT_PASSWORD_FIELD = "currentPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
+    private static final String ID_PASSWORD_HINT_PANEL = "passwordHintPanel";
     private static final String ID_CHANGE_PASSWORD = "changePassword";
     private static final String ID_PASSWORD_VALIDATION_PANEL = "passwordValidationPanel";
 
@@ -179,6 +181,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
+
+        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL, Model.of(), Model.of(), false);
+        hint.setOutputMarkupId(true);
+        hint.add(new EnableBehaviour(() -> !savedPassword));
+        add(hint);
 
         AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
                 createStringResource("ChangePasswordPanel.changePasswordButton")) {

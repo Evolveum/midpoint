@@ -2370,6 +2370,7 @@
                         The information about authentication attempt, in most cases describing authentication modules failures.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:operational>true</a:operational>
                         <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
