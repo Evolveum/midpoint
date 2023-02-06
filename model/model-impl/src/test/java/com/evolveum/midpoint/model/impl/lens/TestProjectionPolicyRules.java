@@ -13,8 +13,10 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
@@ -51,8 +53,8 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     private ShadowType wheelShadow;
     private ShadowType topOrgShadow;
 
-    private static final DummyTestResource RESOURCE_DUMMY_TAGS = new DummyTestResource(
-            TEST_DIR, "resource-dummy-tags.xml", "b951c40b-2f57-4f1d-a881-8ba37e973c11", "tags",
+    private static final DummyTestResource RESOURCE_DUMMY_EVENT_MARKS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-event-marks.xml", "b951c40b-2f57-4f1d-a881-8ba37e973c11", "event-marks",
             controller -> {
                 controller.populateWithDefaultSchema();
                 controller.addAttrDef(
@@ -61,27 +63,32 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                         controller.getAccountObjectClass(), ATTR_MEMBER_OF_ORG, String.class, false, true);
             });
 
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
-        RESOURCE_DUMMY_TAGS.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_EVENT_MARKS.initAndTest(this, initTask, initResult);
 
-        RESOURCE_DUMMY_TAGS.controller.addGroup("wheel");
+        RESOURCE_DUMMY_EVENT_MARKS.controller.addGroup("wheel");
         var groupShadows = provisioningService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_DUMMY_TAGS.get())
+                Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                         .queryFor(RI_GROUP_OBJECT_CLASS)
                         .build(),
                 null, initTask, initResult);
         wheelShadow = MiscUtil.extractSingletonRequired(groupShadows).asObjectable();
 
-        RESOURCE_DUMMY_TAGS.controller.addOrgTop();
+        RESOURCE_DUMMY_EVENT_MARKS.controller.addOrgTop();
         var orgShadows = provisioningService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_DUMMY_TAGS.get())
+                Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                         .queryFor(CUSTOM_ORG_OBJECT_CLASS)
                         .build(),
                 null, initTask, initResult);
@@ -89,24 +96,26 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
     }
 
     /**
-     * Check that {@link SystemObjectsType#MARK_PROJECTION_DEACTIVATED} and {@link SystemObjectsType#MARK_PROJECTION_ACTIVATED}
-     * are set correctly.
+     * Check that {@link SystemObjectsType#MARK_PROJECTION_DEACTIVATED} is set correctly.
      */
     @Test
-    public void test100DisableAndEnableAccount() throws Exception {
+    public void test100DisableAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test100", task, result);
+        UserType user = createUserWithAccount("test100", null, task, result);
 
-        when("user and account are disabled");
+        switchToSimulationMode(task);
+
+        when("user and account are disabled (in simulation mode)");
         ObjectDelta<UserType> disableDelta = deltaFor(UserType.class)
                 .item(PATH_ACTIVATION_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(user.getOid());
+
         LensContext<UserType> disableContext = runClockwork(disableDelta, null, task, result);
 
-        then("tags are set correctly");
+        then("marks are set correctly");
         // @formatter:off
         assertModelContext(disableContext, "disable context")
                 .focusContext()
@@ -115,6 +124,20 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .projectionContexts()
                     .single()
                         .assertEventMarks(MARK_PROJECTION_DEACTIVATED);
+    }
+
+    /**
+     * Check that {{@link SystemObjectsType#MARK_PROJECTION_ACTIVATED} is set correctly.
+     */
+    @Test
+    public void test105EnableAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a (disabled) user with an account exists");
+        UserType user = createUserWithAccount("test105", ActivationStatusType.DISABLED, task, result);
+
+        switchToSimulationMode(task);
 
         when("user and account are enabled");
         ObjectDelta<UserType> enableDelta = deltaFor(UserType.class)
@@ -122,7 +145,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getOid());
         LensContext<UserType> enableContext = runClockwork(enableDelta, null, task, result);
 
-        then("tags are set correctly");
+        then("marks are set correctly");
         // @formatter:off
         assertModelContext(enableContext, "enable context")
                 .focusContext()
@@ -134,12 +157,14 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:on
     }
 
-    private UserType createUserWithAccount(String name, Task task, OperationResult result) throws CommonException {
+    private UserType createUserWithAccount(String name, ActivationStatusType status, Task task, OperationResult result)
+            throws CommonException {
         UserType user = new UserType()
                 .name(name)
+                .activation(new ActivationType().administrativeStatus(status))
                 .assignment(new AssignmentType()
                         .construction(new ConstructionType()
-                                .resourceRef(RESOURCE_DUMMY_TAGS.oid, ResourceType.COMPLEX_TYPE)));
+                                .resourceRef(RESOURCE_DUMMY_EVENT_MARKS.oid, ResourceType.COMPLEX_TYPE)));
         addObject(user, task, result);
         return repositoryService.getObject(UserType.class, user.getOid(), null, result).asObjectable();
     }
@@ -154,7 +179,9 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test110", task, result);
+        UserType user = createUserWithAccount("test110", null, task, result);
+
+        switchToSimulationMode(task);
 
         when("user and account are renamed");
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -162,18 +189,16 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getOid());
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
-        then("tags are set correctly");
-        if (areMarksSupported()) {
-            // @formatter:off
-            assertModelContext(lensContext, "context")
-                    .focusContext()
-                        .assertEventMarks(MARK_FOCUS_RENAMED)
-                    .end()
-                    .projectionContexts()
-                        .single()
-                            .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED);
-            // @formatter:on
-        }
+        then("marks are set correctly");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks(MARK_FOCUS_RENAMED)
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED);
+        // @formatter:on
     }
 
     /**
@@ -185,7 +210,9 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test120", task, result);
+        UserType user = createUserWithAccount("test120", null, task, result);
+
+        switchToSimulationMode(task);
 
         when("account non-naming identifier is changed");
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -193,18 +220,16 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getOid());
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
-        then("tags are set correctly");
-        if (areMarksSupported()) {
-            // @formatter:off
-            assertModelContext(lensContext, "context")
-                    .focusContext()
-                        .assertEventMarks()
-                    .end()
-                    .projectionContexts()
-                        .single()
-                            .assertEventMarks(MARK_PROJECTION_IDENTIFIER_CHANGED);
-            // @formatter:on
-        }
+        then("marks are set correctly");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks()
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(MARK_PROJECTION_IDENTIFIER_CHANGED);
+        // @formatter:on
     }
 
     /**
@@ -216,10 +241,12 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test130", task, result);
+        UserType user = createUserWithAccount("test130", null, task, result);
+
+        switchToSimulationMode(task);
 
         when("account group membership is changed");
-        ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_TAGS.get())
+        ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATION)
                 .add(new ShadowAssociationType()
@@ -228,18 +255,16 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 
-        then("tags are set correctly");
-        if (areMarksSupported()) {
-            // @formatter:off
-            assertModelContext(lensContext, "context")
-                    .focusContext()
-                        .assertEventMarks()
-                    .end()
-                    .projectionContexts()
-                        .single()
-                            .assertEventMarks(MARK_PROJECTION_ENTITLEMENT_CHANGED);
-            // @formatter:on
-        }
+        then("marks are set correctly");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks()
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(MARK_PROJECTION_ENTITLEMENT_CHANGED);
+        // @formatter:on
     }
 
     /**
@@ -252,10 +277,12 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test140", task, result);
+        UserType user = createUserWithAccount("test140", null, task, result);
+
+        switchToSimulationMode(task);
 
         when("account org membership is changed");
-        ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_TAGS.get())
+        ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATION)
                 .add(new ShadowAssociationType()
@@ -264,18 +291,16 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 
-        then("'entitlement changed' tag is not present");
-        if (areMarksSupported()) {
-            // @formatter:off
-            assertModelContext(lensContext, "context")
-                    .focusContext()
-                        .assertEventMarks()
-                    .end()
-                    .projectionContexts()
-                        .single()
-                            .assertEventMarks(); // "org" is not an entitlement
-            // @formatter:on
-        }
+        then("'entitlement changed' mark is not present");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks()
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(); // "org" is not an entitlement
+        // @formatter:on
     }
 
     /**
@@ -287,7 +312,9 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("a user with an account exists");
-        UserType user = createUserWithAccount("test150", task, result);
+        UserType user = createUserWithAccount("test150", null, task, result);
+
+        switchToSimulationMode(task);
 
         when("account password is changed");
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -295,17 +322,20 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .asObjectDelta(user.getOid());
         LensContext<UserType> lensContext = runClockwork(delta, null, task, result);
 
-        then("tags are set correctly");
-        if (areMarksSupported()) {
-            // @formatter:off
-            assertModelContext(lensContext, "context")
-                    .focusContext()
-                        .assertEventMarks()
-                    .end()
-                    .projectionContexts()
-                        .single()
-                            .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED);
-            // @formatter:on
-        }
+        then("marks are set correctly");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks()
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED);
+        // @formatter:on
+    }
+
+    /** Switching task to a simulation mode. Otherwise, event marks would not be applied. */
+    private static void switchToSimulationMode(Task task) {
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
     }
 }
