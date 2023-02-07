@@ -48,7 +48,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
-    private static final String ID_FORGET_PASSWORD = "resetPassword";
+    private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_FORM = "form";
@@ -93,7 +93,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
         String urlResetPass = getPasswordResetUrl(securityPolicy);
-        ExternalLink link = new ExternalLink(ID_FORGET_PASSWORD, urlResetPass);
+        ExternalLink link = new ExternalLink(ID_RESET_PASSWORD, urlResetPass);
 
         link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlResetPass)));
         add(link);
