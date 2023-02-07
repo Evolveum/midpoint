@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1032,43 +1032,53 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget = findEvaluatedAssignmentTarget(roleRef, evalAssignment);
-            if (evaluatedAssignmentTarget == null) {
+            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets = findEvaluatedAssignmentTargets(roleRef, evalAssignment);
+            if (evaluatedAssignmentTargets.isEmpty()) {
                 LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
                 continue;
             }
 
-            AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
-            // There can be some value metadata already created by previous assignment evaluation
-            PrismContainer<ValueMetadataType> valueMetadataContainer = roleRef.getValueMetadataAsContainer();
-            if (valueMetadataContainer.hasAnyValue()) {
-                ValueMetadataType valueMetadata = valueMetadataContainer.getAnyValue().asContainerable();
-                ProvenanceMetadataType provenance = valueMetadata.getProvenance();
-                if (provenance == null) {
-                    // unlikely, but let's handle this case as well
-                    valueMetadata.provenance(new ProvenanceMetadataType()
-                            .assignmentPath(assignmentPath));
-                } else {
-                    provenance.assignmentPath(assignmentPath);
-                }
-            } else {
-                roleRef.setValueMetadata(new ValueMetadataType()
+            for (EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
+                AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
+                // There can be some value metadata already created by previous assignment evaluation,
+                // but we will add new metadata container for each assignment path without touching any existing ones.
+                //noinspection unchecked
+                roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
                         .provenance(new ProvenanceMetadataType()
-                                .assignmentPath(assignmentPath)));
+                                .assignmentPath(assignmentPathToMetadata(assignmentPath)))
+                        .storage(new StorageMetadataType()
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())))
+                        .asPrismContainerValue());
             }
         }
     }
 
-    private EvaluatedAssignmentTargetImpl findEvaluatedAssignmentTarget(
+    private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
+        AssignmentPathMetadataType metadata = new AssignmentPathMetadataType();
+        metadata.sourceRef(assignmentPath.getSegment().get(0).getSourceRef());
+        for (AssignmentPathSegmentType segment : assignmentPath.getSegment()) {
+            boolean isAssignment = segment.isIsAssignment();
+            metadata.beginSegment()
+                    .segmentOrder(segment.getSegmentOrder())
+                    .targetRef(segment.getTargetRef())
+                    .matchingOrder(segment.isMatchingOrder())
+                    .assignmentId(isAssignment ? segment.getAssignmentId() : null)
+                    .inducementId(isAssignment ? null : segment.getAssignmentId());
+        }
+        return metadata;
+    }
+
+    private @NotNull List<EvaluatedAssignmentTargetImpl> findEvaluatedAssignmentTargets(
             PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evalAssignment) {
+        List<EvaluatedAssignmentTargetImpl> result = new ArrayList<>();
         for (EvaluatedAssignmentTargetImpl eat : evalAssignment.getRoles().getNonNegativeValues()) {
             ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
             if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
                     && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {
-                return eat;
+                result.add(eat);
             }
         }
-        return null;
+        return result;
     }
 
     private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,
