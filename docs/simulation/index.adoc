@@ -10,11 +10,15 @@
 The "simulation" is an umbrella term covering various mechanisms of "what-if" analysis in midPoint.
 It could be characterized as an ability to see expected effects of some actions without the risk of damaging the system state.
 
-Let us introduce few basic terms first.
+Let us introduce few basic terms first: execution mode and configuration used.
+
+.Execution modes and system configurations
+image::mode-config-matrix.drawio.png[Mode-config matrix]
 
 == Persistent-Effects vs Simulation Execution Mode
 
-Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in these modes: _persistent-effects_, _simulation_, or _mixed_ mode.
+Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in two basic modes: _persistent-effects_ or _simulation_.
+(There is also a third one, _mixed_ mode that is combination of the two.)
 
 === Persistent-Effects Mode
 
@@ -72,13 +76,16 @@ Items in <<Development Configuration>> that are not in <<Production Configuratio
 On the other hand, there may be items that are contained in <<Production Configuration>> but not in <<Development Configuration>>.
 They are recognized by having `lifecycleState` of `deprecated`.
 
+.Lifecycle states and configurations
+image::lifecycle-states.drawio.png[Lifecycle States]
+
 .Mapping of item's lifecycle state to configuration set membership
 [%autowidth]
 [%header]
 |===
 | Lifecycle state | Production Configuration | Development Configuration
-| `proposed` | no | yes
 | `active` or missing | yes | yes
+| `proposed` | no | yes
 | `deprecated` | yes | no
 | other | no | no
 |===
@@ -90,9 +97,56 @@ Lifecycle state is currently supported on the following configuration items:
 - resource object type,
 - resource object attribute,
 - resource object association,
-- abstract role except for archetypes (role, org, service),
+- abstract roles (role, org, service, archetype),
 - assignment,
 - mapping.
+
+The following setup can be used to simulate a migration from old to new organizational unit by switching mappings in an object template.
+
+.Listing 1: Example of switching mappings in an object template
+[source,xml]
+----
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>person-template</name>
+    <mapping> <!--1-->
+        <strength>strong</strength>
+        <expression>
+            <value>ACME</value>
+        </expression>
+        <target>
+            <path>organization</path>
+        </target>
+    </mapping>
+    <mapping>
+        <lifecycleState>deprecated</lifecycleState> <!--2-->
+        <strength>strong</strength>
+        <expression>
+            <value>old-unit</value>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
+    </mapping>
+    <mapping>
+        <lifecycleState>proposed</lifecycleState> <!--3-->
+        <strength>strong</strength>
+        <expression>
+            <value>new-unit</value>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
+    </mapping>
+</objectTemplate>
+----
+<1> No explicit lifecycle state means "active".
+Hence, this mapping is part of both production and development configurations.
+<2> The `deprecated` state means that this mapping belongs only to the production configuration.
+<3> The `proposed` state means that this mapping belongs only to the development configuration.
+
+The third mapping can be seen as a replacement of the second one in the development configuration.
+Hence, when you run a persistent-effect activity (or a simulation one using production configuration), users get assigned to `old-unit`.
+But when running a simulation using development configuration, the users are assigned to `new-unit` instead.
 
 === Report-Only Attributes
 
@@ -113,23 +167,12 @@ WARNING: If there is a further dependency on the attribute, i.e. an inbound mapp
 The mapping will get applied, and the results will be applied in the normal way.
 Hence, for such cases, it is advisable to avoid inbound mappings, or if that cannot be done, put them out of production configuration by setting `lifecycleState` appropriately.
 
-== Configuration vs Execution Mode
+== Execution Mode vs Configuration
 
-Not all parts of midPoint configuration are taken into account in each execution mode:
+Not all parts of midPoint configuration are usable with each execution mode, as described in Figure 1 above.
 
 . The <<Persistent-Effects Mode>> "sees" only the <<Production Configuration>>.
 (Otherwise, data inconsistencies would quickly build up.)
 . The <<Simulation Mode>> can be defined that it either sees <<Production Configuration>> or <<Development Configuration>>.
-. The <<Mixed Mode>> uses <<Production Configuration>> with special treatment of <<Report-Only Attributes>>.
 
-To summarize:
-
-[%autowidth]
-[%header]
-|===
-| Execution mode \ Configuration seen | Production Configuration | Development Configuration
-| Persistent-effects mode | yes | no
-| Simulation mode with production config | yes | no
-| Simulation mode with development config | no | yes
-| Mixed mode | yes (with report-only attributes) | no
-|===
+As the <<Mixed Mode>> is basically the "persistent-effects" mode, it uses the production configuration with special treatment of the report-only attributes.
