@@ -12,8 +12,13 @@ It could be characterized as an ability to see expected effects of some actions 
 
 Let us introduce few basic terms first: execution mode and configuration used.
 
+. _Execution mode_ determines whether any actions carried out by an activity will have persistent effects or not.
+. _Configuration used_ tells whether the activity should use "production" or "development-mode" configuration.
+
 .Execution modes and system configurations
 image::mode-config-matrix.drawio.png[Mode-config matrix]
+
+Let us describe these concepts in more details.
 
 == Persistent-Effects vs Simulation Execution Mode
 
