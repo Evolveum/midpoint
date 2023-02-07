@@ -157,10 +157,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return getPageBase().getTaskManager();
     }
 
-    private void showResult(OperationResult result) {
-        getPageBase().showResult(result);
-    }
-
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();

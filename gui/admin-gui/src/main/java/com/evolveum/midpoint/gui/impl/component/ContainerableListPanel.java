@@ -913,10 +913,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         table.setCurrentPage(null);
     }
 
-    public Component getFeedbackPanel() {
-        return getPageBase().getFeedbackPanel();
-    }
-
     public void resetSearchModel() {
         PageStorage storage = getPageStorage();
         if (storage != null) {
