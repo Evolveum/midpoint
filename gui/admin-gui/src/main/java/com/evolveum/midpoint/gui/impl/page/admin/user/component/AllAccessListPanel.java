@@ -7,11 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanReferenceDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -24,27 +39,12 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanReferenceDataProvider;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AssignmentPathPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @PanelType(name = "userAllAccesses")
 @PanelInstance(identifier = "igaAccesses",
@@ -116,7 +116,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
                     @Override
                     protected void processVariables(VariablesMap variablesMap, ObjectReferenceType rowValue) {
-                        super.processVariables(variablesMap,rowValue);
+                        super.processVariables(variablesMap, rowValue);
                         variablesMap.put("metadata", collectProvenanceMetadata(rowValue.asReferenceValue()), ProvenanceMetadataType.class);
                         variablesMap.put("activation", getActivation(rowValue), ProvenanceMetadataType.class);
                         variablesMap.put("assignment", getAssignment(rowValue), ProvenanceMetadataType.class);
@@ -143,12 +143,12 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> sourceColumns = new ObjectReferenceColumn<>(createStringResource("Source"), "value") {
             @Override
             public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ObjectReferenceType>> rowModel) {
-               return () -> {
-                        List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
+                return () -> {
+                    List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
                     if (metadataValues == null) {
                         return null;
                     }
-                   List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
+                    List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
                     for (ProvenanceMetadataType metadataType : metadataValues) {
                         assignmentPaths.add(metadataType.getAssignmentPath());
                     }
@@ -232,7 +232,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     return () -> "channel null, cannot deremine why";
                 }
 
-                return () ->  {
+                return () -> {
                     String creator = null;
                     String approvers = null;
                     String approverComments = null;
@@ -255,7 +255,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                         case RECONCILIATION:
                             creator = WebModelServiceUtils.resolveReferenceName(metadataType.getCreateTaskRef(), getPageBase());
                     }
-                    String whyStatement =  "Created by: " + creator;
+                    String whyStatement = "Created by: " + creator;
                     if (approvers != null && !approvers.isBlank()) {
                         whyStatement += "\n Approved by: " + approvers;
                     }
@@ -267,7 +267,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
             }
         };
         columns.add(why);
-
 
         var since = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("Since")) {
             @Override
@@ -324,7 +323,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
             assignmentPaths.add(metadataType.getAssignmentPath());
         }
 
-
         List<String> resolvedPaths = new ArrayList<>();
         for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
             List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
@@ -342,7 +340,10 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
     private AssignmentType getAssignment(ObjectReferenceType ref) {
         UserType user = getObjectDetailsModels().getObjectType();
         for (AssignmentType assignmentType : user.getAssignment()) {
-            if (assignmentType.getTargetRef().getOid().equals(ref.getOid()) && QNameUtil.match(assignmentType.getTargetRef().getType(), ref.getType())) {
+            ObjectReferenceType targetRef = assignmentType.getTargetRef();
+            if (targetRef != null
+                    && targetRef.getOid().equals(ref.getOid())
+                    && QNameUtil.match(assignmentType.getTargetRef().getType(), ref.getType())) {
                 return assignmentType;
             }
         }
@@ -350,13 +351,10 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
     }
 
     private ActivationType getActivation(ObjectReferenceType ref) {
-        UserType user = getObjectDetailsModels().getObjectType();
-        for (AssignmentType assignmentType : user.getAssignment()) {
-            if (assignmentType.getTargetRef().getOid().equals(ref.getOid()) && QNameUtil.match(assignmentType.getTargetRef().getType(), ref.getType())) {
-                return assignmentType.getActivation();
-            }
-        }
-        return new ActivationType().effectiveStatus(ActivationStatusType.ENABLED);
+        AssignmentType assignment = getAssignment(ref);
+        return assignment != null
+                ? assignment.getActivation()
+                : new ActivationType().effectiveStatus(ActivationStatusType.ENABLED);
     }
 
     private <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
@@ -374,6 +372,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 .collect(Collectors.toList());
 
     }
+
     private <R extends AbstractRoleType> R getResolvedTarget(ObjectReferenceType rowValue) {
         if (rowValue.getObject() != null) {
             return (R) rowValue.getObject().asObjectable();
