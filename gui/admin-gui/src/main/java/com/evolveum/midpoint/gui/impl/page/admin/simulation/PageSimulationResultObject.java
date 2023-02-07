@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -47,8 +49,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -147,8 +148,67 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> items = new ArrayList<>();
 
-                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.projectionCount"),
-                        () -> "" + objectModel.getObject().getProjectionRecords()));
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+
+                IModel<String> resourceCoordinatesModel = new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected String load() {
+                        SimulationResultProcessedObjectType object = objectModel.getObject();
+                        ShadowDiscriminatorType discriminator = object.getResourceObjectCoordinates();
+                        if (discriminator == null) {
+                            return null;
+                        }
+
+                        ObjectReferenceType resourceRef = discriminator.getResourceRef();
+                        if (resourceRef == null) {
+                            return null;
+                        }
+
+                        PrismObject<ResourceType> resourceObject = WebModelServiceUtils.loadObject(resourceRef, PageSimulationResultObject.this);
+                        if (resourceObject == null) {
+                            return null;
+                        }
+
+                        ResourceType resource = resourceObject.asObjectable();
+                        SchemaHandlingType handling = resource.getSchemaHandling();
+                        if (handling == null) {
+                            return null;
+                        }
+
+                        ResourceObjectTypeDefinitionType found = null;
+                        for (ResourceObjectTypeDefinitionType objectType : handling.getObjectType()) {
+                            if (Objects.equals(objectType.getKind(), discriminator.getKind()) && Objects.equals(objectType.getIntent(), discriminator.getIntent())) {
+                                found = objectType;
+                                break;
+                            }
+                        }
+
+                        if (found == null) {
+                            return null;
+                        }
+
+                        // todo probably use this to get display name?
+                        // Resource.of(resourceObject)
+                        //        .getCompleteSchemaRequired()
+                        //        .findObjectDefinitionRequired(discriminator.getKind(), discriminator.getIntent())
+                        //        .getDisplayName();
+                        String displayName = found.getDisplayName();
+                        if (displayName == null) {
+                            displayName = getString("PageSimulationResultObject.unknownResourceObject");
+                        }
+
+                        return getString("PageSimulationResultObject.resourceCoordinatesValue", displayName, WebComponentUtil.getName(resource));
+                    }
+                };
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.resourceCoordinates"), resourceCoordinatesModel) {
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(() -> StringUtils.isNotEmpty(resourceCoordinatesModel.getObject()));
+                    }
+                });
+
                 items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.state"), null) {
 
                     @Override
@@ -175,6 +235,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                         return new VisibleBehaviour(() -> objectModel.getObject().getStructuralArchetypeRef() != null);
                     }
                 });
+
                 items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.marks"), null) {
 
                     @Override
@@ -201,7 +262,10 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                         return label;
                     }
                 });
-                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.projectionCount"),
+                        () -> "" + objectModel.getObject().getProjectionRecords()));
+
                 // todo implement
 
                 return items;
