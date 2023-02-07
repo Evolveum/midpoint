@@ -62,7 +62,7 @@ class ShadowUpdater {
 
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
 
-        if (syncCtx.isPersistentExecution()) {
+        if (syncCtx.isExecutionFullyPersistent()) {
             updateSyncSituation();
             updateSyncSituationDescription(now);
             updateBasicSyncTimestamp(now); // this is questionable, but the same behavior is in LinkUpdater class

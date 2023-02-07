@@ -165,7 +165,7 @@ public class MarkManager {
         if (simulationTransaction != null) {
             return simulationTransaction.getSimulationResult().isEventMarkEnabled(mark);
         }
-        if (!task.isSimulatedExecution()) {
+        if (task.isExecutionFullyPersistent()) {
             return false; // Event marks are currently used only for simulations
         }
         // We have no simulation [result] definition, so no custom inclusion/exclusion of event marks.

@@ -707,7 +707,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismObject<? extends ShadowType> shadow, UcfExecutionContext ctx, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException {
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         validateShadow(shadow, "add", false);
         ShadowType shadowType = shadow.asObjectable();
 
@@ -913,7 +913,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
         }
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         ObjectClass objClass = objectClassToConnId(identification.getResourceObjectDefinition());
 
@@ -1430,7 +1430,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
         Validate.notNull(objectDefinition, "No objectclass");
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
@@ -2104,7 +2104,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPT);
         try {

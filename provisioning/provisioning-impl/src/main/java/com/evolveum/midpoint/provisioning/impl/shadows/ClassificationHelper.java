@@ -12,9 +12,15 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
+import com.evolveum.midpoint.provisioning.impl.simulation.ShadowSimulationDataImpl;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,20 +132,41 @@ class ClassificationHelper {
                 shadowTagGenerator.generateTag(
                         combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
                 null;
+        ShadowKindType oldKind = combinedObject.getKind();
+        String oldIntent = combinedObject.getIntent();
+        String oldTag = combinedObject.getTag();
         ShadowKindType kindToSet = classification.isKnown() ?
                 classification.getKind() :
                 Objects.requireNonNullElse( // We don't want to lose last-known kind even if classification is not known
-                        combinedObject.getKind(), ShadowKindType.UNKNOWN);
+                        oldKind, ShadowKindType.UNKNOWN);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_KIND).replace(kindToSet)
-                .item(ShadowType.F_INTENT).replace(classification.getIntent())
-                .item(ShadowType.F_TAG).replace(tag)
+                .optimizing()
+                .item(ShadowType.F_KIND).old(oldKind).replace(kindToSet)
+                .item(ShadowType.F_INTENT).old(oldIntent).replace(classification.getIntent())
+                .item(ShadowType.F_TAG).old(oldTag).replace(tag)
                 .asItemDeltas();
-        try {
-            repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
-        } catch (ObjectAlreadyExistsException e) {
-            throw SystemException.unexpected(e, "when updating classification and tag");
+        if (ctx.getTask().areShadowChangesSimulated()) {
+            sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
+        } else {
+            try {
+                repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
+            } catch (ObjectAlreadyExistsException e) {
+                throw SystemException.unexpected(e, "when updating classification and tag");
+            }
         }
+    }
+
+    private void sendSimulationData(ShadowType shadow, List<ItemDelta<?, ?>> itemDeltas, Task task, OperationResult result) {
+        SimulationTransaction transaction = task.getSimulationTransaction();
+        if (transaction == null) {
+            LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, itemDeltas);
+            return;
+        }
+        ObjectDelta<ShadowType> delta = shadow.asPrismObject().createModifyDelta();
+        delta.addModifications(itemDeltas);
+        transaction.writeSimulationData(
+                ShadowSimulationDataImpl.of(shadow, delta, List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value())),
+                task, result);
     }
 
     private boolean isDifferent(ResourceObjectClassification classification, ShadowType shadow) {

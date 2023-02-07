@@ -110,7 +110,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 synchronizationFailure = false;
             }
 
-            if (completeCtx.isPersistentExecution() && !synchronizationFailure) {
+            if (completeCtx.isExecutionFullyPersistent() && !synchronizationFailure) {
                 completeCtx.getUpdater()
                         .updateFullSyncTimestamp(clock.currentTimeXMLGregorianCalendar())
                         .commit(result);

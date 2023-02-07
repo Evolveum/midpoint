@@ -661,8 +661,8 @@ public class ProvisioningContext {
         return task.getExecutionMode().isProductionConfiguration();
     }
 
-    public boolean isInSimulation() {
-        return !task.isPersistentExecution();
+    public boolean isExecutionFullyPersistent() {
+        return task.isExecutionFullyPersistent();
     }
 
     /**
@@ -672,10 +672,10 @@ public class ProvisioningContext {
      * at the level of provisioning module itself - to ensure that e.g. no changes are queued for maintenance mode or
      * operation grouping scenarios.
      *
-     * @see UcfExecutionContext#checkNotInSimulation()
+     * @see UcfExecutionContext#checkExecutionFullyPersistent()
      */
-    public void checkNotInSimulation() {
-        if (isInSimulation()) {
+    public void checkExecutionFullyPersistent() {
+        if (!isExecutionFullyPersistent()) {
             LOGGER.error("MidPoint tried to execute an operation on {}. This is unexpected, as the task is running in simulation"
                             + " mode ({}). Please report this as a bug. Resource object definition: {}",
                     resource, task.getExecutionMode(), resourceObjectDefinition);

@@ -67,7 +67,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
@@ -105,7 +105,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
 
@@ -148,7 +148,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             UcfExecutionContext ctx, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
 
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
 

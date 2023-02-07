@@ -99,7 +99,7 @@ public class ClockworkAuditHelper {
             LensContext<F> context, AuditEventStage stage, XMLGregorianCalendar timestamp,
             boolean alwaysAudit, Task task, OperationResult result, OperationResult overallResult) {
 
-        if (!task.isPersistentExecution()) {
+        if (!task.isExecutionFullyPersistent()) {
             // Or, should we record the simulation deltas here? It is better done at the end, because we have all deltas there,
             // so we can have one aggregated delta per object.
             LOGGER.trace("No persistent execution, no auditing");

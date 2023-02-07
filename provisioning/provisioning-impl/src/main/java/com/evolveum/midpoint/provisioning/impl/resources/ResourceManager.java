@@ -372,7 +372,7 @@ public class ResourceManager {
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);
         try {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
-            ucfCtx.checkNotInSimulation();
+            ucfCtx.checkExecutionFullyPersistent();
             return connectorInstance.executeScript(scriptOperation, ucfCtx, result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception

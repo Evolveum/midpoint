@@ -182,7 +182,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
             UcfExecutionContext ctx, OperationResult parentResult) {
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
@@ -201,7 +201,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
             ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
@@ -221,7 +221,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
             UcfExecutionContext ctx, OperationResult parentResult) throws SchemaException {
-        UcfExecutionContext.checkNotInSimulation(ctx);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());

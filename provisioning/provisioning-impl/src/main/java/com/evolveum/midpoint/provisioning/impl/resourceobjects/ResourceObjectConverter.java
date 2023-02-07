@@ -287,7 +287,7 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Adding resource object {}", shadow);
 
-            ctx.checkNotInSimulation();
+            ctx.checkExecutionFullyPersistent();
 
             // We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
             // to propagate back to the calling code. Hence the clone.
@@ -425,7 +425,7 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Deleting resource object {}", shadow);
 
-            ctx.checkNotInSimulation();
+            ctx.checkExecutionFullyPersistent();
 
             checkForCapability(ctx, DeleteCapabilityType.class);
 
@@ -761,7 +761,7 @@ public class ResourceObjectConverter {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
 
-        ctx.checkNotInSimulation();
+        ctx.checkExecutionFullyPersistent();
 
         checkForCapability(ctx, UpdateCapabilityType.class);
 
@@ -1738,7 +1738,7 @@ public class ResourceObjectConverter {
         if (operations == null || operations.isEmpty()) {
             return;
         }
-        ctx.checkNotInSimulation();
+        ctx.checkExecutionFullyPersistent();
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
         for (ExecuteProvisioningScriptOperation operation : operations) {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(

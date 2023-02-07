@@ -112,7 +112,7 @@ public class SynchronizationRequest {
                                                 .productionConfiguration(
                                                         taskExecutionMode.isProductionConfiguration()))
                                 .createSimulationResult(
-                                        test.isNativeRepository() && !taskExecutionMode.isPersistent())));
+                                        test.isNativeRepository() && !taskExecutionMode.isFullyPersistent())));
         String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
@@ -131,7 +131,7 @@ public class SynchronizationRequest {
     }
 
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
-        if (taskExecutionMode.isPersistent()) {
+        if (taskExecutionMode.isFullyPersistent()) {
             return ExecutionModeType.FULL;
         } else {
             return ExecutionModeType.PREVIEW;
@@ -199,7 +199,6 @@ public class SynchronizationRequest {
     @SuppressWarnings("WeakerAccess")
     public TestSimulationResult executeOnForegroundSimulated(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
-        stateCheck(taskExecutionMode.isSimulation(), "No simulation? Mode = %s", taskExecutionMode);
         return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
