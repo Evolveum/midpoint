@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (C) 2020-2022 Evolveum and contributors
+  ~ Copyright (C) 2020-2023 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,18 +9,18 @@
 
 <!--suppress XmlUnusedNamespaceDeclaration -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -579,8 +579,7 @@
             </xsd:element>
             <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
             </xsd:element>
-            <!-- TODO WIP accesses experiment, working name -->
-            <xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathMetadataType" minOccurs="0" maxOccurs="1">
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -881,4 +880,64 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="mappingItemApplicabilitySpecification" type="tns:MetadataProcessingItemApplicabilitySpecificationType"/>
+
+    <xsd:complexType name="AssignmentPathMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Assignment path leading to this data.
+                This is typically applied to role membership refs.
+                Multiple paths can appear on a single value, but each in separate metadata container value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>false</a:operational> <!-- intentionally -->
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        References the owner of the first assignment, e.g. a user.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="segment" type="tns:AssignmentPathSegmentMetadataType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignmentPathSegmentMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One segment in the metadata assignment path.
+                Segment can either reference `assignmentId` containing the `targetRef` or `inducementId`,
+                which indicates, whether the segment is an assignment or inducement.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="segmentOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order of this segment in the whole assignment path.
+                        First segment is numbered 1.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentId" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="inducementId" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Can be used to filter out segments going through meta-role assignments,
+                        which is indicated by `false` value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -38,15 +37,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,7 +73,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
             @Override
             protected ISelectableDataProvider<SelectableBean<ObjectReferenceType>> createProvider() {
-                return createSearchProvier(getSearchModel());
+                return createSearchProvider(getSearchModel());
             }
 
             @Override
@@ -152,18 +148,18 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     if (metadataValues == null) {
                         return null;
                     }
-                   List<AssignmentPathType> assignmentPaths = new ArrayList<>();
+                   List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
                     for (ProvenanceMetadataType metadataType : metadataValues) {
-                        assignmentPaths.addAll(metadataType.getAssignmentPath());
+                        assignmentPaths.add(metadataType.getAssignmentPath());
                     }
 
                     List<ObjectReferenceType> refs = new ArrayList<>();
-                    for (AssignmentPathType assignmentPathType : assignmentPaths) {
-                        List<AssignmentPathSegmentType> segments = assignmentPathType.getSegment();
+                    for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
+                        List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
                         if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
                             continue;
                         }
-                        AssignmentPathSegmentType sourceSegment = segments.get(0);
+                        AssignmentPathSegmentMetadataType sourceSegment = segments.get(0);
                         refs.add(getReferenceWithResolvedName(sourceSegment.getTargetRef()));
                     }
                     return refs;
@@ -202,9 +198,9 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 if (metadataValues == null) {
                     return;
                 }
-                List<AssignmentPathType> assignmentPaths = new ArrayList<>();
+                List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
                 for (ProvenanceMetadataType metadataType : metadataValues) {
-                    assignmentPaths.addAll(metadataType.getAssignmentPath());
+                    assignmentPaths.add(metadataType.getAssignmentPath());
                 }
 
                 AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(assignmentPaths));
@@ -286,7 +282,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 }
                 return () -> WebComponentUtil.formatDate(metadataType.getCreateTimestamp());
 
-            };
+            }
 
         };
         columns.add(since);
@@ -323,16 +319,15 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         if (metadataValues == null) {
             return null;
         }
-        List<AssignmentPathType> assignmentPaths = new ArrayList<>();
+        List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
         for (ProvenanceMetadataType metadataType : metadataValues) {
-            assignmentPaths.addAll(metadataType.getAssignmentPath());
+            assignmentPaths.add(metadataType.getAssignmentPath());
         }
 
 
         List<String> resolvedPaths = new ArrayList<>();
-        for (int i = 0; i < assignmentPaths.size(); i++) {
-            AssignmentPathType assignmentPathType = assignmentPaths.get(i);
-            List<AssignmentPathSegmentType> segments = assignmentPathType.getSegment();
+        for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
+            List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
             if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
                 continue;
             }
@@ -393,7 +388,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         return null;
     }
 
-    private ISelectableDataProvider<SelectableBean<ObjectReferenceType>> createSearchProvier(IModel<Search<ObjectReferenceType>> searchModel) {
+    private ISelectableDataProvider<SelectableBean<ObjectReferenceType>> createSearchProvider(IModel<Search<ObjectReferenceType>> searchModel) {
         return new SelectableBeanReferenceDataProvider(AllAccessListPanel.this, searchModel, null, false) {
 
             @Override

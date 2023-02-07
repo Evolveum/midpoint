@@ -7,30 +7,20 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
+import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentMetadataType;
 
-public class AssignmentPathSegmentPanel extends BasePanel<List<AssignmentPathSegmentType>> {
+public class AssignmentPathSegmentPanel extends BasePanel<List<AssignmentPathSegmentMetadataType>> {
     private static final String ID_SEGMENTS = "segments";
     private static final String ID_SEGMENT = "segment";
 
-
-    public AssignmentPathSegmentPanel(String id, IModel<List<AssignmentPathSegmentType>> model) {
+    public AssignmentPathSegmentPanel(String id, IModel<List<AssignmentPathSegmentMetadataType>> model) {
         super(id, model);
     }
 
@@ -42,9 +32,9 @@ public class AssignmentPathSegmentPanel extends BasePanel<List<AssignmentPathSeg
 
     private void initLayout() {
 
-        ListView<AssignmentPathSegmentType> segments = new ListView<>(ID_SEGMENTS, getModel()) {
+        ListView<AssignmentPathSegmentMetadataType> segments = new ListView<>(ID_SEGMENTS, getModel()) {
             @Override
-            protected void populateItem(ListItem<AssignmentPathSegmentType> listItem) {
+            protected void populateItem(ListItem<AssignmentPathSegmentMetadataType> listItem) {
                 listItem.add(new ObjectReferenceColumnPanel(ID_SEGMENT, () -> listItem.getModelObject().getTargetRef()));
             }
         };
