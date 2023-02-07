@@ -47,6 +47,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * 1. Partial reports creation: report data is created for each bucket of objects.
  * 2. Report summarization: partial report data objects are aggregated into summary one.
+ *
+ * State maintained:
+ *
+ * . `reportDataRef` in the parent activity state -> this is the ultimate aggregated (summary) report that contains data
+ * from partial data reports; created at the beginning and updated at the end
+ * . for compatibility reasons, `reportDataRef` is stored also in the aggregation sub-activity and in task extension
  */
 @Component
 public class DistributedReportExportActivityHandler
@@ -63,13 +69,15 @@ public class DistributedReportExportActivityHandler
 
     @PostConstruct
     public void register() {
-        registry.register(DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
+        registry.register(
+                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
                 DistributedReportExportWorkDefinition.class, DistributedReportExportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        registry.unregister(DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
+        registry.unregister(
+                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
                 DistributedReportExportWorkDefinition.class);
     }
 
@@ -107,16 +115,19 @@ public class DistributedReportExportActivityHandler
         return children;
     }
 
+    /**
+     * This should be the ultimate (aggregated) report data object. It is created at the very beginning.
+     *
+     * It would seem to be useless to create such object at the beginning, as it is basically overwritten during aggregation
+     * sub-activity run. But its OID is used as both `parentRef` as well as a part of the name for partial report data objects,
+     * binding them together.
+     */
     private void createEmptyAggregatedDataObject(
             EmbeddedActivity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
         ActivityState activityState =
-                ActivityState.getActivityStateUpwards(
-                        activity.getPath().allExceptLast(),
-                        runningTask,
-                        ReportExportWorkStateType.COMPLEX_TYPE,
-                        commonTaskBeans,
-                        result);
+                DistributedReportExportActivitySupport.getWholeActivityState(
+                        activity.getPath().allExceptLast(), runningTask, result);
         if (activityState.getWorkStateReferenceRealValue(F_REPORT_DATA_REF) != null) {
             return;
         }
