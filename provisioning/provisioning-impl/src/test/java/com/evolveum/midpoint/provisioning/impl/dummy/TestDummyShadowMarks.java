@@ -114,8 +114,10 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        repoAdd(ARCHETYPE_SHADOW_MARK, initResult);
-        repoAdd(TAG_PROTECTED_SHADOW, initResult);
+        if (areMarksSupported()) {
+            repoAdd(ARCHETYPE_SHADOW_MARK, initResult);
+            repoAdd(TAG_PROTECTED_SHADOW, initResult);
+        }
     }
 
     // test000-test100 in the superclasses

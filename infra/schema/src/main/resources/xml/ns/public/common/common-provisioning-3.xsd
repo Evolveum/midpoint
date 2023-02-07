@@ -4321,6 +4321,24 @@
                         </xsd:annotation>
                      </xsd:element>
                      <xsd:element name="policyStatement" type="tns:PolicyStatementType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                               Policy statements to manually add or exclude effective marks of shadow.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                     </xsd:element>
+                     <xsd:element name="effectiveProvisioningPolicy" type="tns:ShadowProvisioningPolicyType" minOccurs="0">
+                        <xsd:annotation>
+                          <xsd:documentation>
+                             Effective provisioning policy derived from Shadow marks and resource configuration.
+                          </xsd:documentation>
+                          <xsd:appinfo>
+                              <a:experimental>true</a:experimental>
+                          </xsd:appinfo>
+                        </xsd:annotation>
                      </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

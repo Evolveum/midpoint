@@ -318,26 +318,33 @@ public class ProvisioningUtil {
 
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
             throws SchemaException {
-        boolean isProtected =
-                ShadowMarkManager.get().isProtectedShadowPolicyNotExcluded(shadow) &&
-                ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
-
-
-        if (!isProtected) {
-            // We use shadow marks to determine if shadow is protected (works only for repository shadows).
-            isProtected = ShadowMarkManager.get().isProtectedShadow(shadow, result);
-        }
-        LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
-        return isProtected;
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).isProtected();
     }
 
+    private static ShadowProvisioningPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
+            ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        if (shadow.getEffectiveProvisioningPolicy() != null) {
+            return shadow.getEffectiveProvisioningPolicy();
+        }
+        ShadowMarkManager.get().updateEffectiveMarksAndPolicies(
+                protectedAccountPatterns, shadow, result);
+        return shadow.getEffectiveProvisioningPolicy();
+    }
+
+    public static void setEffectiveProvisioningPolicy (
+            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        ShadowMarkManager.get().updateEffectiveMarksAndPolicies(
+                ctx.getProtectedAccountPatterns(factory, result), shadow, result);
+    }
+
+    @Deprecated
     public static void setProtectedFlag(
             ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow, result)) {
-            shadow.setProtectedObject(true);
-        }
+        setEffectiveProvisioningPolicy(ctx, shadow, factory, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {

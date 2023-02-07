@@ -1710,7 +1710,7 @@ public class ResourceObjectConverter {
         }
         ShadowType resourceObjectBean = resourceObject.asObjectable();
 
-        ProvisioningUtil.setProtectedFlag(ctx, resourceObjectBean, expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, expressionFactory, result);
 
         if (resourceObjectBean.isExists() == null) {
             resourceObjectBean.setExists(true);
