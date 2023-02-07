@@ -13,9 +13,9 @@ import javax.servlet.http.HttpSession;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.catalina.User;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,10 +77,13 @@ public class PageEmailNonce extends PageAuthenticationBase {
     private static final String ID_HINT_PANEL = "hintPanel";
     private static final String ID_HINT_LABEL = "hintLabel";
     private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_SUBMIT = "submit";
+    private static final String ID_BACK_BUTTON_LABEL = "backButtonLabel";
+    private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
+    private static final String ID_CONTINUE_RESET_PASSWORD = "continueResetPassword";
     private static final String ID_PASSWORD_RESET_SUBMITED = "resetPasswordInfo";
 
     private boolean submited;
+    private UserType user = null;
     private ProtectedStringType hint = null;
 
     public PageEmailNonce() {
@@ -156,7 +159,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
     }
 
     private void initButtons(MidpointForm form) {
-        AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageBase.button.submit")) {
+        AjaxSubmitButton submitUserIdentifier = new AjaxSubmitButton(ID_SUBMIT_IDENTIFIER, createStringResource("PageBase.button.submit")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -171,17 +174,58 @@ public class PageEmailNonce extends PageAuthenticationBase {
             }
 
         };
-        form.add(submit);
+        submitUserIdentifier.add(new VisibleBehaviour(() -> !isHintPresent()));
+        form.add(submitUserIdentifier);
+
+        AjaxSubmitButton continuePasswordResetButton = new AjaxSubmitButton(ID_CONTINUE_RESET_PASSWORD, createStringResource("PageEmailNonce.continuePasswordResetLabel")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                continuePasswordReset(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getFeedbackPanel());
+            }
+
+        };
+        continuePasswordResetButton.add(new VisibleBehaviour(this::isHintPresent));
+        form.add(continuePasswordResetButton);
+
         form.add(createBackButton(ID_BACK_BUTTON));
     }
 
+    @Override
+    protected AjaxButton createBackButton(String id){
+        AjaxButton backButton = new AjaxButton(id) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed();
+            }
+        };
+        backButton.setOutputMarkupId(true);
+
+        Label backButtonLabel = new Label(ID_BACK_BUTTON_LABEL, new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                return createStringResource(isHintPresent() ? "PageEmailNonce.backButtonAfterHintLabel" : "PageEmailNonce.backButtonLabel").getString();
+            }
+        });
+        backButton.add(backButtonLabel);
+        return backButton;
+    }
+
     private void userIdentifierSubmitPerformed(AjaxRequestTarget target) {
-
-        UserType user = searchUser();
-
         if (user == null) {
-            getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
+            user = searchUser();
+            validateUserNotNullOrFail();
         }
         LOGGER.trace("Reset Password user: {}", user);
 
@@ -190,22 +234,35 @@ public class PageEmailNonce extends PageAuthenticationBase {
             WebComponentUtil.encryptProtectedString(hint, false, PageEmailNonce.this);
             target.add(PageEmailNonce.this);
         } else {
-            NonceCredentialsPolicyType noncePolicy = getMailNoncePolicy(user.asPrismObject());
-            if (noncePolicy == null) {
-                LOGGER.debug("No policies for reset password defined");
-                getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-                throw new RestartResponseException(PageEmailNonce.class);
-            }
+            continuePasswordReset(target);
+        }
+    }
 
-            OperationResult result = saveUserNonce(user, noncePolicy);
-            if (result.getStatus() == OperationResultStatus.SUCCESS) {
-                submited = true;
-                target.add(PageEmailNonce.this);
-            } else {
-                getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-                LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
-                throw new RestartResponseException(PageEmailNonce.this);
-            }
+    private void continuePasswordReset(AjaxRequestTarget target) {
+        validateUserNotNullOrFail();
+        NonceCredentialsPolicyType noncePolicy = getMailNoncePolicy(user.asPrismObject());
+        if (noncePolicy == null) {
+            LOGGER.debug("No policies for reset password defined");
+            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
+            throw new RestartResponseException(PageEmailNonce.class);
+        }
+
+        OperationResult result = saveUserNonce(user, noncePolicy);
+        if (result.getStatus() == OperationResultStatus.SUCCESS) {
+            submited = true;
+            target.add(PageEmailNonce.this);
+        } else {
+            getSession().error(getString("PageForgotPassword.send.nonce.failed"));
+            LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
+            throw new RestartResponseException(PageEmailNonce.this);
+        }
+    }
+
+
+    private void validateUserNotNullOrFail() {
+        if (user == null) {
+            getSession().error(getString("pageForgetPassword.message.user.not.found"));
+            throw new RestartResponseException(PageEmailNonce.class);
         }
     }
 

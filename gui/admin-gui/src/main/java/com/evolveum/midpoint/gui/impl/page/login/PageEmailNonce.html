@@ -27,7 +27,7 @@
             <div wicket:id="dynamicForm"/>
         </div>
 
-        <div class="card card-info justify-content-between" wicket:id="hintPanel">
+        <div class="card card-info justify-content-between mb-2" wicket:id="hintPanel">
             <div class="card-header">
                 <div class="d-flex flex-wrap gap-2">
                     <i class="pull-left  fa-info-circle fas"></i>
@@ -41,11 +41,15 @@
             </div>
         </div>
 
-        <div class="btn-group">
-            <a class="btn btn-default" wicket:id="back">
-                <wicket:message key="PageBase.button.back"/>
+        <div class="d-flex flex-wrap gap-2 justify-content-between login-button mb-2">
+            <a class="btn btn-primary flex-wrap gap-2 justify-content-center login-button" wicket:id="submitIdentifier">
             </a>
-            <a class="btn btn-primary" wicket:id="submit"/>
+            <a class="btn btn-primary flex-wrap gap-2 justify-content-center login-button" wicket:id="continueResetPassword">
+            </a>
+            <a class="text-center login-button" wicket:id="back">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span wicket:id="backButtonLabel" />
+            </a>
         </div>
     </form>
     <div style="text-align: center">
