@@ -193,11 +193,8 @@ public class TaskQuartzImpl implements Task {
     @Experimental
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
 
-    /** Obtains information about objects processed by the currently executing simulation. */
-    private volatile SimulationDataConsumer simulationDataConsumer;
-
     /** TODO */
-    private String simulationResultOid;
+    private SimulationTransaction simulationTransaction;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -2320,33 +2317,16 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer) {
-        SimulationDataConsumer old = simulationDataConsumer;
-        simulationDataConsumer = consumer;
-        return old;
+    public SimulationTransaction setSimulationTransaction(SimulationTransaction newTransaction) {
+        var oldTransaction = simulationTransaction;
+        simulationTransaction = newTransaction;
+        return oldTransaction;
     }
 
     @Override
-    public boolean hasSimulationDataConsumer() {
-        return simulationDataConsumer != null;
+    public @Nullable SimulationTransaction getSimulationTransaction() {
+        return simulationTransaction;
     }
 
-    @Override
-    public String getSimulationResultOid() {
-        return simulationResultOid;
-    }
-
-    @Override
-    public void setSimulationResultOid(String simulationResultOid) {
-        this.simulationResultOid = simulationResultOid;
-    }
-
-    @Override
-    public void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result) {
-        SimulationDataConsumer consumer = simulationDataConsumer;
-        if (consumer != null) {
-            consumer.accept(data, this, result);
-        }
-    }
     //endregion
 }

@@ -504,9 +504,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
-    private MainMenuItem createTagItems() {
-        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.tags", GuiStyleConstants.CLASS_TAG);
-        createBasicAssignmentHolderMenuItems(menu, PageTypes.TAG);
+    private MainMenuItem createMarkItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.marks", GuiStyleConstants.CLASS_MARK);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.MARK);
 
         return menu;
     }
@@ -517,7 +517,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
-        item.addMainMenuItem(createTagItems());
+        item.addMainMenuItem(createMarkItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());

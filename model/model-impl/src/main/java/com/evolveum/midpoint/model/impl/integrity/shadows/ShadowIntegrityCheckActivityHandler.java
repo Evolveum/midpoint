@@ -45,13 +45,16 @@ public class ShadowIntegrityCheckActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
                 ShadowIntegrityCheckWorkDefinition.class, ShadowIntegrityCheckWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.unregister(
+                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE,
+                LEGACY_HANDLER_URI,
                 ShadowIntegrityCheckWorkDefinition.class);
     }
 

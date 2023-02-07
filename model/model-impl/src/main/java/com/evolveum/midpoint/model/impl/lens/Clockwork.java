@@ -17,7 +17,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.simulation.SimulationDataImpl;
+import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
+
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -170,10 +172,17 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
-            task.acceptSimulationData(SimulationDataImpl.with(context), result);
+            writeSimulationData(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
+        }
+    }
+
+    private void writeSimulationData(LensContext<?> context, Task task, OperationResult result) {
+        SimulationTransaction transactionContext = task.getSimulationTransaction();
+        if (task.isSimulatedExecution() && transactionContext != null) {
+            transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
         }
     }
 

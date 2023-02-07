@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.test.SimulationResult;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
@@ -197,10 +197,10 @@ public class SynchronizationRequest {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public SimulationResult executeOnForegroundSimulated(
+    public TestSimulationResult executeOnForegroundSimulated(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
         stateCheck(taskExecutionMode.isSimulation(), "No simulation? Mode = %s", taskExecutionMode);
-        return test.executeInSimulationMode(
+        return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
                 task,
@@ -368,7 +368,7 @@ public class SynchronizationRequest {
             build().executeOnForeground(result);
         }
 
-        public SimulationResult executeOnForegroundSimulated(
+        public TestSimulationResult executeOnForegroundSimulated(
                 SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
             return build().executeOnForegroundSimulated(simulationDefinition, task, result);
         }

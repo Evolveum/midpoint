@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
@@ -54,11 +56,21 @@ public class SqaleUtils {
         }
     }
 
-    public static @Nullable UUID oidToUUid(@Nullable String oid) {
+    @Nullable
+    public static UUID oidToUuid(@Nullable String oid) {
+        if (oid == null) {
+            return null;
+        }
+        return oidToUuidMandatory(oid);
+    }
+
+    @NotNull
+    public static UUID oidToUuidMandatory(@NotNull String oid) {
+        Objects.requireNonNull(oid, "OID must not be null");
         try {
-            return oid != null ? UUID.fromString(oid) : null;
+            return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
+            throw new IllegalArgumentException("Cannot convert OID '" + oid + "' to UUID", e);
         }
     }
 

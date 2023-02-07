@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -24,15 +23,16 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
@@ -42,8 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
         urls = {
                 @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/objects",
                         matchUrlForSecurity = "/admin/simulations/result/?*/objects"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}/objects",
-                        matchUrlForSecurity = "/admin/simulations/result/?*/tag/?*/objects")
+                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/mark/${MARK_OID}/objects",
+                        matchUrlForSecurity = "/admin/simulations/result/?*/mark/?*/objects")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -63,7 +63,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private IModel<SimulationResultType> resultModel;
 
-    private IModel<List<MarkType>> availableTagsModel;
+    private IModel<List<MarkType>> availableMarksModel;
 
     public PageSimulationResultObjects() {
         this(new PageParameters());
@@ -85,11 +85,11 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
         };
 
-        availableTagsModel = new LoadableDetachableModel<>() {
+        availableMarksModel = new LoadableDetachableModel<>() {
 
             @Override
             protected List<MarkType> load() {
-                String[] tagOids = resultModel.getObject().getMetric().stream()
+                String[] markOids = resultModel.getObject().getMetric().stream()
                         .map(m -> m.getRef() != null ? m.getRef().getEventMarkRef() : null)
                         .filter(Objects::nonNull)
                         .map(AbstractReferencable::getOid)
@@ -98,12 +98,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
                 ObjectQuery query = getPrismContext()
                         .queryFor(MarkType.class)
-                        .id(tagOids).build();
+                        .id(markOids).build();
 
-                List<PrismObject<MarkType>> tags = WebModelServiceUtils.searchObjects(
+                List<PrismObject<MarkType>> marks = WebModelServiceUtils.searchObjects(
                         MarkType.class, query, getPageTask().getResult(), PageSimulationResultObjects.this);
 
-                return tags.stream()
+                return marks.stream()
                         .map(o -> o.asObjectable())
                         .collect(Collectors.toUnmodifiableList());
             }
@@ -111,12 +111,17 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     @Override
-    protected void createBreadcrumb() {
+    protected IModel<String> createPageTitleModel() {
+        return () -> null;
+    }
+
+    private IModel<String> createTitleModel() {
+        return () -> getString("PageSimulationResultObjects.title");
     }
 
     @Override
-    protected IModel<String> createPageTitleModel() {
-        return () -> null;
+    protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(PageSimulationResultObjects.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     private void initLayout() {
@@ -129,7 +134,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected IModel<String> createTitleModel() {
-                return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
+                return PageSimulationResultObjects.this.createTitleModel();
             }
 
             @Override
@@ -139,7 +144,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         };
         add(navigation);
 
-        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableTagsModel) {
+        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableMarksModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
@@ -152,8 +157,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
 
             @Override
-            protected String getTagOid() {
-                String oid = getPageParameterTagOid();
+            protected String getMarkOid() {
+                String oid = getPageParameterMarkOid();
                 if (oid != null && !Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
@@ -165,6 +170,16 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     private void onBackPerformed() {
-        redirectBack();
+        if (canRedirectBack()) {
+            redirectBack();
+            return;
+        }
+
+        clearBreadcrumbs();
+
+        PageParameters params = new PageParameters();
+        params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultModel.getObject().getOid());
+
+        navigateToNext(PageSimulationResult.class, params);
     }
 }

@@ -1006,6 +1006,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return getExecutionMode().isPersistent();
     }
 
+    default boolean isSimulatedExecution() {
+        return getExecutionMode().isSimulation();
+    }
+
     default boolean isProductionConfiguration() {
         return getExecutionMode().isProductionConfiguration();
     }
@@ -1013,6 +1017,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Just a convenience method. */
     default boolean canSee(AbstractMappingType mapping) {
         return SimulationUtil.isVisible(mapping, getExecutionMode());
+    }
+
+    /** Just a convenience method. */
+    default boolean canSee(ObjectType object) {
+        return SimulationUtil.isVisible(object, getExecutionMode());
     }
 
     /**
@@ -1028,29 +1037,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         }
     }
 
-    /**
-     * Forwards the simulation data to {@link SimulationDataConsumer} set for this task (if any).
-     *
-     * TODO better name?
-     */
-    void acceptSimulationData(@NotNull SimulationData data, @NotNull OperationResult result);
+    /** Sets the current simulation transaction object. */
+    SimulationTransaction setSimulationTransaction(SimulationTransaction context);
 
-    // FIXME this is a temporary code
-    SimulationDataConsumer setSimulationDataConsumer(SimulationDataConsumer consumer);
-
-    // FIXME this is a temporary code; delete if really unused
-    boolean hasSimulationDataConsumer();
-
-    /**
-     * Returns the OID of the last simulation result produced by running the `executeInSimulationMode` method with this task.
-     *
-     * I.e. does NOT apply to all tasks, in particular not to the persistent ones.
-     *
-     * FIXME this is a temporary code - probably will be changed
-     */
-    String getSimulationResultOid();
-
-    // FIXME this is a temporary code
-    void setSimulationResultOid(String oid);
+    /** Returns the current simulation transaction, if there is any. */
+    @Nullable SimulationTransaction getSimulationTransaction();
     //endregion
 }

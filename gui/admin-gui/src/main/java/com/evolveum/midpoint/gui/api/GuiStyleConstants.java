@@ -284,5 +284,5 @@ public class GuiStyleConstants {
 
     public static final String CLASS_SIMULATION_RESULT = "fa-solid fa-flask";
 
-    public static final String CLASS_TAG = "fa-solid fa-tag";
+    public static final String CLASS_MARK = "fa-solid fa-tag";
 }

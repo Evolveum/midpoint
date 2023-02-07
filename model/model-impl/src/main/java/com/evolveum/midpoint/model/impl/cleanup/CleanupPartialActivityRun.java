@@ -65,6 +65,7 @@ public final class CleanupPartialActivityRun<CP>
 
     @Override
     protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException {
+        ensureFullExecution();
         CP policy = policyGetter.apply(
                 getCleanupPolicies(result));
         if (policy != null) {

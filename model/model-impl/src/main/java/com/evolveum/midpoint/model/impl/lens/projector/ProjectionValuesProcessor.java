@@ -158,7 +158,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                         iteration, iterationToken, projContext.getHumanReadableName());
                 LOGGER.trace("Original secondary delta:\n{}", DebugUtil.debugDumpLazily(rememberedProjectionState)); // todo remove
 
-                if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, task, iterationResult)) {
+                if (!evaluateIterationCondition(
+                        context, projContext, iteration, iterationToken, true, task, iterationResult)) {
 
                     conflictMessage = "pre-iteration condition was false";
                     LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
@@ -173,13 +174,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     context.recompute();
                     context.checkConsistenceIfNeeded();
 
-//                policyRuleProcessor.evaluateShadowPolicyRules(context, projContext, activityDescription, task, iterationResult);
-
                     // Evaluates the values in outbound mappings
                     outboundProcessor.processOutbound(context, projContext, task, iterationResult);
 
                     // Merges the values together, processing exclusions and strong/weak mappings are needed
-                    consolidationProcessor.consolidateValues(context, projContext, task, iterationResult);
+                    consolidationProcessor.consolidateValues(projContext, task, iterationResult);
 
                     // Aux object classes may have changed during consolidation. Make sure we have up-to-date definitions.
                     context.refreshAuxiliaryObjectClassDefinitions();
@@ -668,7 +667,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return;
         }
 
-        consolidationProcessor.consolidateValuesPostRecon(context, projContext, task, result);
+        consolidationProcessor.consolidateValuesPostRecon(projContext, task, result);
         context.checkConsistenceIfNeeded();
         projContext.recompute();
         context.checkConsistenceIfNeeded();

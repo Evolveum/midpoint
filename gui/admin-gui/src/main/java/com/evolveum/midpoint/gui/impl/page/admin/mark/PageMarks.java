@@ -5,9 +5,8 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.tag;
+package com.evolveum.midpoint.gui.impl.page.admin.mark;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -20,38 +19,40 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/tags", matchUrlForSecurity = "/admin/tags")
+                @Url(mountUrl = "/admin/marks", matchUrlForSecurity = "/admin/marks")
         },
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAGS_ALL_URL,
-                        label = "PageAdminUsers.auth.tagsAll.label",
-                        description = "PageAdminUsers.auth.usersAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TAGS_URL,
-                        label = "PageTags.auth.tags.label",
-                        description = "PageTags.auth.tags.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARKS_ALL_URL,
+                        label = "PageAdminUsers.auth.marksAll.label",
+                        description = "PageAdminUsers.auth.marksAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MARKS_URL,
+                        label = "PageTags.auth.marks.label",
+                        description = "PageTags.auth.marks.description")
         })
 @CollectionInstance(identifier = "allTags", applicableForType = MarkType.class,
-        display = @PanelDisplay(label = "PageAdmin.menu.top.tags.list", singularLabel = "ObjectType.tag", icon = GuiStyleConstants.CLASS_CIRCLE_FULL))
-public class PageTags extends PageAdmin {
+        display = @PanelDisplay(label = "PageAdmin.menu.top.marks.list", singularLabel = "ObjectTypes.MARK", icon = GuiStyleConstants.CLASS_MARK))
+public class PageMarks extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_FORM = "form";
     private static final String ID_TABLE = "table";
 
-    public PageTags() {
+    public PageMarks() {
         this(new PageParameters());
     }
 
-    public PageTags(PageParameters parameters) {
+    public PageMarks(PageParameters parameters) {
         super(parameters);
     }
 
@@ -63,7 +64,12 @@ public class PageTags extends PageAdmin {
     }
 
     private void initLayout() {
+        if (!isNativeRepo()) {
+            warn(getString("PageMarks.nonNativeRepositoryWarning"));
+        }
+
         Form form = new MidpointForm(ID_FORM);
+        form.add(new VisibleBehaviour(() -> isNativeRepo()));
         add(form);
 
         MainObjectListPanel<MarkType> table = new MainObjectListPanel<>(ID_TABLE, MarkType.class) {

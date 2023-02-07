@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1019,8 +1019,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             originalPaging.getOrderingInstructions().forEach(o ->
                     paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
         }
-        // TODO check of provided ordering
-        paging.addOrderingInstruction(AuditEventRecordType.F_REPO_ID, OrderDirection.ASCENDING);
+        // We want to order the ref in the same direction as the provided ordering.
+        // This is also reflected by GT/LT conditions in lastOidCondition() method.
+        paging.addOrderingInstruction(AuditEventRecordType.F_REPO_ID,
+                providedOrdering != null && providedOrdering.size() == 1
+                        && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
+                        ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
         pagedQuery.setPaging(paging);
 
         int pageSize = Math.min(

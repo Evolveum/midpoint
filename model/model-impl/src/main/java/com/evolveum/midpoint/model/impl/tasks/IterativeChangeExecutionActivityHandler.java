@@ -112,6 +112,12 @@ public class IterativeChangeExecutionActivityHandler
         }
 
         @Override
+        public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+            super.beforeRun(result);
+            ensureNoDryRun();
+        }
+
+        @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException {

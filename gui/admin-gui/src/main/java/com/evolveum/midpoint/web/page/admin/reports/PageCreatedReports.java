@@ -313,12 +313,12 @@ public class PageCreatedReports extends PageAdmin {
         };
         columns.add(column);
 
-        column = new ObjectReferenceColumn<SelectableBean<ReportDataType>>(createStringResource("pageCreatedReports.table.type"),
-                SelectableBeanImpl.F_VALUE + "." + ReportDataType.F_REPORT_REF.getLocalPart()){
+        column = new ObjectReferenceColumn<>(createStringResource("pageCreatedReports.table.type"),
+                SelectableBeanImpl.F_VALUE + "." + ReportDataType.F_REPORT_REF.getLocalPart()) {
             @Override
-            public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
                 SelectableBean<ReportDataType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getReportRef());
+                return Model.ofList(Collections.singletonList(bean.getValue().getReportRef()));
             }
         };
         columns.add(column);

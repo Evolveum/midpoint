@@ -418,7 +418,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             if (ref.getType() == null) {
                 ref = SqaleUtils.referenceWithTypeFixed(ref);
             }
-            targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
+            targetOidConsumer.accept(SqaleUtils.oidToUuid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }

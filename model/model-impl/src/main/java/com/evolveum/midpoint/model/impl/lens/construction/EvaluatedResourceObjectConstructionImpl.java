@@ -269,12 +269,14 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     /**
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
-    protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+    protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+            throws SchemaException;
 
     /**
      * Collects associations that are to be evaluated.
      */
-    protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+    protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
+            ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
     //endregion
 
     //region Resource object loading

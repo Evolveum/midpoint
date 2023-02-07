@@ -132,6 +132,8 @@ public interface RepositoryService {
     String OP_SEARCH_CONTAINERS = "searchContainers";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_SEARCH_REFERENCES = "searchReferences";
+    String OP_SEARCH_REFERENCES_ITERATIVE = "searchReferencesIterative";
+    String OP_SEARCH_REFERENCES_ITERATIVE_PAGE = "searchReferencesIterativePage";
     String OP_COUNT_REFERENCES = "countReferences";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
@@ -207,7 +209,7 @@ public interface RepositoryService {
      *
      * This operation should fail if such object already exists (if object with
      * the provided OID already exists).
-     * Overwrite is possible if {@link RepoAddOptions#overwrite} is true, but only
+     * Overwrite is possible if {@link RepoAddOptions#isOverwrite()} is true, but only
      * for the object of the same type.
      *
      * The operation may fail if provided OID is in an unusable format for the storage.
@@ -337,7 +339,7 @@ public interface RepositoryService {
 
 
     @Experimental
-    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) {
+    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         throw new UnsupportedOperationException("Not supported yet");
     }
 
@@ -487,6 +489,22 @@ public interface RepositoryService {
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult)
             throws SchemaException;
+
+    /**
+     * Executes iterative reference search using the provided `handler` to process each references.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
      * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.

@@ -213,7 +213,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
         R row = newRowObject();
 
-        row.oid = SqaleUtils.oidToUUid(schemaObject.getOid());
+        row.oid = SqaleUtils.oidToUuid(schemaObject.getOid());
         // objectType MUST be left NULL for INSERT, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
         // fullObject is managed outside this method

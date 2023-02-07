@@ -140,6 +140,7 @@ class MappedItems<F extends FocusType> {
                 itemDescription,
                 attributeAPrioriDelta,
                 mappingBeans,
+                attributeDefinition.isVisible(context.getTaskExecutionMode()),
                 attributeDefinition.isIgnored(LayerType.MODEL),
                 attributeDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -206,6 +207,7 @@ class MappedItems<F extends FocusType> {
                 itemDescription,
                 associationAPrioriDelta,
                 mappingBeans,
+                associationDefinition.isVisible(context.getTaskExecutionMode()),
                 associationDefinition.isIgnored(LayerType.MODEL),
                 associationDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -266,6 +268,7 @@ class MappedItems<F extends FocusType> {
                 itemDescription,
                 itemAPrioriDelta,
                 mappingBeans,
+                true, // aux OCs are always visible
                 false, // aux OCs are never ignored
                 null); // aux OCs are never unreadable
         if (processingMode == ProcessingMode.NONE) {

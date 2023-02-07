@@ -40,21 +40,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
- * TODO
+ * Result of the simulation - to be used for the tests.
  */
 @SuppressWarnings("WeakerAccess") // temporary
 @Experimental
-public class SimulationResult {
+public class TestSimulationResult {
 
     @NotNull private final String simulationResultOid;
     private ModelContext<?> lastModelContext;
 
-    SimulationResult(@NotNull String simulationResultOid) {
+    TestSimulationResult(@NotNull String simulationResultOid) {
         this.simulationResultOid = simulationResultOid;
     }
 
-    public static SimulationResult fromSimulationResultOid(@NotNull String simulationResultOid) {
-        return new SimulationResult(simulationResultOid);
+    public static TestSimulationResult fromSimulationResultOid(@NotNull String simulationResultOid) {
+        return new TestSimulationResult(simulationResultOid);
     }
 
     public ModelContext<?> getLastModelContext() {
@@ -117,10 +117,6 @@ public class SimulationResult {
             TestSpringBeans.getBean(ProvisioningService.class)
                     .applyDefinition(object.getDelta(), MidpointTestContextWithTask.get().getTask(), result);
         }
-    }
-
-    public @NotNull String getSimulationResultOid() {
-        return simulationResultOid;
     }
 
     public @NotNull SimulationResultType getCompleteSimulationResult(OperationResult result)

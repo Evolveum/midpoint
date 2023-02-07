@@ -86,13 +86,13 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SIMULATION_PROCESSED_OBJECT_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationProcessedObject");
     public static final String AUTZ_UI_SIMULATION_PROCESSED_OBJECT_URL = NS_AUTHORIZATION_UI + "#simulationProcessedObject";
 
-    // tags
-    public static final QName AUTZ_UI_TAGS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "tagsAll");
-    public static final String AUTZ_UI_TAGS_ALL_URL = NS_AUTHORIZATION_UI + "#tagsAll";
-    public static final QName AUTZ_UI_TAGS_QNAME = new QName(NS_AUTHORIZATION_UI, "tags");
-    public static final String AUTZ_UI_TAGS_URL = NS_AUTHORIZATION_UI + "#tags";
-    public static final QName AUTZ_UI_TAG_QNAME = new QName(NS_AUTHORIZATION_UI, "tag");
-    public static final String AUTZ_UI_TAG_URL = NS_AUTHORIZATION_UI + "#tag";
+    // marks
+    public static final QName AUTZ_UI_MARKS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "marksAll");
+    public static final String AUTZ_UI_MARKS_ALL_URL = NS_AUTHORIZATION_UI + "#marksAll";
+    public static final QName AUTZ_UI_MARKS_QNAME = new QName(NS_AUTHORIZATION_UI, "marks");
+    public static final String AUTZ_UI_MARKS_URL = NS_AUTHORIZATION_UI + "#marks";
+    public static final QName AUTZ_UI_MARK_QNAME = new QName(NS_AUTHORIZATION_UI, "mark");
+    public static final String AUTZ_UI_MARK_URL = NS_AUTHORIZATION_UI + "#mark";
 
     //user
     public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "usersAll");

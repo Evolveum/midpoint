@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 
+import static com.evolveum.midpoint.repo.sqale.SqaleUtils.oidToUuidMandatory;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -222,7 +224,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
             Class<Q> queryType, String oid) {
-        return selectObjectByOid(queryType, UUID.fromString(oid));
+        return selectObjectByOid(queryType, oidToUuidMandatory(oid));
     }
 
     protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
@@ -234,7 +236,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
             Class<Q> queryType, String oid) {
-        return selectNullableObjectByOid(queryType, UUID.fromString(oid));
+        return selectNullableObjectByOid(queryType, oidToUuidMandatory(oid));
     }
 
     protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
@@ -316,6 +318,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } else {
             assertThat(operationInfo).isNull();
         }
+    }
+
+    protected int operationRecordedCount(String opKind) {
+        Map<String, OperationPerformanceInformation> pmAllData =
+                getPerformanceMonitor()
+                        .getGlobalPerformanceInformation().getAllData();
+        OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
+        return operationInfo != null ? operationInfo.getInvocationCount() : 0;
     }
 
     /** Creates a reference with specified type and default relation. */

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -53,7 +54,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.ObjectsCounter;
-import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -315,7 +315,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForeground(result);
 
         when("single account is imported (on foreground, simulated production execution)");
-        SimulationResult simResult = importHrAccountRequest("1")
+        TestSimulationResult simResult = importHrAccountRequest("1")
                 .simulatedProduction()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -324,7 +324,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertSize(0); // no clockwork
 
         when("single account is imported (on foreground, simulated development execution)");
-        SimulationResult simResult2 = importHrAccountRequest("1")
+        TestSimulationResult simResult2 = importHrAccountRequest("1")
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -347,7 +347,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.assertNoNewObjects(result);
     }
 
-    private void assertTest130SimulationResult(SimulationResult simResult) throws CommonException {
+    private void assertTest130SimulationResult(TestSimulationResult simResult) throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult)
                 .display()
@@ -385,7 +385,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestHrResource(RESOURCE_HR_140, task, result);
 
         when("single account is imported (on foreground, simulated development execution)");
-        SimulationResult simResult1 = importHrAccountRequest("1")
+        TestSimulationResult simResult1 = importHrAccountRequest("1")
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -428,7 +428,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertTest140SimulatedDeltasSingleAccount(SimulationResult simResult, String message) throws CommonException {
+    private void assertTest140SimulatedDeltasSingleAccount(TestSimulationResult simResult, String message) throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult, "simulated development execution: " + message)
                 .display()
@@ -515,7 +515,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestHrResource(RESOURCE_HR_160, task, result);
 
         when("single account is imported (on foreground, simulated production execution)");
-        SimulationResult simResult1 = importHrAccountRequest("4")
+        TestSimulationResult simResult1 = importHrAccountRequest("4")
                 .simulatedProduction()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -595,7 +595,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         RESOURCE_HR_170.append("999,Alice,Test,atest999@evolveum.com,,testing employee");
 
         when("the testing employee is imported (on foreground, simulated development execution)");
-        SimulationResult simResult1 = importHrAccountRequest("999")
+        TestSimulationResult simResult1 = importHrAccountRequest("999")
                 .simulatedDevelopment() // because resource is `proposed` now
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -630,7 +630,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertSynchronizationSituation(null); // Not updated because of the simulated execution.
 
         when("existing employee 4 is imported (on foreground, simulated development execution)");
-        SimulationResult simResult4 = importHrAccountRequest("4")
+        TestSimulationResult simResult4 = importHrAccountRequest("4")
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -1142,7 +1142,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_250, task, result);
 
         when("previewing the inbound username mapping on single user before running import (foreground, prod sim)");
-        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+        TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedProduction()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -1211,7 +1211,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .hasSize(1);
 
         and("there are is a simulation result but no deltas");
-        SimulationResult taskSimResult = getTaskSimResult(simTaskOid, result);
+        TestSimulationResult taskSimResult = getTaskSimResult(simTaskOid, result);
         SimulationResultType simResultBean = taskSimResult.getSimulationResultBean(result);
         long simStartTs = XmlTypeConverter.toMillis(simResultBean.getStartTimestamp());
         assertSimulationResult(simResultBean, "after")
@@ -1260,7 +1260,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         when("trying the import (development simulation)");
         OperationResult result1 = result.createSubresult("import");
-        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+        TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedDevelopment()
                 .withNotAssertingSuccess()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result1);
@@ -1298,7 +1298,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_270, task, result);
 
         when("trying the single-account import (development simulation)");
-        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+        TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
 
@@ -1327,7 +1327,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
 
         when("trying to create the account for John Johnson");
-        SimulationResult simResult2 =
+        TestSimulationResult simResult2 =
                 executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
                         getDefaultSimulationDefinition(),
@@ -1380,7 +1380,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_280, task, result);
 
         when("checking outbound mappings by creating the account for John Johnson");
-        SimulationResult simResult =
+        TestSimulationResult simResult =
                 executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
                         getDefaultSimulationDefinition(),

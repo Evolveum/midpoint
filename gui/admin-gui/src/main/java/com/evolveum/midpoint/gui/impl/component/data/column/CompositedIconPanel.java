@@ -93,7 +93,5 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
         };
         layeredIcon.add(validationItems);
-
-        add(new VisibleBehaviour(() -> getModelObject() != null));
     }
 }

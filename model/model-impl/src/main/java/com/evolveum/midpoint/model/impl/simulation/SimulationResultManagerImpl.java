@@ -6,45 +6,32 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.SimulationData;
-import com.evolveum.midpoint.task.api.SimulationDataConsumer;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.merger.simulation.SimulationDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
+import com.evolveum.midpoint.task.api.SimulationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,18 +47,12 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @Autowired private Clock clock;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private OpenResultTransactionsHolder openResultTransactionsHolder;
-    @Autowired private PrismContext prismContext;
-    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     /** Global definitions provided by the system configuration. */
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
 
     /** Global metric definitions provided by the system configuration. Keyed by identifier. Immutable. */
     @NotNull private volatile Map<String, SimulationMetricDefinitionType> metricDefinitions = new HashMap<>();
-
-    /** Primitive way of checking we do not write to closed results. */
-    @VisibleForTesting
-    @NotNull private final ClosedResultsChecker closedResultsChecker = new ClosedResultsChecker();
 
     @Override
     public SimulationDefinitionType defaultDefinition() throws ConfigurationException {
@@ -102,7 +83,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public @NotNull SimulationResultContext openNewSimulationResult(
+    public @NotNull SimulationResultImpl createSimulationResult(
             @Nullable SimulationDefinitionType definition,
             @Nullable String rootTaskOid,
             @Nullable ConfigurationSpecificationType configurationSpecification,
@@ -130,7 +111,9 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             throw SystemException.unexpected(e, "when creating a simulation result");
         }
 
-        return new SimulationResultContextImpl(this, storedOid);
+        LOGGER.debug("Created simulation result {}", newResult);
+
+        return new SimulationResultImpl(storedOid, expandedDefinition);
     }
 
     /** TODO improve this method (e.g. by formatting the timestamp? by configuring the name? i18n?) */
@@ -178,89 +161,17 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                 () -> new ConfigurationException("No simulation definition with id '" + id + "' was found"));
     }
 
-    @Override
-    public void closeSimulationResult(@NotNull String simulationResulOid, Task task, OperationResult result)
-            throws ObjectNotFoundException {
-        try {
-            closedResultsChecker.markClosed(simulationResulOid);
-            // Note that all transactions should be already committed and thus deleted from the holder.
-            // So this is just the housekeeping for unusual situations.
-            openResultTransactionsHolder.removeSimulationResult(simulationResulOid);
-            repository.modifyObject(
-                    SimulationResultType.class,
-                    simulationResulOid,
-                    PrismContext.get().deltaFor(SimulationResultType.class)
-                            .item(SimulationResultType.F_END_TIMESTAMP)
-                            .replace(clock.currentTimeXMLGregorianCalendar())
-                            .asItemDeltas(),
-                    result);
-        } catch (ObjectNotFoundException e) {
-            throw e;
-        } catch (CommonException e) {
-            // TODO do we want to propagate some of these exceptions upwards in their original form?
-            throw new SystemException("Couldn't close simulation result " + simulationResulOid + ": " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void openSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
-
-        LOGGER.trace("Opening simulation result transaction {}:{}", simulationResultOid, transactionId);
-
-        deleteTransactionIfPresent(simulationResultOid, transactionId, result);
-
-        openResultTransactionsHolder.removeTransaction(simulationResultOid, transactionId);
-    }
-
     /**
      * Removes all processed object records from this transaction - if there are any.
      *
      * If they exist, they were probably left there from the previously suspended (and now resumed) execution.
      */
-    private void deleteTransactionIfPresent(String simulationResultOid, String transactionId, OperationResult result) {
-        // TODO implement
-    }
-
-    @Override
-    public void commitSimulationResultTransaction(
-            @NotNull String simulationResultOid, @NotNull String transactionId, OperationResult result) {
+    void deleteTransactionIfPresent(String simulationResultOid, String transactionId, OperationResult result) {
         try {
-            LOGGER.trace("Committing simulation result transaction {}:{}", simulationResultOid, transactionId);
-
-            repository.modifyObjectDynamically(
-                    SimulationResultType.class,
-                    simulationResultOid,
-                    null,
-                    oldResult ->
-                        prismContext.deltaFor(SimulationResultType.class)
-                                .item(SimulationResultType.F_METRIC)
-                                .replaceRealValues(
-                                        computeUpdatedMetricsValues(simulationResultOid, oldResult.getMetric(), transactionId))
-                                .asItemDeltas(),
-                    null,
-                    result);
-        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-            throw SystemException.unexpected(e, "when committing simulation result transaction");
+            repository.deleteSimulatedProcessedObjects(simulationResultOid, transactionId, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new SystemException(e);
         }
-
-        openResultTransactionsHolder.removeTransaction(simulationResultOid, transactionId);
-    }
-
-    /**
-     * Adds current in-memory metric values for the transaction being committed to the (aggregated) metrics values
-     * that will go to the result.
-     */
-    private List<SimulationMetricValuesType> computeUpdatedMetricsValues(
-            String simulationResultOid, List<SimulationMetricValuesType> old, String transactionId) {
-        List<SimulationMetricValuesType> current =
-                openResultTransactionsHolder.getMetricsValues(simulationResultOid, transactionId);
-        List<SimulationMetricValuesType> sum = SimulationMetricComputer.add(old, current);
-        // TODO consider removal of the following logging call (too verbose)
-        LOGGER.trace("Computed updated metrics for {}:{}:\n OLD:\n{}\n CURRENT:\n{}\n SUM:\n{}",
-                simulationResultOid, transactionId,
-                DebugUtil.debugDumpLazily(old), DebugUtil.debugDumpLazily(current), DebugUtil.debugDumpLazily(sum));
-        return sum;
     }
 
     @Override
@@ -286,101 +197,6 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         systemConfigurationChangeDispatcher.unregisterListener(this);
     }
 
-    void storeSimulationData(
-            @NotNull String resultOid,
-            @NotNull String transactionId,
-            @NotNull SimulationData data,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        if (!(data instanceof SimulationDataImpl)) {
-            LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
-            return;
-        }
-        LensContext<?> lensContext = ((SimulationDataImpl) data).getLensContext();
-        try {
-            LOGGER.trace("Storing {} into {}:{}", lensContext, resultOid, transactionId);
-
-            // This check is temporarily disabled because of LiveSync simulations. FIXME reconsider this
-            //closedResultsChecker.checkNotClosed(resultOid);
-
-            LensFocusContext<?> focusContext = lensContext.getFocusContext();
-            ProcessedObjectImpl<?> focusRecord = createProcessedObject(focusContext, transactionId, task, result);
-
-            List<ProcessedObjectImpl<ShadowType>> projectionRecords = new ArrayList<>();
-            for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
-                ProcessedObjectImpl<ShadowType> projectionRecord =
-                        createProcessedObject(projectionContext, transactionId, task, result);
-                if (projectionRecord != null) {
-                    projectionRecords.add(projectionRecord);
-                }
-            }
-
-            // Setting links between focus and its projections
-            if (focusRecord != null) {
-                focusRecord.setRecordId(generateRecordId());
-                focusRecord.setProjectionRecords(projectionRecords.size());
-                storeProcessedObjects(resultOid, transactionId, List.of(focusRecord), task, result);
-            }
-
-            for (ProcessedObjectImpl<ShadowType> projectionRecord : projectionRecords) {
-                projectionRecord.setRecordId(generateRecordId());
-                projectionRecord.setFocusRecordId(focusRecord != null ? focusRecord.getRecordId() : null);
-            }
-            storeProcessedObjects(resultOid, transactionId, projectionRecords, task, result);
-
-        } catch (CommonException e) {
-            // TODO which exception to treat?
-            throw SystemException.unexpected(e, "when storing processed object information");
-        }
-    }
-
-    /**
-     * Generates the ID for the "processed object" record. Should be unique within a simulation result.
-     *
-     * Later, this may be done right in the repository service.
-     */
-    private String generateRecordId() {
-        return lightweightIdentifierGenerator.generate().toString();
-    }
-
-    private <O extends ObjectType> ProcessedObjectImpl<O> createProcessedObject(
-            @Nullable LensElementContext<O> elementContext,
-            String transactionId,
-            Task task,
-            OperationResult result) {
-        if (elementContext == null) {
-            return null;
-        }
-        try {
-            return ProcessedObjectImpl.create(elementContext, transactionId, task, result);
-        } catch (CommonException e) {
-            // TODO do we need more precise error reporting here?
-            //  Or should we conceal some of these exceptions? (Probably not.)
-            throw new SystemException(
-                    "Couldn't process or store the simulation object processing record: " + e.getMessage(), e);
-        }
-    }
-
-    private void storeProcessedObjects(
-            @NotNull String resultOid,
-            @NotNull String transactionId,
-            @NotNull Collection<? extends ProcessedObjectImpl<?>> processedObjects,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws CommonException {
-        if (processedObjects.isEmpty()) {
-            return;
-        }
-        for (ProcessedObjectImpl<?> processedObject : processedObjects) {
-            LOGGER.trace("Going to store processed object into {}:{}: {}", resultOid, transactionId, processedObject);
-            openResultTransactionsHolder.addProcessedObject(resultOid, transactionId, processedObject, task, result);
-        }
-        List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
-                .item(SimulationResultType.F_PROCESSED_OBJECT)
-                .addRealValues(ProcessedObjectImpl.toBeans(processedObjects))
-                .asItemDeltas();
-        repository.modifyObject(SimulationResultType.class, resultOid, modifications, result);
-    }
-
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
     @Override
     public @NotNull List<ProcessedObjectImpl<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
@@ -399,8 +215,21 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public SimulationResultContext newSimulationContext(@NotNull String resultOid) {
-        return new SimulationResultContextImpl(this, resultOid);
+    public SimulationResult getSimulationResult(@NotNull String resultOid, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        var simResult = repository
+                .getObject(SimulationResultType.class, resultOid, null, result)
+                .asObjectable();
+        assertNotClosed(simResult);
+        return new SimulationResultImpl(
+                resultOid,
+                Objects.requireNonNullElseGet(simResult.getDefinition(), SimulationDefinitionType::new));
+    }
+
+    private static void assertNotClosed(SimulationResultType simResult) {
+        XMLGregorianCalendar endTimestamp = simResult.getEndTimestamp();
+        stateCheck(endTimestamp == null,
+                "Trying to update already closed simulation result %s (%s)", simResult, endTimestamp);
     }
 
     @NotNull Collection<SimulationMetricDefinitionType> getMetricDefinitions() {
@@ -408,7 +237,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public <X> X executeInSimulationMode(
+    public <X> X executeWithSimulationResult(
             @NotNull TaskExecutionMode mode,
             @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -416,29 +245,23 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             @NotNull SimulatedFunctionCall<X> functionCall)
             throws CommonException {
 
-        argCheck(mode.isSimulation(),
-                "Requested an execution in simulation mode, but the mode provided is not a simulation one: %s", mode);
         argCheck(task.isTransient(), "Not supported for persistent tasks: %s", task);
-        SimulationResultContext simulationResultContext =
-                openNewSimulationResult(
-                        simulationDefinition, null, mode.toConfigurationSpecification(), result);
-        String simulationResultOid = simulationResultContext.getResultOid();
-        task.setSimulationResultOid(simulationResultOid);
-        openSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
-
-        SimulationDataConsumer dataConsumer =
-                simulationResultContext.getSimulationDataConsumer(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
+        SimulationResultImpl simulationResult =
+                createSimulationResult(simulationDefinition, null, mode.toConfigurationSpecification(), result);
+        SimulationTransactionImpl simulationTransaction =
+                simulationResult.getTransaction(SIMULATION_RESULT_DEFAULT_TRANSACTION_ID);
+        simulationTransaction.open(result);
 
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         X returnValue;
         try {
-            task.setSimulationDataConsumer(dataConsumer);
+            task.setSimulationTransaction(simulationTransaction);
             returnValue = functionCall.execute();
         } finally {
-            task.setSimulationDataConsumer(null);
+            task.setSimulationTransaction(null);
             task.setExecutionMode(oldMode);
-            commitSimulationResultTransaction(simulationResultOid, SIMULATION_RESULT_DEFAULT_TRANSACTION_ID, result);
-            closeSimulationResult(simulationResultOid, task, result);
+            simulationTransaction.commit(result);
+            simulationResult.close(result);
         }
         return returnValue;
     }
@@ -448,38 +271,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         return metricDefinitions.get(identifier);
     }
 
-    /**
-     * Checks that we do not write into closed {@link SimulationResultType}.
-     * Assumes {@link InternalsConfig#consistencyChecks} be `true`, i.e. usually not employed in production.
-     * (Does not detect problems when in cluster, anyway.)
-     *
-     * "Real" testing by fetching the whole {@link SimulationResultType} from the repository would be too slow and inefficient.
-     */
-    @VisibleForTesting
-    private static class ClosedResultsChecker {
-
-        private static final long DELETE_AFTER = 3600_000;
-
-        /** Value is when the result was closed. */
-        private final Map<String, Long> closedResults = new ConcurrentHashMap<>();
-
-        void markClosed(String oid) {
-            if (!InternalsConfig.consistencyChecks) {
-                return;
-            }
-            long now = System.currentTimeMillis();
-            closedResults.put(oid, now);
-
-            // Deleting obsolete results - just to avoid growing the map forever, if turned on by chance in production.
-            closedResults.entrySet()
-                    .removeIf(e -> e.getValue() < now - DELETE_AFTER);
-        }
-
-        void checkNotClosed(String oid) {
-            if (!InternalsConfig.consistencyChecks) {
-                return;
-            }
-            stateCheck(!closedResults.containsKey(oid), "Trying to append to already closed simulation result: %s", oid);
-        }
+    @NotNull OpenResultTransactionsHolder getOpenResultTransactionsHolder() {
+        return openResultTransactionsHolder;
     }
 }

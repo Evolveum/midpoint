@@ -1,10 +1,14 @@
+/*
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
@@ -18,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
@@ -40,24 +45,20 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                 .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
                 .archetypeRef(TEST_ARCHETYPE, ArchetypeType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
-                        .targetRef(TEST_ARCHETYPE, ArchetypeType.COMPLEX_TYPE)
-                )
+                        .targetRef(TEST_ARCHETYPE, ArchetypeType.COMPLEX_TYPE))
                 .processedObject(new SimulationResultProcessedObjectType()
-                    .transactionId("1")
-                    .oid("00000000-0000-0000-0000-000000000001")
-                    .name("System Configuration")
-                    .state(ObjectProcessingStateType.UNMODIFIED)
-                    .eventMarkRef(TEST_TAG_1, MarkType.COMPLEX_TYPE)
-                    .eventMarkRef(TEST_TAG_2, MarkType.COMPLEX_TYPE)
-                    .before(systemConfiguration.clone())
-                 )
+                        .transactionId("1")
+                        .oid("00000000-0000-0000-0000-000000000001")
+                        .name("System Configuration")
+                        .state(ObjectProcessingStateType.UNMODIFIED)
+                        .eventMarkRef(TEST_TAG_1, MarkType.COMPLEX_TYPE)
+                        .eventMarkRef(TEST_TAG_2, MarkType.COMPLEX_TYPE)
+                        .before(systemConfiguration.clone()))
                 .processedObject(new SimulationResultProcessedObjectType()
                         .transactionId("2")
                         .oid("00000000-0000-0000-0000-000000000002")
                         .name("Administrator")
-                        .before(systemConfiguration.clone())
-                     )
-                ;
+                        .before(systemConfiguration.clone()));
 
         when("result is added to the repository");
         @NotNull String oid = repositoryService.addObject(obj.asPrismObject(), null, result);

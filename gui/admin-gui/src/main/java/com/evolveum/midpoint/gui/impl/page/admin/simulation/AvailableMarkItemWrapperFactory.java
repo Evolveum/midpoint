@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.factory.AbstractSearchItemWrapperFactory;
@@ -19,17 +20,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProc
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AvailableTagItemWrapperFactory extends AbstractSearchItemWrapperFactory<String, AvailableTagSearchItemWrapper> {
+public class AvailableMarkItemWrapperFactory extends AbstractSearchItemWrapperFactory<String, AvailableMarkSearchItemWrapper> {
 
     @Override
-    protected AvailableTagSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
+    protected AvailableMarkSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         SearchContext additionalSearchContext = ctx.getAdditionalSearchContext();
         List<DisplayableValue<String>> availableEventMarks = additionalSearchContext != null ?
                 additionalSearchContext.getAvailableEventMarks() : new ArrayList<>();
 
-        AvailableTagSearchItemWrapper wrapper = new AvailableTagSearchItemWrapper(availableEventMarks);
+        DisplayableValue<String> selected = availableEventMarks.stream()
+                .filter(d -> Objects.equals(d.getValue(), additionalSearchContext.getSelectedEventMark()))
+                .findFirst().orElse(null);
+
+        AvailableMarkSearchItemWrapper wrapper = new AvailableMarkSearchItemWrapper(availableEventMarks);
         wrapper.setCanConfigure(false);
+        wrapper.setValue(selected);
+
+        return wrapper;
+    }
+
+    @Override
+    public AvailableMarkSearchItemWrapper create(SearchItemContext ctx) {
+        AvailableMarkSearchItemWrapper wrapper = super.create(ctx);
         wrapper.setVisible(true);
+
         return wrapper;
     }
 

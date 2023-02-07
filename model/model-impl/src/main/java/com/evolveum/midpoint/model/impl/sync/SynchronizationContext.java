@@ -497,13 +497,8 @@ public abstract class SynchronizationContext<F extends FocusType>
         return task.isPersistentExecution();
     }
 
-    // TEMPORARY IMPLEMENTATION
     public boolean isVisible() {
-        if (task.isProductionConfiguration()) {
-            return SimulationUtil.isInProduction(resource, resourceObjectDefinition);
-        } else {
-            return true; // TODO
-        }
+        return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
     }
 
     /**

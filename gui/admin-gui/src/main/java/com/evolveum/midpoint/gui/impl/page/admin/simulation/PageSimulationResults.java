@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +21,8 @@ import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -57,6 +59,10 @@ public class PageSimulationResults extends PageAdmin {
     }
 
     private void initLayout() {
+        if (!isNativeRepo()) {
+            warn(getString("PageSimulationResults.nonNativeRepositoryWarning"));
+        }
+
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
             @Override
@@ -77,6 +83,7 @@ public class PageSimulationResults extends PageAdmin {
         add(navigation);
 
         Form form = new MidpointForm(ID_FORM);
+        form.add(new VisibleBehaviour(() -> isNativeRepo()));
         add(form);
 
         SimulationResultsPanel table = new SimulationResultsPanel(ID_TABLE, null);
@@ -91,5 +98,6 @@ public class PageSimulationResults extends PageAdmin {
 
     @Override
     protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(PageSimulationResults.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 }

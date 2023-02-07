@@ -12,8 +12,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +26,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * Manages {@link MarkType} objects.
@@ -53,11 +56,11 @@ public class MarkManager {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private PrismContext prismContext;
 
-    /** Gets a tag by OID. */
-    public @NotNull MarkType getTag(String oid, OperationResult result)
+    /** Gets a mark by OID. */
+    public @NotNull MarkType getMark(String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         if (!cacheRepositoryService.supportsMarks()) {
-            throw new UnsupportedOperationException("The repository does not support tag objects");
+            throw new UnsupportedOperationException("The repository does not support mark objects");
         }
         var options = GetOperationOptionsBuilder.create()
                 .readOnly()
@@ -67,8 +70,8 @@ public class MarkManager {
                 .asObjectable();
     }
 
-    /** Gets a tag by OID (if exists). */
-    public @Nullable MarkType getTagIfExists(String oid, OperationResult result)
+    /** Gets the mark by OID (if exists). */
+    public @Nullable MarkType getMarkIfExists(String oid, OperationResult result)
             throws SchemaException {
         if (!cacheRepositoryService.supportsMarks()) {
             return null;
@@ -87,26 +90,26 @@ public class MarkManager {
     }
 
     /**
-     * Gets a tag by URI. Note that we currently have no repo constraint disallowing multiple tags with the same URI,
+     * Gets a mark by URI. Note that we currently have no repo constraint disallowing multiple marks with the same URI,
      * but check that as a configuration exception. This should be perhaps changed and enforced on DB level.
      */
-    public @Nullable MarkType getTagByUri(@NotNull String uri, OperationResult result)
+    public @Nullable MarkType getMarkByUri(@NotNull String uri, OperationResult result)
             throws SchemaException, ConfigurationException {
         if (!cacheRepositoryService.supportsMarks()) {
             return null;
         }
-        var tags = cacheRepositoryService.searchObjects(
+        var marks = cacheRepositoryService.searchObjects(
                 MarkType.class,
                 prismContext.queryFor(MarkType.class)
                         .item(MarkType.F_URI).eq(uri)
                         .build(),
                 null,
                 result);
-        LOGGER.trace("Tag(s) by URI '{}': {}", uri, tags);
+        LOGGER.trace("Mark(s) by URI '{}': {}", uri, marks);
         return asObjectable(
                 MiscUtil.extractSingleton(
-                        tags,
-                        () -> new ConfigurationException("Multiple tags with URI of '" + uri + "': " + tags)));
+                        marks,
+                        () -> new ConfigurationException("Multiple marks with URI of '" + uri + "': " + marks)));
     }
 
     public @NotNull Collection<MarkType> getAllMarks(OperationResult result) {
@@ -117,13 +120,13 @@ public class MarkManager {
             return asObjectables(
                     cacheRepositoryService.searchObjects(MarkType.class, null, null, result));
         } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "when retrieving all tags");
+            throw SystemException.unexpected(e, "when retrieving all marks");
         }
     }
 
     public @NotNull Collection<MarkType> getAllEventMarks(OperationResult result) {
         return getAllMarks(result).stream()
-                .filter(tag -> ObjectTypeUtil.hasArchetypeRef(tag, SystemObjectsType.ARCHETYPE_EVENT_MARK.value()))
+                .filter(mark -> ObjectTypeUtil.hasArchetypeRef(mark, SystemObjectsType.ARCHETYPE_EVENT_MARK.value()))
                 .collect(Collectors.toList());
     }
 
@@ -131,33 +134,56 @@ public class MarkManager {
      * Collects all (global) policy rules from all marks. Adding the `markRef` in case it does not include a reference to the
      * current mark.
      */
-    public @NotNull Collection<GlobalRuleWithId> getAllMarkPolicyRules(OperationResult result) {
+    public @NotNull Collection<GlobalRuleWithId> getAllEnabledMarkPolicyRules(Task task, OperationResult result) {
         List<GlobalRuleWithId> rules = new ArrayList<>();
         for (MarkType mark : getAllMarks(result)) {
-            for (GlobalPolicyRuleType rule : mark.getPolicyRule()) {
-                if (!Referencable.getOids(rule.getMarkRef()).contains(mark.getOid())) {
-                    rule = rule.clone();
-                    rule.getMarkRef().add(
-                            ObjectTypeUtil.createObjectRef(mark));
+            if (isEnabled(mark, task)) {
+                for (GlobalPolicyRuleType rule : mark.getPolicyRule()) {
+                    if (!Referencable.getOids(rule.getMarkRef()).contains(mark.getOid())) {
+                        rule = rule.clone();
+                        rule.getMarkRef().add(
+                                ObjectTypeUtil.createObjectRef(mark));
+                    }
+                    rules.add(
+                            GlobalRuleWithId.of(rule, mark.getOid()));
                 }
-                rules.add(
-                        GlobalRuleWithId.of(rule, mark.getOid()));
             }
         }
         return rules;
     }
 
+    private boolean isEnabled(@NotNull MarkType mark, @NotNull Task task) {
+        if (!task.canSee(mark)) {
+            return false;
+        }
+        if (!ObjectTypeUtil.hasArchetypeRef(mark, SystemObjectsType.ARCHETYPE_EVENT_MARK.value())) {
+            // Marks other than "event marks" are visible regardless of the simulation settings.
+            // Event marks are currently supported only in simulation mode.
+            return true;
+        }
+        SimulationTransaction simulationTransaction = task.getSimulationTransaction();
+        if (simulationTransaction != null) {
+            return simulationTransaction.getSimulationResult().isEventMarkEnabled(mark);
+        }
+        if (!task.isSimulatedExecution()) {
+            return false; // Event marks are currently used only for simulations
+        }
+        // We have no simulation [result] definition, so no custom inclusion/exclusion of event marks.
+        // Hence, the default setting has to be applied.
+        return MarkTypeUtil.isEnabledByDefault(mark);
+    }
+
     /** Temporary */
-    public Map<String, MarkType> resolveTagNames(Collection<String> tagOids, OperationResult result) {
+    public Map<String, MarkType> resolveMarkNames(Collection<String> markOids, OperationResult result) {
         Map<String, MarkType> map = new HashMap<>();
-        for (String tagOid : tagOids) {
-            MarkType tag = null;
+        for (String markOid : markOids) {
+            MarkType mark = null;
             try {
-                tag = getTagIfExists(tagOid, result);
+                mark = getMarkIfExists(markOid, result);
             } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve tag {} (ignoring)", e, tagOid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve mark {} (ignoring)", e, markOid);
             }
-            map.put(tagOid, tag);
+            map.put(markOid, mark);
         }
         return map;
     }

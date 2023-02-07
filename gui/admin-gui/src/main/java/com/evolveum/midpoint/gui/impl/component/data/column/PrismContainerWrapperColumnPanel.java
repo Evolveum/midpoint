@@ -89,19 +89,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return activation.getAdministrativeStatus().value();
         }
 
-        PrismContainerWrapper<AssignmentType> assignmentModel = (PrismContainerWrapper<AssignmentType>) getModel().getObject();
-        PrismPropertyWrapper<String> lifecycle = null;
-        try {
-            lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot find lifecycle property: {}", e.getMessage(), e);
-        }
-
-        String lifecycleState = getLifecycleState(lifecycle);
-
-        ActivationStatusType status = WebModelServiceUtils.getAssignmentEffectiveStatus(lifecycleState, activation, getPageBase());
-        return AssignmentsUtil.createActivationTitleModel(status, activation.getValidFrom(), activation.getValidTo(), getPageBase());
-
+        return AssignmentsUtil.createActivationTitleModel(activation, getPageBase()).getObject();
     }
 
     private String getAssociationLabel(ResourceObjectAssociationType association) {

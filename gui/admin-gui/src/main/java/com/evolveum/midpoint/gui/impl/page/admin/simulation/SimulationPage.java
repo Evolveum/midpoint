@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
 public interface SimulationPage extends IRequestablePage {
 
     String PAGE_PARAMETER_RESULT_OID = "RESULT_OID";
-    String PAGE_PARAMETER_TAG_OID = "TAG_OID";
+    String PAGE_PARAMETER_MARK_OID = "MARK_OID";
     String PAGE_PARAMETER_CONTAINER_ID = "CONTAINER_ID";
 
     default String getPageParameterResultOid() {
@@ -33,9 +33,9 @@ public interface SimulationPage extends IRequestablePage {
         return params.get(PAGE_PARAMETER_RESULT_OID).toString();
     }
 
-    default String getPageParameterTagOid() {
+    default String getPageParameterMarkOid() {
         PageParameters params = getPageParameters();
-        return params.get(PAGE_PARAMETER_TAG_OID).toString();
+        return params.get(PAGE_PARAMETER_MARK_OID).toString();
     }
 
     default String getPageParameterContainerId() {

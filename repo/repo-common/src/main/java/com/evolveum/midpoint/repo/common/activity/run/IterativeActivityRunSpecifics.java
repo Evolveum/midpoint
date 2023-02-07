@@ -47,13 +47,13 @@ public interface IterativeActivityRunSpecifics extends ImplicitSegmentationResol
      *
      * Note that e.g. for search-based activities the search specification is *not* known at this moment.
      */
-    default void beforeRun(OperationResult opResult) throws CommonException, ActivityRunException {
+    default void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
     }
 
     /**
      * Called after the run.
      */
-    default void afterRun(OperationResult opResult) throws CommonException, ActivityRunException {
+    default void afterRun(OperationResult result) throws CommonException, ActivityRunException {
     }
 
     /**

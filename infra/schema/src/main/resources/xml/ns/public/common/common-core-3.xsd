@@ -861,6 +861,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this event tag processing enabled by default?
+
+                        TODO is this the correct place (as it most probably applies only to simulations)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="eventMarkInformation" type="tns:EventMarkInformationType"/>
@@ -3945,6 +3954,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Lifecycle state of the item. Production configuration consists (by default) of `active`
+                        and `deprecated` ones. Development configuration consists (by default) of `active` and
+                        `proposed` ones. If the item is not in the configuration, it is ignored by the processing
+                        at the model level - no inbound nor outbound mappings are evaluated for it, as well as no
+                        (outbound) reconciliation is carried out. The effect is similar to setting "ignore" processing
+                        on the model level.
+
+                        Currently supported only for resource object items (attributes and associations).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="changeApplicationMode" type="tns:ItemChangeApplicationModeType" minOccurs="0" default="apply">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should the computed changes of this item be regarded? (Applied, recorded, ignored.)
+
+                        Currently supported only for resource object attributes.
+
+                        TODO better name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemRefinedDefinitionType.changeApplication</a:displayName>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -4373,6 +4416,55 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ItemChangeApplicationModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What to do with the changes computed for the given item?
+
+                TODO nouns or verbs for the modes?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="apply">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are treated in the traditional way: They are applied if the task runs
+                        in "persistent effects" mode, and recorded if it runs in "simulation" mode.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are reported by adding them to the "simulation result" structure
+                        (regardless of whether running in persistent-effects or simulation mode).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are silently discarded (ignored).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

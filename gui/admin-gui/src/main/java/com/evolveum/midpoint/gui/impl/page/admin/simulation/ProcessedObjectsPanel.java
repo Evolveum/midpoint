@@ -11,30 +11,26 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.IResource;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
@@ -49,12 +45,17 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<List<MarkType>> availableTagsModel;
+    private IModel<List<MarkType>> availableMarksModel;
 
-    public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableTagsModel) {
+    public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
 
-        this.availableTagsModel = availableTagsModel;
+        this.availableMarksModel = availableMarksModel;
+    }
+
+    @Override
+    protected boolean isUseStorageSearch(Search search) {
+        return false;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     protected SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
 
-        List<DisplayableValue<String>> values = availableTagsModel.getObject().stream()
+        List<DisplayableValue<String>> values = availableMarksModel.getObject().stream()
                 .map(o -> new DisplayableValueImpl<>(
                         o.getOid(),
                         WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
@@ -74,24 +75,26 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                 .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
                 .collect(Collectors.toList());
         ctx.setAvailableEventMarks(values);
+        ctx.setSelectedEventMark(getMarkOid());
 
         return ctx;
     }
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        // TODO
         return new RoundedIconColumn<>(null) {
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                return null;    // todo icon of type or icon from object
-                // todo type & resourceObjectCoordinates use based on type (for shadow type)...
-            }
+                SimulationResultProcessedObjectType object = model.getObject().getValue();
+                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
+                if (obj == null || obj.asPrismObject() == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
+                }
 
-            @Override
-            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                return () -> null;
+                return new DisplayType()
+                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
             }
         };
     }
@@ -111,7 +114,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 IModel<String> title = () -> {
-                    // todo if bean.getValue == null ||  bean.getResult is not success - show warning/error with some text instead of name
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
                     if (obj == null || obj.getName() == null) {
                         return getString("ProcessedObjectsPanel.unnamed");
@@ -129,14 +131,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                     // resolve names from markRefs
                     List<String> names = eventMarkRefs.stream()
                             .map(ref -> {
-                                List<MarkType> tags = availableTagsModel.getObject();
-                                MarkType tag = tags.stream()
+                                List<MarkType> marks = availableMarksModel.getObject();
+                                MarkType mark = marks.stream()
                                         .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
                                         .findFirst().orElse(null);
-                                if (tag == null) {
+                                if (mark == null) {
                                     return null;
                                 }
-                                return WebComponentUtil.getDisplayNameOrName(tag.asPrismObject());
+                                return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
                             })
                             .filter(name -> name != null)
                             .collect(Collectors.toList());
@@ -145,6 +147,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                     return StringUtils.joinWith(", ", names.toArray(new String[names.size()]));
                 };
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
+
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return rowModel.getObject().getValue() != null;
+                    }
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
@@ -158,15 +165,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
-            // todo implement case where there was a problem loading object for row
             return;
         }
 
         PageParameters params = new PageParameters();
         params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
-        String tagOid = getTagOid();
-        if (tagOid != null) {
-            params.set(PageSimulationResultObject.PAGE_PARAMETER_TAG_OID, tagOid);
+        String markOid = getMarkOid();
+        if (markOid != null) {
+            params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }
         params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
 
@@ -181,11 +187,6 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             protected @NotNull String getSimulationResultOid() {
                 return ProcessedObjectsPanel.this.getSimulationResultOid();
             }
-
-            @Override
-            protected String getTagOid() {
-                return ProcessedObjectsPanel.this.getTagOid();
-            }
         };
     }
 
@@ -194,7 +195,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         return null;
     }
 
-    protected String getTagOid() {
+    protected String getMarkOid() {
         return null;
     }
 
@@ -229,54 +230,12 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
-                Label label = new Label(id, () -> {
-                    ObjectProcessingStateType state = row.getObject().getValue().getState();
-                    if (state == null) {
-                        return null;
-                    }
-
-                    return getString(WebComponentUtil.createEnumResourceKey(state));
-                });
-                label.add(AttributeModifier.append("class", () -> {
-                    ObjectProcessingStateType state = row.getObject().getValue().getState();
-                    if (state == null) {
-                        return null;
-                    }
-
-                    String badge = "";
-                    switch (state) {
-                        case UNMODIFIED:
-                            badge = "badge-secondary";
-                            break;
-                        case ADDED:
-                            badge = "badge-success";
-                            break;
-                        case DELETED:
-                            badge = "badge-danger";
-                            break;
-                        case MODIFIED:
-                            badge = "badge-info";
-                            break;
-                    }
-
-                    return "badge " + badge;
-                }));
-                item.add(label);
+                item.add(GuiSimulationsUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> {
-            SimulationResultProcessedObjectType object = row.getValue();
-            QName type = object.getType();
-            if (type == null) {
-                return null;
-            }
-
-            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
-            String key = WebComponentUtil.createEnumResourceKey(ot);
-            return getPageBase().getString(key);
-        });
+        return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
     }
 }
