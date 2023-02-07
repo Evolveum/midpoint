@@ -1155,10 +1155,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         table.setCurrentPage(null);
     }
 
-    public Component getFeedbackPanel() {
-        return getPageBase().getFeedbackPanel();
-    }
-
     public void resetSearchModel() {
         PageStorage storage = getPageStorage();
         if (storage != null) {

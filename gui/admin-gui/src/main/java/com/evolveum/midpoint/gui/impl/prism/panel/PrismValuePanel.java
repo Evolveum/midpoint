@@ -97,7 +97,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot remove value: {}", getModelObject());
                     getSession().error("Cannot remove value " + getModelObject());
-                    target.add(getPageAdminLTE().getFeedbackPanel());
+                    target.add(getFeedbackPanel());
                 }
             }
         };
@@ -128,7 +128,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
             try {
-                factory = getPageAdminLTE().getRegistry().findValuePanelFactory(getModelObject().getParent());
+                factory = getRegistry().findValuePanelFactory(getModelObject().getParent());
             } catch (Throwable e) {
                 LoggingUtils.logUnexpectedException(LOGGER,
                         "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
@@ -205,7 +205,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (getSettings() == null || !getSettings().isDisplayedInColumn()) {
-                    target.add(getPageAdminLTE().getFeedbackPanel());
+                    target.add(getFeedbackPanel());
                 }
                 target.add(getFeedback());
             }
@@ -213,7 +213,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             @Override
             protected void onError(AjaxRequestTarget target, RuntimeException e) {
                 if (getSettings() == null || !getSettings().isDisplayedInColumn()) {
-                    target.add(getPageAdminLTE().getFeedbackPanel());
+                    target.add(getFeedbackPanel());
                 }
                 target.add(getFeedback());
             }

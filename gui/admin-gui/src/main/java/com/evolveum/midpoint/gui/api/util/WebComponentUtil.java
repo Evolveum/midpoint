@@ -2452,18 +2452,13 @@ public final class WebComponentUtil {
     }
 
     public static PageBase getPageBase(Component component) {
-        Page page = component.getPage();
-        if (page instanceof PageBase) {
-            return (PageBase) page;
-        } else {
-            throw new IllegalStateException("Couldn't determine page base for " + page);
-        }
+        return getPage(component, PageBase.class);
     }
 
-    public static PageAdminLTE getPageAdminLTE(Component component) {
+    public static <P extends PageAdminLTE> P getPage(Component component, Class<P> pageClass) {
         Page page = component.getPage();
-        if (page instanceof PageAdminLTE) {
-            return (PageAdminLTE) page;
+        if (pageClass.equals(page.getClass())) {
+            return (P) page;
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
         }

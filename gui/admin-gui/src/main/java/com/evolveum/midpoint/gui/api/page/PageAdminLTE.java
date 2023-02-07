@@ -967,8 +967,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         feedbackContainer.add(feedbackList);
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    public Component getFeedbackPanel() {
+        return get(ID_FEEDBACK_CONTAINER);
     }
 
     public SessionStorage getSessionStorage() {
