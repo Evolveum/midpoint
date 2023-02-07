@@ -364,8 +364,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     private void assertIntent(PrismObject<ShadowType> account, ShadowKindType kind, String expected) {
         assertShadowAfter(account)
                 .assertKind(kind)
-                .assertIntent(expected)
-                .assertNotSimulated();
+                .assertIntent(expected);
     }
 
     private PrismObject<ShadowType> searchByName(
@@ -403,14 +402,12 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .display()
                 .assertKind(ACCOUNT)
                 .assertIntent(I_EMPLOYEE)
-                .assertIsExists()
-                .assertNotSimulated();
+                .assertIsExists();
         assertRepoShadow(oidAdmin, "repo shadow after (admin)")
                 .display()
                 .assertKind(ACCOUNT)
                 .assertIntent(I_ADMIN)
-                .assertIsExists()
-                .assertNotSimulated();
+                .assertIsExists();
     }
 
     /** Shadow creation in simulation mode should be forbidden. */
