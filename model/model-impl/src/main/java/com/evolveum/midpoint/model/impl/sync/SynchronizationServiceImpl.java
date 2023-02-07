@@ -97,7 +97,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             completeCtx.recordSyncStartInTask();
             completeCtx.getUpdater()
-                    .updateAllSyncMetadata()
+                    .updateAllSyncMetadataRespectingMode()
                     .commit(result);
 
             boolean synchronizationFailure;
@@ -194,7 +194,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
-                    .updateAllSyncMetadata()
+                    .updateAllSyncMetadataRespectingMode()
                     .commit(result);
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
@@ -248,7 +248,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     shadow, shadow.getPolicySituation(), channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
-                    .updateAllSyncMetadata()
+                    .updateAllSyncMetadataRespectingMode()
                     .commit(result);
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
