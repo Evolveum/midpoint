@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -875,7 +876,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         computeTenantRef(context);
     }
 
-    private <F extends ObjectType> void computeTenantRef(LensContext<F> context) throws PolicyViolationException, SchemaException {
+    private <F extends ObjectType> void computeTenantRef(LensContext<F> context)
+            throws PolicyViolationException, SchemaException {
         String tenantOid = null;
         LensFocusContext<F> focusContext = context.getFocusContext();
         PrismObject<F> objectNew = focusContext.getObjectNew();
@@ -1032,7 +1034,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets = findEvaluatedAssignmentTargets(roleRef, evalAssignment);
+            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets =
+                    findEvaluatedAssignmentTargets(roleRef, evalAssignment);
             if (evaluatedAssignmentTargets.isEmpty()) {
                 LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
                 continue;
@@ -1057,7 +1060,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         AssignmentPathMetadataType metadata = new AssignmentPathMetadataType();
         metadata.sourceRef(assignmentPath.getSegment().get(0).getSourceRef());
         for (AssignmentPathSegmentType segment : assignmentPath.getSegment()) {
-            boolean isAssignment = segment.isIsAssignment();
+            boolean isAssignment = BooleanUtils.isTrue(segment.isIsAssignment());
             metadata.beginSegment()
                     .segmentOrder(segment.getSegmentOrder())
                     .targetRef(segment.getTargetRef())
@@ -1099,16 +1102,19 @@ public class AssignmentProcessor implements ProjectorProcessor {
             } else {
                 // we don't use QNameUtil.match here, because we want to ensure we store qualified values there
                 // (and newValues are all qualified)
-                Comparator<PrismReferenceValue> comparator =
-                        (a, b) -> 2 * a.getOid().compareTo(b.getOid())
-                                + (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
-                if (MiscUtil.unorderedCollectionCompare(targetState, existingState.getValues(), comparator)) {
+                EqualsChecker<PrismReferenceValue> comparator =
+                        (a, b) -> Objects.equals(a.getOid(), b.getOid())
+                                && Objects.equals(a.getRelation(), b.getRelation()
+                                // TODO metadata equals
+                        );
+                if (MiscUtil.unorderedCollectionEquals(targetState, existingState.getValues(), comparator)) {
                     return;
                 }
             }
         }
 
-        PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
+        PrismReferenceDefinition itemDef = focusContext.getObjectDefinition()
+                .findItemDefinition(itemName, PrismReferenceDefinition.class);
         ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
         itemDelta.setValuesToReplace(targetState);
         focusContext.swallowToSecondaryDelta(itemDelta);
