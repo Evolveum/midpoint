@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -88,7 +89,7 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 boolean oldState = getModelObject().getValue().isSelected();
-                ((SelectableBeanObjectDataProvider) getProvider()).clearSelectedObjects();
+                ((SelectableBeanDataProvider) getProvider()).clearSelectedObjects();
                 getTilesModel().getObject().forEach(tile -> {
                     tile.setSelected(false);
                     tile.getValue().setSelected(false);

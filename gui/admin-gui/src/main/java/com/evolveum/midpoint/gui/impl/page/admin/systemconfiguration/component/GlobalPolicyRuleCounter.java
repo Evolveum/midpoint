@@ -10,21 +10,37 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.application.SimpleCounter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
+ *
+ * TODO actual implementation not very nice since it contains multiple ifs based on for which
+ * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType} and specific field we're doing the count
+ * <p/>
+ * It either should be multiple classes per concrete use (type and itempath) or probably better pointer to container
+ * which values we want to count (in this case GlobalPolicyRuleType container)
  */
-public class GlobalPolicyRuleCounter extends SimpleCounter<AssignmentHolderDetailsModel<SystemConfigurationType>, SystemConfigurationType> {
+public class GlobalPolicyRuleCounter extends SimpleCounter<AssignmentHolderDetailsModel<AssignmentHolderType>, AssignmentHolderType> {
 
     public GlobalPolicyRuleCounter() {
         super();
     }
 
     @Override
-    public int count(AssignmentHolderDetailsModel<SystemConfigurationType> model, PageBase pageBase) {
-        SystemConfigurationType object = model.getObjectType();
-        return object.getGlobalPolicyRule().size();
+    public int count(AssignmentHolderDetailsModel<AssignmentHolderType> model, PageBase pageBase) {
+        AssignmentHolderType object = model.getObjectType();
+        if (object instanceof SystemConfigurationType) {
+            return ((SystemConfigurationType) object).getGlobalPolicyRule().size();
+        }
+
+        if (object instanceof MarkType) {
+            return ((MarkType) object).getPolicyRule().size();
+        }
+
+        return 0;
     }
 }
 

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,4 +60,6 @@ public class ModelCommonBeans {
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired public ModelService modelService;
     @Autowired public ModelInteractionService modelInteractionService;
+    @Autowired public MarkManager markManager;
+    @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
 }

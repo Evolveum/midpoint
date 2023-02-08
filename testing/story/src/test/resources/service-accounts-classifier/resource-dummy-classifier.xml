@@ -38,7 +38,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
+            <icfi:instanceId/> <!-- Default instance. -->
             <icfi:uselessGuardedString>
                 <clearValue>whatever</clearValue>
             </icfi:uselessGuardedString>
@@ -217,22 +217,23 @@
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.*
                         import com.evolveum.midpoint.util.exception.ConfigurationException
 
-                        discriminator = new ObjectSynchronizationDiscriminatorType();
+                        discriminator = new ObjectSynchronizationDiscriminatorType()
 
-                        String secondaryIdentifier = basic.getSecondaryIdentifierValue(shadow);
+                        String secondaryIdentifier = basic.getSecondaryIdentifierValue(shadow)
                         if (secondaryIdentifier.startsWith("test_")) {
                             discriminator.setSynchronizationSituation(SynchronizationSituationType.DISPUTED)
-                            discriminator.setKind(ShadowKindType.ACCOUNT);
-                            discriminator.setIntent("default");
-                            return discriminator;
+                            discriminator.setKind(ShadowKindType.ACCOUNT)
+                            discriminator.setIntent("default")
+                            return discriminator
                         }
 
-                        owner = midpoint.searchShadowOwner(shadow.getOid());
+                        owner = midpoint.searchShadowOwner(shadow.getOid())
 
                         if (owner == null) {
 
-                            applicableServices = midpoint.getFocusesByCorrelationRule(ServiceType.class,
-                            "1169ac14-8377-11e8-b404-5b5a1a8af0db", ShadowKindType.ACCOUNT, "service", shadow);
+                            applicableServices = midpoint.findCandidateOwners(
+                                    ServiceType.class, shadow, "1169ac14-8377-11e8-b404-5b5a1a8af0db",
+                                    ShadowKindType.ACCOUNT, "service")
 
                             if (applicableServices == null || applicableServices.isEmpty()) {
                                 log.info("No applicable services found, returning UNMATCHED situation for account/default")
@@ -253,10 +254,10 @@
                             }
 
                             log.info("Unexpected situation, throw exception rather")
-                            throw new ConfigurationException("Wrong configuration, cannot determine what to do.");
+                            throw new ConfigurationException("Wrong configuration, cannot determine what to do.")
                         }
 
-                        ownerType = owner.asObjectable();
+                        ownerType = owner.asObjectable()
                         if (ownerType instanceof UserType) {
                             discriminator.setIntent("default")
 

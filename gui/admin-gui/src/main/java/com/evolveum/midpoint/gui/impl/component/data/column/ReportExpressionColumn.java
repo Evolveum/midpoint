@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -25,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
-public class ReportExpressionColumn<C extends Containerable> extends ConfigurableExpressionColumn<SelectableBean<C>, C> {
+public class ReportExpressionColumn<C extends Serializable> extends ConfigurableExpressionColumn<SelectableBean<C>, C> {
 
     public ReportExpressionColumn(IModel<String> displayModel, String sortProperty, GuiObjectColumnType customColumns, ExpressionType expressionType, PageBase modelServiceLocator) {
         super(displayModel, sortProperty, customColumns, expressionType, modelServiceLocator);
@@ -35,7 +36,7 @@ public class ReportExpressionColumn<C extends Containerable> extends Configurabl
     protected void processVariables(VariablesMap variablesMap, C rowValue) {
         processReportSpecificVariables(variablesMap);
         if (!variablesMap.containsKey(ExpressionConstants.VAR_OBJECT)) {
-            variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.asPrismContainerValue().getDefinition());
+            variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue != null ? rowValue.getClass() : null);
         }
     }
 

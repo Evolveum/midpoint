@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,14 +11,16 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.function.Consumer;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -140,10 +142,10 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
 
         then("roleMembershipRefs contain value metadata with accesses information");
         // @formatter:off
-        assertUser(userOid, "after")
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
             .displayXml() // XML also shows the metadata
-            .assertRoleMembershipRefs(5)
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid))
+            .assertRoleMembershipRefs(5);
+        userAsserter.valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid))
                 .singleValue()
                     .provenance()
                         .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
@@ -175,21 +177,20 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                     .provenance()
                         .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
                         .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1bOid, appRole1bOid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appService1Oid))
-                .singleValue()
-                    .provenance()
-                        .container(ProvenanceMetadataType.F_ASSIGNMENT_PATH, AssignmentPathType.class)
-                            .assertSize(2)
-                            .value(assignmentPathByFirstTargetOidSelector(businessRole1Oid))
-                                .assertValue(assertAssignmentPathSegments(businessRole1Oid, appRole1Oid, appService1Oid))
-                                .end()
-                            .value(assignmentPathByFirstTargetOidSelector(businessRole1bOid))
-                                .assertValue(assertAssignmentPathSegments(businessRole1bOid, appRole1bOid, appService1Oid));
+                            assertAssignmentPathSegments(businessRole1bOid, appRole1bOid));
         // @formatter:on
+
+        // TODO figure out how to assert the two paths in two different metadata containers
+        // 5th value is checked differently, as the selection of the value for match is just as complicated as the match.
+        Collection<ValueMetadataType> metadataValues = userAsserter
+                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appService1Oid))
+                .getRealValues();
+        Assertions.assertThat(metadataValues)
+                .hasSize(2)
+                .allMatch(m -> m.getStorage() != null && m.getStorage().getCreateTimestamp() != null)
+                .extracting(m -> m.getProvenance().getAssignmentPath())
+                .anySatisfy(assignmentPathSegmentsCheck(businessRole1Oid, appRole1Oid, appService1Oid))
+                .anySatisfy(assignmentPathSegmentsCheck(businessRole1bOid, appRole1bOid, appService1Oid));
     }
 
     @Test
@@ -310,7 +311,7 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                                 RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)));
     }
 
-    private AssertionPredicate<AssignmentPathType> assertAssignmentPathSegments(String... targetOids) {
+    private AssertionPredicate<AssignmentPathMetadataType> assertAssignmentPathSegments(String... targetOids) {
         // A bit of a hack, we're using AssertionPredicate, but actually leaving failure to the AssertJ here.
         return new SimplifiedGenericAssertionPredicate<>(ap -> {
             SoftAssertions check = new SoftAssertions();
@@ -323,10 +324,10 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         });
     }
 
-    private ValueSelector<PrismContainerValue<AssignmentPathType>> assignmentPathByFirstTargetOidSelector(
-            String firstSegmentTargetOid) {
-        return pcv -> pcv.asContainerable().getSegment().get(0)
-                .getTargetRef().getOid().equals(firstSegmentTargetOid);
+    private Consumer<AssignmentPathMetadataType> assignmentPathSegmentsCheck(String... expectedTargetOids) {
+        return ap -> Assertions.assertThat(ap.getSegment())
+                .extracting(s -> s.getTargetRef().getOid())
+                .containsExactly(expectedTargetOids);
     }
 
     private void assertNoRoleMembershipRefMetadata(String userOid, String... roleMembershipRefTargetOids)

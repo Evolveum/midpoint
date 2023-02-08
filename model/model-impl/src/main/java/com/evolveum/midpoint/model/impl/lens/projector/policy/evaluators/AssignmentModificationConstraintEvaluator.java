@@ -43,7 +43,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 @Component
-public class AssignmentModificationConstraintEvaluator extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
+public class AssignmentModificationConstraintEvaluator
+        extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentModificationConstraintEvaluator.class);
 
@@ -52,9 +53,10 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
     private static final String OP_EVALUATE = AssignmentModificationConstraintEvaluator.class.getName() + ".evaluate";
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedModificationTrigger evaluate(
+    public <O extends ObjectType> EvaluatedModificationTrigger evaluate(
             @NotNull JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -65,7 +67,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
                 LOGGER.trace("Not an AssignmentPolicyRuleEvaluationContext: {}", rctx.getClass());
                 return null;
             }
-            AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+            AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             if (!ctx.isDirect) {
                 LOGGER.trace("Assignment is indirect => not triggering");
                 return null;
@@ -94,9 +96,11 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         }
     }
 
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+            JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage relationMessage = relation != null ?

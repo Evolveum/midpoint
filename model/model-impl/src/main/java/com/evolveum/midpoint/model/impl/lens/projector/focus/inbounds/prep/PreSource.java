@@ -97,8 +97,12 @@ class PreSource extends MSource {
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
+            boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) {
+        if (shouldBeMappingSkipped(itemDescription, executionModeVisible, ignored, limitations)) {
+            return ProcessingMode.NONE;
+        }
         return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN; // TODO
     }
 
@@ -144,7 +148,7 @@ class PreSource extends MSource {
     }
 
     @Override
-    ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException {
+    ItemPath determineTargetPathOverride(ItemPath targetItemPath) {
         return null;
     }
 }

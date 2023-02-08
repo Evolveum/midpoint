@@ -10,14 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -30,7 +22,13 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -59,7 +57,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         feedback.setOutputMarkupId(true);
         midpointForm.add(feedback);
 
-        PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid"){
+        PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid") {
             @Override
             public void setObject(String object) {
                 super.setObject(object);
@@ -141,9 +139,10 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         midpointForm.add(relationContainer);
         relationContainer.add(new VisibleBehaviour(() -> getAllowedRelations().size() > 0));
         List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
+
         DropDownChoicePanel<QName> relation = new DropDownChoicePanel<>(ID_RELATION,
                 new PropertyModel<>(getModel(), "relation"),
-                Model.ofList(allowedRelations), new QNameObjectTypeChoiceRenderer(), true);
+                Model.ofList(allowedRelations), WebComponentUtil.getRelationChoicesRenderer(), true);
         relation.setOutputMarkupId(true);
         relation.add(new VisibleEnableBehaviour() {
 
@@ -164,7 +163,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         if (ref == null) {
             return;
         }
-        if (getModelObject() != null && getModelObject().getOid() != null && PolyStringUtils.isEmpty(ref.getTargetName()) && ref.getObject() == null){
+        if (getModelObject() != null && getModelObject().getOid() != null && PolyStringUtils.isEmpty(ref.getTargetName()) && ref.getObject() == null) {
             ref.setOid(getModelObject().getOid());
         }
         if (PolyStringUtils.isEmpty(ref.getTargetName())) {
@@ -182,7 +181,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         return WebComponentUtil.createFocusTypeList();
     }
 
-    protected boolean isAllowedNotFoundObjectRef(){
+    protected boolean isAllowedNotFoundObjectRef() {
         return false;
     }
 

@@ -34,5 +34,6 @@ public class Components {
     public static final String PROJECTION_RECONCILIATION = "projectionReconciliation";
     public static final String PROJECTION_VALUES_POST_RECON = "projectionValuesPostRecon";
     public static final String PROJECTION_LIFECYCLE = "projectionLifecycle";
+    public static final String PROJECTION_POLICY_RULES = "projectionPolicyRules";
     public static final String OBJECT_TEMPLATE_AFTER_PROJECTIONS = "objectTemplateAfterProjections";
 }

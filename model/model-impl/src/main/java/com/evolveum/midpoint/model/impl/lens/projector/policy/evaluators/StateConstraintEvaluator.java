@@ -36,10 +36,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,9 +71,11 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluate(@NotNull JAXBElement<StatePolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedStateTrigger evaluate(
+            @NotNull JAXBElement<StatePolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -83,9 +83,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         try {
             if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
                 if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-                    return null;            // assignment state can be evaluated only in the context of an assignment
+                    return null; // assignment state can be evaluated only in the context of an assignment
                 } else {
-                    return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<AH>) rctx, result);
+                    return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<?>) rctx, result);
                 }
             } else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
                 return evaluateForObject(constraint, rctx, result);
@@ -100,9 +100,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluateForObject(JAXBElement<StatePolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private EvaluatedStateTrigger evaluateForObject(
+            JAXBElement<StatePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         StatePolicyConstraintType constraint = constraintElement.getValue();
         int count =
@@ -115,12 +118,13 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             throw new SchemaException("Exactly one of filter, expression, messageExpression, executeScript element must be present.");
         }
 
-        PrismObject<AH> object = ctx.getObject();
+        PrismObject<?> object = ctx.getObject();
         if (object == null) {
             return null;
         }
         if (constraint.getFilter() != null) {
-            ObjectFilter filter = prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
+            ObjectFilter filter =
+                    prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
             if (!filter.match(object.getValue(), matchingRuleRegistry)) {
                 return null;
             }
@@ -209,11 +213,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         return null;
     }
 
-    @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+    private @NotNull LocalizableMessage createMessage(
             String constraintKeyPrefix,
             JAXBElement<StatePolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx,
+            PolicyRuleEvaluationContext<?> ctx,
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
@@ -228,10 +231,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createBuiltInMessage(String keyPrefix,
-            JAXBElement<StatePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx,
-            boolean assignmentTarget, OperationResult result)
+
+    private @NotNull LocalizableMessage createBuiltInMessage(String keyPrefix,
+            JAXBElement<StatePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            boolean assignmentTarget,
+            OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         StatePolicyConstraintType constraint = constraintElement.getValue();
@@ -254,21 +259,19 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private <AH extends AssignmentHolderType> void addAssignmentTargetArgument(
-            List<Object> args, PolicyRuleEvaluationContext<AH> ctx) {
+    private void addAssignmentTargetArgument(List<Object> args, PolicyRuleEvaluationContext<?> ctx) {
         if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
             args.add("");
         } else {
-            AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) ctx;
+            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) ctx;
             args.add(ObjectTypeUtil.createDisplayInformation(actx.evaluatedAssignment.getTarget(), false));
         }
     }
 
-    @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(
+    private @NotNull LocalizableMessage createShortMessage(
             String constraintKeyPrefix,
             JAXBElement<StatePolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx,
+            PolicyRuleEvaluationContext<?> ctx,
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,

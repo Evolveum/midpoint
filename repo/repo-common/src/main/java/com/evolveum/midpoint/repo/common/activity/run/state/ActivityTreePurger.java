@@ -238,9 +238,11 @@ public class ActivityTreePurger {
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_SIMULATION)).replace()
                             .asItemDeltas());
 
             if (ctx.currentState.getPersistence() != ActivityStatePersistenceType.PERPETUAL) {
+                // E.g. "perpetual except for statistics"
                 swallow(
                         beans.prismContext.deltaFor(TaskType.class)
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
@@ -256,7 +258,8 @@ public class ActivityTreePurger {
         }
 
         private boolean isTransient(ActivityStateType state) {
-            return state.getPersistence() == null || state.getPersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
+            ActivityStatePersistenceType persistence = state.getPersistence();
+            return persistence == null || persistence == ActivityStatePersistenceType.SINGLE_REALIZATION;
         }
     }
 

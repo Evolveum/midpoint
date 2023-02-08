@@ -1058,9 +1058,4 @@ public class ShadowUtil {
     public static @NotNull String resolveDefault(String intent) {
         return Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT);
     }
-
-    // Temporary code
-    public static boolean isSimulated(@NotNull ShadowType shadow) {
-        return Boolean.TRUE.equals(shadow.isSimulated());
-    }
 }

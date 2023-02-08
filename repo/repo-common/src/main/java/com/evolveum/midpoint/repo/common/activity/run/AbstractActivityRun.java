@@ -146,11 +146,14 @@ public abstract class AbstractActivityRun<
     @NotNull final Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
             Lazy.from(this::createReportingCharacteristics);
 
+    @NotNull final SimulationSupport simulationSupport;
+
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();
         this.activity = context.getActivity();
         this.activityStateDefinition = determineActivityStateDefinition();
         this.activityState = new CurrentActivityState<>(this);
+        this.simulationSupport = new SimulationSupport(this);
     }
 
     /**
@@ -322,8 +325,8 @@ public abstract class AbstractActivityRun<
             getRunningTask()
                     .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
         } catch (CommonException e) {
-            throw new ActivityRunException("Couldn't update task when updating and closing activity state",
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(
+                    "Couldn't update task when updating and closing activity state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
         activityState.close();
@@ -585,26 +588,49 @@ public abstract class AbstractActivityRun<
      */
     @SuppressWarnings("WeakerAccess")
     protected void onActivityRealizationStart(OperationResult result) throws ActivityRunException {
-        if (getExecutionModeDefinition().shouldCreateSimulationResult()) {
-            createSimulationResult(result);
-        }
-    }
-
-    private void createSimulationResult(OperationResult result) throws ActivityRunException {
-        ObjectReferenceType simResultRef =
-                getBeans().getAdvancedActivityRunSupport().createSimulationResult(result);
-        activityState.setSimulationResultRef(simResultRef);
-        activityState.flushPendingTaskModificationsChecked(result);
+        // The simulation result is created for the whole activity realization.
+        // When the activity execution is suspended and resumed, the result should stay the same.
+        // The "processed object" records in resumed execution will be appended to it.
+        simulationSupport.getOrCreateSimulationResult(result);
     }
 
     /**
      * Called when the activity realization is complete. It should be called at most once for any given activity.
      * (Regardless of its delegation or distribution.)
      *
-     * TODO probably will not work currently
+     * Planned e.g. for closing the simulation result (for computing statistics, etc).
+     *
+     * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
     @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected void onActivityRealizationComplete(OperationResult result) {
-        // To be overridden in subclasses.
+    protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
+        simulationSupport.closeSimulationResultIfOpenedHere(result);
+    }
+
+    /**
+     * Use this to disallow running activities that do not honor preview and/or dry-run mode, to avoid any confusion of the user.
+     */
+    protected void ensureNoPreviewNorDryRun() {
+        ensureNoPreview();
+        ensureNoDryRun();
+    }
+
+    private void ensureNoPreview() {
+        if (isPreview()) {
+            throw new IllegalStateException("This activity cannot be run in simulation (preview) mode");
+        }
+    }
+
+    protected void ensureNoDryRun() {
+        if (isDryRun()) {
+            throw new IllegalStateException("This activity cannot be run in dry run mode");
+        }
+    }
+
+    protected void ensureFullExecution() {
+        ExecutionModeType mode = getActivityExecutionMode();
+        if (mode != ExecutionModeType.FULL) {
+            throw new IllegalStateException("This activity can be run in full execution mode only. Requested mode: " + mode);
+        }
     }
 }

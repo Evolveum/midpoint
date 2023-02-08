@@ -41,6 +41,11 @@ class AttributeEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
+    String getLifecycleState() {
+        return itemRefinedDefinition.getLifecycleState();
+    }
+
+    @Override
     ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
         return null;
     }

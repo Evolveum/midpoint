@@ -31,10 +31,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
 public class CommonTaskBeans {
+
+    private static CommonTaskBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static CommonTaskBeans get() {
+        return instance;
+    }
 
     @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
     @Autowired public TaskManager taskManager;

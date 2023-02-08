@@ -14,6 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -234,6 +236,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private CorrelationService correlationService;
+
+    @SpringBean
+    private SimulationResultManager simulationResultManager;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -526,6 +531,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return correlationService;
     }
 
+    @Override
+    public SimulationResultManager getSimulationResultManager() {
+        return simulationResultManager;
+    }
+
     public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
@@ -634,6 +644,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         }
 
         return createStringResource(sb.toString());
+    }
+
+    public String getString(Enum<?> e) {
+        return createStringResource(e).getString();
     }
 
     public String getString(String resourceKey, Object... objects) {

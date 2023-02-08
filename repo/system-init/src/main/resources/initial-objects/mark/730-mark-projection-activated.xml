@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000730">
+    <name>Projection activated</name>
+    <description>Operation that activated the projection</description>
+    <documentation>
+        This is an operation that brought the projection into existence and being effectively enabled.
+        (So, previously it was either non-existent or effectively disabled.)
+    </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <policyRule>
+        <name>projection-activated</name>
+        <policyConstraints>
+            <custom>
+                <name>$projection-activated</name>
+                <expression>
+                    <script>
+                        <code>midpoint.currentProjectionActivated</code>
+                    </script>
+                </expression>
+            </custom>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+        <focusSelector>
+            <type>FocusType</type>
+        </focusSelector>
+    </policyRule>
+</mark>

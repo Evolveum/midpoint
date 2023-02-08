@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<simulationResult
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>expected-sum-collapsed</name>
+    <metric>
+        <ref>
+            <eventMarkRef oid="00000000-0000-0000-0000-000000000712"/>
+        </ref>
+        <aggregationFunction>selectionSize</aggregationFunction>
+        <sourceDimensions>
+            <dimension>c:typeName</dimension>
+            <dimension>c:kind</dimension>
+            <dimension>c:intent</dimension>
+            <dimension>c:resourceOid</dimension>
+        </sourceDimensions>
+        <partition>
+            <scope/>
+            <value>14</value>
+            <selectionSize>14</selectionSize>
+            <selectionTotalValue>14</selectionTotalValue>
+            <domainSize>55</domainSize>
+            <domainTotalValue>14</domainTotalValue>
+            <selectionMinValue>1</selectionMinValue>
+            <domainMinValue>0</domainMinValue>
+            <selectionMaxValue>1</selectionMaxValue>
+            <domainMaxValue>1</domainMaxValue>
+        </partition>
+    </metric>
+    <metric>
+        <ref>
+            <eventMarkRef oid="00000000-0000-0000-0000-000000000799"/>
+        </ref>
+        <aggregationFunction>selectionSize</aggregationFunction>
+        <sourceDimensions>
+            <dimension>c:typeName</dimension>
+            <dimension>c:kind</dimension>
+            <dimension>c:intent</dimension>
+            <dimension>c:resourceOid</dimension>
+        </sourceDimensions>
+        <partition>
+            <scope/>
+            <value>0</value>
+            <selectionSize>0</selectionSize>
+            <selectionTotalValue>0</selectionTotalValue>
+            <domainSize>50</domainSize>
+            <domainTotalValue>0</domainTotalValue>
+            <domainMinValue>0</domainMinValue>
+            <domainMaxValue>0</domainMaxValue>
+        </partition>
+    </metric>
+    <metric>
+        <ref>
+            <eventMarkRef oid="00000000-0000-0000-0000-000000000716"/>
+        </ref>
+        <aggregationFunction>selectionSize</aggregationFunction>
+        <sourceDimensions>
+            <dimension>c:typeName</dimension>
+            <dimension>c:kind</dimension>
+            <dimension>c:intent</dimension>
+            <dimension>c:resourceOid</dimension>
+        </sourceDimensions>
+        <partition>
+            <scope/>
+            <value>4</value>
+            <selectionSize>4</selectionSize>
+            <selectionTotalValue>4</selectionTotalValue>
+            <domainSize>10</domainSize>
+            <domainTotalValue>4</domainTotalValue>
+            <selectionMinValue>1</selectionMinValue>
+            <domainMinValue>0</domainMinValue>
+            <selectionMaxValue>1</selectionMaxValue>
+            <domainMaxValue>1</domainMaxValue>
+        </partition>
+    </metric>
+</simulationResult>

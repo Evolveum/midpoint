@@ -27,23 +27,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @SuppressWarnings("WeakerAccess")
 public class ProcessedObjectsAsserter<RA> extends AbstractAsserter<RA> {
 
-    @NotNull private final Collection<ProcessedObject<?>> processedObjects;
+    @NotNull private final Collection<? extends ProcessedObject<?>> processedObjects;
 
-    ProcessedObjectsAsserter(Collection<ProcessedObject<?>> processedObjects, RA returnAsserter, String details) {
+    ProcessedObjectsAsserter(Collection<? extends ProcessedObject<?>> processedObjects, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.processedObjects = emptyIfNull(processedObjects);
     }
 
-    public static ProcessedObjectsAsserter<Void> forObjects(Collection<ProcessedObject<?>> processedObjects, String details) {
+    public static ProcessedObjectsAsserter<Void> forObjects(
+            Collection<? extends ProcessedObject<?>> processedObjects, String details) {
         return new ProcessedObjectsAsserter<>(processedObjects, null, details);
     }
 
-    public @NotNull Collection<ProcessedObject<?>> getProcessedObjects() {
+    public @NotNull Collection<? extends ProcessedObject<?>> getProcessedObjects() {
         return processedObjects;
     }
 
     public ProcessedObjectsAsserter<RA> assertSize(int expected) {
         assertThat(processedObjects).as("processed objects").hasSize(expected);
+        return this;
+    }
+
+    public ProcessedObjectsAsserter<RA> assertSizeBetween(int min, int max) {
+        assertThat(processedObjects).as("processed objects")
+                .hasSizeGreaterThanOrEqualTo(min)
+                .hasSizeLessThanOrEqualTo(max);
         return this;
     }
 

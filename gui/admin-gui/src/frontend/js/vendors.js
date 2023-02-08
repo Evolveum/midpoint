@@ -18,6 +18,8 @@ import '../../../node_modules/daterangepicker/daterangepicker';
 
 import '../../../node_modules/select2/dist/js/select2';
 
+import '../../../node_modules/sparklines';
+
 import './passwords';
 
 import '../../../node_modules/ace-builds/src-noconflict/ace';

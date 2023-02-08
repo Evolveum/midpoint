@@ -10,11 +10,20 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -394,7 +403,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public Class<C> getType() {
         if (getSearchModel().isAttached()) {
-            return (Class<C>) getSearchModel().getObject().getTypeClass();
+            return getSearchModel().getObject().getTypeClass();
         }
         PageStorage storage = getPageStorage();
         if (storage != null && storage.getSearch() != null) {
@@ -557,12 +566,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private IModel<String> createColumnDisplayModel(GuiObjectColumnType customColumn) {
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
-        String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
-        return StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
-                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
-                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
-                        createStringResource(getItemDisplayName(customColumn)) :
-                        Model.of(customColumn.getName())));
+        if (label != null) {
+            return createStringResource(label);
+        }
+
+        return createStringResource(getItemDisplayName(customColumn));
     }
 
     protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
@@ -732,8 +740,54 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected List<Component> createToolbarButtonsList(String idButton) {
-        return new ArrayList<>();
+        List<Component> buttonsList = new ArrayList<>();
+        buttonsList.add(createDownloadButton(idButton));
+        return buttonsList;
     }
+
+    protected CsvDownloadButtonPanel createDownloadButton(String buttonId) {
+        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
+                isRawOrNoFetchOption(getOptions());
+        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DataTable<?, ?> getDataTable() {
+                return getTable().getDataTable();
+            }
+
+            @Override
+            protected String getFilename() {
+                return getType().getSimpleName() +
+                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            }
+
+        };
+        exportDataLink.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+            }
+        });
+        return exportDataLink;
+    }
+
+    private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (Boolean.TRUE.equals(option.getOptions().getRaw()) ||
+                    Boolean.TRUE.equals(option.getOptions().getNoFetch())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     protected String getStorageKey() {
         if (isCollectionViewPanelForCompiledView()) {
@@ -971,8 +1025,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return "";
         }
         PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
-        ItemDefinition itemDefinition = containerDefinition.findItemDefinition(column.getPath().getItemPath());
-        return itemDefinition == null ? "" : itemDefinition.getDisplayName();
+        ItemPath path = WebComponentUtil.getPath(column);
+        if (path == null) {
+            LOGGER.warn("Cannot get displayName for column {} because path is not defined", column);
+            return "";
+        }
+        ItemDefinition def = containerDefinition.findItemDefinition(path);
+        if (def == null) {
+            return "";
+        }
+
+        return def.getDisplayName() != null ? def.getDisplayName() : def.getItemName().getLocalPart();
     }
 
     public ObjectPaging getCurrentTablePaging() {

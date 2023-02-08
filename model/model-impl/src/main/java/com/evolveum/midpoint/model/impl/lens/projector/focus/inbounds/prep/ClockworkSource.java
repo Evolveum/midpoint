@@ -181,10 +181,11 @@ class ClockworkSource extends MSource {
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
+            boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) throws SchemaException, ConfigurationException {
 
-        if (shouldBeMappingSkipped(itemDescription, ignored, limitations)) {
+        if (shouldBeMappingSkipped(itemDescription, executionModeVisible, ignored, limitations)) {
             return ProcessingMode.NONE;
         }
 

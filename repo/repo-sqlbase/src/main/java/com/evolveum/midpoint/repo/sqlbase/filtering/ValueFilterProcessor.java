@@ -78,6 +78,20 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         // isSingleName/asSingleName or firstName don't work for T_ID (OID)
         if (path.size() <= 1) {
             QName itemName = path.isEmpty() ? PrismConstants.T_SELF : path.firstToQName();
+
+            // Special case for iterative ref search additional conditions for ownedBy/ref filter.
+            // If mapper for self-path is not found, we will try parent context, but insert the predicate to this one.
+            // Tested by test130SearchIterativeWithCustomOrderingByOwnerItemDesc.
+            SqlQueryContext<?, ?, ?> parentContext = context.parentContext();
+            if (path.isEmpty() && parentContext != null && mapping.getItemMapper(itemName) == null) {
+                try {
+                    return parentContext.process(filter);
+                } catch (RepositoryException e) {
+                    throw new QueryException(
+                            "Special case self-path processing on parent context failed for filter: " + filter, e);
+                }
+            }
+
             ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
                     mapping.itemMapper(itemName)
                             .createFilterProcessor(context);

@@ -115,8 +115,14 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             for (MappingType mappingBean : mappingsBean.getMapping()) {
                 PlusMinusZero relativityMode = segment.getRelativeAssignmentRelativityMode(); /* TODO */
                 if (relativityMode != null) {
-                    AssignedFocusMappingEvaluationRequest request = new AssignedFocusMappingEvaluationRequest(mappingBean, segment.source,
-                            ctx.evalAssignment, relativityMode, assignmentPathVariables, segment.sourceDescription);
+                    AssignedFocusMappingEvaluationRequest request =
+                            new AssignedFocusMappingEvaluationRequest(
+                                    mappingBean,
+                                    segment.source,
+                                    ctx.evalAssignment,
+                                    relativityMode,
+                                    assignmentPathVariables,
+                                    segment.sourceDescription);
                     ctx.evalAssignment.addFocusMappingEvaluationRequest(request);
                 } else {
                     // This can occur because overall condition state can be "true,false->false", making relative

@@ -102,6 +102,17 @@ public class DefaultColumnUtils {
                 .put(MessageTemplateType.class, Arrays.asList(
                         new ColumnWrapper(MessageTemplateType.F_NAME),
                         new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
+                .put(MarkType.class, Arrays.asList(
+                        new ColumnWrapper(MarkType.F_NAME),
+                        new ColumnWrapper(MarkType.F_DESCRIPTION)))
+                .put(SimulationResultType.class, Arrays.asList(
+                        new ColumnWrapper(SimulationResultType.F_NAME),
+                        new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
+                        new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP)))
+                .put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE)))
                 .build();
     }
 
@@ -146,10 +157,22 @@ public class DefaultColumnUtils {
             return getDefaultAuditEventsView();
         } else if (MessageTemplateType.class.equals(type)) {
             return getDefaultMessageTemplateView();
+        } else if (SimulationResultType.class.equals(type)) {
+            return getSimulationResultView();
+        } else if (SimulationResultProcessedObjectType.class.equals(type)) {
+            return getDefaultSimulationResultProcessedObjectView();
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
+    }
+
+    public static GuiObjectListViewType getSimulationResultView() {
+        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultSimulationResultProcessedObjectView() {
+        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result-processed-object", SimulationResultProcessedObjectType.class);
     }
 
     public static GuiObjectListViewType getDefaultAuditEventsView() {

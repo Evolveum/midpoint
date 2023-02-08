@@ -22,33 +22,26 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -74,29 +67,27 @@ public class ConsolidationProcessor {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    <F extends FocusType>
-    void consolidateValues(LensContext<F> context, LensProjectionContext projCtx, Task task,
-            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+    void consolidateValues(LensProjectionContext projCtx, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
             //todo filter changes which were already in account sync delta
 
+        LensContext<?> context = projCtx.getLensContext();
         OperationResult result = parentResult.subresult(OP_CONSOLIDATE_VALUES)
                 .setMinor()
                 .build();
         try {
-            //account was deleted, no changes are needed.
             if (wasProjectionDeleted(projCtx)) {
+                LOGGER.trace("Object was deleted on resource, no consolidation is necessary");
                 return;
             }
 
-            SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
-
             context.checkConsistenceIfNeeded();
-            if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+            if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE) {
                 // Nothing to do
             } else {
                 // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
-                consolidateValuesModifyProjection(context, projCtx, task, result);
+                consolidateValuesModifyProjection(projCtx, task, result);
                 context.checkConsistenceIfNeeded();
             }
             context.recompute();
@@ -113,12 +104,12 @@ public class ConsolidationProcessor {
         return ObjectDelta.isDelete(accContext.getSyncDelta());
     }
 
-    private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
+    private ObjectDelta<ShadowType> consolidateValuesToModifyDelta(
             LensProjectionContext projCtx, boolean addUnchangedValues, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException {
+            ConfigurationException, SecurityViolationException {
 
-        squeezeAll(context, projCtx);
+        squeezeAll(projCtx);
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
@@ -131,7 +122,7 @@ public class ConsolidationProcessor {
         // Let's be very very lazy about fetching the account from the resource.
         if (!projCtx.hasFullShadow() &&
                 (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
-                        || (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
+                        || (hasActiveStrongMapping(projCtx.getSqueezedAttributes()) || hasActiveStrongMapping(projCtx.getSqueezedAssociations())))) {
             // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
             // it should not be applied and also same changes may be discarded because of unavailability of all
             // account's attributes. Therefore load the account now, but with doNotDiscovery options.
@@ -151,25 +142,24 @@ public class ConsolidationProcessor {
             }
         }
 
-        ResourceObjectDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
+        ResourceObjectDefinition rOcDef =
+                consolidateAuxiliaryObjectClasses(projCtx, addUnchangedValues, objectDelta, result);
 
         LOGGER.trace("Definition for {} consolidation:\n{}", projCtx.getKey(), rOcDef.debugDumpLazily());
 
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
-        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
-        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
+        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, task, result);
+        consolidateAssociations(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, task, result);
 
         LOGGER.trace("consolidateValuesToModifyDelta result:\n{}", objectDelta.debugDumpLazily());
 
         return objectDelta;
     }
 
-    private <F extends FocusType> ResourceObjectDefinition consolidateAuxiliaryObjectClasses(
-            LensContext<F> context,
+    private ResourceObjectDefinition consolidateAuxiliaryObjectClasses(
             LensProjectionContext projCtx,
             boolean addUnchangedValues,
             ObjectDelta<ShadowType> objectDelta,
-            ObjectDelta<ShadowType> existingDelta,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
         ProjectionContextKey key = projCtx.getKey();
@@ -199,13 +189,13 @@ public class ConsolidationProcessor {
                 ResourceObjectDefinition auxOcDef = refinedSchema.findObjectClassDefinition(auxObjectClassName);
                 if (auxOcDef == null) {
                     LOGGER.error("Auxiliary object class definition {} for {} not found in the schema, but it should be there, dumping context:\n{}",
-                            auxObjectClassName, key, context.debugDump());
+                            auxObjectClassName, key, projCtx.getLensContext().debugDump());
                     throw new IllegalStateException("Auxiliary object class definition " + auxObjectClassName + " for "+ key + " not found in the context, but it should be there");
                 }
                 auxOcDefs.add(auxOcDef);
             }
 
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             try (IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>
                     consolidator = new IvwoConsolidatorBuilder()
                     .itemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS)
@@ -227,8 +217,7 @@ public class ConsolidationProcessor {
 
                 // TODO what about setting existing item?
 
-                //noinspection unchecked
-                PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
+                PropertyDelta<QName> propDelta = (PropertyDelta<QName>) consolidator.consolidateToDeltaNoMetadata();
 
                 LOGGER.trace("Auxiliary object class delta:\n{}", propDelta.debugDumpLazily());
 
@@ -240,68 +229,92 @@ public class ConsolidationProcessor {
 
         ResourceObjectDefinition structuralDefinition = projCtx.getStructuralObjectDefinition();
         if (structuralDefinition == null) {
-            LOGGER.error("Structural object class definition for {} not found in the context, but it should be there, dumping context:\n{}", key, context.debugDump());
-            throw new IllegalStateException("Structural object class definition for " + key + " not found in the context, but it should be there");
+            LOGGER.error("Structural object class definition for {} not found in the context, but it should be there,"
+                    + " dumping context:\n{}", key, projCtx.getLensContext().debugDump());
+            throw new IllegalStateException("Structural object class definition for " + key + " not found in the context,"
+                    + " but it should be there");
         }
 
         return new CompositeObjectDefinitionImpl(structuralDefinition, auxOcDefs);
     }
 
-    private void consolidateAttributes(LensProjectionContext projCtx,
-            boolean addUnchangedValues, ResourceObjectDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
-            ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx.getSqueezedAttributes();
+    private void consolidateAttributes(
+            LensProjectionContext projCtx,
+            boolean addUnchangedValues,
+            ResourceObjectDefinition rOcDef,
+            ObjectDelta<ShadowType> objectDelta,
+            ObjectDelta<ShadowType> existingDelta,
+            StrengthSelector strengthSelector,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+        var squeezedAttributes = projCtx.getSqueezedAttributes();
         // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
         // with the data in ItemValueWithOrigin triples.
-        for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry : squeezedAttributes.entrySet()) {
+        for (var entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> triple = entry.getValue();
-            PropertyDelta<?> propDelta = consolidateAttribute(rOcDef, projCtx.getKey(), existingDelta, projCtx,
-                    addUnchangedValues, attributeName, (DeltaSetTriple)triple, strengthSelector, result);
+            //noinspection unchecked,rawtypes
+            PropertyDelta<?> propDelta = consolidateAttribute(
+                    rOcDef, projCtx.getKey(), existingDelta, projCtx,
+                    addUnchangedValues, attributeName, (DeltaSetTriple)triple, strengthSelector, task, result);
             if (propDelta != null) {
                 objectDelta.addModification(propDelta);
             }
         }
     }
 
-    private <T> PropertyDelta<T> consolidateAttribute(ResourceObjectDefinition rOcDef,
-            ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
-            boolean addUnchangedValues, QName itemName,
+    private <T> PropertyDelta<T> consolidateAttribute(
+            ResourceObjectDefinition rOcDef, ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta,
+            LensProjectionContext projCtx, boolean addUnchangedValues, QName itemName,
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
-            StrengthSelector strengthSelector, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+            StrengthSelector strengthSelector, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
 
         if (triple == null || triple.isEmpty()) {
             return null;
         }
 
         //noinspection unchecked
-        ResourceAttributeDefinition<T> attributeDefinition =
+        ResourceAttributeDefinition<T> attributeDef =
                 triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
 
         ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
 
-        if (attributeDefinition.isIgnored(LayerType.MODEL)) {
-            LOGGER.trace("Skipping processing mappings for attribute {} because it is ignored", itemName);
+        if (attributeDef.isIgnored(LayerType.MODEL)) {
+            LOGGER.trace("Skipping consolidation of attribute {} because it is ignored", itemName);
             return null;
         }
+        if (!attributeDef.isVisible(task.getExecutionMode())) {
+            LOGGER.trace("Skipping consolidation of attribute {} because it is not visible in current execution mode",
+                    attributeDef);
+            return null;
+        }
+        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDef, matchingRuleRegistry);
 
-        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
-
-        return (PropertyDelta<T>) consolidateItem(rOcDef, key, existingDelta, projCtx, addUnchangedValues,
-                attributeDefinition.isExclusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
+        return (PropertyDelta<T>) consolidateItem(
+                rOcDef, key, existingDelta, projCtx, addUnchangedValues, attributeDef.isExclusiveStrong(),
+                itemPath, attributeDef, triple, valueMatcher, null, strengthSelector,
+                "attribute "+itemName, result);
     }
 
-    private <F extends FocusType> void consolidateAssociations(LensContext<F> context, LensProjectionContext projCtx,
-            boolean addUnchangedValues, ResourceObjectDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
-            ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
-        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> entry : projCtx.getSqueezedAssociations().entrySet()) {
+    private void consolidateAssociations(
+            LensProjectionContext projCtx,
+            boolean addUnchangedValues,
+            ResourceObjectDefinition rOcDef,
+            ObjectDelta<ShadowType> objectDelta,
+            ObjectDelta<ShadowType> existingDelta,
+            StrengthSelector strengthSelector,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+        for (var entry : projCtx.getSqueezedAssociations().entrySet()) {
             QName associationName = entry.getKey();
-            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> triple = entry.getValue();
-            ContainerDelta<ShadowAssociationType> containerDelta = consolidateAssociation(rOcDef, projCtx.getKey(),
-                    existingDelta, projCtx, addUnchangedValues, associationName, triple, strengthSelector, result);
+            var triple = entry.getValue();
+            ContainerDelta<ShadowAssociationType> containerDelta =
+                    consolidateAssociation(
+                            rOcDef, projCtx.getKey(), existingDelta, projCtx, addUnchangedValues, associationName,
+                            triple, strengthSelector, task, result);
             if (containerDelta != null) {
                 objectDelta.addModification(containerDelta);
             }
@@ -309,14 +322,27 @@ public class ConsolidationProcessor {
     }
 
     private ContainerDelta<ShadowAssociationType> consolidateAssociation(
-            ResourceObjectDefinition rOcDef, ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta,
-            LensProjectionContext projCtx, boolean addUnchangedValues, QName associationName,
+            ResourceObjectDefinition rOcDef,
+            ProjectionContextKey key,
+            ObjectDelta<ShadowType> existingDelta,
+            LensProjectionContext projCtx,
+            boolean addUnchangedValues,
+            QName associationName,
             DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> triple,
-            StrengthSelector strengthSelector, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+            StrengthSelector strengthSelector,
+            Task task,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         PrismContainerDefinition<ShadowAssociationType> assocContainerDef = getAssociationDefinition();
         ResourceAssociationDefinition associationDef = rOcDef.findAssociationDefinition(associationName);
 
+        if (!associationDef.isVisible(task.getExecutionMode())) {
+            LOGGER.trace("Skipping consolidation of association {} because it is not visible in current execution mode",
+                    associationDef);
+            return null;
+        }
+
+        //noinspection ComparatorMethodParameterNotUsed
         Comparator<PrismContainerValue<ShadowAssociationType>> comparator = (o1, o2) -> {
             if (o1 == null && o2 == null) {
                 LOGGER.trace("Comparing {} and {}: 0 (A)", o1, o2);
@@ -338,7 +364,7 @@ public class ConsolidationProcessor {
             // TODO what if OIDs are both null, and associations differ in identifier values?
             String oid1 = ref1 != null ? ref1.getOid() : null;
             String oid2 = ref2 != null ? ref2.getOid() : null;
-            if (ObjectUtils.equals(oid1, oid2)) {
+            if (Objects.equals(oid1, oid2)) {
                 LOGGER.trace("Comparing {} and {}: 0 (C)", o1, o2);
                 return 0;
             }
@@ -347,9 +373,11 @@ public class ConsolidationProcessor {
             return 1;
         };
 
-        ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, key, existingDelta,
+        ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(
+                rOcDef, key, existingDelta,
                 projCtx, addUnchangedValues, associationDef.isExclusiveStrong(), ShadowType.F_ASSOCIATION,
-                assocContainerDef, triple, null, comparator, strengthSelector, "association "+associationName, result);
+                assocContainerDef, triple, null, comparator, strengthSelector,
+                "association "+associationName, result);
 
         if (delta != null) {
             setAssociationName(delta.getValuesToAdd(), associationName);
@@ -377,7 +405,7 @@ public class ConsolidationProcessor {
         return associationDefinition;
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItem(
+    private <V extends PrismValue,D extends ItemDefinition<?>> ItemDelta<V,D> consolidateItem(
             ResourceObjectDefinition rOcDef,
             ProjectionContextKey key,
             ObjectDelta<ShadowType> existingDelta,
@@ -392,7 +420,7 @@ public class ConsolidationProcessor {
             StrengthSelector strengthSelector,
             String itemDesc,
             OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+            throws SchemaException, ExpressionEvaluationException {
 
         OperationResult result = parentResult.subresult(OP_CONSOLIDATE_ITEM)
                 .setMinor()
@@ -481,9 +509,9 @@ public class ConsolidationProcessor {
         PrismPropertyDefinition<QName> nameDefinition = prismContext.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(ShadowAssociationType.class)
                 .findPropertyDefinition(ShadowAssociationType.F_NAME);
-        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> entry : squeezedAssociations.entrySet()) {
-            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> deltaSetTriple = entry.getValue();
-            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> ivwo : deltaSetTriple.getAllValues()) {
+        for (var entry : squeezedAssociations.entrySet()) {
+            var deltaSetTriple = entry.getValue();
+            for (var ivwo : deltaSetTriple.getAllValues()) {
                 PrismContainerValue<ShadowAssociationType> value = ivwo.getItemValue();
                 if (value != null && value.findProperty(ShadowAssociationType.F_NAME) == null) {  // just for safety
                     PrismProperty<QName> nameProperty = value.createProperty(nameDefinition);
@@ -494,8 +522,8 @@ public class ConsolidationProcessor {
         LOGGER.trace("Names for squeezed associations filled-in.");
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> boolean hasActiveWeakMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext accCtx) throws SchemaException {
+    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasActiveWeakMapping(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext accCtx) {
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
             DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = entry.getValue();
             boolean hasWeak = false;
@@ -551,8 +579,8 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> boolean hasActiveStrongMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext accCtx) throws SchemaException {
+    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasActiveStrongMapping(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes) {
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
             DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = entry.getValue();
             for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getAllValues()) {
@@ -568,24 +596,24 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private <F extends FocusType> void consolidateValuesModifyProjection(LensContext<F> context,
-            LensProjectionContext accCtx, Task task, OperationResult result)
+    private void consolidateValuesModifyProjection(
+            LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
-        boolean addUnchangedValues = accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
+        boolean addUnchangedValues = projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
 
-        ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, task, result);
+        ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(projCtx, addUnchangedValues, task, result);
         if (!ObjectDelta.isEmpty(modifyDelta)) {
-            accCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
+            projCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
         }
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItemWithSync(LensProjectionContext accCtx,
-            @NotNull ItemDelta<V,D> delta, ValueMatcher<?> valueMatcher) {
+    private <V extends PrismValue,D extends ItemDefinition<?>> ItemDelta<V,D> consolidateItemWithSync(
+            LensProjectionContext projCtx, @NotNull ItemDelta<V,D> delta, ValueMatcher<?> valueMatcher) {
         if (delta instanceof PropertyDelta<?>) {
-            //noinspection unchecked
-            return (ItemDelta<V,D>) consolidatePropertyWithSync(accCtx, (PropertyDelta) delta, valueMatcher);
+            //noinspection unchecked,rawtypes
+            return (ItemDelta<V,D>) consolidatePropertyWithSync(projCtx, (PropertyDelta) delta, valueMatcher);
         } else {
             return delta;
         }
@@ -685,29 +713,20 @@ public class ConsolidationProcessor {
      */
     private <T> void cleanupValues(Collection<PrismPropertyValue<T>> values, PropertyDelta<T> alreadyDoneDelta,
             ValueMatcher<T> valueMatcher) {
-        if (values == null) {
-            return;
-        }
-
-        Iterator<PrismPropertyValue<T>> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            PrismPropertyValue<T> valueToAdd = iterator.next();
-            if (valueMatcher.isRealValueToAdd(alreadyDoneDelta, valueToAdd)) {
-                iterator.remove();
-            }
+        if (values != null) {
+            values.removeIf(valueToAdd -> valueMatcher.isRealValueToAdd(alreadyDoneDelta, valueToAdd));
         }
     }
 
-    private <F extends FocusType> void squeezeAll(LensContext<F> context, LensProjectionContext projCtx)
+    private <F extends FocusType> void squeezeAll(LensProjectionContext projCtx)
             throws SchemaException, ConfigurationException {
         // "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
         // (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes =
-                squeeze(projCtx, construction -> (Collection)construction.getAttributeMappings());
-        projCtx.setSqueezedAttributes(squeezedAttributes);
+        //noinspection unchecked
+        projCtx.setSqueezedAttributes(
+                squeeze(projCtx, construction -> (Collection) construction.getAttributeMappings()));
 
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations =
-                squeeze(projCtx, construction -> construction.getAssociationMappings());
+        var squeezedAssociations = squeeze(projCtx, construction -> construction.getAssociationMappings());
         projCtx.setSqueezedAssociations(squeezedAssociations);
 
         // Association values in squeezed associations do not contain association name attribute.
@@ -719,56 +738,67 @@ public class ConsolidationProcessor {
 
         EvaluatedConstructionMappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F> auxiliaryObjectClassExtractor =
             evaluatedConstruction -> {
-                PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> prod = new PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>() {
+                //noinspection MethodDoesntCallSuperMethod
+                PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> prod = new PrismValueDeltaSetTripleProducer<>() {
                     @Override
                     public QName getMappingQName() {
                         return ShadowType.F_AUXILIARY_OBJECT_CLASS;
                     }
+
                     @Override
                     public PrismValueDeltaSetTriple<PrismPropertyValue<QName>> getOutputTriple() {
                         PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
                         if (evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions() != null) {
-                            for (ResourceObjectDefinition auxiliaryObjectClassDefinition: evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions()) {
+                            for (ResourceObjectDefinition auxiliaryObjectClassDefinition : evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions()) {
                                 triple.addToZeroSet(prismContext.itemFactory().createPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
                             }
                         }
                         return triple;
                     }
+
                     @Override
                     public MappingStrengthType getStrength() {
                         return MappingStrengthType.STRONG;
                     }
+
                     @Override
-                    public PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> clone() {
+                    public PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> clone() {
                         return this;
                     }
+
                     @Override
                     public boolean isExclusive() {
                         return false;
                     }
+
                     @Override
                     public boolean isAuthoritative() {
                         return true;
                     }
+
                     @Override
                     public boolean isSourceless() {
                         return false;
                     }
+
                     @Override
                     public String getIdentifier() {
                         return null;
                     }
+
                     @Override
                     public boolean isPushChanges() {
                         return false;
                     }
+
                     @Override
                     public String toHumanReadableDescription() {
                         return "auxiliary object class construction " + evaluatedConstruction;
                     }
+
                     @Override
                     public String toString() {
-                        return "extractor(" + toHumanReadableDescription() +")";
+                        return "extractor(" + toHumanReadableDescription() + ")";
                     }
                 };
                 Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> col = new ArrayList<>(1);
@@ -776,12 +806,11 @@ public class ConsolidationProcessor {
                 return col;
             };
 
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses =
-                squeeze(projCtx, auxiliaryObjectClassExtractor);
-        projCtx.setSqueezedAuxiliaryObjectClasses(squeezedAuxiliaryObjectClasses);
+        projCtx.setSqueezedAuxiliaryObjectClasses(
+                squeeze(projCtx, auxiliaryObjectClassExtractor));
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeeze(
+    private <V extends PrismValue, D extends ItemDefinition<?>, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeeze(
             LensProjectionContext projCtx, EvaluatedConstructionMappingExtractor<V,D,F> extractor)
             throws SchemaException, ConfigurationException {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
@@ -802,7 +831,7 @@ public class ConsolidationProcessor {
         return squeezedMap;
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionTriple(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionTriple(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             DeltaSetTriple<? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> evaluatedConstructionDeltaSetTriple, EvaluatedConstructionMappingExtractor<V,D, AH> extractor,
             AssignmentPolicyEnforcementType enforcement) {
@@ -827,7 +856,7 @@ public class ConsolidationProcessor {
         // in this way for a long time. It seems to be unnecessary but also harmless. So let's keep it there, for now.
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedAccountConstructionSetStraight(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedAccountConstructionSetStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             Collection<? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> evaluatedConstructionSet, EvaluatedConstructionMappingExtractor<V,D, AH> extractor,
             AssignmentPolicyEnforcementType enforcement) {
@@ -839,7 +868,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromAccountConstructionSetNonminusToPlus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromAccountConstructionSetNonminusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             Collection<? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> evaluatedConstructionSet, EvaluatedConstructionMappingExtractor<V,D, AH> extractor,
             AssignmentPolicyEnforcementType enforcement) {
@@ -847,11 +876,11 @@ public class ConsolidationProcessor {
             return;
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction: evaluatedConstructionSet) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, evaluatedConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(squeezedMap, evaluatedConstruction, extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionSetNonminusToMinus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionSetNonMinusToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             Collection<? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> evaluatedConstructionSet, EvaluatedConstructionMappingExtractor<V,D, AH> extractor,
             AssignmentPolicyEnforcementType enforcement) {
@@ -859,11 +888,11 @@ public class ConsolidationProcessor {
             return;
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction: evaluatedConstructionSet) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToMinus(squeezedMap, evaluatedConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToMinus(squeezedMap, evaluatedConstruction, extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionSetAllToMinus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionSetAllToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             Collection<? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> evaluatedConstructionSet, EvaluatedConstructionMappingExtractor<V,D, AH> extractor,
             AssignmentPolicyEnforcementType enforcement) {
@@ -875,7 +904,8 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionStraight(
+    @SuppressWarnings("SameParameterValue")
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             PlainResourceObjectConstruction<AH> construction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -889,7 +919,7 @@ public class ConsolidationProcessor {
             squeezeMappingsFromEvaluatedConstructionStraight(squeezedMap, eConstruction, extractor, enforcement);
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(squeezedMap, eConstruction, extractor, enforcement);
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getMinusSet()) {
             squeezeMappingsFromEvaluatedConstructionAllToMinus(squeezedMap, eConstruction, extractor, enforcement);
@@ -897,7 +927,8 @@ public class ConsolidationProcessor {
         /////////////
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionNonMinusToPlus(
+    @SuppressWarnings("SameParameterValue")
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionNonMinusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             PlainResourceObjectConstruction<AH> construction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -909,15 +940,16 @@ public class ConsolidationProcessor {
             return;
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(squeezedMap, eConstruction, extractor, enforcement);
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(squeezedMap, eConstruction, extractor, enforcement);
         }
         // Ignore minus set
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionNonMinusToMinus(
+    @SuppressWarnings("SameParameterValue")
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionNonMinusToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             PlainResourceObjectConstruction<AH> construction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -929,15 +961,15 @@ public class ConsolidationProcessor {
             return;
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToMinus(squeezedMap, eConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToMinus(squeezedMap, eConstruction, extractor, enforcement);
         }
         for (EvaluatedResourceObjectConstructionImpl<AH, ?> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
-            squeezeMappingsFromEvaluatedConstructionNonminusToMinus(squeezedMap, eConstruction, extractor, enforcement);
+            squeezeMappingsFromEvaluatedConstructionNonMinusToMinus(squeezedMap, eConstruction, extractor, enforcement);
         }
         // Ignore minus set
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionAllToMinus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromConstructionAllToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             ResourceObjectConstruction<AH, ? extends EvaluatedResourceObjectConstructionImpl<AH, ?>> construction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -958,7 +990,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionStraight(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
@@ -978,7 +1010,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionNonminusToPlus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
@@ -994,7 +1026,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionNonminusToMinus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionNonMinusToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D,AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -1018,7 +1050,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionAllToMinus(
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionAllToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
@@ -1044,7 +1076,7 @@ public class ConsolidationProcessor {
     }
 
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> void convertSqueezeSet(Collection<V> fromSet,
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void convertSqueezeSet(Collection<V> fromSet,
             Collection<ItemValueWithOrigin<V,D>> toSet,
             PrismValueDeltaSetTripleProducer<V, D> mapping, EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction) {
         if (fromSet != null) {
@@ -1055,7 +1087,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> DeltaSetTriple<ItemValueWithOrigin<V,D>> getSqueezeMapTriple(
+    private <V extends PrismValue, D extends ItemDefinition<?>> DeltaSetTriple<ItemValueWithOrigin<V,D>> getSqueezeMapTriple(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap, QName itemName) {
         DeltaSetTriple<ItemValueWithOrigin<V,D>> triple = squeezedMap.get(itemName);
         if (triple == null) {
@@ -1068,9 +1100,8 @@ public class ConsolidationProcessor {
     /**
      * TODO
      */
-    <F extends FocusType> void consolidateValuesPostRecon(
-            LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, ConfigurationException {
+    void consolidateValuesPostRecon(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         //account was deleted, no changes are needed.
         if (wasProjectionDeleted(projCtx)) {
@@ -1098,8 +1129,8 @@ public class ConsolidationProcessor {
 
         LOGGER.trace("Definition for {} post-recon consolidation:\n{}", projCtx.getKey(), rOcDef.debugDumpLazily());
 
-        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
-        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
+        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, task, result);
+        consolidateAssociations(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, task, result);
 
         if (objectDelta.isEmpty()) {
             return;

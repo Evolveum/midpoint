@@ -76,7 +76,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
         RunningTask task = getRunningTask();
-        support.beforeExecution(result);
+        support.beforeRun(result);
         @NotNull ReportType report = support.getReport();
 
         support.stateCheck(result);
@@ -174,9 +174,10 @@ public final class ClassicDashboardReportExportActivityRun
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request,
+    public boolean processItem(
+            @NotNull ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request,
             @NotNull RunningTask workerTask, OperationResult result)
-            throws CommonException, ActivityRunException {
+            throws CommonException {
 
         ExportDashboardReportLine<Containerable> item = request.getItem();
         getController(item)
@@ -189,14 +190,14 @@ public final class ClassicDashboardReportExportActivityRun
             //noinspection unchecked
             return (ExportController<C>) basicWidgetController;
         }
-        DashboardWidgetHolder holder = mapOfWidgetsController.get(item.getWidgetIdentifier());
+        DashboardWidgetHolder<?> holder = mapOfWidgetsController.get(item.getWidgetIdentifier());
         //noinspection unchecked
         return (ExportController<C>) holder.getController();
     }
 
     @Override
     public void afterRun(OperationResult result) throws CommonException {
-        support.saveReportFile(dataWriter, result);
+        support.saveSimpleReportData(dataWriter, result);
     }
 
     @Override

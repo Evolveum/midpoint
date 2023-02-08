@@ -11,8 +11,6 @@ import static org.testng.Assert.assertTrue;
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class TestCsvReportMultiNode extends TestCsvReport {
@@ -74,8 +73,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
                 .display()
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
-        basicCheckOutputFile(report, 1004, 2, null);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT_USERS.oid);
+        basicCheckOutputFile(reportTask, 1004, 2, null);
 
         assertNotificationMessage(REPORT_OBJECT_COLLECTION_USERS);
     }
@@ -84,8 +83,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
     public void test101ExportAuditRecords() throws Exception {
         auditTest();
 
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT_AUDIT.oid);
+        List<String> rows = basicCheckOutputFile(reportTask, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 1000 && rows.size() <= 1012,
                 "Unexpected number of rows in report. Expected:1000-1012, Actual:" + rows.size());
     }
@@ -108,8 +107,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         auditTest();
 
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT_AUDIT.oid);
+        List<String> rows = basicCheckOutputFile(reportTask, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 800 && rows.size() <= 810,
                 "Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size());
     }
@@ -132,8 +131,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         auditTest();
 
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT_AUDIT.oid);
+        List<String> rows = basicCheckOutputFile(reportTask, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 1200 && rows.size() <= 1250,
                 "Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size());
     }

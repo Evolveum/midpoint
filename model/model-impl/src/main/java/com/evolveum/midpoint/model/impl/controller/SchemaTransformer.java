@@ -117,7 +117,7 @@ public class SchemaTransformer {
 
     // Expecting that C is a direct child of T.
     // Expecting that container values point to their respective parents (in order to evaluate the security!)
-    public <C extends Containerable, T extends ObjectType>
+    <C extends Containerable, T extends ObjectType>
     SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, ItemName childItemName,
             GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException, CommunicationException {

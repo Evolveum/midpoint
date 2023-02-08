@@ -9,10 +9,11 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -20,40 +21,46 @@ import java.util.Collection;
 /**
  * Evaluation context for object-based policy rule.
  */
-public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType>
-        extends PolicyRuleEvaluationContext<AH>
+public class ObjectPolicyRuleEvaluationContext<O extends ObjectType>
+        extends PolicyRuleEvaluationContext<O>
         implements Cloneable {
 
-    ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-            LensContext<AH> context, Task task) {
-        this(policyRule, globalCtx, context, task, ObjectState.AFTER);
+    ObjectPolicyRuleEvaluationContext(
+            @NotNull EvaluatedPolicyRule policyRule,
+            RulesEvaluationContext globalCtx,
+            LensElementContext<O> elementContext,
+            Task task) {
+        this(policyRule, globalCtx, elementContext, task, ObjectState.AFTER);
     }
 
-    private ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-            LensContext<AH> context, Task task,
+    private ObjectPolicyRuleEvaluationContext(
+            @NotNull EvaluatedPolicyRule policyRule,
+            RulesEvaluationContext globalCtx,
+            LensElementContext<O> elementContext,
+            Task task,
             ObjectState state) {
-        super(policyRule, context, task, globalCtx, state);
+        super(policyRule, elementContext, task, globalCtx, state);
     }
 
     @Override
-    public PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
-        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task, state);
+    public PolicyRuleEvaluationContext<O> cloneWithStateConstraints(ObjectState state) {
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, elementContext, task, state);
     }
 
     @Override
     public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        focusContext.triggerRule(policyRule, triggers);
+        elementContext.triggerRule(policyRule, triggers);
     }
 
     @Override
     public String getShortDescription() {
-        return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
+        return ObjectTypeUtil.toShortString(elementContext.getObjectAny()) + " / " + state;
     }
 
     @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
-    public ObjectPolicyRuleEvaluationContext<AH> clone() {
-        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
+    public ObjectPolicyRuleEvaluationContext<O> clone() {
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, elementContext, task);
     }
 
     @Override

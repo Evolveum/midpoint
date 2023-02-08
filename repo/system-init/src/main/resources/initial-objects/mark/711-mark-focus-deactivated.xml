@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000711">
+    <name>Focus deactivated</name>
+    <description>Operation that deactivated the focus</description>
+    <documentation>
+        This is an operation that deleted or effectively disabled the focus.
+        (So, previously it existed and was effectively enabled.)
+    </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <policyRule>
+        <name>focus-deactivated</name>
+        <policyConstraints>
+            <custom>
+                <name>$focus-deactivated</name>
+                <expression>
+                    <script>
+                        <code>midpoint.focusDeactivated</code>
+                    </script>
+                </expression>
+            </custom>
+        </policyConstraints>
+        <focusSelector>
+            <type>FocusType</type>
+        </focusSelector>
+    </policyRule>
+</mark>

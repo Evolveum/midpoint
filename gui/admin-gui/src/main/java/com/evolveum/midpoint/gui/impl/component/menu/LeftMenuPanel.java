@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -310,6 +313,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createServerTasksItems());
         menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
+        menu.addMainMenuItem(createSimulationItems());
+        menu.addMainMenuItem(createAuditItems());
+
         return menu;
     }
 
@@ -477,8 +483,32 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem reportMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
         createBasicAssignmentHolderMenuItems(reportMenu, PageTypes.REPORT);
         reportMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
-        reportMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
         return reportMenu;
+    }
+
+    private MainMenuItem createAuditItems() {
+        return createMainMenuItem("PageAuditLogViewer.menuName", GuiStyleConstants.CLASS_TODO_FIXME_NOT_YET_DEFINED, PageAuditLogViewer.class);
+    }
+
+    private MainMenuItem createSimulationItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.simulationResults.list", PageSimulationResults.class));
+
+        boolean editActive = classMatches(PageSimulationResult.class);
+        if (editActive) {
+            MenuItem edit = new MenuItem("PageAdmin.menu.top.simulationResults.view", PageSimulationResult.class);
+            edit.setDynamic(true);
+            menu.addMenuItem(edit);
+        }
+
+        return menu;
+    }
+
+    private MainMenuItem createMarkItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.marks", GuiStyleConstants.CLASS_MARK);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.MARK);
+
+        return menu;
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
@@ -487,6 +517,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
+        item.addMainMenuItem(createMarkItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());

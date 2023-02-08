@@ -914,7 +914,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNotNull("configured count capability not present", capCount);
             CountObjectsSimulateType simulate = capCount.getSimulate();
             assertNotNull("simulate not present in configured count capability", simulate);
-            assertEquals("Wrong similate in configured count capability", getCountSimulationMode(), simulate);
+            assertEquals("Wrong simulate in configured count capability", getCountSimulationMode(), simulate);
         }
     }
 

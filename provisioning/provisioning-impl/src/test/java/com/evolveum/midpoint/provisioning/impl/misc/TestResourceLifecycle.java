@@ -21,6 +21,8 @@ import java.io.File;
 
 import com.evolveum.midpoint.schema.util.Resource;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,13 +37,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+/**
+ * Checks the effects of `lifecycleState` at the level of resource and object type/class definition.
+ */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
@@ -362,8 +364,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     private void assertIntent(PrismObject<ShadowType> account, ShadowKindType kind, String expected) {
         assertShadowAfter(account)
                 .assertKind(kind)
-                .assertIntent(expected)
-                .assertNotSimulated();
+                .assertIntent(expected);
     }
 
     private PrismObject<ShadowType> searchByName(
@@ -401,14 +402,114 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .display()
                 .assertKind(ACCOUNT)
                 .assertIntent(I_EMPLOYEE)
-                .assertIsExists()
-                .assertNotSimulated();
+                .assertIsExists();
         assertRepoShadow(oidAdmin, "repo shadow after (admin)")
                 .display()
                 .assertKind(ACCOUNT)
                 .assertIntent(I_ADMIN)
-                .assertIsExists()
-                .assertNotSimulated();
+                .assertIsExists();
+    }
+
+    /** Shadow creation in simulation mode should be forbidden. */
+    @Test
+    public void test210CreateAccountsInSimulationMode() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        task.setExecutionMode(SIMULATED_PRODUCTION);
+        int shadowsBefore = repositoryService.countObjects(ShadowType.class, null, null, result);
+
+        when("account is attempted to be created (maintenance mode off)");
+        tryCreatingAccount(task, result);
+
+        when("account is attempted to be created (maintenance mode on)");
+        try {
+            turnMaintenanceModeOn(RESOURCE_DUMMY_ACTIVE.oid, result);
+            tryCreatingAccount(task, result);
+        } finally {
+            turnMaintenanceModeOff(RESOURCE_DUMMY_ACTIVE.oid, result);
+        }
+
+        then("there are no new shadows");
+        int shadowsAfter = repositoryService.countObjects(ShadowType.class, null, null, result);
+        assertThat(shadowsAfter).as("shadows after").isEqualTo(shadowsBefore);
+    }
+
+    private void tryCreatingAccount(Task task, OperationResult result) throws CommonException {
+        try {
+            provisioningService.addObject(
+                    createShadow(RESOURCE_DUMMY_ACTIVE, I_EMPLOYEE, "e_test210"),
+                    null, null, task, result);
+            fail("unexpected success");
+        } catch (IllegalStateException e) {
+            then("an exception is thrown");
+            displayExpectedException(e);
+        }
+    }
+
+    /** Shadow modification or deletion in simulation mode should be forbidden. */
+    @Test
+    public void test220ModifyOrDeleteAccountsInSimulationMode() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("an account exists on the resource");
+        String oid = provisioningService.addObject(
+                createShadow(RESOURCE_DUMMY_ACTIVE, I_EMPLOYEE, "e_test220"),
+                null, null, task, result);
+
+        task.setExecutionMode(SIMULATED_PRODUCTION);
+        int shadowsBefore = repositoryService.countObjects(ShadowType.class, null, null, result);
+
+        when("account is attempted to be modified and deleted (maintenance mode off)");
+        tryModifyingAccount(oid, task, result);
+        tryDeletingAccount(oid, task, result);
+
+        when("account is attempted to be modified and deleted (maintenance mode on)");
+        try {
+            turnMaintenanceModeOn(RESOURCE_DUMMY_ACTIVE.oid, result);
+            tryModifyingAccount(oid, task, result);
+            tryDeletingAccount(oid, task, result);
+        } finally {
+            turnMaintenanceModeOff(RESOURCE_DUMMY_ACTIVE.oid, result);
+        }
+
+        and("there are no new nor deleted shadows");
+        int shadowsAfter = repositoryService.countObjects(ShadowType.class, null, null, result);
+        assertThat(shadowsAfter).as("shadows after").isEqualTo(shadowsBefore);
+
+        and("there are no pending operations");
+        assertShadowNoFetch(oid)
+                .pendingOperations()
+                .assertNone();
+    }
+
+    private void tryModifyingAccount(String oid, Task task, OperationResult result) throws CommonException {
+        try {
+            provisioningService.modifyObject(
+                    ShadowType.class,
+                    oid,
+                    Resource.of(RESOURCE_DUMMY_ACTIVE.get())
+                            .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                            .item(ICFS_NAME_PATH)
+                            .replace("changed")
+                            .asItemDeltas(),
+                    null, null, task, result);
+            fail("unexpected success");
+        } catch (IllegalStateException e) {
+            then("an exception is thrown");
+            displayExpectedException(e);
+        }
+    }
+
+    private void tryDeletingAccount(String oid, Task task, OperationResult result) throws CommonException {
+        try {
+            provisioningService.deleteObject(ShadowType.class, oid, null, null, task, result);
+            fail("unexpected success");
+        } catch (IllegalStateException e) {
+            then("an exception is thrown");
+            displayExpectedException(e);
+        }
     }
 
     private void changeIntent(String shadowOid, String newIntent, OperationResult result) throws CommonException {

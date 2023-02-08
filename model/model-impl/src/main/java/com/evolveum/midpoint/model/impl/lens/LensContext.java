@@ -957,7 +957,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         recomputeProjections();
     }
 
-    // mainly computes new state based on old state and delta(s)
     public void recomputeFocus() throws SchemaException {
         if (focusContext != null) {
             focusContext.recompute();

@@ -15,6 +15,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
+import com.evolveum.midpoint.test.TestTask;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,51 +55,52 @@ public class TestOrgSync extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "orgsync");
 
-    public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
     public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
 
-    public static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
-    public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
+    private static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
+    private static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
-    public static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
-    public static final String OBJECT_TEMPLATE_ROLE_OID = "10000000-0000-0000-0000-000000000241";
+    private static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
+    private static final String OBJECT_TEMPLATE_ROLE_OID = "10000000-0000-0000-0000-000000000241";
 
-    protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
-    protected static final String RESOURCE_DUMMY_HR_ID = "HR";
-    protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
+    private static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
+    private static final String RESOURCE_DUMMY_HR_ID = "HR";
+    private static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME =
+    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    private static final QName OPENDJ_ASSOCIATION_GROUP_NAME =
             new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH = "orgpath";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES = "responsibilities";
 
-    public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
+    private static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
     public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 
-    public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
-    public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
+    private static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+    private static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
 
-    public static final File ROLE_META_REPLICATED_ORG_FILE = new File(TEST_DIR,
+    private static final File ROLE_META_REPLICATED_ORG_FILE = new File(TEST_DIR,
             "role-meta-replicated-org.xml");
-    public static final String ROLE_META_REPLICATED_ORG_OID = "10000000-0000-0000-0000-000000006601";
+    private static final String ROLE_META_REPLICATED_ORG_OID = "10000000-0000-0000-0000-000000006601";
 
-    public static final File ROLE_META_RESPONSIBILITY_FILE = new File(TEST_DIR,
+    private static final File ROLE_META_RESPONSIBILITY_FILE = new File(TEST_DIR,
             "role-meta-responsibility.xml");
-    protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR,
-            "task-dumy-hr-livesync.xml");
-    protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
+    private static final TestTask TASK_DUMMY_HR_LIVESYNC = new TestTask(
+            TEST_DIR, "task-dummy-hr-livesync.xml", "10000000-0000-0000-5555-555500000001");
+    private static final TestTask TASK_DUMMY_HR_LIVESYNC_SIMULATION = new TestTask(
+            TEST_DIR, "task-dummy-hr-livesync-simulation.xml", "42659a57-00e3-49ea-9799-b81587afdfe3");
 
-    protected static final File TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE = new File(TEST_DIR,
+    private static final File TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE = new File(TEST_DIR,
             "task-reconcile-opendj-default-single.xml");
-    protected static final String TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID = "10000000-0000-0000-5555-555500000004";
+    private static final String TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID = "10000000-0000-0000-5555-555500000004";
 
-    protected static final File TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE = new File(TEST_DIR,
+    private static final File TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE = new File(TEST_DIR,
             "task-reconcile-opendj-ldapgroup-single.xml");
-    protected static final String TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID = "10000000-0000-0000-5555-555500000014";
+    private static final String TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID = "10000000-0000-0000-5555-555500000014";
 
     private static final String ACCOUNT_HERMAN_USERNAME = "ht";
     private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
@@ -177,13 +182,13 @@ public class TestOrgSync extends AbstractStoryTest {
     private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
     private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
 
-    protected static final int TASK_WAIT_TIMEOUT = 40000;
+    private static final int TASK_WAIT_TIMEOUT = 40000;
 
     @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
     private DebugReconciliationResultListener reconciliationTaskResultListener;
 
-    protected static DummyResource dummyResourceHr;
+    private static DummyResource dummyResourceHr;
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -212,6 +217,10 @@ public class TestOrgSync extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        if (isNativeRepository()) {
+            CommonInitialObjects.addMarks(this, initTask, initResult);
+        }
 
         reconciliationTaskResultListener = new DebugReconciliationResultListener();
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationTaskResultListener);
@@ -260,13 +269,14 @@ public class TestOrgSync extends AbstractStoryTest {
         importObjectFromFile(ROLE_META_RESPONSIBILITY_FILE, initResult);
 
         // Tasks
-        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILE, initResult);
-
+        TASK_DUMMY_HR_LIVESYNC.init(this, initTask, initResult);
+        TASK_DUMMY_HR_LIVESYNC_SIMULATION.init(this, initTask, initResult);
     }
 
     @Test
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultHr);
@@ -276,26 +286,56 @@ public class TestOrgSync extends AbstractStoryTest {
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);
+
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
+        if (isNativeRepository()) {
+            TASK_DUMMY_HR_LIVESYNC_SIMULATION.rerun(result);
+        }
 
         dumpOrgTree();
+    }
+
+    /**
+     * Simulation for {@link #test105AddHrAccountHerman()}.
+     */
+    @Test
+    public void test100AddHrAccountHermanSimulated() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("'ht' account in HR");
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_MONKEY_ISLAND);
+        dummyResourceHr.addAccount(newAccount);
+
+        skipIfNotNativeRepository();
+
+        when("LS is run in simulation mode");
+        TASK_DUMMY_HR_LIVESYNC_SIMULATION.rerun(result);
+
+        then("there is a simulation result");
+        TestSimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
+        assertSimulationResultAfter(simResult);
+        assertProcessedObjectsAfter(simResult);
+        displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));
     }
 
     /**
      * First account on Monkey Island. The Monkey Island org should be created.
      */
     @Test
-    public void test100AddHrAccountHerman() throws Exception {
-        DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_MONKEY_ISLAND);
+    public void test105AddHrAccountHerman() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-        // WHEN
-        dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        // "ht" already exists (test100)
 
-        // THEN
+        when("LS is run");
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
+
+        then("user is created");
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HERMAN_USERNAME);
         assertNotNull("No herman user", user);
         display("User", user);
@@ -321,7 +361,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Second account on Monkey Island. The existing org should be reused.
      */
     @Test
-    public void test105AddHrAccountLemonhead() throws Exception {
+    public void test110AddHrAccountLemonhead() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
@@ -330,7 +373,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_LEMONHEAD_USERNAME);
@@ -362,7 +405,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * is reused and not created again.
      */
     @Test
-    public void test106AddHrAccountSharptooth() throws Exception {
+    public void test120AddHrAccountSharptooth() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_SHARPTOOTH_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_SHARPTOOTH_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_SHARPTOOTH_LAST_NAME);
@@ -371,7 +417,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_SHARPTOOTH_USERNAME);
@@ -402,7 +448,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Yet another canibal to play with.
      */
     @Test
-    public void test107AddHrAccountRedskull() throws Exception {
+    public void test130AddHrAccountRedskull() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_REDSKULL_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_REDSKULL_LAST_NAME);
@@ -411,7 +460,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
@@ -438,18 +487,39 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     /**
-     * Remove "canibalism" responsibility from redskull.
+     * Remove "canibalism" responsibility from redskull. Simulated.
      */
     @Test
-    public void test108RedskullGoesVegetarian() throws Exception {
+    public void test140RedskullGoesVegetarianSimulated() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("the responsibility is removed from redskipp");
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
-
-        // WHEN
-        when();
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
-        // THEN
+        skipIfNotNativeRepository();
+
+        when("LS is run (simulated)");
+        TASK_DUMMY_HR_LIVESYNC_SIMULATION.rerun(result);
+
+        then("there is a fat simulation result, because we are processing all changes since #2");
+        TestSimulationResult simResult = getTaskSimResult(TASK_DUMMY_HR_LIVESYNC_SIMULATION.oid, result);
+        displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));
+    }
+    /**
+     * As {@link #test140RedskullGoesVegetarianSimulated()} but real.
+     */
+    @Test
+    public void test145RedskullGoesVegetarian() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("account is already changed");
+
+        when("LS is run");
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
+
         then();
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
         assertNotNull("No redskull user", user);
@@ -478,11 +548,14 @@ public class TestOrgSync extends AbstractStoryTest {
      * Vegetarian cannibal? Not really!
      */
     @Test
-    public void test109HrDeleteRedskull() throws Exception {
+    public void test150HrDeleteRedskull() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         // WHEN
         when();
         dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         then();
@@ -504,7 +577,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Two-level orgpath. Both orgs should be created.
      */
     @Test
-    public void test110AddHrAccountGuybrush() throws Exception {
+    public void test200AddHrAccountGuybrush() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_GUYBRUSH_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
@@ -512,7 +588,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_GUYBRUSH_USERNAME);
@@ -546,7 +622,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Ministry should be reused.
      */
     @Test
-    public void test115AddHrAccountMancomb() throws Exception {
+    public void test210AddHrAccountMancomb() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
@@ -554,7 +633,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_MANCOMB_USERNAME);
@@ -589,7 +668,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Two-level orgpath, completely created. No new orgs should be created.
      */
     @Test
-    public void test117AddHrAccountCobb() throws Exception {
+    public void test220AddHrAccountCobb() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_COBB_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_COBB_LAST_NAME);
@@ -597,7 +679,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_COBB_USERNAME);
@@ -632,7 +714,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Four-level orgpath, completely new.
      */
     @Test
-    public void test130AddHrAccountLargo() throws Exception {
+    public void test230AddHrAccountLargo() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LARGO_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LARGO_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_LARGO_LAST_NAME);
@@ -640,7 +725,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_LARGO_USERNAME);
@@ -681,7 +766,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * midpoint.
      */
     @Test
-    public void test140AddHrAccountWally() throws Exception {
+    public void test240AddHrAccountWally() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_WALLY_LAST_NAME);
@@ -689,7 +777,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_WALLY_USERNAME);
@@ -721,7 +809,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Two-level orgpath, both orgs are only as ou in LDAP, not in midpoint.
      */
     @Test
-    public void test142AddHrAccountAugustus() throws Exception {
+    public void test250AddHrAccountAugustus() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_AUGUSTUS_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_AUGUSTUS_LAST_NAME);
@@ -729,7 +820,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_AUGUSTUS_USERNAME);
@@ -761,7 +852,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Some national characters there.
      */
     @Test
-    public void test185AddHrAccountStan() throws Exception {
+    public void test260AddHrAccountStan() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_STAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_STAN_LAST_NAME);
@@ -769,7 +863,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_STAN_USERNAME);
@@ -803,7 +897,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Commas in the org structure.
      */
     @Test
-    public void test186AddHrAccountCapsize() throws Exception {
+    public void test270AddHrAccountCapsize() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_CAPSIZE_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_CAPSIZE_LAST_NAME);
@@ -811,7 +908,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_CAPSIZE_USERNAME);
@@ -845,7 +942,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Comma in username
      */
     @Test
-    public void test187AddHrAccountRogersSr() throws Exception {
+    public void test280AddHrAccountRogersSr() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_ROGERSSR_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_ROGERSSR_LAST_NAME);
@@ -853,7 +953,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_ROGERSSR_USERNAME);
@@ -888,7 +988,10 @@ public class TestOrgSync extends AbstractStoryTest {
      * Lot of national characters here.
      */
     @Test
-    public void test190AddHrAccountTeleke() throws Exception {
+    public void test290AddHrAccountTeleke() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_TELEKE_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_TELEKE_LAST_NAME);
@@ -896,7 +999,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        TASK_DUMMY_HR_LIVESYNC.rerun(result);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_TELEKE_USERNAME);
@@ -926,15 +1029,35 @@ public class TestOrgSync extends AbstractStoryTest {
         assertAssignments(user, 2);
     }
 
+    @Test(enabled = false) // some mysterious problems in simulation mode
+    public void test500ReconcileOpenDJDefaultSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        var taskOid = reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withProcessingAllAccounts()
+                .simulatedProduction()
+                .execute(result);
+
+        TestSimulationResult simResult = getTaskSimResult(taskOid, result);
+        assertSimulationResultAfter(simResult);
+        assertProcessedObjectsAfter(simResult);
+        displayValueAsXml("complete simulation result", simResult.getCompleteSimulationResult(result));
+    }
+
     @Test
-    public void test500ReconcileOpenDJDefault() throws Exception {
+    public void test505ReconcileOpenDJDefault() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task,
-                result);
+        List<PrismObject<UserType>> users =
+                modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users before recon", users);
         assertUsers(15);
 
@@ -970,7 +1093,7 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     @Test
-    public void test502ReconcileOpenDJDefaultAgain() throws Exception {
+    public void test510ReconcileOpenDJDefaultAgain() throws Exception {
 
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1003,7 +1126,7 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     @Test
-    public void test510ReconcileOpenDJLdapGroup() throws Exception {
+    public void test520ReconcileOpenDJLdapGroup() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1089,11 +1212,11 @@ public class TestOrgSync extends AbstractStoryTest {
                 membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));
     }
 
-    protected void assertUserGuybrush(PrismObject<UserType> user) {
+    private void assertUserGuybrush(PrismObject<UserType> user) {
         assertUser(user, ACCOUNT_GUYBRUSH_USERNAME, ACCOUNT_GUYBRUSH_FIST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
     }
 
-    protected void assertUserHerman(PrismObject<UserType> user) {
+    private void assertUserHerman(PrismObject<UserType> user) {
         assertUser(user, ACCOUNT_HERMAN_USERNAME, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
     }
 
@@ -1131,6 +1254,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // TODO assert shadow content
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String assertResponsibility(PrismObject<UserType> user, String respName)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
@@ -1159,6 +1283,7 @@ public class TestOrgSync extends AbstractStoryTest {
         return respRole.getOid();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String assertNoResponsibility(PrismObject<UserType> user, String respName)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {

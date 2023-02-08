@@ -137,6 +137,8 @@ public class ShadowCleanupActivityHandler
         @Override
         public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
 
+            ensureNoPreviewNorDryRun();
+
             ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
             RunningTask runningTask = getRunningTask();
 

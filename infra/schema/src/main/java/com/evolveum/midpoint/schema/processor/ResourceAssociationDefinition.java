@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -160,6 +162,14 @@ public class ResourceAssociationDefinition extends AbstractFreezable
 
     public String getDisplayName() {
         return definitionBean.getDisplayName();
+    }
+
+    public String getLifecycleState() {
+        return definitionBean.getLifecycleState();
+    }
+
+    public boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
+        return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
     }
 
     @Override

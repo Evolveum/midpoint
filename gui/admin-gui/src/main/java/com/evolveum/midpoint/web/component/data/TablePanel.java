@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;

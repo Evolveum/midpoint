@@ -8,6 +8,9 @@ package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
+import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.common.Clock;
@@ -19,6 +22,13 @@ import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Radovan Semancik
@@ -145,5 +155,17 @@ public abstract class AbstractAsserter<RA> {
 
     public RA getReturnAsserter() {
         return returnAsserter;
+    }
+
+    protected void assertEventMarks(AbstractTestResource<MarkType>[] expectedTags, Collection<String> realTags) {
+        if (!getRepositoryService().supportsMarks()) {
+            return;
+        }
+        Set<String> expectedTagsOids = Arrays.stream(expectedTags)
+                .map(r -> r.oid)
+                .collect(Collectors.toSet());
+        assertThat(realTags)
+                .as("event marks")
+                .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
     }
 }

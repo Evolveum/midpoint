@@ -33,8 +33,8 @@ public enum ObjectTypes {
     GENERIC_OBJECT(SchemaConstants.C_GENERIC_OBJECT_TYPE,
             SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL, "genericObjects"),
 
-    TAG(TagType.COMPLEX_TYPE,
-            SchemaConstantsGenerated.C_TAG, TagType.class, ObjectManager.MODEL, "tags"),
+    MARK(MarkType.COMPLEX_TYPE,
+            SchemaConstantsGenerated.C_MARK, MarkType.class, ObjectManager.MODEL, "marks"),
 
     RESOURCE(SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
             ResourceType.class, ObjectManager.PROVISIONING, "resources"),

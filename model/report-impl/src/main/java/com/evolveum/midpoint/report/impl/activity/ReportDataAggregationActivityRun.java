@@ -42,7 +42,7 @@ final class ReportDataAggregationActivityRun
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportDataAggregationActivityRun.class);
 
-    /** Helper functionality. */
+    /** Helper functionality for the "distributed report exports" activity. */
     @NotNull private final DistributedReportExportActivitySupport support;
 
     /**
@@ -52,10 +52,8 @@ final class ReportDataAggregationActivityRun
      */
     private final StringBuilder aggregatedData = new StringBuilder();
 
-    /**
-     * Data writer which completes the content of the report.
-     */
-    private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
+    /** Data writer which completes the content of the report (e.g. by providing HTML code at the end) */
+    private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> completingDataWriter;
 
     /** The number of bucket we expect (during collection of partial results). */
     private int expectedSequentialNumber = 1;
@@ -77,10 +75,13 @@ final class ReportDataAggregationActivityRun
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         ensureNoParallelism();
 
-        support.beforeExecution(result);
+        support.beforeRun(result);
 
-        dataWriter = ReportUtils.createDataWriter(
-                support.getReport(), FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
+        completingDataWriter = ReportUtils.createDataWriter(
+                support.getReport(),
+                FileFormatTypeType.CSV, // default type
+                getActivityHandler().reportService,
+                support.getCompiledCollectionView(result));
     }
 
     @Override
@@ -102,7 +103,7 @@ final class ReportDataAggregationActivityRun
     @Override
     public boolean processItem(@NotNull ReportDataType reportData,
             @NotNull ItemProcessingRequest<ReportDataType> request, RunningTask workerTask, OperationResult result)
-            throws CommonException, ActivityRunException {
+            throws CommonException {
         LOGGER.info("Appending data from {} (and deleting the object)", reportData);
         checkSequentialNumber(reportData); // TODO check also the total # of buckets (after we know it at the start!)
         aggregatedData.append(reportData.getData());
@@ -120,7 +121,11 @@ final class ReportDataAggregationActivityRun
     }
 
     @Override
-    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
-        support.saveReportFile(aggregatedData.toString(), dataWriter, result);
+    public void afterRun(OperationResult result) throws CommonException {
+        support.saveAggregatedReportData(
+                aggregatedData.toString(),
+                completingDataWriter,
+                support.getGlobalReportDataRef(),
+                result);
     }
 }

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefine
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
@@ -25,7 +26,9 @@ import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -959,7 +962,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
+        resetCompositeObjectDefinition();
+    }
+
+    private void resetCompositeObjectDefinition() {
         compositeObjectDefinition = null;
+        itemChangeApplicationModeConfiguration = null;
     }
 
     @Override
@@ -1503,6 +1511,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
 
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "Policy rules context", policyRulesContext, indent + 1);
+
         return sb.toString();
     }
 
@@ -1854,21 +1865,28 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /** Is the resource or object class/type visible for the current task execution mode? */
     public boolean isVisible() throws SchemaException, ConfigurationException {
-        if (!lensContext.isProductionConfigurationTask()) {
-            return true; // temporary (in the future, not all the elements will be visible in non-production configuration)
-        }
         if (resource == null) {
             throw new IllegalStateException("No resource"); // temporary
         }
-        return SimulationUtil.isInProduction(resource, getStructuralObjectDefinition());
+        return SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
+    }
+
+    private @NotNull TaskExecutionMode getTaskExecutionMode() {
+        return lensContext.getTaskExecutionMode();
     }
 
     public boolean hasResource() {
         return resource != null;
     }
 
+    public boolean isAdministrativeStatusSupported() throws SchemaException, ConfigurationException {
+        return resource != null
+                && CapabilityUtil.isActivationStatusCapabilityEnabled(resource, getStructuralObjectDefinition());
+    }
+
     @Override
-    @NotNull Collection<String> getEventTags() {
-        return Set.of();
+    @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException {
+        return ItemChangeApplicationModeConfiguration.of(getCompositeObjectDefinition());
     }
 }

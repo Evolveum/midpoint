@@ -31,9 +31,9 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * TODO describe
@@ -56,9 +56,9 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedCustomConstraintTrigger evaluate(
+    public <O extends ObjectType> EvaluatedCustomConstraintTrigger evaluate(
             @NotNull JAXBElement<CustomPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -97,10 +97,10 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
 
     // TODO deduplicate with state constraint evaluation
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+    private LocalizableMessage createMessage(
             String constraintKeyPrefix,
             JAXBElement<CustomPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx,
+            PolicyRuleEvaluationContext<?> ctx,
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
@@ -117,9 +117,11 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
 
     // TODO deduplicate with state constraint evaluation
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createBuiltInMessage(String keyPrefix,
-            JAXBElement<CustomPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx,
-            boolean assignmentTarget, OperationResult result)
+    private LocalizableMessage createBuiltInMessage(String keyPrefix,
+            JAXBElement<CustomPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            boolean assignmentTarget,
+            OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         CustomPolicyConstraintType constraint = constraintElement.getValue();
@@ -142,22 +144,22 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private <AH extends AssignmentHolderType> void addAssignmentTargetArgument(
-            List<Object> args, PolicyRuleEvaluationContext<AH> ctx) {
+    private void addAssignmentTargetArgument(
+            List<Object> args, PolicyRuleEvaluationContext<?> ctx) {
         if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
             args.add("");
         } else {
-            AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) ctx;
+            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) ctx;
             args.add(ObjectTypeUtil.createDisplayInformation(actx.evaluatedAssignment.getTarget(), false));
         }
     }
 
     // TODO deduplicate with state constraint evaluation
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(
+    private LocalizableMessage createShortMessage(
             String constraintKeyPrefix,
             JAXBElement<CustomPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx,
+            PolicyRuleEvaluationContext<?> ctx,
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,

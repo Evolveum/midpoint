@@ -14,11 +14,9 @@ import java.util.Map;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.factory.*;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.AvailableMarkItemWrapperFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class SearchConfigurationWrapperFactory {
@@ -26,6 +24,7 @@ public class SearchConfigurationWrapperFactory {
     private static List<AbstractSearchItemWrapperFactory> factories = new ArrayList<>();
 
     static {
+        factories.add(new AvailableMarkItemWrapperFactory());
         factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ChoicesSearchItemWrapperFactory());
         factories.add(new AutocompleteSearchItemWrapperFactory());
@@ -36,17 +35,18 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new TextSearchItemWrapperFactory());
     }
 
-    public static  PropertySearchItemWrapper createPropertySearchItemWrapper(
+    public static PropertySearchItemWrapper createPropertySearchItemWrapper(
             Class<?> type,
             Map<ItemPath, ItemDefinition<?>> availableSearchItems,
             SearchItemType item,
+            SearchContext additionalSearchContext,
             ModelServiceLocator modelServiceLocator) {
 
-        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, modelServiceLocator);
+        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, additionalSearchContext, modelServiceLocator);
 
         AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> searchItemFactory =
                 findSearchItemWrapperFactory(searchItemContext);
-        if (searchItemFactory ==  null) {
+        if (searchItemFactory == null) {
             return null;
         }
         PropertySearchItemWrapper searchItem = searchItemFactory.create(searchItemContext);
@@ -56,7 +56,5 @@ public class SearchConfigurationWrapperFactory {
     private static AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> findSearchItemWrapperFactory(SearchItemContext searchItemContext) {
         return factories.stream().filter(f -> f.match(searchItemContext)).findFirst().orElse(null);
     }
-
-
 
 }

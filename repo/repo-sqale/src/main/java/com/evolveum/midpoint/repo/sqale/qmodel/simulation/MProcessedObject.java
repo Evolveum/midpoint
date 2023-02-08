@@ -21,4 +21,6 @@ public class MProcessedObject extends MContainer {
     public byte[] objectBefore;
     public byte[] objectAfter;
 
+    public String transactionId;
+
 }

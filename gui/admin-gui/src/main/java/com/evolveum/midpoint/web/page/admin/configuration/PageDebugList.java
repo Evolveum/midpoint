@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.component.search.*;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
@@ -40,9 +38,13 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -50,14 +52,11 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -113,7 +112,6 @@ public class PageDebugList extends PageAdminConfiguration {
     // confirmation dialog model
     private IModel<DebugConfDialogDto> confDialogModel = null;
 
-
     public PageDebugList() {
     }
 
@@ -134,9 +132,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 if (search == null || search.isForceReload()) {
                     Class<? extends ObjectType> type = getType();
 
-
                     search = createSearch(type);
-
 
                     storage.setSearch(search);
                 }
@@ -184,6 +180,7 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(ajaxDownloadBehavior);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void initDownload(AjaxRequestTarget target, Class<? extends ObjectType> type, ObjectQuery query) {
         List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM)
                 .getBehaviors(PageDebugDownloadBehaviour.class);
@@ -493,20 +490,18 @@ public class PageDebugList extends PageAdminConfiguration {
         return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private <C extends Containerable> void listObjectsPerformed(AjaxRequestTarget target) {
+    private void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-
 
         Search search = searchModel.getObject();
         if (search.isForceReload()) {
             Class<? extends ObjectType> type = search.getTypeClass();
 
             Search newSearch = createSearch(type);
-                        searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
-                        table.getDataTable().getColumns().clear();
-                        table.getDataTable().getColumns().addAll(createColumns());
+            searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
+            table.getDataTable().getColumns().clear();
+            table.getDataTable().getColumns().addAll(createColumns());
         }
-
 
         // save object type category to session storage, used by back button
         GenericPageStorage storage = getSessionStorage().getConfiguration();
@@ -524,10 +519,10 @@ public class PageDebugList extends PageAdminConfiguration {
         navigateToNext(PageDebugView.class, parameters);
     }
 
-    private RepositoryObjectDataProvider getTableDataProvider() {
+    private RepositoryObjectDataProvider<?> getTableDataProvider() {
         Table tablePanel = getListTable();
-        DataTable table = tablePanel.getDataTable();
-        return (RepositoryObjectDataProvider) table.getDataProvider();
+        DataTable<?, ?> table = tablePanel.getDataTable();
+        return (RepositoryObjectDataProvider<?>) table.getDataProvider();
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -615,7 +610,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+            throws SchemaException {
 
         ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
                 .item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
@@ -741,7 +736,7 @@ public class PageDebugList extends PageAdminConfiguration {
         }
         result.computeStatusIfUnknown();
 
-        RepositoryObjectDataProvider provider = getTableDataProvider();
+        RepositoryObjectDataProvider<?> provider = getTableDataProvider();
         provider.clearCache();
 
         showResult(result);
@@ -842,7 +837,6 @@ public class PageDebugList extends PageAdminConfiguration {
                     .build();
 
             QName type = ShadowType.COMPLEX_TYPE;
-
 
             taskOid = deleteObjectsAsync(type, objectQuery,
                     "Delete shadows on " + resourceName, result);

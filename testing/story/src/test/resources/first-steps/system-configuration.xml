@@ -8,4 +8,17 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
+    <simulation>
+        <metric>
+            <identifier>modifications</identifier>
+            <computation>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.nonOperationalItemModificationsCount</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <!-- TODO other metrics -->
+    </simulation>
 </systemConfiguration>

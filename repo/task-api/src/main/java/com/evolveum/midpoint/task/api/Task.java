@@ -63,7 +63,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, AggregatedObjectProcessingListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -1006,6 +1006,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return getExecutionMode().isPersistent();
     }
 
+    default boolean isSimulatedExecution() {
+        return getExecutionMode().isSimulation();
+    }
+
     default boolean isProductionConfiguration() {
         return getExecutionMode().isProductionConfiguration();
     }
@@ -1013,6 +1017,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Just a convenience method. */
     default boolean canSee(AbstractMappingType mapping) {
         return SimulationUtil.isVisible(mapping, getExecutionMode());
+    }
+
+    /** Just a convenience method. */
+    default boolean canSee(ObjectType object) {
+        return SimulationUtil.isVisible(object, getExecutionMode());
     }
 
     /**
@@ -1028,8 +1037,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         }
     }
 
-    void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+    /** Sets the current simulation transaction object. */
+    SimulationTransaction setSimulationTransaction(SimulationTransaction context);
 
-    void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+    /** Returns the current simulation transaction, if there is any. */
+    @Nullable SimulationTransaction getSimulationTransaction();
     //endregion
 }

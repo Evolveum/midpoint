@@ -219,6 +219,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="localizedMessageTemplateContentType" type="tns:LocalizedMessageTemplateContentType"/>
 
     <xsd:complexType name="MessageTemplateType">
         <xsd:annotation>

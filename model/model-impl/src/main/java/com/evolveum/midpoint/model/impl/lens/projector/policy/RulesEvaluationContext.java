@@ -17,7 +17,7 @@ import java.util.List;
  * Context of the evaluation of all policy rules related to either single evaluated assignment, or the object as a whole.
  * (It is called also "global context", although it is not really global.)
  */
-public class RulesEvaluationContext {
+class RulesEvaluationContext {
 
     /**
      * Rules that should be "recorded" by writing policy state to the corresponding item (object or assignment).

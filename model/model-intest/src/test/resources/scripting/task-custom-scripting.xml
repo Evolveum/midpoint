@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="f3b3f5e1-b3fb-42d5-9676-fa8ab9e5b58c">
+    <name>task-custom-scripting</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code>
+                                import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun
+                                import com.evolveum.midpoint.schema.result.OperationResultStatus
+                                import com.evolveum.midpoint.schema.statistics.IterationItemInformation
+                                import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo
+                                import com.evolveum.midpoint.schema.statistics.Operation
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType
+
+                                import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.*
+
+                                // In this scenario, we'll simulate processing of 5 items, with the following outcomes:
+                                def allOutcomes = [SUCCESS, SUCCESS, SKIP, FAILURE, SUCCESS]
+
+                                // Internal object that we'll (mis)use to report the progress. Unofficial, unsupported.
+                                def activityState = midpoint.currentTask.executionSupport.activityState
+
+                                activityState.liveProgress.expectedTotal = 5
+
+                                // Now let us simulate processing of individual items
+                                for (int i in 0..4) {
+
+                                    // Here we record the start of the processing. It is a hack: normally we would call
+                                    // midpoint.currentTask.recordIterativeOperationStart(..) but the current implementation
+                                    // (that checks whether detailed statistics are enabled) precludes such use here.
+                                    // So we have to go through liveStatistics.liveItemProcessing etc.
+                                    IterativeOperationStartInfo startInfo =
+                                            new IterativeOperationStartInfo(
+                                                    new IterationItemInformation())
+                                    startInfo.simpleCaller = true
+                                    Operation op = activityState.liveStatistics.liveItemProcessing.recordOperationStart(startInfo)
+
+                                    // (real processing would be here here)
+
+                                    // Now let's report the (fictitious) outcome. Note that the call below reports only the
+                                    // progress, not item processing and other detailed statistics, as the latter is currently
+                                    // disabled for non-iterative scripting tasks.
+                                    ItemProcessingOutcomeType currentOutcome = allOutcomes[i]
+                                    op.done(currentOutcome, null)
+                                }
+
+                                // We can also set the status like this
+                                midpoint.currentResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "custom-error")
+                            </code>
+                        </s:script>
+                        <s:forWholeInput>true</s:forWholeInput>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+    </activity>
+</task>

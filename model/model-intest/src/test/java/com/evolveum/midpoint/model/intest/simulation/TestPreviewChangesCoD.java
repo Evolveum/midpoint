@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.evolveum.midpoint.model.test.SimulationResult;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -146,6 +146,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test110SimpleCreateOnDemandSimulation() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -155,16 +157,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = ORG_CHILD.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
@@ -217,6 +213,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test160CreateOnDemandForOrgAndRoleSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -226,16 +224,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = createAddDeltaForOrgWithRoleAssignment();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
@@ -252,6 +244,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test200CreateOnDemandWithProvisioning() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -261,16 +255,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<UserType> delta = USER_BOB.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one

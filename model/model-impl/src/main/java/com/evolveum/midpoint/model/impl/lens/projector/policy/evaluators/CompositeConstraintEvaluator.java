@@ -41,9 +41,12 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(@NotNull JAXBElement<PolicyConstraintsType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedCompositeTrigger evaluate(
+            @NotNull JAXBElement<PolicyConstraintsType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
