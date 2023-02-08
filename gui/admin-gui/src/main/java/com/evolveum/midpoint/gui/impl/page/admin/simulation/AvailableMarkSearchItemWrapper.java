@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
@@ -38,5 +39,12 @@ public class AvailableMarkSearchItemWrapper extends ChoicesSearchItemWrapper<Str
 
         return PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
                 .item(getPath()).ref(getValue().getValue(), MarkType.COMPLEX_TYPE).buildFilter();
+    }
+
+    public void setValue(String oid) {
+        DisplayableValue<String> newValue = getAvailableValues().stream()
+                .filter(d -> Objects.equals(d.getValue(), oid))
+                .findFirst().orElse(null);
+        setValue(newValue);
     }
 }
