@@ -637,7 +637,7 @@ public abstract class IterativeActivityRun<
     /**
      * Creates the processing coordinator and worker threads.
      */
-    private ProcessingCoordinator<I> setupCoordinatorAndWorkerThreads() {
+    private ProcessingCoordinator<I> setupCoordinatorAndWorkerThreads() throws ConfigurationException {
         ProcessingCoordinator<I> coordinator = new ProcessingCoordinator<>(getWorkerThreadsCount(), this);
         coordinator.createWorkerThreads();
         return coordinator;

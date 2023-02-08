@@ -145,6 +145,8 @@ class ClassificationHelper {
                 .item(ShadowType.F_INTENT).old(oldIntent).replace(classification.getIntent())
                 .item(ShadowType.F_TAG).old(oldTag).replace(tag)
                 .asItemDeltas();
+
+        assert !itemDeltas.isEmpty();
         if (ctx.getTask().areShadowChangesSimulated()) {
             sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
         } else {

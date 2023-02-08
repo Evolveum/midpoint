@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.provisioning.impl.simulation;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.task.api.SimulationData;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class ShadowSimulationDataImpl implements SimulationData {
+public class ShadowSimulationDataImpl implements ShadowSimulationData {
 
     @NotNull private final ShadowType shadow;
     @NotNull private final ObjectDelta<ShadowType> delta;

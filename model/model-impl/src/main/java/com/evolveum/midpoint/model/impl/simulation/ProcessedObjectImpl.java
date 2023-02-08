@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -253,6 +254,38 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             // Ignoring metrics in single-delta mode
             processedObject.addComputedMetricValues(List.of());
         }
+
+        return processedObject;
+    }
+
+    /** TODO deduplicate */
+    @Experimental
+    static @NotNull ProcessedObjectImpl<ShadowType> createForShadow(
+            @NotNull ShadowSimulationData data, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws CommonException {
+
+        ShadowType shadowBefore = data.getShadow();
+        ObjectDelta<ShadowType> delta = data.getDelta();
+        ShadowType shadowAfter = shadowBefore.clone();
+        delta.applyTo(shadowAfter.asPrismObject());
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                shadowBefore.getOid(),
+                ShadowType.class,
+                null,
+                determineShadowDiscriminator(shadowAfter), // or from "before" state?
+                shadowAfter.getName(),
+                ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
+                ParsedMetricValues.fromEventMarks(data.getEventMarks(), data.getEventMarks()), // TODO all considered marks
+                false,
+                null,
+                shadowBefore,
+                shadowAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring metrics in this mode
 
         return processedObject;
     }

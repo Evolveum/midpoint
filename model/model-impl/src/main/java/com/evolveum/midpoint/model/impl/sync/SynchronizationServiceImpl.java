@@ -101,7 +101,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .commit(result);
 
             boolean synchronizationFailure;
-            if (!completeCtx.isDryRun()) {
+            if (completeCtx.shouldExecuteSynchronizationActions()) {
                 synchronizationFailure =
                         new SynchronizationActionExecutor<>(completeCtx)
                                 .react(result);
