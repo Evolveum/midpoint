@@ -71,7 +71,7 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
             return false;
         }
         PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
-        if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
+        if (outboundContainer != null && MappingType.class.isAssignableFrom(outboundContainer.getCompileTimeClass())) {
             PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
             if (outboundValue != null) {
                 PrismContainerWrapperImpl attributeContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
