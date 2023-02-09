@@ -14,8 +14,11 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -29,5 +32,12 @@ public class VerticalFormPrismReferenceHeaderPanel<R extends Referencable> exten
 
     public VerticalFormPrismReferenceHeaderPanel(String id, IModel<PrismReferenceWrapper<R>> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void createRequired(String id) {
+        WebMarkupContainer required = new WebMarkupContainer(id);
+        required.add(new VisibleBehaviour(() -> false));
+        add(required);
     }
 }

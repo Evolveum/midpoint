@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 
+import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,7 +68,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         tabs.add(createInboundTableTab());
         tabs.add(createOutboundTableTab());
 
-        AjaxTabbedPanel<ITab> tabPanel = new AjaxTabbedPanel<>(ID_TAB_TABLE, tabs) {
+        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onAjaxUpdate(Optional<AjaxRequestTarget> optional) {
                 if (optional.isPresent()) {
