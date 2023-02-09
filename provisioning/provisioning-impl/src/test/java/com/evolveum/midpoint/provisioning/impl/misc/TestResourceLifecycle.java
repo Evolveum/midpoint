@@ -18,13 +18,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.provisioning.impl.mock.SimulationTransactionMock;
-
-import com.evolveum.midpoint.provisioning.impl.simulation.ShadowSimulationDataImpl;
-import com.evolveum.midpoint.task.api.SimulationData;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,12 +25,15 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.provisioning.impl.mock.SimulationTransactionMock;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.task.api.SimulationData;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -436,17 +432,13 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .as("simulation data list")
                 .hasSize(2);
         for (SimulationData simulationData : simulationDataList) {
-            assertThat(simulationData).as("simulation data").isInstanceOf(ShadowSimulationDataImpl.class);
-            ShadowSimulationDataImpl impl = (ShadowSimulationDataImpl) simulationData;
-            assertThat(impl.getEventMarks())
-                    .as("event marks")
-                    .containsExactlyInAnyOrder(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value());
-            assertDelta(impl.getDelta(), "after")
+            assertThat(simulationData).as("simulation data").isInstanceOf(ShadowSimulationData.class);
+            ShadowSimulationData shadowData = (ShadowSimulationData) simulationData;
+            assertDelta(shadowData.getDelta(), "after")
                     .display()
                     .assertModify()
                     .assertModification(ShadowType.F_INTENT, expectedOld, expectedNew)
                     .assertModifications(1);
-
         }
         txMock.clear();
     }

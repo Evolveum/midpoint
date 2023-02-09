@@ -16,8 +16,6 @@ Matches if the role 'roleRef' is not assigned to the user.
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="321c660b-4150-4ea9-bf33-71e702aed015">
     <name>k20</name>
     <inducement>
@@ -27,7 +25,6 @@ Matches if the role 'roleRef' is not assigned to the user.
                     <messageExpression>
                         <script>
                             <code><![CDATA[
-
                                 return rulesLib.execute('evaluateRolePresenceWithMessage', [
                                     object : object,
                                     ruleEvaluationContext : ruleEvaluationContext,

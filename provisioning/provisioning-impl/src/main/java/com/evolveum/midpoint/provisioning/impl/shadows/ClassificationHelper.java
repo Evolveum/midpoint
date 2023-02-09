@@ -12,16 +12,6 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
-import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
-import com.evolveum.midpoint.provisioning.impl.simulation.ShadowSimulationDataImpl;
-import com.evolveum.midpoint.task.api.SimulationTransaction;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,15 +20,21 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -162,13 +158,10 @@ class ClassificationHelper {
         SimulationTransaction transaction = task.getSimulationTransaction();
         if (transaction == null) {
             LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, itemDeltas);
-            return;
+        } else {
+            transaction.writeSimulationData(
+                    ShadowSimulationData.of(shadow, itemDeltas), task, result);
         }
-        ObjectDelta<ShadowType> delta = shadow.asPrismObject().createModifyDelta();
-        delta.addModifications(itemDeltas);
-        transaction.writeSimulationData(
-                ShadowSimulationDataImpl.of(shadow, delta, List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value())),
-                task, result);
     }
 
     private boolean isDifferent(ResourceObjectClassification classification, ShadowType shadow) {

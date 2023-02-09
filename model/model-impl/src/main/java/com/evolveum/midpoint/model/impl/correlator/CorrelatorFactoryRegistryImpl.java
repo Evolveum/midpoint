@@ -43,7 +43,10 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
         factories.put(name, factory);
     }
 
-    @Override
+    /**
+     * Convenience method to look up a correlator factory based on the specific (typed) configuration,
+     * and then instantiate the correlator.
+     */
     public <CB extends AbstractCorrelatorType> @NotNull Correlator instantiateCorrelator(
             @NotNull CorrelatorContext<CB> correlatorContext,
             @NotNull Task task,

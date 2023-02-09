@@ -785,7 +785,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void executeSimulatedClassificationAndReclassification(
-            DummyTestResource resource, String accountName, boolean isResourceProduction) throws Exception {
+            DummyTestResource resource, String accountName, boolean isProductionResource) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -842,7 +842,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default");
 
-        if (isResourceProduction || isDevelopmentConfigurationSeen()) {
+        if (isProductionResource || isDevelopmentConfigurationSeen()) {
             and("there is user creation and shadow modification simulation delta, as this is 'normal' simulation");
             // @formatter:off
             assertProcessedObjects(getTaskSimResult(taskOid2, result))
@@ -895,28 +895,55 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertIntent("default");
 
         TestSimulationResult simResult3 = getTaskSimResult(taskOid3, result);
-        if (isResourceProduction) {
-            and("there are no deltas (as the resource is a production one)");
-            assertProcessedObjects(simResult3)
-                    .display()
-                    .assertSize(0);
-        } else if (!isDevelopmentConfigurationSeen()) {
-            and("there are no deltas (as the task uses the production configuration)");
-            assertProcessedObjects(simResult3)
-                    .display()
-                    .assertSize(0);
-        } else {
-            and("there is a re-classification delta");
+        if (isProductionResource) {
+            // Resource is production mode, so the task can see it regardless of the configuration set used by it.
+            // Re-classification is not engaged because of the production status of the resource/object-type.
+            // But correlation is run (again), as the owner was not determined yet.
+            and("no reclassification delta, but correlation one is there");
             // @formatter:off
             assertProcessedObjects(simResult3)
                     .display()
                     .assertSize(1)
-                    .single()
-                        .assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
+                    .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                        .delta()
+                            .assertModified(
+                                    // This is the only "real" modification.
+                                    // Other ones are phantom ones and may be removed in the future.
+                                    ShadowType.F_CORRELATION.append(ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP))
+                        .end()
+                        .assertEventMarks() // none, as the correlation state is not changed even if dummy delta may be present
+                    .end();
+            // @formatter:on
+        } else if (!isDevelopmentConfigurationSeen()) {
+            // The resource is development mode only and task sees only the production configuration set:
+            // so, no classification, no correlation, no synchronization.
+            and("there are no classification nor correlation deltas (as the task uses the production configuration)");
+            assertProcessedObjects(simResult3)
+                    .display()
+                    .assertSize(0);
+        } else {
+            // Resource is development mode, task sees the development configuration.
+            // Hence, both re-classification and re-correlation occurs (the latter because the
+            and("there is a re-classification delta");
+            // @formatter:off
+            assertProcessedObjects(simResult3)
+                    .display()
+                    .by().eventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid).find()
                         .delta()
                             .assertModify()
                             .assertModification(ShadowType.F_INTENT, "default", "person")
-                            .assertModifications(1);
+                            .assertModifications(1)
+                        .end()
+                    .end()
+                    .by().noEventMarks().find()
+                        .delta()
+                            .assertModified(
+                                    // This is the only "real" modification.
+                                    // Other ones are phantom ones and may be removed in the future.
+                                    ShadowType.F_CORRELATION.append(ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP))
+                        .end()
+                    .end()
+                    .assertSize(2); // temporarily
             // @formatter:on
         }
     }
