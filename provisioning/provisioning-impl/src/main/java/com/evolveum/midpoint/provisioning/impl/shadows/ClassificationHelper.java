@@ -142,7 +142,14 @@ class ClassificationHelper {
                 .item(ShadowType.F_TAG).old(oldTag).replace(tag)
                 .asItemDeltas();
 
-        assert !itemDeltas.isEmpty();
+        if (itemDeltas.isEmpty()) {
+            // Strange but possible. If the (new) classification is unknown but the current classification in only partially
+            // unknown (e.g. account/unknown), this method is called, but - in fact - it does not update anything.
+            assert !classification.isKnown();
+            LOGGER.trace("Classification stays unchanged in {}", combinedObject);
+            return;
+        }
+
         if (ctx.getTask().areShadowChangesSimulated()) {
             sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
         } else {
