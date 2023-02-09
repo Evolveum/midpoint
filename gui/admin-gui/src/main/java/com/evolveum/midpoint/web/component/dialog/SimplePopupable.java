@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 /**
