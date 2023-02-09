@@ -13,6 +13,10 @@ import com.evolveum.midpoint.gui.api.Validatable;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
@@ -67,16 +71,12 @@ public abstract class InputPanel extends Panel implements Validatable {
         return (PageBase) getPage();
     }
 
-    public PageAdminLTE getPageAdminLTE() {
-        return (PageAdminLTE) getPage();
-    }
-
     public StringResourceModel createStringResource(String key) {
-        return getPageAdminLTE().createStringResource(key);
+        return WebComponentUtil.getPage(InputPanel.this, PageAdminLTE.class).createStringResource(key);
     }
 
     public LocalizationService getLocalizationService() {
-        return getPageAdminLTE().getLocalizationService();
+        return WebComponentUtil.getPage(InputPanel.this, PageAdminLTE.class).getLocalizationService();
     }
 
 
