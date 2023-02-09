@@ -111,16 +111,8 @@ public abstract class LocalActivityRun<
         return runResult;
     }
 
-    public TaskExecutionMode getTaskExecutionMode() {
-        ExecutionModeType activityExecutionMode = getActivityExecutionMode();
-        if (activityExecutionMode != ExecutionModeType.PREVIEW) {
-            // dry run, none, bucket analysis - these are treated in a special way (for now)
-            return TaskExecutionMode.PRODUCTION;
-        } else if (getActivityDefinition().getExecutionModeDefinition().isProductionConfiguration()) {
-            return TaskExecutionMode.SIMULATED_PRODUCTION;
-        } else {
-            return TaskExecutionMode.SIMULATED_DEVELOPMENT;
-        }
+    public @NotNull TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
+        return activity.getDefinition().getExecutionModeDefinition().getTaskExecutionMode();
     }
 
     public SimulationTransaction getSimulationTransaction() {

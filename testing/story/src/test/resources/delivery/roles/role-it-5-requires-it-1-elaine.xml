@@ -5,14 +5,12 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<role xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="98ec371d-89f4-4f5d-9d32-5f8256caa953"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<role oid="98ec371d-89f4-4f5d-9d32-5f8256caa953"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>IT-5</name>
 
     <assignment>
+        <!-- This means that this role (IT-5) requires IT-1 being assigned at the same time; as per (parameterized) rule K20. -->
         <targetRef oid="0770abf0-5888-4443-a7ae-6b11e113e92b" type="RoleType"/> <!-- k20-it-1-rem-elaine -->
     </assignment>
 </role>

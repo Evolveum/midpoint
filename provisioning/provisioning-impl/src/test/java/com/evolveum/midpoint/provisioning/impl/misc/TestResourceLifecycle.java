@@ -7,21 +7,16 @@
 
 package com.evolveum.midpoint.provisioning.impl.misc;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.TaskExecutionMode.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
 
 import java.io.File;
-
-import com.evolveum.midpoint.schema.util.Resource;
-
-import com.evolveum.midpoint.util.exception.*;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,13 +25,20 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.provisioning.impl.mock.SimulationTransactionMock;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.task.api.SimulationData;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -114,6 +116,26 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_EMPLOYEE,
                 I_DEMO,
                 I_DEMO); // even here no reclassification (type is "production")
+
+        // The production object type with "shadow-simulated production" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_SHADOWS_PRODUCTION,
+                ACCOUNT,
+                "e_test100_4",
+                I_EMPLOYEE,
+                I_DEMO,
+                false); // reclassification is disabled because of the production config
+
+        // The production object type with "shadow-simulated development" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_SHADOWS_DEVELOPMENT,
+                ACCOUNT,
+                "e_test100_5",
+                I_EMPLOYEE,
+                I_DEMO,
+                false); // reclassification is disabled because of the production config
     }
 
     /**
@@ -122,7 +144,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     @Test
     public void test110ClassificationOnProposedResource() throws Exception {
 
-        // The non-production object type with production task
+        // The development object type with real task
         checkClassification(
                 RESOURCE_DUMMY_PROPOSED,
                 PRODUCTION,
@@ -132,7 +154,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_DEMO,
                 I_DEMO); // no reclassification - we do not want to destroy the simulation results
 
-        // The non-production object type with "simulated production" task
+        // The development object type with "simulated production" task
         checkClassification(
                 RESOURCE_DUMMY_PROPOSED,
                 SIMULATED_PRODUCTION,
@@ -142,7 +164,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_DEMO,
                 I_DEMO); // no reclassification - we do not want to destroy the simulation results
 
-        // The non-production object type with "simulated development" task
+        // The development object type with "simulated development" task
         checkClassification(
                 RESOURCE_DUMMY_PROPOSED,
                 SIMULATED_DEVELOPMENT,
@@ -151,6 +173,26 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_EMPLOYEE,
                 I_DEMO,
                 I_EMPLOYEE); // classification is re-executed because of simulation task and non-production object type
+
+        // The development object type with "shadow-simulated production" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_PROPOSED,
+                SIMULATED_SHADOWS_PRODUCTION,
+                ACCOUNT,
+                "e_test110_4",
+                I_EMPLOYEE,
+                I_DEMO,
+                false); // reclassification is disabled because of the production task mode
+
+        // The development object type with "shadow-simulated development" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_PROPOSED,
+                SIMULATED_SHADOWS_DEVELOPMENT,
+                ACCOUNT,
+                "e_test110_5",
+                I_EMPLOYEE,
+                I_DEMO,
+                true); // reclassification is disabled because of the development config and task mode
     }
 
     /**
@@ -313,12 +355,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         task.setExecutionMode(taskExecutionMode);
         try {
 
-            given(kind + " " + objectName);
-            if (kind == ACCOUNT) {
-                resource.controller.addAccount(objectName);
-            } else {
-                resource.controller.addGroup(objectName);
-            }
+            addResourceObject(resource, kind, objectName);
 
             when("it is retrieved the first time" + modeSuffix);
             PrismObject<ShadowType> account = searchByName(resource, kind, objectName, task, result);
@@ -332,6 +369,85 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         } finally {
             task.setExecutionMode(PRODUCTION);
         }
+    }
+
+    private void addResourceObject(DummyTestResource resource, ShadowKindType kind, String objectName) throws Exception {
+        given(kind + " " + objectName);
+        if (kind == ACCOUNT) {
+            resource.controller.addAccount(objectName);
+        } else {
+            resource.controller.addGroup(objectName);
+        }
+    }
+
+    /**
+     * Here we check "shadow simulation" mode.
+     */
+    @SuppressWarnings("SameParameterValue")
+    private void checkShadowSimulatedClassification(
+            DummyTestResource resource,
+            TaskExecutionMode taskExecutionMode,
+            ShadowKindType kind,
+            String objectName,
+            String intentAfterCreation,
+            String changeTo,
+            boolean reclassificationExpected) throws Exception {
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String modeSuffix = " (" + taskExecutionMode + ")";
+
+        addResourceObject(resource, kind, objectName);
+
+        when("it is retrieved the first time" + modeSuffix);
+        PrismObject<ShadowType> account = searchByName(resource, kind, objectName, task, result);
+
+        then("it has intent of '" + intentAfterCreation + "'" + modeSuffix);
+        assertIntent(account, kind, intentAfterCreation);
+
+        assert taskExecutionMode.isNothingPersistent();
+        task.setExecutionMode(taskExecutionMode);
+        SimulationTransactionMock simulationTransactionMock = new SimulationTransactionMock();
+        try {
+            task.setSimulationTransaction(simulationTransactionMock);
+
+            changeIntentAndCheck(account, resource, null, null, task, result);
+            assertSimulatedIntentChange(simulationTransactionMock, null, intentAfterCreation);
+
+            changeIntentAndCheck(account, resource, changeTo, changeTo, task, result);
+            if (reclassificationExpected) {
+                assertSimulatedIntentChange(simulationTransactionMock, changeTo, intentAfterCreation);
+            } else {
+                assertNoSimulatedIntentChange(simulationTransactionMock);
+            }
+        } finally {
+            task.setSimulationTransaction(null);
+            task.setExecutionMode(PRODUCTION);
+        }
+    }
+
+    private void assertSimulatedIntentChange(SimulationTransactionMock txMock, String expectedOld, String expectedNew) {
+        List<SimulationData> simulationDataList = txMock.getSimulationDataList();
+        assertThat(simulationDataList)
+                .as("simulation data list")
+                .hasSize(2);
+        for (SimulationData simulationData : simulationDataList) {
+            assertThat(simulationData).as("simulation data").isInstanceOf(ShadowSimulationData.class);
+            ShadowSimulationData shadowData = (ShadowSimulationData) simulationData;
+            assertDelta(shadowData.getDelta(), "after")
+                    .display()
+                    .assertModify()
+                    .assertModification(ShadowType.F_INTENT, expectedOld, expectedNew)
+                    .assertModifications(1);
+        }
+        txMock.clear();
+    }
+
+    private void assertNoSimulatedIntentChange(SimulationTransactionMock simulationTransactionMock) {
+        List<SimulationData> simulationDataList = simulationTransactionMock.getSimulationDataList();
+        assertThat(simulationDataList)
+                .as("simulation data list")
+                .isEmpty();
     }
 
     private void changeIntentAndCheck(

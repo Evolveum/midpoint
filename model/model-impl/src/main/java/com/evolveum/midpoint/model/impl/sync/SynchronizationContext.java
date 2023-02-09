@@ -461,6 +461,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         return executionMode == ExecutionModeType.DRY_RUN;
     }
 
+    // TEMPORARY
+    boolean shouldExecuteSynchronizationActions() {
+        return !isDryRun() && !task.areShadowChangesSimulated();
+    }
+
     boolean isFullMode() {
         return executionMode == ExecutionModeType.FULL;
     }
@@ -483,8 +488,8 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public abstract boolean isComplete();
 
-    boolean isPersistentExecution() {
-        return task.isPersistentExecution();
+    boolean isExecutionFullyPersistent() {
+        return task.isExecutionFullyPersistent();
     }
 
     public boolean isVisible() {

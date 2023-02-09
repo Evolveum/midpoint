@@ -102,7 +102,7 @@ class ShadowRefreshHelper {
             throw SystemException.unexpected(e, "when refreshing provisioning indexes");
         }
 
-        if (ctx.isInSimulation()) {
+        if (!ctx.isExecutionFullyPersistent()) {
             // Unlike other places related to the simulation mode, we do not throw an exception here. The shadow refresh may be
             // invoked in various situations, and it is not sure that the caller(s) have full responsibility of these. Hence, we
             // silently ignore these requests here.

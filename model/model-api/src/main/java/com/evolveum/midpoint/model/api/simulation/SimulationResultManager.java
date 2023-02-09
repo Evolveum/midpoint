@@ -55,7 +55,7 @@ public interface SimulationResultManager {
     /**
      * Returns the default simulation definition: either from the system configuration (if present there), or a new one.
      */
-    SimulationDefinitionType defaultDefinition() throws ConfigurationException;
+    @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException;
 
     /**
      * Fetches and parses all stored processed objects from given {@link SimulationResultType}.

@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.test.util;
 import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.List;
 import java.util.Objects;
@@ -59,7 +58,7 @@ public class SynchronizationRequest {
 
     @NotNull private final AbstractModelIntegrationTest test;
     @NotNull private final String resourceOid;
-    @NotNull private final ResourceObjectTypeIdentification typeIdentification;
+    @NotNull private final AccountsScope accountsScope;
     @NotNull private final AccountsSpecification accountsSpecification;
     @NotNull private final SynchronizationStyle synchronizationStyle;
     private final long timeout;
@@ -72,7 +71,7 @@ public class SynchronizationRequest {
             @NotNull SynchronizationRequest.SynchronizationRequestBuilder builder) {
         this.test = builder.test;
         this.resourceOid = Objects.requireNonNull(builder.resourceOid, "No resource OID");
-        this.typeIdentification = Objects.requireNonNull(builder.typeIdentification, "No type");
+        this.accountsScope = Objects.requireNonNull(builder.accountsScope, "No accounts scope");
         this.accountsSpecification = builder.getAccountsSpecification();
         this.synchronizationStyle = Objects.requireNonNullElse(builder.synchronizationStyle, IMPORT);
         this.timeout = builder.timeout;
@@ -87,8 +86,9 @@ public class SynchronizationRequest {
         WorkDefinitionsType work;
         ResourceObjectSetType resourceObjectSet = new ResourceObjectSetType()
                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                .kind(typeIdentification.getKind())
-                .intent(typeIdentification.getIntent())
+                .kind(accountsScope.getKind())
+                .intent(accountsScope.getIntent())
+                .objectclass(accountsScope.getObjectClassName())
                 .query(PrismContext.get().getQueryConverter().createQueryType(query))
                 .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE);
         if (synchronizationStyle == IMPORT) {
@@ -112,7 +112,7 @@ public class SynchronizationRequest {
                                                 .productionConfiguration(
                                                         taskExecutionMode.isProductionConfiguration()))
                                 .createSimulationResult(
-                                        test.isNativeRepository() && !taskExecutionMode.isPersistent())));
+                                        test.isNativeRepository() && !taskExecutionMode.isFullyPersistent())));
         String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
@@ -131,17 +131,21 @@ public class SynchronizationRequest {
     }
 
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
-        if (taskExecutionMode.isPersistent()) {
+        if (taskExecutionMode.isFullyPersistent()) {
             return ExecutionModeType.FULL;
-        } else {
+        } else if (taskExecutionMode.isShadowLevelPersistent()) {
             return ExecutionModeType.PREVIEW;
+        } else if (taskExecutionMode.areShadowChangesSimulated()) {
+            return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
+        } else {
+            throw new AssertionError(taskExecutionMode);
         }
     }
 
     private ObjectQuery createResourceObjectQuery(OperationResult result)
             throws CommonException {
         return accountsSpecification.updateQuery(
-                        getResource(result).queryFor(typeIdentification))
+                        accountsScope.startQuery(getResource(result)))
                 .build();
     }
 
@@ -199,7 +203,6 @@ public class SynchronizationRequest {
     @SuppressWarnings("WeakerAccess")
     public TestSimulationResult executeOnForegroundSimulated(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
-        stateCheck(taskExecutionMode.isSimulation(), "No simulation? Mode = %s", taskExecutionMode);
         return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
@@ -249,11 +252,68 @@ public class SynchronizationRequest {
         }
     }
 
+    static abstract class AccountsScope {
+        ShadowKindType getKind() {
+            return null;
+        }
+
+        String getIntent() {
+            return null;
+        }
+
+        QName getObjectClassName() {
+            return null;
+        }
+
+        abstract S_MatchingRuleEntry startQuery(Resource resource) throws SchemaException, ConfigurationException;
+    }
+
+    static class ObjectTypeScope extends AccountsScope {
+        @NotNull private final ResourceObjectTypeIdentification typeIdentification;
+
+        ObjectTypeScope(@NotNull ResourceObjectTypeIdentification typeIdentification) {
+            this.typeIdentification = typeIdentification;
+        }
+
+        @Override
+        ShadowKindType getKind() {
+            return typeIdentification.getKind();
+        }
+
+        @Override
+        String getIntent() {
+            return typeIdentification.getIntent();
+        }
+
+        @Override
+        S_MatchingRuleEntry startQuery(Resource resource) throws SchemaException, ConfigurationException {
+            return resource.queryFor(typeIdentification);
+        }
+    }
+
+    static class ObjectClassScope extends AccountsScope {
+        @NotNull private final QName objectClassName;
+
+        ObjectClassScope(@NotNull QName objectClassName) {
+            this.objectClassName = objectClassName;
+        }
+
+        @Override
+        @NotNull QName getObjectClassName() {
+            return objectClassName;
+        }
+
+        @Override
+        S_MatchingRuleEntry startQuery(Resource resource) throws SchemaException, ConfigurationException {
+            return resource.queryFor(objectClassName);
+        }
+    }
+
     @SuppressWarnings("unused")
     public static final class SynchronizationRequestBuilder {
         @NotNull private final AbstractModelIntegrationTest test;
         private String resourceOid;
-        private ResourceObjectTypeIdentification typeIdentification = ResourceObjectTypeIdentification.defaultAccount();
+        private AccountsScope accountsScope = new ObjectTypeScope(ResourceObjectTypeIdentification.defaultAccount());
         private QName namingAttribute;
         private String nameValue;
         private boolean processingAllAccounts;
@@ -273,8 +333,14 @@ public class SynchronizationRequest {
             return this;
         }
 
-        public SynchronizationRequestBuilder withTypeIdentification(ResourceObjectTypeIdentification typeIdentification) {
-            this.typeIdentification = typeIdentification;
+        public SynchronizationRequestBuilder withTypeIdentification(
+                @NotNull ResourceObjectTypeIdentification typeIdentification) {
+            this.accountsScope = new ObjectTypeScope(typeIdentification);
+            return this;
+        }
+
+        public SynchronizationRequestBuilder withWholeObjectClass(@NotNull QName objectClassName) {
+            this.accountsScope = new ObjectClassScope(objectClassName);
             return this;
         }
 
