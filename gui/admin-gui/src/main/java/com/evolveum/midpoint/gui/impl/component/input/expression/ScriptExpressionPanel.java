@@ -46,7 +46,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
                 getFeedbackMessages().add(
                         new FeedbackMessage(
                                 getFeedback(),
-                                "TODO Please write scripts without xml tag. Midpoint can parse it, but it-s better for you write it without tags.",
+                                getPageBase().createStringResource("ScriptExpressionPanel.warning.parse").getString(),
                                 300));
             }
             ExpressionUtil.updateScriptExpressionValue(expression, values);
