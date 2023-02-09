@@ -596,7 +596,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-                formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                formatGuidToDashedNotation(MiscUtil.bytesToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
                 accountBarbossaIcfUid);
 
         assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);

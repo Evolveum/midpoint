@@ -1,17 +1,16 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
-import static com.evolveum.midpoint.util.MiscUtil.binaryToHexPreview;
-
 import java.time.Instant;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
@@ -52,10 +51,10 @@ public class MAuditDelta {
                 "recordId=" + recordId +
                 ", timestamp=" + timestamp +
                 ", checksum='" + checksum + '\'' +
-                ", delta=" + binaryToHexPreview(delta) +
+                ", delta=" + MiscUtil.bytesToHexPreview(delta) +
                 ", deltaOid=" + deltaOid +
                 ", deltaType=" + deltaType +
-                ", fullResult=" + binaryToHexPreview(fullResult) +
+                ", fullResult=" + MiscUtil.bytesToHexPreview(fullResult) +
                 ", objectNameNorm='" + objectNameNorm + '\'' +
                 ", objectNameOrig='" + objectNameOrig + '\'' +
                 ", resourceOid=" + resourceOid +
