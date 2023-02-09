@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -54,8 +54,15 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @Override
-    protected boolean isUseStorageSearch(Search search) {
-        return false;
+    protected void onConfigure() {
+        super.onConfigure();
+
+        String markOid = getMarkOid();
+        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        if (wrapper instanceof AvailableMarkSearchItemWrapper) {
+            AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
+            markWrapper.setValue(markOid);
+        }
     }
 
     @Override

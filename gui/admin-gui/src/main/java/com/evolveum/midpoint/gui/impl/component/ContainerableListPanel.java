@@ -153,7 +153,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
     }
 
-    protected boolean isUseStorageSearch(Search search) {
+    private boolean isUseStorageSearch(Search search) {
         if (search == null) {
             return false;
         }

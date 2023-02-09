@@ -9,9 +9,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,11 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AssignmentPathPanel extends BasePanel<List<AssignmentPathType>> {
+public class AssignmentPathPanel extends BasePanel<List<AssignmentPathMetadataType>> {
     private static final String ID_PATHS = "paths";
     private static final String ID_PATH = "path";
 
-    public AssignmentPathPanel(String id, IModel<List<AssignmentPathType>> model) {
+    public AssignmentPathPanel(String id, IModel<List<AssignmentPathMetadataType>> model) {
         super(id, model);
     }
 
@@ -40,19 +38,19 @@ public class AssignmentPathPanel extends BasePanel<List<AssignmentPathType>> {
 
     private void initLayout() {
 
-        ListView<AssignmentPathType> assignmentPaths = new ListView<>(ID_PATHS, getModel()) {
+        ListView<AssignmentPathMetadataType> assignmentPaths = new ListView<>(ID_PATHS, getModel()) {
             @Override
-            protected void populateItem(ListItem<AssignmentPathType> listItem) {
+            protected void populateItem(ListItem<AssignmentPathMetadataType> listItem) {
                 listItem.add(new AssignmentPathSegmentPanel(ID_PATH, loadSegmentsModel(listItem.getModel())));
             }
         };
         add(assignmentPaths);
     }
 
-    private IModel<List<AssignmentPathSegmentType>> loadSegmentsModel(IModel<AssignmentPathType> assignmentModel) {
+    private IModel<List<AssignmentPathSegmentMetadataType>> loadSegmentsModel(IModel<AssignmentPathMetadataType> assignmentModel) {
         return () -> {
-           AssignmentPathType assignmentPathType = assignmentModel.getObject();
-           List<AssignmentPathSegmentType> segments = assignmentPathType.getSegment();
+            AssignmentPathMetadataType assignmentPathType = assignmentModel.getObject();
+           List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
            if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
                return new ArrayList<>();
            }

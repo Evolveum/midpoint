@@ -6,23 +6,13 @@
  */
 package com.evolveum.midpoint.report;
 
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,6 +21,15 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+import java.io.File;
+
+import static org.testng.AssertJUnit.assertTrue;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -268,8 +267,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
                 .display()
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
-        PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
-        basicCheckOutputFile(report, expectedRows, expectedColumns, lastLine);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
 
         assertNotificationMessage(reportResource);
     }
