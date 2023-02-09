@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.dialog;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -15,11 +17,17 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
-public abstract class OnePanelPopupPanel extends BasePanel implements Popupable {
+import org.apache.wicket.model.IModel;
+
+public abstract class OnePanelPopupPanel extends SimplePopupable {
     private static final String ID_PANEL = "panel";
     private static final String ID_BUTTON_DONE = "doneButton";
+
     public OnePanelPopupPanel(String id){
-        super(id);
+        this(id, null);
+    }
+    public OnePanelPopupPanel(String id, IModel<String> title){
+        super(id, 400, 600, title);
         initLayout();
     }
 
@@ -43,29 +51,4 @@ public abstract class OnePanelPopupPanel extends BasePanel implements Popupable 
     }
 
     protected abstract WebMarkupContainer createPanel(String id);
-
-    @Override
-    public int getWidth() {
-        return 400;
-    }
-
-    @Override
-    public int getHeight() {
-        return 600;
-    }
-
-    @Override
-    public String getWidthUnit(){
-        return "px";
-    }
-
-    @Override
-    public String getHeightUnit(){
-        return "px";
-    }
-
-    @Override
-    public Component getContent() {
-        return this;
-    }
 }
