@@ -2473,7 +2473,7 @@ public final class WebComponentUtil {
 
     public static <P extends PageAdminLTE> P getPage(Component component, Class<P> pageClass) {
         Page page = component.getPage();
-        if (pageClass.equals(page.getClass())) {
+        if (pageClass.isAssignableFrom(page.getClass())) {
             return (P) page;
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
