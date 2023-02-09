@@ -14,16 +14,19 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 // todo refactor ConflictItemPanel to be subclass of this, move css classes "under" this one (rename them to match)
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CardPanel<T extends Serializable> extends BasePanel<T> {
+public class CardOutlineLeftPanel<T extends Serializable> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,15 +36,15 @@ public class CardPanel<T extends Serializable> extends BasePanel<T> {
     private static final String ID_TITLE = "title";
     private static final String ID_BADGE = "badge";
 
-    public CardPanel(String id, IModel<T> model) {
+    public CardOutlineLeftPanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "card conflict-item"));
-        add(AttributeAppender.append("class", () -> "conflict-item-success")); // todo fix viliam
+        add(AttributeAppender.append("class", "card card-outline-left"));
+        add(AttributeAppender.append("class", createCardOutlineCssModel()));
 
         Component header = createHeader(ID_HEADER);
         add(header);
@@ -49,9 +52,25 @@ public class CardPanel<T extends Serializable> extends BasePanel<T> {
 
     protected Component createHeader(String id) {
         Fragment fragment = new Fragment(id, FRAGMENT_ID_HEADER, this);
-        fragment.add(new Label(ID_TITLE, () -> "asdf"));  // todo title
-        fragment.add(new BadgePanel(ID_BADGE, () -> new Badge(Badge.State.SUCCESS.getCss(), "badge"))); // todo badge
+        fragment.add(new Label(ID_TITLE, createTitleModel()));
+
+        IModel<Badge> badgeModel = createBadgeModel();
+        BadgePanel badge = new BadgePanel(ID_BADGE, badgeModel);
+        badge.add(new VisibleBehaviour(() -> badgeModel.getObject() != null));
+        fragment.add(badge);
 
         return fragment;
+    }
+
+    protected @NotNull IModel<String> createCardOutlineCssModel() {
+        return () -> null;
+    }
+
+    protected @NotNull IModel<String> createTitleModel() {
+        return () -> null;
+    }
+
+    protected @NotNull IModel<Badge> createBadgeModel() {
+        return () -> null;
     }
 }

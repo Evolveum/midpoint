@@ -6,38 +6,31 @@
   -->
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-    <div class="card-body">
-        <div class="d-flex gap-2 border-bottom border-gray align-items-center pb-3 mb-3">
-            <h5 class="mb-0" wicket:id="title"/>
-            <span wicket:id="badge"/>
+<wicket:extend>
+    <wicket:message key="ConflictItemPanel.description">
+        <a href="#" wicket:id="link1"></a>
+        <a href="#" wicket:id="link2"></a>
+    </wicket:message>
+
+    <div class="mt-3">
+        <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.reason"/></div>
+        <div wicket:id="message"/>
+    </div>
+
+    <div class="mt-3">
+        <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.solution"/></div>
+        <div><wicket:message key="ConflictItemPanel.solveConflictViaRemove"/></div>
+    </div>
+
+    <form class="mt-3" wicket:id="form">
+        <div wicket:id="options">
+            <div wicket:id="option1"/>
+            <div wicket:id="option2"/>
         </div>
+    </form>
 
-        <wicket:message key="ConflictItemPanel.description">
-            <a href="#" wicket:id="link1"></a>
-            <a href="#" wicket:id="link2"></a>
-        </wicket:message>
-
-        <div class="mt-3">
-            <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.reason"/></div>
-            <div wicket:id="message"/>
-        </div>
-
-        <div class="mt-3">
-            <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.solution"/></div>
-            <div><wicket:message key="ConflictItemPanel.solveConflictViaRemove"/></div>
-        </div>
-
-        <form class="mt-3" wicket:id="form">
-            <div wicket:id="options">
-                <div wicket:id="option1"/>
-                <div wicket:id="option2"/>
-            </div>
-        </form>
-
-        <div class="main-button-bar mt-4">
-            <a class="btn btn-primary" wicket:id="fixConflict"><wicket:message key="ConflictItemPanel.fixConflict"/></a>
-        </div>
+    <div class="main-button-bar mt-4">
+        <a class="btn btn-primary" wicket:id="fixConflict"><wicket:message key="ConflictItemPanel.fixConflict"/></a>
     </div>
 
     <wicket:fragment wicket:id="option">
@@ -46,5 +39,5 @@
             <wicket:message key="ConflictItemPanel.iWantToKeep"/> <span class="font-weight-bold" wicket:id="label"/> <span wicket:id="state"/>
         </label>
     </wicket:fragment>
-</wicket:panel>
+</wicket:extend>
 </html>
