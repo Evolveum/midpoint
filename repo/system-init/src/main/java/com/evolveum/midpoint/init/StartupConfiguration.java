@@ -60,7 +60,12 @@ public class StartupConfiguration implements MidpointConfiguration {
             "midpoint.repository.dataSource",
             "midpoint.repository.jdbcUrl",
             "midpoint.repository.jdbcUsername",
-            "midpoint.repository.jdbcPassword"
+            "midpoint.repository.jdbcPassword",
+            "midpoint.audit.dataSource",
+            "midpoint.audit.jdbcUrl",
+            "midpoint.audit.jdbcUsername",
+            "midpoint.audit.jdbcPassword",
+            "midpoint.keystore.keyStorePassword"
     );
     public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
     // For troubleshooting, enables like this: -Dmidpoint.printSensitiveValues
