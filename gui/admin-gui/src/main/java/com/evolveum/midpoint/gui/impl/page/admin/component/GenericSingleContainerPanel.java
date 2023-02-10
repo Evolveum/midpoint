@@ -191,6 +191,18 @@ import java.util.List;
         },
         expanded = true
 )
+@PanelInstance(
+        identifier = "eventMarkInformationPanel",
+        applicableForType = MarkType.class,
+        display = @PanelDisplay(
+                label = " MarkType.eventMark",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "eventMark",
+        type = "EventMarkInformationType",
+        expanded = true
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
