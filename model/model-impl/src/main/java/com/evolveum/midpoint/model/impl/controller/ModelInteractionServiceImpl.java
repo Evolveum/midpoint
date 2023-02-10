@@ -23,6 +23,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -164,6 +166,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ContextLoader contextLoader;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
+    @Autowired private SimulationResultManager simulationResultManager;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -2283,6 +2286,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         targetRef.setTargetTypeName(targetType);
         transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
         return transformed;
+    }
 
+    @Override
+    public PrismReferenceDefinition refDefinitionWithConcreteTargetRefType(PrismReferenceDefinition orig, QName targetType) {
+        var transformed = TransformableReferenceDefinition.of(orig);
+        transformed.setTargetTypeName(targetType);
+        return transformed;
+    }
+
+    @Override
+    public <X> X executeWithSimulationResult(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulationResultManager.SimulatedFunctionCall<X> functionCall) throws CommonException {
+        return simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, functionCall);
     }
 }

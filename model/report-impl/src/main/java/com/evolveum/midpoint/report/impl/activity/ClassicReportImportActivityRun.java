@@ -7,33 +7,27 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-
 import com.evolveum.midpoint.report.impl.controller.ImportController;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * Activity execution for report import.
@@ -44,8 +38,6 @@ final class ClassicReportImportActivityRun
                 ClassicReportImportWorkDefinition,
                 ClassicReportImportActivityHandler,
                 AbstractActivityWorkStateType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityRun.class);
 
     @NotNull private final ImportActivitySupport support;
 
@@ -73,7 +65,7 @@ final class ClassicReportImportActivityRun
 
     @Override
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
-        support.beforeExecution(result);
+        support.beforeRun(result);
         ReportType report = support.getReport();
 
         support.stateCheck(result);
@@ -96,7 +88,7 @@ final class ClassicReportImportActivityRun
     }
 
     @Override
-    public Integer determineOverallSize(OperationResult result) throws CommonException {
+    public Integer determineOverallSize(OperationResult result) {
         return variables.size();
     }
 
@@ -116,9 +108,9 @@ final class ClassicReportImportActivityRun
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<InputReportLine> request, @NotNull RunningTask workerTask,
-            OperationResult result)
-            throws CommonException, ActivityRunException {
+    public boolean processItem(
+            @NotNull ItemProcessingRequest<InputReportLine> request, @NotNull RunningTask workerTask, OperationResult result)
+            throws CommonException {
         InputReportLine line = request.getItem();
         controller.handleDataRecord(line, workerTask, result);
         return true;

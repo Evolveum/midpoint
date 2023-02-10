@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -36,24 +37,24 @@ public class PolicyStateRecorder {
 
     @Autowired private PrismContext prismContext;
 
-    public <AH extends AssignmentHolderType> void applyObjectState(LensContext<AH> context, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
+    <O extends ObjectType> void applyObjectState(LensElementContext<O> elementContext, List<EvaluatedPolicyRule> rulesToRecord)
+            throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext.isDelete()) {
+        if (elementContext.isDelete()) {
             return;
         }
-        AH objectNew = focusContext.getObjectNew().asObjectable();
+        O objectNew = elementContext.getObjectNew().asObjectable();
         ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
-            focusContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
+            elementContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
                     .item(ObjectType.F_POLICY_SITUATION)
                             .oldRealValues(cr.oldPolicySituations)
                             .replaceRealValues(cr.newPolicySituations)
                     .asItemDelta());
         }
         if (cr.rulesNeedUpdate) {
-            focusContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
+            elementContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
                     .item(ObjectType.F_TRIGGERED_POLICY_RULE)
                             .oldRealValues(cr.oldTriggeredRules)
                             .replaceRealValues(cr.newTriggeredRules)

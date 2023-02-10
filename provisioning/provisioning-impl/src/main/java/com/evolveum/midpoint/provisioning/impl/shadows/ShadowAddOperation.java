@@ -81,6 +81,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
                 resourceObjectToAdd.debugDumpLazily(1));
 
         ProvisioningContext ctx = establishProvisioningContext(resourceObjectToAdd, task, result);
+        ctx.checkNotInSimulation();
         AddOperationState opState = new AddOperationState();
         return new ShadowAddOperation(ctx, resourceObjectToAdd, scripts, opState, options)
                 .execute(result);

@@ -68,13 +68,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
                         .assertCounterMinMax(ruleAddId, USER_ADD_ALLOWED + 1, USER_ADD_ALLOWED + getThreads())
                     .end()
                     .progress().display().end()
-                    .itemProcessingStatistics().display().end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
-                    .end();
+                    .itemProcessingStatistics().display().end();
         // @formatter:on
         additionalTest100TaskAsserts(asserter);
     }
@@ -99,12 +93,6 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
                     .end()
                     .itemProcessingStatistics()
                         .display()
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
                     .end();
         // @formatter:on
         additionalTest100RepeatedExecutionAsserts(asserter2);

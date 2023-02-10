@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.intest.simulation;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -20,18 +21,26 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.testng.annotations.BeforeMethod;
+
 import java.io.File;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+/**
+ * On native repository only.
+ */
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
-    private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
+    static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
 
-    static final TestResource<TagType> TAG_USER_ADD = new TestResource<>(
-            SIM_TEST_DIR, "tag-user-add.xml", "0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf");
-    private static final TestResource<TagType> TAG_USER_DELETE = new TestResource<>(
-            SIM_TEST_DIR, "tag-user-delete.xml", "caa2921a-6cf4-4e70-ad2b-bfed278e29cf");
+    static final TestResource<MarkType> MARK_USER_ADD = new TestResource<>(
+            SIM_TEST_DIR, "mark-user-add.xml", "0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf");
+    private static final TestResource<MarkType> MARK_USER_DELETE = new TestResource<>(
+            SIM_TEST_DIR, "mark-user-delete.xml", "caa2921a-6cf4-4e70-ad2b-bfed278e29cf");
+    private static final TestResource<MarkType> MARK_NONSENSE_MARK = new TestResource<>(
+            SIM_TEST_DIR, "mark-nonsense-mark.xml", "e2dccf40-9bfd-42a1-aa02-48b0f31cdb1c");
 
     private static final TestResource<RoleType> ROLE_PERSON = new TestResource<>(
             SIM_TEST_DIR, "role-person.xml", "ba88cf08-06bc-470f-aeaa-511e86d5ea7f");
@@ -51,15 +60,31 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             SIM_TEST_DIR, "archetype-person-dev-archetype.xml", "be5bf6fb-11ce-40a8-b588-ec44cf051523");
     private static final TestResource<ArchetypeType> ARCHETYPE_PERSON_DEV_TEMPLATE = new TestResource<>(
             SIM_TEST_DIR, "archetype-person-dev-template.xml", "be7f8541-64ec-4bee-a5c3-855923ae9b90");
+    static final TestResource<ArchetypeType> ARCHETYPE_CUSTOMER = new TestResource<>(
+            SIM_TEST_DIR, "archetype-customer.xml", "075ebbed-f3b9-4bac-90c2-bb8811121636");
 
-    private static final String ATTR_TYPE_NAME = "type";
+    private static final String ATTR_TYPE = "type";
+    private static final String ATTR_TELEPHONE_NUMBER = "telephoneNumber";
+    private static final String ATTR_MAIL = "mail";
+
+    static final ItemName ATTR_RI_TELEPHONE_NUMBER = new ItemName(NS_RI, ATTR_TELEPHONE_NUMBER);
+    static final ItemName ATTR_RI_MAIL = new ItemName(NS_RI, ATTR_MAIL);
+
 //    private static final ItemName ATTR_TYPE_ITEM_NAME = new ItemName(NS_RI, ATTR_TYPE_NAME);
 
     static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_TARGET = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-production-target.xml",
             "3f8d6dee-9663-496f-a718-b3c27234aca7",
-            "simple-production-target");
+            "simple-production-target",
+            controller -> {
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_TELEPHONE_NUMBER, String.class, false, false);
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_MAIL, String.class, false, false);
+            });
     static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_TARGET = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-target.xml",
@@ -72,22 +97,32 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "simple-production-source",
             controller -> controller.addAttrDef(
                     controller.getDummyResource().getAccountObjectClass(),
-                    ATTR_TYPE_NAME, String.class, false, false));
+                    ATTR_TYPE, String.class, false, false));
     private static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-source.xml",
             "6d8ba4fd-95ee-4d98-80c2-3a194b566f89",
             "simple-development-source");
 
+    static final String METRIC_ATTRIBUTE_MODIFICATIONS_ID = "attribute-modifications";
+
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (repositoryService.supportsTags()) {
-            CommonInitialObjects.addTags(this, initResult);
-            repoAdd(TAG_USER_ADD, initResult);
-            repoAdd(TAG_USER_DELETE, initResult);
+        if (!isNativeRepository()) {
+            return; // No method will run anyway
         }
+
+        CommonInitialObjects.addMarks(this, initTask, initResult);
+        addObject(MARK_USER_ADD, initTask, initResult);
+        addObject(MARK_USER_DELETE, initTask, initResult);
+        addObject(MARK_NONSENSE_MARK, initTask, initResult);
 
         repoAdd(ROLE_PERSON, initResult);
         repoAdd(ROLE_PERSON_DEV, initResult);
@@ -98,6 +133,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         repoAdd(ARCHETYPE_PERSON, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_ARCHETYPE, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_TEMPLATE, initResult);
+        repoAdd(ARCHETYPE_CUSTOMER, initResult);
 
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);

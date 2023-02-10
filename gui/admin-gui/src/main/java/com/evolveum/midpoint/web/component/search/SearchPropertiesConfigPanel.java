@@ -57,7 +57,7 @@ import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;

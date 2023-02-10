@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 
@@ -85,13 +86,19 @@ public final class PageMounter implements DebugDumpable {
             LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.",
                     clazz.getName(), url, encoder.getClass().getSimpleName());
 
-            application.mount(new ExactMatchMountedMapper(url.mountUrl(), clazz, encoder));
             String mountUrl = url.mountUrl();
+            if (mountUrl.matches(".*\\$\\{[a-zA-Z_\\-]+\\}.*")) {
+                application.mount(new MountedMapper(mountUrl, clazz, encoder));
+            } else {
+                application.mount(new ExactMatchMountedMapper(mountUrl, clazz, encoder));
+            }
+
             if (urlClassMap.containsKey(mountUrl)) {
                 throw new IllegalStateException("Mount url '" + mountUrl
                         + "' is already used by '" + urlClassMap.get(mountUrl).getName()
                         + "'. Attempting to add another class '" + clazz.getName() + "'");
             }
+            
             urlClassMap.put(mountUrl, clazz);
         }
     }

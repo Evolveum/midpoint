@@ -57,6 +57,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -142,7 +144,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException, SchemaException {
 
         Objects.requireNonNull(type, "Object type must not be null.");
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         logger.debug("Getting object '{}' with OID '{}': {}",
@@ -180,12 +182,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws SchemaException, ObjectNotFoundException {
         PrismObject<T> object;
         long opHandle = registerOperationStart(OP_GET_OBJECT, type);
-        try (JdbcSession jdbcSession =
-                sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try {
             //noinspection unchecked
-            object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
-                    .asPrismObject();
-            jdbcSession.commit();
+            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -195,13 +194,17 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return object;
     }
 
-    private UUID checkOid(String oid) {
-        Objects.requireNonNull(oid, "OID must not be null");
-        try {
-            return UUID.fromString(oid);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid UUID string: " + oid, e);
+    /** Read object with internally created JDBC session/transaction. */
+    <T extends ObjectType> T readByOid(
+            Class<T> type, UUID oidUuid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException {
+        T object;
+        try (JdbcSession jdbcSession =
+                sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            object = readByOid(jdbcSession, type, oidUuid, options);
+            jdbcSession.commit();
         }
+        return object;
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
@@ -234,7 +237,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
-        UUID uuid = checkOid(oid);
+        UUID uuid = SqaleUtils.oidToUuidMandatory(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         logger.debug("Getting version for {} with oid '{}'.", type.getSimpleName(), oid);
@@ -363,7 +366,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws SchemaException, RepositoryException, ObjectAlreadyExistsException {
 
         String oid = newObject.getOid();
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
 
         long opHandle = registerOperationStart(OP_ADD_OBJECT_OVERWRITE, newObject);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
@@ -443,7 +446,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         Objects.requireNonNull(modifications, "Modifications must not be null.");
         Objects.requireNonNull(type, "Object class in delta must not be null.");
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_MODIFY_OBJECT)
@@ -503,7 +506,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         Objects.requireNonNull(modificationsSupplier, "Modifications supplier must not be null.");
         Objects.requireNonNull(type, "Object class in delta must not be null.");
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_MODIFY_OBJECT_DYNAMICALLY)
@@ -628,7 +631,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
-    @SuppressWarnings("resource")
     private <T extends ObjectType> void replaceObject(
             @NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
             PrismObject<T> newObject)
@@ -753,12 +755,39 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
+    public ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid,
+            @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        // Should we select
+        var operationResult = parentResult.createSubresult("deleteSimulatedProcessedObjects");
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<SimulationResultType, QObject<MObject>, MObject> update = prepareUpdateContext(jdbcSession, SimulationResultType.class, SqaleUtils.oidToUuidMandatory(oid));
+
+            QProcessedObject alias = QProcessedObjectMapping.getProcessedObjectMapping().defaultAlias();
+            jdbcSession.newDelete(alias)
+                    .where(alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
+                            .and(alias.transactionId.eq(transactionId))
+                    )
+                    .execute();
+            update.finishExecutionOwn();
+            jdbcSession.commit();
+            return new ModifyObjectResult<>(update.getPrismObject(), update.getPrismObject(), Collections.emptyList());
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    @Override
     public @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(
             Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException {
 
         Validate.notNull(type, "Object type must not be null.");
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         logger.debug("Deleting object type '{}' with oid '{}'", type.getSimpleName(), oid);
@@ -989,7 +1018,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
-            paging.addOrderingInstruction(OID_PATH, OrderDirection.ASCENDING);
+            // We want to order OID in the same direction as the provided ordering.
+            // This is also reflected by GT/LT conditions in lastOidCondition() method.
+            paging.addOrderingInstruction(OID_PATH,
+                    providedOrdering != null && providedOrdering.size() == 1
+                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
+                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
@@ -1104,7 +1138,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
             } else {
                 /*
-                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there are couple of differences.
+                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there is a couple of differences.
                 This one seems bloated, but each branch is simple; on the other hand it's not obvious what is different in each.
                 Also, audit version does not require polystring treatment.
                 Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
@@ -1341,7 +1375,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return new SearchResultList<>();
             }
 
-            return executeSearchReferences(query, options);
+            return executeSearchReferences(query, options, OP_SEARCH_REFERENCES);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1352,10 +1386,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    public SearchResultList<ObjectReferenceType> executeSearchReferences(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+    SearchResultList<ObjectReferenceType> executeSearchReferences(
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            String operationKind)
             throws SchemaException, RepositoryException {
-        long opHandle = registerOperationStart(OP_SEARCH_REFERENCES, ObjectReferenceType.class);
+        long opHandle = registerOperationStart(operationKind, ObjectReferenceType.class);
         try {
             QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
             SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
@@ -1369,7 +1405,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     @NotNull
     private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
-        OwnedByFilter ownedByFilter = extractOwnedByFilterForReferenceSearch(filter, filter);
+        OwnedByFilter ownedByFilter = extractOwnedByFilterForReferenceSearch(filter);
 
         ComplexTypeDefinition type = ownedByFilter.getType();
         ItemPath path = ownedByFilter.getPath();
@@ -1383,7 +1419,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return refMapping;
     }
 
-    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter, ObjectFilter originalFilter)
+    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter)
             throws QueryException {
         if (filter instanceof OwnedByFilter) {
             return (OwnedByFilter) filter;
@@ -1393,24 +1429,63 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 if (condition instanceof OwnedByFilter) {
                     if (ownedByFilter != null) {
                         throw new QueryException("Exactly one main OWNED-BY filter must be used"
-                                + " for reference search, but multiple found. Filter: " + originalFilter);
+                                + " for reference search, but multiple found. Filter: " + filter);
                     }
                     ownedByFilter = (OwnedByFilter) condition;
                 }
             }
             if (ownedByFilter == null) {
                 throw new QueryException("Exactly one main OWNED-BY filter must be used"
-                        + " for reference search, but none found. Filter: " + originalFilter);
+                        + " for reference search, but none found. Filter: " + filter);
             }
             return ownedByFilter;
         } else {
-            throw new QueryException("Invalid filter for reference search: " + originalFilter
+            throw new QueryException("Invalid filter for reference search: " + filter
                     + "\nReference search filter should be OWNED-BY filter or an AND filter containing it.");
+        }
+    }
+
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult)
+            throws SchemaException {
+        // TODO + use in model calls as appropriate
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+        Objects.requireNonNull(handler, "Result handler must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_REFERENCES_ITERATIVE)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+
+        try {
+            logSearchInputParameters(ObjectReferenceType.class, query, "Search references");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
+            }
+            // Here only for checks, to make it throw sooner than inside per-page calls.
+            determineMapping(query.getFilter());
+
+            return new ReferenceIterativeSearch(this)
+                    .execute(query, handler, options, operationResult);
+        } catch (ObjectNotFoundException | RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
         }
     }
     // endregion
 
     @Override
+
     public <O extends ObjectType> boolean isDescendant(
             PrismObject<O> object, String ancestorOrgOid) {
         Validate.notNull(object, "object must not be null");
@@ -1473,7 +1548,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     @Override
     public long advanceSequence(String oid, OperationResult parentResult)
             throws ObjectNotFoundException {
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         logger.debug("Advancing sequence {}", oid);
@@ -1522,7 +1597,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     public void returnUnusedValuesToSequence(
             String oid, Collection<Long> unusedValues, OperationResult parentResult)
             throws ObjectNotFoundException {
-        UUID oidUuid = checkOid(oid);
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         logger.debug("Returning unused values of {} to sequence {}", unusedValues, oid);

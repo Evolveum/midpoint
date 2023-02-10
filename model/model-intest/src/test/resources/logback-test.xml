@@ -134,6 +134,8 @@
 
     <logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="DEBUG"/>
 
+    <logger name="com.evolveum.midpoint.model.impl.simulation" level="TRACE"/>
+
     <logger name="org.identityconnectors.framework" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />

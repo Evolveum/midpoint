@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -67,6 +68,7 @@ public class Projector {
     @Autowired private ReconciliationProcessor reconciliationProcessor;
     @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
     @Autowired private ActivationProcessor activationProcessor;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private DependencyProcessor dependencyProcessor;
     @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private Clock clock;
@@ -354,6 +356,11 @@ public class Projector {
             medic.partialExecute(Components.PROJECTION_LIFECYCLE, activationProcessor,
                     activationProcessor::processLifecycle,
                     partialProcessingOptions::getProjectionLifecycle,
+                    Projector.class, context, projectionContext, activityDescription, now, task, result);
+
+            medic.partialExecute(Components.PROJECTION_POLICY_RULES, policyRuleProcessor,
+                    policyRuleProcessor::evaluateProjectionPolicyRules,
+                    partialProcessingOptions::getProjectionPolicyRules,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
             result.recordSuccess();

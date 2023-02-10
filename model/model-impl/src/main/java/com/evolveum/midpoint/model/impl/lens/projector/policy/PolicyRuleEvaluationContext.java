@@ -10,11 +10,13 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -22,46 +24,47 @@ import java.util.Collection;
 /**
  * Evaluation context for a policy rule.
  */
-public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> {
+public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 
     @NotNull public final EvaluatedPolicyRule policyRule;
-    @NotNull public final LensContext<AH> lensContext;
-    @NotNull public final LensFocusContext<AH> focusContext;
+    @NotNull public final LensContext<?> lensContext;
+    @NotNull public final LensElementContext<O> elementContext;
     @NotNull public final Task task;
     @NotNull public final ObjectState state;
     @NotNull final RulesEvaluationContext globalCtx;
 
-    protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<AH> context,
-            @NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
+    protected PolicyRuleEvaluationContext(
+            @NotNull EvaluatedPolicyRule policyRule,
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull Task task,
+            @NotNull RulesEvaluationContext globalCtx,
+            @NotNull ObjectState state) {
         this.policyRule = policyRule;
-        this.lensContext = context;
-        this.focusContext = context.getFocusContext();
+        this.lensContext = elementContext.getLensContext();
+        this.elementContext = elementContext;
         this.task = task;
         this.globalCtx = globalCtx;
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus context");
-        }
         this.state = state;
     }
 
-    public abstract PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state);
+    public abstract PolicyRuleEvaluationContext<O> cloneWithStateConstraints(ObjectState state);
 
     public abstract void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-    public PrismObject<AH> getObject() {
+    public PrismObject<O> getObject() {
         if (state == ObjectState.BEFORE) {
-            return focusContext.getObjectOld();
+            return elementContext.getObjectOld();
         } else {
-            return focusContext.getObjectNew();
+            return elementContext.getObjectNew();
         }
     }
 
-    public PrismObjectDefinition<AH> getObjectDefinition() {
-        PrismObject<AH> object = getObject();
+    public PrismObjectDefinition<O> getObjectDefinition() {
+        PrismObject<O> object = getObject();
         if (object != null && object.getDefinition() != null) {
             return object.getDefinition();
         } else {
-            return focusContext.getObjectDefinition();
+            return elementContext.getObjectDefinition();
         }
     }
 
@@ -74,5 +77,9 @@ public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderTyp
 
     public void record() {
         globalCtx.rulesToRecord.add(policyRule);
+    }
+
+    public LensFocusContext<?> getFocusContext() {
+        return elementContext instanceof LensFocusContext<?> ? (LensFocusContext<?>) elementContext : null;
     }
 }

@@ -457,7 +457,7 @@
             <xsd:element name="triggeredPolicyRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Triggered policy rules for this assignment. (Not necessarily complete; subject to specified storage strategy.)
+                        Triggered policy rules for this object. (Not necessarily complete; subject to specified storage strategy.)
                         This is EXPERIMENTAL functionality. It is possibly to change in the near future.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -759,14 +759,14 @@
     </xsd:complexType>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="TagType">
+    <xsd:complexType name="MarkType">
         <xsd:annotation>
             <xsd:documentation>
-                A tag is a "mark" given to an object - currently a prism object, an assignment, or audited/simulation event.
-                Tags are used in various contexts, for example as policy situations or event tags. (More uses are expected
-                in the future.) This object serves as a point of definition of such tags.
+                A mark is a "label" given to an object - currently a prism object, an assignment, or audited/simulation event.
+                Tags are used in various contexts, for example as policy situations or event marks.
+                This object serves as a point of definition of such marks.
 
-                Well-known archetypes: policy situation, event tag.
+                Well-known archetypes: object mark, event mark.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
@@ -782,7 +782,7 @@
                                 It should be globally unique.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.uri</a:displayName>
+                                <a:displayName>MarkType.uri</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -792,19 +792,29 @@
                                 Display properties of the tag. It is used to display the tag in drop-down lists, buttons, etc..
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.display</a:displayName>
+                                <a:displayName>MarkType.display</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="policyRule" type="tns:GlobalPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Global policy rules that can yield this tag (policy situation or event tag).
+                                Global policy rules that can yield this mark (object or event mark).
                                 By including them here they are evaluated automatically, just like if they would be included
-                                in the system configuration. (Provided that this tag is in appropriate lifecycle state.)
+                                in the system configuration. (Provided that this mark is in appropriate lifecycle state.)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.uri</a:displayName>
+                                <a:displayName>MarkType.policyRule</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="eventMark" type="tns:EventMarkInformationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information specific to event marks.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MarkType.eventMark</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -812,10 +822,48 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="tag" type="tns:TagType" substitutionGroup="tns:object"/>
+    <xsd:element name="mark" type="tns:MarkType" substitutionGroup="tns:object"/>
+
+    <xsd:complexType name="EventMarkInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information specific for event marks.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="domain" type="tns:EventMarkDomainType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of objects on which this tag is applicable.
+                        Normally, the applicability is determined by the presence of the respective policy rule(s) related to
+                        this tag (by assignments or global policy rules selectors). But we need more fine-grained approach
+                        when reporting on the tags. For example, we may need to consider only a subset of all projections
+                        (shadows) that were processed.
+
+                        Experimental. This may be a bad idea overall.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this event tag processing enabled by default?
+
+                        TODO is this the correct place (as it most probably applies only to simulations)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="eventMarkInformation" type="tns:EventMarkInformationType"/>
 
     <xsd:complexType name="TriggerType">
-           <xsd:annotation>
+        <xsd:annotation>
             <xsd:documentation>
                 Defines triggers for an object. Trigger is an action that should take place
                 at specified time or under some other condition.
@@ -4047,6 +4095,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Lifecycle state of the item. Production configuration consists (by default) of `active`
+                        and `deprecated` ones. Development configuration consists (by default) of `active` and
+                        `proposed` ones. If the item is not in the configuration, it is ignored by the processing
+                        at the model level - no inbound nor outbound mappings are evaluated for it, as well as no
+                        (outbound) reconciliation is carried out. The effect is similar to setting "ignore" processing
+                        on the model level.
+
+                        Currently supported only for resource object items (attributes and associations).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="changeApplicationMode" type="tns:ItemChangeApplicationModeType" minOccurs="0" default="apply">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should the computed changes of this item be regarded? (Applied, recorded, ignored.)
+
+                        Currently supported only for resource object attributes.
+
+                        TODO better name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemRefinedDefinitionType.changeApplication</a:displayName>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -4475,6 +4557,55 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ItemChangeApplicationModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What to do with the changes computed for the given item?
+
+                TODO nouns or verbs for the modes?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="apply">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are treated in the traditional way: They are applied if the task runs
+                        in "persistent effects" mode, and recorded if it runs in "simulation" mode.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are reported by adding them to the "simulation result" structure
+                        (regardless of whether running in persistent-effects or simulation mode).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any changes for this item are silently discarded (ignored).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -14831,16 +14962,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Tag(s) that are the result when this policy rule is triggered.
-                        These may be implicit if the policy rule is defined as part of tag definition.
+                        Mark(s) that are the result when this policy rule is triggered.
+                        These may be implicit if the policy rule is defined as part of mark definition.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
-                        <a:displayName>PolicyRuleType.tag</a:displayName>
-                        <a:help>PolicyRuleType.tag.help</a:help>
+                        <a:objectReferenceTargetType>c:MarkType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyRuleType.mark</a:displayName>
+                        <a:help>PolicyRuleType.mark.help</a:help>
                         <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -14852,7 +14983,7 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
-                        DEPRECATED. Use tagRef instead.
+                        DEPRECATED. Use markRef instead.
 
                         TODO specify the time of planned removal
                     </xsd:documentation>
@@ -14919,7 +15050,7 @@
             <xsd:enumeration value="object">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The rule is to be evaluated against an object.
+                        The rule is to be evaluated against a focus object.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT"/>
@@ -14933,6 +15064,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The rule is to be evaluated against a projection (i.e. a resource object shadow).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                        <jaxb:typesafeEnumMember name="PROJECTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -15608,14 +15750,14 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000700">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_EVENT_TAG"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EVENT_MARK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000701">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_POLICY_SITUATION"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_MARK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -15623,84 +15765,91 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ENABLED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_ACTIVATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000711">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_DISABLED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_DEACTIVATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000712">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_NAME_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_RENAMED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000713">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ASSIGNMENT_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_ASSIGNMENT_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000714">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ARCHETYPE_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_ARCHETYPE_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000715">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000716">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000730">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_ENABLED"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_ACTIVATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000731">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_DISABLED"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_DEACTIVATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000732">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_NAME_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_RENAMED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000733">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_IDENTIFIER_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_IDENTIFIER_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000734">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_ENTITLEMENT_CHANGED"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_ENTITLEMENT_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000735">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_PASSWORD_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -16660,6 +16809,13 @@
             <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectTemplateAfterProjections" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>

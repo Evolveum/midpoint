@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -128,6 +129,13 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
         }
 
         LensContext.dumpRules(sb, "Object policy rules", indent, getObjectPolicyRules());
+        sb.append("\n");
+
+        Set<String> allEventMarks = getAllConsideredEventMarks();
+        Set<String> triggeredEventMarks = getTriggeredEventMarks();
+        DebugUtil.debugDumpWithLabelLn(sb, "Triggered event marks", triggeredEventMarks, indent);
+        DebugUtil.debugDumpWithLabel(
+                sb, "Other (non-triggered) event marks", Sets.difference(allEventMarks, triggeredEventMarks), indent);
         return sb.toString();
     }
 
@@ -147,9 +155,16 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
     }
 
     // TEMPORARY IMPLEMENTATION
-    @NotNull Collection<String> getEventTags() {
+    @NotNull Set<String> getTriggeredEventMarks() {
         return objectPolicyRules.stream()
-                .flatMap(rule -> rule.getEventTags().stream())
+                .flatMap(rule -> rule.getTriggeredEventMarks().stream())
+                .collect(Collectors.toSet());
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    @NotNull Set<String> getAllConsideredEventMarks() {
+        return objectPolicyRules.stream()
+                .flatMap(rule -> rule.getAllEventMarks().stream())
                 .collect(Collectors.toSet());
     }
 }

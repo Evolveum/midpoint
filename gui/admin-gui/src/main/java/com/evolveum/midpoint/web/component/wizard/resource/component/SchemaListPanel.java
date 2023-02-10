@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;

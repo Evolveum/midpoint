@@ -13,14 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAlwaysTrueTrigger;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -28,9 +26,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AlwaysTruePolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
 @Experimental
@@ -47,9 +46,12 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedAlwaysTrueTrigger evaluate(@NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedAlwaysTrueTrigger evaluate(
+            @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -68,9 +70,11 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
         }
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedAlwaysTrueTrigger evaluateForObject(@NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private EvaluatedAlwaysTrueTrigger evaluateForObject(
+            @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         return new EvaluatedAlwaysTrueTrigger(ALWAYS_TRUE, constraintElement.getValue(),
                     createMessage(constraintElement, ctx, result),
@@ -78,23 +82,39 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(@NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + AlwaysTrueConstraintEvaluator.CONSTRAINT_KEY_PREFIX, constraintElement, ctx, result);
+    private LocalizableMessage createMessage(
+            @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = createBuiltInMessage(
+                SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
+                constraintElement,
+                ctx,
+                result);
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<AlwaysTruePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + AlwaysTrueConstraintEvaluator.CONSTRAINT_KEY_PREFIX, constraintElement, ctx, result);
+    private LocalizableMessage createShortMessage(
+            JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = createBuiltInMessage(
+                SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
+                constraintElement,
+                ctx,
+                result);
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createBuiltInMessage(String keyPrefix,
-            JAXBElement<AlwaysTruePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx,
+    private LocalizableMessage createBuiltInMessage(
+            String keyPrefix,
+            JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {

@@ -12,10 +12,12 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -117,15 +119,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         dynamicLayout.setOutputMarkupId(true);
         mainForm.add(dynamicLayout);
 
-        dynamicLayout.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isDynamicForm();
-            }
-        });
+        dynamicLayout.add(new VisibleBehaviour(this::isDynamicFormVisible));
 
         DynamicFormPanel<FocusType> searchAttributesForm = runPrivileged(
                 () -> {
@@ -141,6 +135,10 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         if (searchAttributesForm != null) {
             dynamicLayout.add(searchAttributesForm);
         }
+    }
+
+    protected boolean isDynamicFormVisible() {
+        return isDynamicForm();
     }
 
     protected boolean isDynamicForm() {

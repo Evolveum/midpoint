@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,8 +105,6 @@ public class TaskQuartzImpl implements Task {
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
-
-    @NotNull private final Collection<AggregatedObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -195,6 +192,9 @@ public class TaskQuartzImpl implements Task {
     /** ConnId operations listeners. */
     @Experimental
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
+
+    /** TODO */
+    private SimulationTransaction simulationTransaction;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -2317,25 +2317,16 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
-        objectProcessingListeners.add(listener);
+    public SimulationTransaction setSimulationTransaction(SimulationTransaction newTransaction) {
+        var oldTransaction = simulationTransaction;
+        simulationTransaction = newTransaction;
+        return oldTransaction;
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
-        objectProcessingListeners.remove(listener);
+    public @Nullable SimulationTransaction getSimulationTransaction() {
+        return simulationTransaction;
     }
 
-    @Override
-    public <O extends ObjectType> void onItemProcessed(
-            @Nullable O stateBefore,
-            @Nullable ObjectDelta<O> executedDelta,
-            @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull Collection<String> eventTags,
-            @NotNull OperationResult result) throws SchemaException {
-        for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
-        }
-    }
     //endregion
 }

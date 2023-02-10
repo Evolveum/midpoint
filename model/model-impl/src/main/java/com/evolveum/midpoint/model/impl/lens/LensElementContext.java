@@ -15,13 +15,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +112,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Security policy related to this object. (It looks like it is currently filled-in only for focus.)
      */
     private transient SecurityPolicyType securityPolicy;
+
+    /** TODO */
+    transient ItemChangeApplicationModeConfiguration itemChangeApplicationModeConfiguration;
 
     /**
      * Everything related to policy rules evaluation and processing.
@@ -254,6 +262,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
         return state.getArchivedSecondaryDeltas();
+    }
+
+    public ObjectDelta<O> getSummaryExecutedDelta() throws SchemaException {
+        List<ObjectDelta<O>> executedDeltasPlain = executedDeltas.stream()
+                .map(odo -> odo.getObjectDelta())
+                .collect(Collectors.toList());
+        return ObjectDeltaCollectionsUtil.summarize(executedDeltasPlain);
     }
 
     public String getObjectReadVersion() {
@@ -876,7 +891,25 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    /** TODO */
-    abstract @NotNull Collection<String> getEventTags();
+    @Override
+    @NotNull
+    public Collection<String> getMatchingEventMarks() {
+        return policyRulesContext.getTriggeredEventMarks();
+    }
+
+    public @NotNull Collection<String> getAllConsideredEventMarks() {
+        return policyRulesContext.getAllConsideredEventMarks();
+    }
+
+    public @NotNull ItemChangeApplicationModeConfiguration getItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException {
+        if (itemChangeApplicationModeConfiguration == null) {
+            itemChangeApplicationModeConfiguration = createItemChangeApplicationModeConfiguration();
+        }
+        return itemChangeApplicationModeConfiguration;
+    }
+
+    abstract @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException;
     //endregion
 }

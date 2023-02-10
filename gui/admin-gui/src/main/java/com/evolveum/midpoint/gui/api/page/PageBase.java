@@ -654,9 +654,6 @@ public abstract class PageBase extends PageAdminLTE {
         }
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
-    }
 
     public String createPropertyModelExpression(String... components) {
         return StringUtils.join(components, ".");

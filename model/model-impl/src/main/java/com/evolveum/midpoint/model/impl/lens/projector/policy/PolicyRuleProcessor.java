@@ -10,9 +10,12 @@ import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraints
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.model.impl.lens.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,14 +28,10 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
-import com.evolveum.midpoint.model.common.TagManager;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
@@ -63,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Entry points:
  *
  * . {@link #evaluateAssignmentPolicyRules(LensContext, DeltaSetTriple, Task, OperationResult)}
- * . {@link #evaluateObjectPolicyRules(LensContext, XMLGregorianCalendar, Task, OperationResult)}
+ * . {@link #evaluateFocusPolicyRules(LensContext, XMLGregorianCalendar, Task, OperationResult)}
  * . TODO
  *
  * TODO refactor / clean up!
@@ -80,7 +79,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private TagManager tagManager;
+    @Autowired private MarkManager markManager;
     @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private PolicyStateRecorder policyStateRecorder;
@@ -114,7 +113,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        Collection<? extends PolicyRuleType> allGlobalRules = getAllGlobalRules(context, result);
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
+
+        Collection<? extends PolicyRuleType> allGlobalRules = getAllGlobalRules(context, task, result);
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
@@ -136,7 +137,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(
                                 new AssignmentPolicyRuleEvaluationContext<>(
-                                        policyRule, evaluatedAssignment, true, context,
+                                        policyRule, evaluatedAssignment, true, focusContext,
                                         evaluatedAssignmentTriple, task, globalCtx),
                                 result);
                     }
@@ -147,7 +148,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(
                                 new AssignmentPolicyRuleEvaluationContext<>(
-                                        policyRule, evaluatedAssignment, false, context,
+                                        policyRule, evaluatedAssignment, false, focusContext,
                                         evaluatedAssignmentTriple, task, globalCtx),
                                 result);
                     }
@@ -158,7 +159,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(
                                 new AssignmentPolicyRuleEvaluationContext<>(
-                                        policyRule, evaluatedAssignment, true, context,
+                                        policyRule, evaluatedAssignment, true, focusContext,
                                         evaluatedAssignmentTriple, task, globalCtx),
                                 result);
                     }
@@ -169,7 +170,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(
                                 new AssignmentPolicyRuleEvaluationContext<>(
-                                        policyRule, evaluatedAssignment, false, context,
+                                        policyRule, evaluatedAssignment, false, focusContext,
                                         evaluatedAssignmentTriple, task, globalCtx),
                                 result);
                     }
@@ -198,52 +199,58 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     //region ------------------------------------------------------------------ Focus policy rules
     @ProcessorMethod
-    public <AH extends AssignmentHolderType> void evaluateObjectPolicyRules(
+    public <AH extends AssignmentHolderType> void evaluateFocusPolicyRules(
             LensContext<AH> context, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        RulesEvaluationContext globalCtx = new RulesEvaluationContext();
+        List<EvaluatedPolicyRuleImpl> rules = collectFocusRules(context, task, result);
 
-        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectFocusRulesFromAssignments(rules, context);
-        collectGlobalObjectRules(rules, context, task, result);
-
-        resolveConstraintReferences(rules, getAllGlobalRules(context, result));
-
-        List<EvaluatedPolicyRule> situationRules = new ArrayList<>();
-        List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
-
-        LOGGER.trace("Evaluating {} object policy rules", rules.size());
+        LOGGER.trace("Evaluating focus object rules from {} focus-attached policy rules", rules.size());
         LensFocusContext<AH> focusContext = context.getFocusContext();
-        focusContext.clearObjectPolicyRules();
-        for (EvaluatedPolicyRuleImpl rule : rules) {
-            if (isApplicableToObject(rule)) {
-                if (hasSituationConstraint(rule)) {
-                    situationRules.add(rule);
-                } else {
-                    nonSituationRules.add(rule);
-                }
-                focusContext.addObjectPolicyRule(rule);
-            } else {
-                LOGGER.trace("Rule {} is not applicable to an object, skipping: {}", rule.getName(), rule);
-            }
-        }
+        List<EvaluatedPolicyRuleImpl> applicableRules =
+                selectAndSetApplicableRules(focusContext, rules, this::isApplicableToFocusObject);
 
-        for (EvaluatedPolicyRule rule : nonSituationRules) {
-            evaluateFocusRule(rule, context, globalCtx, task, result);
-        }
-        for (EvaluatedPolicyRule rule : situationRules) {
-            evaluateFocusRule(rule, context, globalCtx, task, result);
-        }
-        policyStateRecorder.applyObjectState(context, globalCtx.rulesToRecord);
+        evaluateObjectRules(focusContext, task, result, applicableRules);
     }
 
-    private <AH extends AssignmentHolderType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<AH> context,
-            RulesEvaluationContext globalCtx, Task task, OperationResult result)
+    private <O extends ObjectType> void evaluateObjectRules(
+            LensElementContext<O> elementContext, Task task, OperationResult result, List<EvaluatedPolicyRuleImpl> applicableRules)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LOGGER.trace("Evaluating {} applicable rules", applicableRules.size());
+        RulesEvaluationContext globalCtx = new RulesEvaluationContext();
+        for (EvaluatedPolicyRule rule : getNonSituationRules(applicableRules)) {
+            evaluateObjectRule(rule, elementContext, globalCtx, task, result);
+        }
+        for (EvaluatedPolicyRule rule : getSituationRules(applicableRules)) {
+            evaluateObjectRule(rule, elementContext, globalCtx, task, result);
+        }
+        policyStateRecorder.applyObjectState(elementContext, globalCtx.rulesToRecord);
+    }
+
+    private Collection<EvaluatedPolicyRuleImpl> getNonSituationRules(Collection<EvaluatedPolicyRuleImpl> rules) {
+        return rules.stream()
+                .filter(r -> !hasSituationConstraint(r))
+                .collect(Collectors.toList());
+    }
+
+    private Collection<EvaluatedPolicyRuleImpl> getSituationRules(Collection<EvaluatedPolicyRuleImpl> rules) {
+        return rules.stream()
+                .filter(r -> hasSituationConstraint(r))
+                .collect(Collectors.toList());
+    }
+
+    private <O extends ObjectType> void evaluateObjectRule(
+            EvaluatedPolicyRule rule,
+            LensElementContext<O> elementContext,
+            RulesEvaluationContext globalCtx,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         evaluateRule(
-                new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, context, task), result);
+                new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, elementContext, task),
+                result);
     }
 
     private <AH extends AssignmentHolderType> void collectFocusRulesFromAssignments(
@@ -270,7 +277,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             // This is a very special case, where the focus was deleted.
             focus = focusContext.getObjectOld();
         }
-        List<GlobalRuleWithId> rulesWithIds = getAllGlobalPolicyRules(systemConfiguration, result);
+        List<GlobalRuleWithId> rulesWithIds = getAllGlobalPolicyRules(systemConfiguration, task, result);
         LOGGER.trace("Checking {} global policy rules", rulesWithIds.size());
         int globalRulesFound = 0;
         for (GlobalRuleWithId ruleWithId: rulesWithIds) {
@@ -292,6 +299,52 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             }
         }
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
+    }
+
+    @ProcessorMethod
+    public <AH extends AssignmentHolderType> void evaluateProjectionPolicyRules(
+            LensContext<AH> context,
+            LensProjectionContext projectionContext,
+            @SuppressWarnings("unused") String activityDescription,
+            @SuppressWarnings("unused") XMLGregorianCalendar now,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        List<EvaluatedPolicyRuleImpl> rules = collectFocusRules(context, task, result);
+
+        LOGGER.trace("Selecting projection object rules from {} focus-attached policy rules", rules.size());
+        List<EvaluatedPolicyRuleImpl> applicableRules = selectAndSetApplicableRules(
+                projectionContext, rules, this::isApplicableToProjection);
+
+        evaluateObjectRules(projectionContext, task, result, applicableRules);
+    }
+
+    private @NotNull List<EvaluatedPolicyRuleImpl> selectAndSetApplicableRules(
+            LensElementContext<?> elementContext, List<EvaluatedPolicyRuleImpl> rules, Predicate<EvaluatedPolicyRule> predicate) {
+        List<EvaluatedPolicyRuleImpl> applicableRules = new ArrayList<>();
+        elementContext.clearObjectPolicyRules();
+        for (EvaluatedPolicyRuleImpl rule : rules) {
+            if (predicate.test(rule)) {
+                applicableRules.add(rule);
+                elementContext.addObjectPolicyRule(rule);
+            } else {
+                LOGGER.trace("Rule {} is not applicable to the focus/projection, skipping: {}", rule.getName(), rule);
+            }
+        }
+        return applicableRules;
+    }
+
+    @NotNull
+    private <AH extends AssignmentHolderType> List<EvaluatedPolicyRuleImpl> collectFocusRules(
+            LensContext<AH> context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
+        collectFocusRulesFromAssignments(rules, context);
+        collectGlobalObjectRules(rules, context, task, result);
+        resolveConstraintReferences(rules, getAllGlobalRules(context, task, result));
+        return rules;
     }
 
     //endregion
@@ -318,15 +371,19 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         return PolicyRuleTypeUtil.isApplicableToAssignment(rule.getPolicyRule());
     }
 
-    private boolean isApplicableToObject(EvaluatedPolicyRule rule) {
+    private boolean isApplicableToFocusObject(EvaluatedPolicyRule rule) {
         return PolicyRuleTypeUtil.isApplicableToObject(rule.getPolicyRule());
+    }
+
+    private boolean isApplicableToProjection(EvaluatedPolicyRule rule) {
+        return PolicyRuleTypeUtil.isApplicableToProjection(rule.getPolicyRule());
     }
 
     /**
      * Evaluates given policy rule in a given context.
      */
-    private <AH extends AssignmentHolderType> void evaluateRule(
-            @NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
+    private <O extends ObjectType> void evaluateRule(
+            @NotNull PolicyRuleEvaluationContext<O> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -376,8 +433,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     // returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
     @SuppressWarnings("unchecked")
     @NotNull
-    public <AH extends AssignmentHolderType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(PolicyConstraintsType constraints,
-            boolean allMustApply, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+    public <O extends ObjectType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(
+            PolicyConstraintsType constraints,
+            boolean allMustApply, PolicyRuleEvaluationContext<O> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (constraints == null) {
             return Collections.emptyList();
@@ -400,8 +458,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         return triggers;
     }
 
-    private <AH extends AssignmentHolderType> void traceConstraintEvaluationResult(JAXBElement<AbstractPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, EvaluatedPolicyRuleTrigger<?> trigger) throws SchemaException {
+    private <O extends ObjectType> void traceConstraintEvaluationResult(
+            JAXBElement<AbstractPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<O> ctx, EvaluatedPolicyRuleTrigger<?> trigger) throws SchemaException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
@@ -428,7 +487,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         LOGGER.trace("{}", sb);
     }
 
-    private <AH extends AssignmentHolderType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<AH> ctx) {
+    private void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<?> ctx) {
         if (LOGGER.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder();
             sb.append("\n---[ POLICY RULE ");
@@ -487,14 +546,14 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
      * TODO implement more efficiently
      */
     private <AH extends AssignmentHolderType> Collection<GlobalPolicyRuleType> getAllGlobalRules(
-            LensContext<AH> context, OperationResult result) {
-        return getAllGlobalPolicyRules(context.getSystemConfigurationBean(), result).stream()
+            LensContext<AH> context, Task task, OperationResult result) {
+        return getAllGlobalPolicyRules(context.getSystemConfigurationBean(), task, result).stream()
                 .map(GlobalRuleWithId::getRuleBean)
                 .collect(Collectors.toList());
     }
 
     private @NotNull List<GlobalRuleWithId> getAllGlobalPolicyRules(
-            @Nullable SystemConfigurationType systemConfiguration, @NotNull OperationResult result) {
+            @Nullable SystemConfigurationType systemConfiguration, Task task, @NotNull OperationResult result) {
         List<GlobalRuleWithId> allRules = new ArrayList<>();
         if (systemConfiguration != null) {
             for (GlobalPolicyRuleType ruleBean : systemConfiguration.getGlobalPolicyRule()) {
@@ -503,7 +562,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             }
         }
         allRules.addAll(
-                tagManager.getAllTagPolicyRules(result));
+                markManager.getAllEnabledMarkPolicyRules(task, result));
         return allRules;
     }
 
@@ -525,7 +584,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 focusContext.getObjectCurrentOrNew(),
                 "no current nor new focus while operation is not DELETE");
 
-        List<GlobalRuleWithId> globalPolicyRuleList = getAllGlobalPolicyRules(systemConfiguration, result);
+        List<GlobalRuleWithId> globalPolicyRuleList = getAllGlobalPolicyRules(systemConfiguration, task, result);
         LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
         int globalRulesInstantiated = 0;
         for (GlobalRuleWithId ruleWithId : globalPolicyRuleList) {

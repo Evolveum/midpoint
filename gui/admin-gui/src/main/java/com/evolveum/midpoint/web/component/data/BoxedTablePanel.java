@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -157,7 +158,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return false;
     }
 
-    public String getAdditionalBoxCssClasses() {
+    public String   getAdditionalBoxCssClasses() {
         return additionalBoxCssClasses;
     }
 

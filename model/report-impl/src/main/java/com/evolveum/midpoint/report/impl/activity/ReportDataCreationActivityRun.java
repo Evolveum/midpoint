@@ -96,7 +96,7 @@ public final class ReportDataCreationActivityRun
      */
     @Override
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
-        support.beforeExecution(result);
+        support.beforeRun(result);
         initializeController(result);
     }
 
@@ -160,7 +160,8 @@ public final class ReportDataCreationActivityRun
         paging.setOrdering(AuditEventRecordType.F_TIMESTAMP, OrderDirection.ASCENDING);
         query.setPaging(paging);
 
-        @NotNull SearchResultList<AuditEventRecordType> firstAudit = reportService.getAuditService().searchObjects(query, null, result);
+        @NotNull SearchResultList<AuditEventRecordType> firstAudit =
+                reportService.getAuditService().searchObjects(query, null, result);
         XMLGregorianCalendar reportFromFirstAuditRecords;
         if (firstAudit.size() == 1) {
             reportFromFirstAuditRecords = firstAudit.iterator().next().getTimestamp();
@@ -237,8 +238,7 @@ public final class ReportDataCreationActivityRun
 
     @Override
     public boolean processItem(@NotNull Containerable item,
-            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
-            throws CommonException, ActivityRunException {
+            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result) {
         controller.handleDataRecord(request.getSequentialNumber(), item, workerTask, result);
         return true;
     }
@@ -253,12 +253,14 @@ public final class ReportDataCreationActivityRun
     }
 
     @Override
-    public void beforeBucketProcessing(OperationResult result) {
+    public void beforeBucketProcessing(OperationResult result) throws ActivityRunException, CommonException {
+        super.beforeBucketProcessing(result);
         controller.beforeBucketExecution(bucket.getSequentialNumber(), result);
     }
 
     @Override
-    public void afterBucketProcessing(OperationResult result) throws CommonException {
+    public void afterBucketProcessing(OperationResult result) throws CommonException, ActivityRunException {
+        super.afterBucketProcessing(result);
         controller.afterBucketExecution(bucket.getSequentialNumber(), getRunningTask(), result);
     }
 

@@ -31,6 +31,10 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Contains common functionality for executions of export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
@@ -44,8 +48,8 @@ public class ExportActivitySupport extends ReportActivitySupport {
         super(activityRun, reportService, resolver, workDefinition);
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
-        super.beforeExecution(result);
+    void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        super.beforeRun(result);
         setupSaveSupport();
     }
 
@@ -54,17 +58,24 @@ public class ExportActivitySupport extends ReportActivitySupport {
     }
 
     /**
-     * Save exported report to a file.
+     * Saves the data in the simple case: just dumping content of `dataWriter` to the output file.
      */
-    void saveReportFile(String aggregatedData,
+    void saveSimpleReportData(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        saveSupport.saveReportFile(aggregatedData, dataWriter, result);
+        saveSupport.saveSimpleReportData(dataWriter, result);
     }
 
-    void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            OperationResult result) throws CommonException {
-        saveSupport.saveReportFile(dataWriter, result);
+    /**
+     * Save exported report to a file. This is the variant for distributed reports that assumes we have the
+     * aggregated data as a String, plus pre-existing (empty) aggregated {@link ReportDataType} object.
+     */
+    void saveAggregatedReportData(
+            @NotNull String aggregatedData,
+            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull ObjectReferenceType aggregatedDataRef,
+            @NotNull OperationResult result) throws CommonException {
+        saveSupport.saveAggregatedReportData(aggregatedData, completingDataWriter, aggregatedDataRef, result);
     }
 
     /**
@@ -95,18 +106,17 @@ public class ExportActivitySupport extends ReportActivitySupport {
                     runningTask,
                     result);
         } else if (Containerable.class.isAssignableFrom(type)) {
-            // Temporary - until iterative search is available
+            // TODO: Temporary - until iterative search is available
             Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
             SearchResultList<? extends Containerable> values =
                     modelService.searchContainers(containerableType, query, options, runningTask, result);
             //noinspection unchecked
             values.forEach(value -> ((ObjectHandler<Containerable>) handler).handle(value, result));
         } else if (Referencable.class.isAssignableFrom(type)) {
-            // Temporary - until iterative search is available
-            SearchResultList<ObjectReferenceType> values =
-                    modelService.searchReferences(query, options, runningTask, result);
             //noinspection unchecked
-            values.forEach(value -> ((ObjectHandler<ObjectReferenceType>) handler).handle(value, result));
+            modelService.searchReferencesIterative(query,
+                    (value, lResult) -> ((ObjectHandler<ObjectReferenceType>) handler).handle(value, lResult),
+                    options, runningTask, result);
         } else {
             throw new UnsupportedOperationException("Unsupported object type for report: " + type);
         }
@@ -116,7 +126,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
      * Count container objects for iterative task.
      * Temporary until will be implemented iterative search for audit records and containerable objects.
      */
-    public int countRecords(Class<?> type,
+    int countRecords(Class<?> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {

@@ -71,14 +71,13 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
-import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
+import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -127,7 +126,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
@@ -3892,7 +3890,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
+    protected <T extends ObjectType> PrismObject<T> addObject(AbstractTestResource<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
@@ -3935,7 +3933,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(
-            TestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+            AbstractTestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = testResource.getFresh();
@@ -6214,7 +6212,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
-        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
+        return assertModelContext(previewContext, "preview context");
+    }
+
+    protected <O extends ObjectType> ModelContextAsserter<O, Void> assertModelContext(ModelContext<O> modelContext, String desc) {
+        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(modelContext, desc);
         initializeAsserter(asserter);
         return asserter;
     }
@@ -6893,215 +6895,220 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /** Import a single or multiple accounts (or other kind of object) by creating a specialized task - or on foreground. */
-    protected ImportAccountsRequestBuilder importAccountsRequest() {
-        return new ImportAccountsRequestBuilder(this);
+    protected SynchronizationRequestBuilder importAccountsRequest() {
+        return new SynchronizationRequestBuilder(this);
+    }
+
+    /** Reconcile accounts (or other kind of object) by creating a specialized task. */
+    protected SynchronizationRequestBuilder reconcileAccountsRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingReconciliation();
     }
 
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
-     * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
-     * {@link SimulationResultManager} - if `simulationConfiguration` is present. (To be implemented.)
+     * Simulation deltas are stored in returned {@link TestSimulationResult} and optionally also in the storage provided by the
+     * {@link SimulationResultManager} - if `simulationDefinition` is present.
      */
-    private SimulationResult executeInProductionSimulationMode(
+    private TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationConfiguration, task, result);
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationDefinition, task, result);
     }
 
     /**
-     * As {@link #executeInProductionSimulationMode(Collection, SimulationResultType, Task, OperationResult)} but
+     * As {@link #executeInProductionSimulationMode(Collection, SimulationDefinitionType, Task, OperationResult)} but
      * in development simulation mode.
      */
-    protected SimulationResult executeInDevelopmentSimulationMode(
+    protected TestSimulationResult executeDeltasInDevelopmentSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationConfiguration, task, result);
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
     }
 
-    protected SimulationResult executeInSimulationMode(
+    protected TestSimulationResult executeWithSimulationResult(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull TaskExecutionMode mode,
-            @Nullable SimulationResultType simulationConfiguration,
+            @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, null, mode, simulationDefinition, task, result);
+    }
+
+    protected TestSimulationResult executeWithSimulationResult(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable ModelExecuteOptions options,
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        assert isNativeRepository();
+        return executeWithSimulationResult(
                 mode,
-                simulationConfiguration,
+                simulationDefinition,
                 task,
                 result,
                 (simResult) ->
                         modelService.executeChanges(
-                                deltas, null, task, List.of(simResult.contextRecordingListener()), result));
+                                deltas, options, task, List.of(simResult.contextRecordingListener()), result));
     }
 
     /** Convenience method */
-    protected SimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInProductionSimulationMode(deltas, null, task, result);
+        assert isNativeRepository();
+        return executeInProductionSimulationMode(
+                deltas, simulationResultManager.defaultDefinition(), task, result);
     }
 
     /**
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
-    protected SimulationResult executeInProductionSimulationMode(
-            SimulationResultType simulationConfiguration, Task task, OperationResult result, ProcedureCall simulatedCall)
+    protected TestSimulationResult executeInProductionSimulationMode(
+            SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
-        return executeInSimulationMode(
+        assert isNativeRepository();
+        return executeWithSimulationResult(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
-                simulationConfiguration,
+                simulationDefinition,
                 task,
                 result,
                 (simResult) -> simulatedCall.execute());
     }
 
-    /** As {@link ProcedureCall} but has {@link SimulationResult} as a parameter. Currently for internal purposes. */
+    /** As {@link ProcedureCall} but has {@link TestSimulationResult} as a parameter. Currently for internal purposes. */
     public interface SimulatedProcedureCall {
-        void execute(SimulationResult simResult) throws CommonException;
+        void execute(TestSimulationResult simResult) throws CommonException;
     }
 
-    public SimulationResult executeInSimulationMode(
-            TaskExecutionMode mode,
-            SimulationResultType simulationConfiguration,
-            Task task,
-            OperationResult result,
-            SimulatedProcedureCall simulatedCall)
+    /**
+     * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        String simulationResultOid;
-        AggregatedObjectProcessingListener simulationObjectProcessingListener;
-        if (simulationConfiguration != null) {
-            SimulationResultContext simulationResultContext =
-                    simulationResultManager.newSimulationResult(simulationConfiguration, result);
-            simulationResultOid = simulationResultContext.getResultOid();
-            simulationObjectProcessingListener = simulationResultContext.aggregatedObjectProcessingListener();
-        } else {
-            simulationResultOid = null;
-            simulationObjectProcessingListener = null;
-        }
+        assert isNativeRepository();
 
-        SimulationResult simulationResult = new SimulationResult(simulationResultOid);
-        AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
-        DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
-        TaskExecutionMode oldMode = task.setExecutionMode(mode);
-        try {
-            dummyAuditService.addEventListener(auditEventListener);
-            task.addObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.addObjectProcessingListener(simulationObjectProcessingListener);
-            }
-            simulatedCall.execute(simulationResult);
-        } finally {
-            task.removeObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.removeObjectProcessingListener(simulationObjectProcessingListener);
-            }
-            dummyAuditService.removeEventListener(auditEventListener);
-            task.setExecutionMode(oldMode);
-        }
-        return simulationResult;
+        Holder<TestSimulationResult> simulationResultHolder = new Holder<>();
+        simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, () -> {
+            TestSimulationResult testSimulationResult = new TestSimulationResult(
+                    Objects.requireNonNull(task.getSimulationTransaction())
+                            .getResultOid());
+            simulatedCall.execute(testSimulationResult);
+            simulationResultHolder.setValue(testSimulationResult);
+            return null;
+        });
+        return Objects.requireNonNull(
+                simulationResultHolder.getValue(),
+                "No simulation result after execution?");
     }
 
-    protected SimulationResultType getDefaultSimulationConfiguration() {
-        if (isNativeRepository()) {
-            return simulationResultManager.newConfiguration();
-        } else {
-            return null; // No simulation storage in old repo
-        }
+    protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
+        return simulationResultManager.defaultDefinition();
     }
 
-    protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
+    /** Returns {@link TestSimulationResult} based on the information stored in the task (activity state containing result ref) */
+    protected @NotNull TestSimulationResult getTaskSimResult(String taskOid, OperationResult result)
             throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
-                        .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
-        ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
-        return simulationResultManager
-                .newSimulationContext(simResultRef.getOid())
-                .getStoredDeltas(result);
-    }
-
-    protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
-            throws CommonException {
-        return SimulationResult.fromSimulationResultOid(
+        return TestSimulationResult.fromSimulationResultOid(
                 getTaskSimulationResultOid(taskOid, result));
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected @NotNull String getTaskSimulationResultOid(String taskOid, OperationResult result)
             throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        return getSimulationResultOid(task, ActivityPath.empty());
+    }
+
+    protected @NotNull String getSimulationResultOid(Task task, ActivityPath activityPath) {
         ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                Objects.requireNonNull(task.getActivityStateOrClone(activityPath))
                         .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        assertThat(simState).as("simulation state in " + task).isNotNull();
         ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        assertThat(simResultRef).as("simulation result ref in " + task).isNotNull();
         return Objects.requireNonNull(simResultRef.getOid(), "no OID in simulation result ref");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws SchemaException {
-        return assertProcessedObjects(simResult, (Boolean) null);
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws SchemaException {
-        return assertProcessedObjects(simResult, null, desc);
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(String taskOid, String desc) throws CommonException {
         return assertProcessedObjects(
-                simResult,
-                persistentOverride,
-                getProcessedObjectsDesc(simResult, persistentOverride));
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
-            SimulationResult simResult, Boolean persistentOverride, String desc)
-            throws SchemaException {
-        return assertProcessedObjects(
-                getProcessedObjects(simResult, persistentOverride),
+                getTaskSimResult(taskOid, getTestOperationResult()),
                 desc);
     }
 
-    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
-        OperationResult result = getTestOperationResult();
-        if (persistentOverride == null) {
-            return simResult.getProcessedObjects(result);
-        }
-        return simResult.getProcessedObjects(getTestOperationResult());
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjectsAfter(TestSimulationResult simResult) throws CommonException {
+        return assertProcessedObjects(simResult, "after")
+                .display();
     }
 
-    protected String getProcessedObjectsDesc(SimulationResult simResult, Boolean persistentOverride) {
-        boolean persistent;
-        if (persistentOverride != null) {
-            persistent = persistentOverride;
-        } else {
-            persistent = simResult.isPersistent();
-        }
-        if (persistent) {
-            return "processed objects in persistent storage";
-        } else {
-            return "processed objects in transient storage";
-        }
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult)
+            throws CommonException {
+        return assertProcessedObjects(simResult, "processed objects");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(Collection<ProcessedObject<?>> objects, String message) {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult, String desc)
+            throws CommonException {
+        return assertProcessedObjects(
+                getProcessedObjects(simResult),
+                desc);
+    }
+
+    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(TestSimulationResult simResult)
+            throws CommonException {
+        return simResult.getProcessedObjects(
+                getTestOperationResult());
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
+            Collection<? extends ProcessedObject<?>> objects, String message) {
         return initializeAsserter(
                 ProcessedObjectsAsserter.forObjects(objects, message));
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResultAfter(TestSimulationResult simResult)
+            throws SchemaException, ObjectNotFoundException {
+        return assertSimulationResult(simResult, "after")
+                .display();
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(String taskOid, String desc)
+            throws CommonException {
+        return assertSimulationResult(
+                getTaskSimResult(taskOid, getTestOperationResult()),
+                desc);
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(TestSimulationResult simResult, String desc)
+            throws SchemaException, ObjectNotFoundException {
+        return initializeAsserter(
+                SimulationResultAsserter.forResult(
+                        simResult.getSimulationResultBean(getTestOperationResult()), desc));
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResultType simResult, String desc) {
+        return initializeAsserter(
+                SimulationResultAsserter.forResult(simResult, desc));
     }
 
     @Override

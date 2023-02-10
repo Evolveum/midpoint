@@ -56,6 +56,7 @@ public final class PropagationActivityRun
 
     @Override
     public void beforeRun(OperationResult result) throws CommonException {
+        ensureNoPreviewNorDryRun();
         String resourceOid = MiscUtil.requireNonNull(
                 getWorkDefinition().getResourceOid(),
                 () -> "No resource specified");

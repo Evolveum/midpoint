@@ -128,7 +128,7 @@ public abstract class ReferenceNameResolver {
             if (value.getOid() == null) {
                 return;
             }
-            UUID oid = SqaleUtils.oidToUUid(value.getOid());
+            UUID oid = SqaleUtils.oidToUuid(value.getOid());
             PolyString maybe = uuidToName.get(oid);
             if (maybe != null) {
                 value.setTargetName(maybe);
@@ -141,7 +141,7 @@ public abstract class ReferenceNameResolver {
             if (value.getOid() == null) {
                 return;
             }
-            PolyString name = uuidToName.get(SqaleUtils.oidToUUid(value.getOid()));
+            PolyString name = uuidToName.get(SqaleUtils.oidToUuid(value.getOid()));
             if (name != null) {
                 value.setTargetName(name);
             }

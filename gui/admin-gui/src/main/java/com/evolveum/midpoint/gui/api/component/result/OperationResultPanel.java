@@ -201,7 +201,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public File getObject() {
-                String home = getPageAdminLTE().getMidpointConfiguration().getMidpointHome();
+                String home = getMidpointConfiguration().getMidpointHome();
                 File f = new File(home, "result");
                 try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))) {
                     dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
@@ -226,7 +226,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         Label messageLabel = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
             OpResult result = OperationResultPanel.this.getModel().getObject();
 
-            PageAdminLTE page = getPageAdminLTE();
+            PageAdminLTE page = WebComponentUtil.getPage(OperationResultPanel.this, PageAdminLTE.class);
 
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {

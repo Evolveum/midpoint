@@ -51,8 +51,8 @@ class ImportActivitySupport extends ReportActivitySupport {
     }
 
     @Override
-    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
-        super.beforeExecution(result);
+    void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        super.beforeRun(result);
         setupReportDataObject(result);
     }
 
@@ -79,7 +79,8 @@ class ImportActivitySupport extends ReportActivitySupport {
     @Override
     public void stateCheck(OperationResult result) throws CommonException {
         MiscUtil.stateCheck(getDirection(report) == IMPORT, "Only report import are supported here");
-        MiscUtil.stateCheck(existCollectionConfiguration() || existImportScript(), "Report of 'import' direction without import script support only object collection engine."
+        MiscUtil.stateCheck(existCollectionConfiguration() || existImportScript(),
+                "Report of 'import' direction without import script supports only the object collection engine."
                 + " Please define ObjectCollectionReportEngineConfigurationType in report type.");
 
         //noinspection unchecked

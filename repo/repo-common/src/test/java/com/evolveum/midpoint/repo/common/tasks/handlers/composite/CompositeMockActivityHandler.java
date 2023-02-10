@@ -98,7 +98,8 @@ public class CompositeMockActivityHandler
         return children;
     }
 
-    private void runBeforeExecution(EmbeddedActivity<CompositeMockWorkDefinition, CompositeMockActivityHandler> activity,
+    private void runBeforeExecution(
+            EmbeddedActivity<CompositeMockWorkDefinition, CompositeMockActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
         ActivityState parentActivityState =
                 ActivityState.getActivityStateUpwards(

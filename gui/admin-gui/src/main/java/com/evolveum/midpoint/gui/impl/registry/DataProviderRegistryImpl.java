@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.registry.DataProviderRegistry;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
+import com.evolveum.midpoint.gui.api.factory.ContainerValueDataProviderFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiListDataProviderType;
 
 /**

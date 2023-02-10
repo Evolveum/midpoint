@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -19,7 +16,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.application.*;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -121,13 +118,13 @@ public class PageTasks extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
                 ObjectReferenceType objectRef = bean.getValue().getObjectRef();
                 if (objectRef != null) {
                     objectRef.asReferenceValue().clearParent();
                 }
-                return Model.of(objectRef);
+                return Model.ofList(Collections.singletonList(objectRef));
 
             }
         });

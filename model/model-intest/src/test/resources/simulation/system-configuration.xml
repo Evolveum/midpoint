@@ -6,7 +6,152 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
+    <simulation>
+        <metric>
+            <identifier>nonsense-custom-metric</identifier>
+            <documentation>Always fails. Used to check the exclusion mechanism.</documentation>
+            <computation>
+                <valueExpression>
+                    <script>
+                        <code>throw new UnsupportedOperationException("nonsense custom metric")</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>modifications</identifier>
+            <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
+            <computation>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.nonOperationalItemModificationsCount</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>attribute-modifications</identifier>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.isShadow()</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.attributeModificationsCount</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>association-values-changed</identifier>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.isShadow()</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.associationValuesChanged</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>sum-modifications</identifier>
+            <aggregation>
+                <!-- Just for illustration purposes. Each object-level metric is summarized automatically. -->
+                <aggregationFunction>domainTotalValue</aggregationFunction>
+                <source>
+                    <identifier>modifications</identifier>
+                </source>
+            </aggregation>
+        </metric>
+        <metric>
+            <identifier>avg-focus-modifications</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <identifier>modifications</identifier>
+                </source>
+                <domainRestriction>
+                    <expression>
+                        <script>
+                            <!-- The original metric applies to all objects. Here we are interested in focal objects only. -->
+                            <code>processedObject.isOfFocusType()</code>
+                        </script>
+                    </expression>
+                </domainRestriction>
+            </aggregation>
+        </metric>
+        <metric>
+            <identifier>pct-users-enabled</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <eventMarkRef oid="00000000-0000-0000-0000-000000000710"/>
+                </source>
+                <domainRestriction>
+                    <filter>
+                        <q:equal>
+                            <q:path>type</q:path>
+                            <q:value>c:UserType</q:value>
+                        </q:equal>
+                    </filter>
+                </domainRestriction>
+            </aggregation>
+        </metric>
+        <metric>
+            <identifier>pct-users-disabled</identifier>
+            <aggregation>
+                <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+                <source>
+                    <eventMarkRef oid="00000000-0000-0000-0000-000000000711"/>
+                </source>
+                <domainRestriction>
+                    <filter>
+                        <q:equal>
+                            <q:path>type</q:path>
+                            <q:value>c:UserType</q:value>
+                        </q:equal>
+                    </filter>
+                </domainRestriction>
+            </aggregation>
+        </metric>
+        <simulation>
+            <default>true</default>
+            <metrics>
+                <eventMarks>
+                    <include>
+                        <q:equal>
+                            <!-- this one is disabled by default, so it must be enabled here -->
+                            <q:path>name</q:path>
+                            <q:value>user-add</q:value>
+                        </q:equal>
+                    </include>
+                    <exclude>
+                        <!-- this one is flawed, so must be disabled for the simulations to even run -->
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>nonsense-mark</q:value>
+                        </q:equal>
+                    </exclude>
+                </eventMarks>
+                <metrics>
+                    <!-- this one is flawed, so must be disabled for the simulations to even run -->
+                    <exclude>nonsense-custom-metric</exclude>
+                </metrics>
+            </metrics>
+        </simulation>
+    </simulation>
 </systemConfiguration>

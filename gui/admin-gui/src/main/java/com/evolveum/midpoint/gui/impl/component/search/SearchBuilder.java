@@ -10,22 +10,24 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -36,8 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 public class SearchBuilder<C extends Serializable> {
 
@@ -186,8 +186,11 @@ public class SearchBuilder<C extends Serializable> {
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
+    public ItemDefinition<?> getDefinitionOverride() {
+        return additionalSearchContext == null ? null : additionalSearchContext.getDefinitionOverride();
+    }
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
-        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper();
+        AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
 
@@ -289,7 +292,8 @@ public class SearchBuilder<C extends Serializable> {
         BasicQueryWrapper searchConfigWrapper = new BasicQueryWrapper();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
-            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(type, allSearchableItems, searchItem, modelServiceLocator));
+            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(
+                    type, allSearchableItems, searchItem, additionalSearchContext, modelServiceLocator));
         }
 
         return searchConfigWrapper;

@@ -12,8 +12,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.data.column.*;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -57,13 +55,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.factory.ContainerValueDataProviderFactory;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;

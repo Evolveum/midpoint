@@ -369,6 +369,15 @@ public class MockFactory {
             }
 
             @Override
+            public SearchResultMetadata searchReferencesIterative(
+                    @Nullable ObjectQuery query,
+                    @NotNull ObjectHandler<ObjectReferenceType> handler,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull OperationResult parentResult) {
+                return null;
+            }
+
+            @Override
             public <O extends ObjectType> boolean isDescendant(
                     PrismObject<O> object, String ancestorOrgOid) {
                 return false;

@@ -28,6 +28,10 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -174,8 +178,8 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -255,6 +259,9 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
+
+        OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
+        OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageMark.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -624,17 +631,17 @@ public final class WebComponentUtil {
 
     public static <S extends Serializable> Class<? extends Serializable> qnameToAnyClass(PrismContext prismContext, QName qName) {
         if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, qName)) {
-            return (Class<S>) ObjectReferenceType.class;
+            return ObjectReferenceType.class;
         }
-        return (Class<S>) qnameToContainerClass(prismContext, qName);
+        return qnameToContainerClass(prismContext, qName);
     }
 
     public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
-        PrismContainerDefinition<C> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
+        ComplexTypeDefinition def = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def == null) {
             return null;
         }
-        return def.getTypeClass();
+        return (Class<C>) def.getCompileTimeClass();
     }
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
@@ -1799,8 +1806,8 @@ public final class WebComponentUtil {
         if (date == null) {
             return "";
         }
-        String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
-        return getLocalizedDate(date, shortDateTimeFortam);
+        String dateTimeFormat = getShortDateTimeFormat(pageBase);
+        return getLocalizedDate(date, dateTimeFormat);
     }
 
     public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
@@ -1895,6 +1902,8 @@ public final class WebComponentUtil {
             return createReportIcon();
         } else if (type == ObjectTemplateType.class) {
             return createObjectTemplateIcon();
+        } else if (type == SimulationResultType.class) {
+            return createSimulationResultIcon();
         }
         return "";
     }
@@ -2306,6 +2315,10 @@ public final class WebComponentUtil {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
     }
 
+    private static String createSimulationResultIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_SIMULATION_RESULT);
+    }
+
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
         try {
             return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
@@ -2455,18 +2468,13 @@ public final class WebComponentUtil {
     }
 
     public static PageBase getPageBase(Component component) {
-        Page page = component.getPage();
-        if (page instanceof PageBase) {
-            return (PageBase) page;
-        } else {
-            throw new IllegalStateException("Couldn't determine page base for " + page);
-        }
+        return getPage(component, PageBase.class);
     }
 
-    public static PageAdminLTE getPageAdminLTE(Component component) {
+    public static <P extends PageAdminLTE> P getPage(Component component, Class<P> pageClass) {
         Page page = component.getPage();
-        if (page instanceof PageAdminLTE) {
-            return (PageAdminLTE) page;
+        if (pageClass.isAssignableFrom(page.getClass())) {
+            return (P) page;
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
         }

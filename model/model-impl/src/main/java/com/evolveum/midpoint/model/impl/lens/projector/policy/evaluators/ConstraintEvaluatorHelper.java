@@ -46,18 +46,19 @@ public class ConstraintEvaluatorHelper {
     @Autowired protected ExpressionFactory expressionFactory;
 
     // corresponds with PolicyRuleBasedAspect.processNameFromApprovalActions
-    public <AH extends AssignmentHolderType> VariablesMap createVariablesMap(PolicyRuleEvaluationContext<AH> rctx,
+    public <O extends ObjectType> VariablesMap createVariablesMap(
+            PolicyRuleEvaluationContext<O> rctx,
             JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
         VariablesMap var = new VariablesMap();
-        PrismObject<AH> object = rctx.getObject();
-        PrismObjectDefinition<AH> objectDefinition = rctx.getObjectDefinition();
+        PrismObject<O> object = rctx.getObject();
+        PrismObjectDefinition<O> objectDefinition = rctx.getObjectDefinition();
         var.put(ExpressionConstants.VAR_USER, object, objectDefinition);
         var.put(ExpressionConstants.VAR_FOCUS, object, objectDefinition);
         var.put(ExpressionConstants.VAR_OBJECT, object, objectDefinition);
         var.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,
                 LocalizationUtil.createLocalizableMessageType(createDisplayInformation(object, false)), LocalizableMessageType.class);
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             PrismObject<?> target = actx.evaluatedAssignment.getTarget();
             if (target != null) {
                 var.put(ExpressionConstants.VAR_TARGET, target, target.getDefinition());
@@ -96,7 +97,7 @@ public class ConstraintEvaluatorHelper {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return LensExpressionUtil.evaluateBoolean(
-                expressionBean, variablesMap, ctx.lensContext, contextDescription, ctx.task, result);
+                expressionBean, variablesMap, ctx.elementContext, contextDescription, ctx.task, result);
     }
 
     LocalizableMessageType evaluateLocalizableMessageType(
@@ -105,24 +106,27 @@ public class ConstraintEvaluatorHelper {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return LensExpressionUtil.evaluateLocalizableMessageType(
-                expressionBean, variablesMap, ctx.lensContext, contextDescription, ctx.task, result);
+                expressionBean, variablesMap, ctx.elementContext, contextDescription, ctx.task, result);
     }
 
-    private <AH extends AssignmentHolderType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(
+    private SingleLocalizableMessageType interpretLocalizableMessageTemplate(
             LocalizableMessageTemplateType template,
-            PolicyRuleEvaluationContext<AH> rctx,
+            PolicyRuleEvaluationContext<?> rctx,
             JAXBElement<? extends AbstractPolicyConstraintType> constraintElement,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return LensExpressionUtil.interpretLocalizableMessageTemplate(
-                template, createVariablesMap(rctx, constraintElement), rctx.lensContext, rctx.task, result);
+                template, createVariablesMap(rctx, constraintElement), rctx.elementContext, rctx.task, result);
     }
 
-    public <AH extends AssignmentHolderType> LocalizableMessage createLocalizableMessage(
-            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> rctx,
-            LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public LocalizableMessage createLocalizableMessage(
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> rctx,
+            LocalizableMessage builtInMessage,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         AbstractPolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
             SingleLocalizableMessageType messageType =
@@ -138,10 +142,13 @@ public class ConstraintEvaluatorHelper {
         }
     }
 
-    public <AH extends AssignmentHolderType> LocalizableMessage createLocalizableShortMessage(
-            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> rctx,
-            LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public LocalizableMessage createLocalizableShortMessage(
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> rctx,
+            LocalizableMessage builtInMessage,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         AbstractPolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
             SingleLocalizableMessageType messageType =

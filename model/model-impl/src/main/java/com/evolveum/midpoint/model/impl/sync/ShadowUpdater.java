@@ -57,7 +57,7 @@ class ShadowUpdater {
         this.beans = beans;
     }
 
-    ShadowUpdater updateAllSyncMetadata() throws SchemaException {
+    ShadowUpdater updateAllSyncMetadataRespectingMode() throws SchemaException {
         assert syncCtx.isComplete();
 
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();

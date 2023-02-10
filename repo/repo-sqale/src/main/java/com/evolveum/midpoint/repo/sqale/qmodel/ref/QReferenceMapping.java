@@ -139,7 +139,9 @@ public class QReferenceMapping<
                             q -> q.targetOid,
                             q -> q.targetType,
                             q -> q.relationId,
-                            null)));
+                            null),
+                    // Path for ordering is the "whole" ref table, which is processed in a special way.
+                    q -> q));
 
             registerByOwnerTypeAndPath(ownerType, referencePath, this);
         }

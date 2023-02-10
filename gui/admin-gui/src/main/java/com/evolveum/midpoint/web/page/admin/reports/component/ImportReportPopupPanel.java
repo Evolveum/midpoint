@@ -138,7 +138,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
 
     private String getDataTime() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS");
         return formatDate.format(createDate);
     }
 
@@ -159,7 +159,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         if (!importDir.exists() || !importDir.isDirectory()) {
             if (!importDir.mkdir()) {
                 LOGGER.error("Couldn't create import dir {}", importDir);
-                FeedbackAlerts feedback = getFeedbackPanel();
+                FeedbackAlerts feedback = getFeedbackAlertsPanel();
                 feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportDir", importDir).getString());
                 target.add(feedback);
                 return;
@@ -170,7 +170,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
 
         if (uploadedFile == null && StringUtils.isEmpty(fileStringImport.getObject())) {
             LOGGER.error("Please upload file for import");
-            FeedbackAlerts feedback = getFeedbackPanel();
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
             feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.uploadFile", importDir).getString());
             target.add(feedback);
             return;
@@ -193,7 +193,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
                 newFilePath = newFile.getAbsolutePath();
             } catch (IOException e) {
                 LOGGER.error("Couldn't create new file " + newFile.getAbsolutePath(), e);
-                FeedbackAlerts feedback = getFeedbackPanel();
+                FeedbackAlerts feedback = getFeedbackAlertsPanel();
                 feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFile.getAbsolutePath()).getString());
                 target.add(feedback);
                 return;
@@ -204,7 +204,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
                 Files.write(Paths.get(newFilePath), fileStringImport.getObject().getBytes());
             } catch (IOException e) {
                 LOGGER.error("Couldn't create new file " + newFilePath, e);
-                FeedbackAlerts feedback = getFeedbackPanel();
+                FeedbackAlerts feedback = getFeedbackAlertsPanel();
                 feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFilePath).getString());
                 target.add(feedback);
                 return;
@@ -217,7 +217,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
             reportImportData = prismObject.asObjectable();
         } catch (SchemaException e) {
             LOGGER.error("Couldn't instantiate new Report Data from definition", e);
-            FeedbackAlerts feedback = getFeedbackPanel();
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
             feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createInstantiateReportData").getString());
             target.add(feedback);
             return;
@@ -235,13 +235,13 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
             reportImportData = (ReportDataType) retDeltas.iterator().next().getObjectDelta().getObjectToAdd().asObjectable();
         } catch (ObjectAlreadyExistsException e) {
             LOGGER.error("Report Data with name " + dataName + " already exists", e);
-            FeedbackAlerts feedback = getFeedbackPanel();
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
             feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.importReportDataAlreadyExists", dataName).getString());
             target.add(feedback);
             return;
         } catch (Exception e) {
             LOGGER.error("Couldn't create new Report Data with name " + dataName, e);
-            FeedbackAlerts feedback = getFeedbackPanel();
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
             feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportReportData", dataName).getString());
             target.add(feedback);
             return;
@@ -259,7 +259,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         return file.getFileUpload();
     }
 
-    private FeedbackAlerts getFeedbackPanel() {
+    private FeedbackAlerts getFeedbackAlertsPanel() {
         return (FeedbackAlerts) get(createComponentPath(ID_MAIN_FORM, ID_POPUP_FEEDBACK));
     }
 

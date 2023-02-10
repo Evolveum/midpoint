@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="caa2921a-6cf4-4e70-ad2b-bfed278e29cf">
+    <name>user-delete</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <policyRule>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </policyRule>
+</mark>

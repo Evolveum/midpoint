@@ -12,19 +12,19 @@ package com.evolveum.midpoint.gui.impl.component.icon;
  */
 public interface IconCssStyle {
 
-    public static final BottomLeftIconCssStyle BOTTOM_LEFT_STYLE = new BottomLeftIconCssStyle();
-    public static final BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
-    public static final BottomLeftForColumnIconCssStyle BOTTOM_LEFT_FOR_COLUMN_STYLE = new BottomLeftForColumnIconCssStyle();
-    public static final BottomRightForColumnIconCssStyle BOTTOM_RIGHT_FOR_COLUMN_STYLE = new BottomRightForColumnIconCssStyle();
-    public static final CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
-    public static final CenterForColumnIconCssStyle CENTER_FOR_COLUMN_STYLE = new CenterForColumnIconCssStyle();
-    public static final CenterWithRightShiftCssStyle CENTER_STYLE_WITH_RIGHT_SHIFT = new CenterWithRightShiftCssStyle();
-    public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
-    public static final TopLeftIconCssStyle TOP_LEFT_STYLE = new TopLeftIconCssStyle();
-    public static final TopRightIconCssStyle TOP_RIGHT_STYLE = new TopRightIconCssStyle();
-    public static final TopRightForColumnIconCssStyle TOP_RIGHT_FOR_COLUMN_STYLE = new TopRightForColumnIconCssStyle();
+    BottomLeftIconCssStyle BOTTOM_LEFT_STYLE = new BottomLeftIconCssStyle();
+    BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
+    BottomLeftForColumnIconCssStyle BOTTOM_LEFT_FOR_COLUMN_STYLE = new BottomLeftForColumnIconCssStyle();
+    BottomRightForColumnIconCssStyle BOTTOM_RIGHT_FOR_COLUMN_STYLE = new BottomRightForColumnIconCssStyle();
+    CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
+    CenterForColumnIconCssStyle CENTER_FOR_COLUMN_STYLE = new CenterForColumnIconCssStyle();
+    CenterWithRightShiftCssStyle CENTER_STYLE_WITH_RIGHT_SHIFT = new CenterWithRightShiftCssStyle();
+    InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
+    TopLeftIconCssStyle TOP_LEFT_STYLE = new TopLeftIconCssStyle();
+    TopRightIconCssStyle TOP_RIGHT_STYLE = new TopRightIconCssStyle();
+    TopRightForColumnIconCssStyle TOP_RIGHT_FOR_COLUMN_STYLE = new TopRightForColumnIconCssStyle();
 
-    public String getBasicCssClass();
+    String getBasicCssClass();
 
-    public String getLayerCssClass();
+    String getLayerCssClass();
 }

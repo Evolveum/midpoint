@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -313,12 +313,12 @@ public class PageCreatedReports extends PageAdmin {
         };
         columns.add(column);
 
-        column = new ObjectReferenceColumn<SelectableBean<ReportDataType>>(createStringResource("pageCreatedReports.table.type"),
-                SelectableBeanImpl.F_VALUE + "." + ReportDataType.F_REPORT_REF.getLocalPart()){
+        column = new ObjectReferenceColumn<>(createStringResource("pageCreatedReports.table.type"),
+                SelectableBeanImpl.F_VALUE + "." + ReportDataType.F_REPORT_REF.getLocalPart()) {
             @Override
-            public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
                 SelectableBean<ReportDataType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getReportRef());
+                return Model.ofList(Collections.singletonList(bean.getValue().getReportRef()));
             }
         };
         columns.add(column);

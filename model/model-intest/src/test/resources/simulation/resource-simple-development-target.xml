@@ -63,6 +63,16 @@
                     </source>
                 </outbound>
             </attribute>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
         </objectType>
     </schemaHandling>
 </resource>

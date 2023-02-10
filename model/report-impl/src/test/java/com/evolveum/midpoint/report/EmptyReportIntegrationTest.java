@@ -14,9 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,9 +29,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -98,8 +93,6 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "report-subreport-as-row-users.xml", "a9934d64-5e6b-4d3e-9526-e334883fff34");
     static final TestResource<ReportType> REPORT_SUBREPORT_AUDIT = new TestResource<>(TEST_DIR_REPORTS,
             "report-subreport-audit.xml", "44026fc7-c73d-4210-91c3-e5d10391c02b");
-    static final TestResource<ReportType> REPORT_SUBREPORT_SIMULATION = new TestResource<>(TEST_DIR_REPORTS,
-            "report-subreport-simulation.xml", "729ce99c-8fcb-47d4-9063-19fa850870d2");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-audit-records.xml", "00000000-0000-0000-0001-000000001234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
@@ -204,10 +197,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         System.out.printf("%d users created", users);
     }
 
-    List<String> getLinesOfOutputFile(PrismObject<ReportType> report) throws IOException, ParseException {
-        File outputFile = findOutputFile(report);
+    List<String> getLinesOfOutputFile(PrismObject<TaskType> task) throws IOException, ParseException, SchemaException,
+            ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+
+        File outputFile = findOutputFile(task);
         displayValue("Found report file", outputFile);
-        assertNotNull("No output file for " + report, outputFile);
+        assertNotNull("No output file for " + task, outputFile);
         List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
         displayValue("Report content (" + lines.size() + " lines)", String.join("\n", lines));
         assertThat(outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName())))
@@ -215,33 +210,34 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         return lines;
     }
 
-    File findOutputFile(PrismObject<ReportType> report) throws ParseException {
-        // We should use a more robust way of finding the file names, e.g. by looking at ReportDataType repo objects.
-        String expectedFilePrefix =
-                MiscUtil.replaceIllegalCharInFileNameOnWindows(
-                        report.getName().getOrig());
-        File[] matchingFiles = EXPORT_DIR.listFiles((dir, name) -> name.startsWith(expectedFilePrefix));
-        if (matchingFiles == null || matchingFiles.length == 0) {
+    File findOutputFile(PrismObject<TaskType> taskObject) throws ParseException, SchemaException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+
+        TaskType task = taskObject.asObjectable();
+        ActivityStateType activity = task.getActivityState() != null ? task.getActivityState().getActivity() : null;
+        if (activity == null) {
             return null;
         }
-        if (matchingFiles.length > 1) {
-            Date date = null;
-            for (File file : matchingFiles) {
-                String name = file.getName();
-                String stringDate = name.substring(0, name.lastIndexOf("."))
-                        .substring(name.substring(0, name.lastIndexOf(" ")).lastIndexOf(" "));
 
-                Date fileDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS").parse(stringDate);
-                if (date == null || date.before(fileDate)) {
-                    date = fileDate;
-                }
-            }
-            if (date == null) {
-                throw new IllegalStateException(
-                        "Found more than one output files for " + report + ": " + Arrays.toString(matchingFiles));
-            }
+        if (!(activity.getWorkState() instanceof ReportExportWorkStateType)) {
+            return null;
         }
-        return matchingFiles[0];
+
+        ReportExportWorkStateType state = (ReportExportWorkStateType) activity.getWorkState();
+        ObjectReferenceType reportDataRef = state.getReportDataRef();
+        if (reportDataRef == null) {
+            return null;
+        }
+
+        PrismObject<ReportDataType> reportDataObject = getObject(ReportDataType.class, reportDataRef.getOid());
+        ReportDataType reportData = reportDataObject.asObjectable();
+
+        String filePath = reportData.getFilePath();
+        if (filePath == null) {
+            return null;
+        }
+
+        return new File(filePath);
     }
 
     void changeTaskReport(TestResource<ReportType> reportResource, ItemPath reportRefPath, TestResource<TaskType> taskResource) throws CommonException {

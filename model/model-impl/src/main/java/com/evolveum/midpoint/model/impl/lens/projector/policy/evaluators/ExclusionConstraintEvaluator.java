@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -59,14 +58,13 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     private static final String CONSTRAINT_KEY = "exclusion";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExpressionFactory expressionFactory;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedExclusionTrigger evaluate(
+    public <O extends ObjectType> EvaluatedExclusionTrigger evaluate(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -80,7 +78,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                 return null;
             }
 
-            AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+            AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             if (!ctx.isAdded && !ctx.isKept) {
                 LOGGER.trace("Assignment not being added nor kept, skipping evaluation.");
                 return null;
@@ -100,10 +98,10 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
             List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
             List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
-            ConstraintReferenceMatcher<AH> refMatcher = new ConstraintReferenceMatcher<>(
+            ConstraintReferenceMatcher<?> refMatcher = new ConstraintReferenceMatcher<>(
                     ctx, constraint.getValue().getTargetRef(), expressionFactory, result, LOGGER);
 
-            for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
+            for (EvaluatedAssignmentImpl<?> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 if (assignmentB == ctx.evaluatedAssignment) { // currently there is no other way of comparing the evaluated assignments
                     continue;
                 }
@@ -217,14 +215,19 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     }
 
     private List<OrderConstraintsType> defaultOrderConstraints() {
-        return Collections.singletonList(new OrderConstraintsType(prismContext).order(1));
+        return Collections.singletonList(new OrderConstraintsType().order(1));
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<AH> assignmentA,
-            @NotNull EvaluatedAssignmentImpl<AH> assignmentB, EvaluatedAssignmentTargetImpl targetB,
-            JAXBElement<ExclusionPolicyConstraintType> constraintElement, EvaluatedPolicyRule policyRule,
-            AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private EvaluatedExclusionTrigger createTrigger(
+            EvaluatedAssignmentImpl<?> assignmentA,
+            @NotNull EvaluatedAssignmentImpl<?> assignmentB,
+            EvaluatedAssignmentTargetImpl targetB,
+            JAXBElement<ExclusionPolicyConstraintType> constraintElement,
+            EvaluatedPolicyRule policyRule,
+            AssignmentPolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         AssignmentPath pathA = policyRule.getAssignmentPath();
         AssignmentPath pathB = targetB.getAssignmentPath();

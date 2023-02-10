@@ -10,10 +10,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String> {
 
@@ -28,8 +30,13 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> item, String componentId, IModel<T> rowModel) {
-        IModel<ObjectReferenceType> dataModel = extractDataModel(rowModel);
-        item.add(new ObjectReferenceColumnPanel(componentId, dataModel));
+        IModel<List<ObjectReferenceType>> dataModel = extractDataModel(rowModel);
+        RepeatingView view = new RepeatingView(componentId);
+
+        for (ObjectReferenceType ref : dataModel.getObject()) {
+            view.add(new ObjectReferenceColumnPanel(view.newChildId(), Model.of(ref)));
+        }
+        item.add(view);
 
     }
 
@@ -38,7 +45,7 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
         return extractDataModel(rowModel);
     }
 
-    public abstract IModel<ObjectReferenceType> extractDataModel(IModel<T> rowModel);
+    public abstract IModel<List<ObjectReferenceType>> extractDataModel(IModel<T> rowModel);
 
 
 

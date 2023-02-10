@@ -26,24 +26,14 @@
             </column>
             <column>
                 <name>name</name>
-                <!--<path>$object/name</path>-->
+                <path>name</path>
                 <display>
                     <label>Name</label>
                 </display>
                 <previousColumn>oid</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                return object.name.orig
-                            </code>
-                        </script>
-                    </expression>
-                </export>
             </column>
             <column>
                 <name>Assignment</name>
-                <!--<path>$assignment/targetRef</path>-->
                 <display>
                     <label>Assignment</label>
                 </display>
@@ -71,7 +61,7 @@
 
                         def object = object as UserType
 
-                        return object.getAssignment()
+                        return object.assignment
                     </code>
                 </script>
             </expression>

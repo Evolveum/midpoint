@@ -581,18 +581,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected String getObjectOidParameter() {
-        PageParameters parameters = getPageParameters();
-        LOGGER.trace("Page parameters: {}", parameters);
-        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
-        LOGGER.trace("OID parameter: {}", oidValue);
-        if (oidValue == null) {
-            return null;
-        }
-        String oid = oidValue.toString();
-        if (StringUtils.isBlank(oid)) {
-            return null;
-        }
-        return oid;
+        return OnePageParameterEncoder.getParameter(this);
     }
 
     protected LoadableModel<PrismObjectWrapper<O>> getModel() {

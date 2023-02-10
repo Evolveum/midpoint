@@ -68,4 +68,8 @@ public class ModelExpressionThreadLocalHolder {
         }
         return env.getProjectionContext();
     }
+
+    public static ModelProjectionContext getProjectionContextRequired() {
+        return Objects.requireNonNull(getProjectionContext(), "No projection context");
+    }
 }
