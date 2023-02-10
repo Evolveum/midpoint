@@ -64,7 +64,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -121,7 +121,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -168,7 +168,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
