@@ -2111,6 +2111,6 @@ public class TestUnix extends AbstractStoryTest {
 
     protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
         XMLGregorianCalendar attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
-        return MiscUtil.asLong(attributeValue);
+        return MiscUtil.asMillis(attributeValue);
     }
 }

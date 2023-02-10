@@ -1002,12 +1002,12 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns the execution mode of this task. */
     @NotNull TaskExecutionMode getExecutionMode();
 
-    default boolean isPersistentExecution() {
-        return getExecutionMode().isPersistent();
+    default boolean isExecutionFullyPersistent() {
+        return getExecutionMode().isFullyPersistent();
     }
 
-    default boolean isSimulatedExecution() {
-        return getExecutionMode().isSimulation();
+    default boolean areShadowChangesSimulated() {
+        return getExecutionMode().areShadowChangesSimulated();
     }
 
     default boolean isProductionConfiguration() {
@@ -1032,7 +1032,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     default void assertPersistentExecution(String message) {
         TaskExecutionMode executionMode = getExecutionMode();
-        if (!executionMode.isPersistent()) {
+        if (!executionMode.isFullyPersistent()) {
             throw new UnsupportedOperationException(message + " (mode: " + executionMode + ")");
         }
     }

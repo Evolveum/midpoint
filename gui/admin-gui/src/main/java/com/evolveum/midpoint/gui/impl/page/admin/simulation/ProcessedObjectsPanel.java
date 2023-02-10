@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -244,5 +248,10 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
         return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        return new ArrayList<>();
     }
 }

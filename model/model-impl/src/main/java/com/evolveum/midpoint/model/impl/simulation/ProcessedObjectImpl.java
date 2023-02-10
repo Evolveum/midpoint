@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -255,6 +256,78 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
 
         return processedObject;
+    }
+
+    /** TODO deduplicate */
+    @Experimental
+    static @NotNull ProcessedObjectImpl<ShadowType> createForShadow(
+            @NotNull ShadowSimulationData data, @NotNull SimulationTransactionImpl simulationTransaction)
+            throws CommonException {
+
+        ShadowType shadowBefore = data.getShadowBefore();
+        ObjectDelta<ShadowType> delta = data.getDelta();
+        ShadowType shadowAfter = shadowBefore.clone();
+        delta.applyTo(shadowAfter.asPrismObject());
+
+        List<String> marks = determineShadowEventMarks(shadowBefore, shadowAfter);
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                shadowBefore.getOid(),
+                ShadowType.class,
+                null,
+                determineShadowDiscriminator(shadowAfter), // or from "before" state?
+                shadowAfter.getName(),
+                ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
+                ParsedMetricValues.fromEventMarks(
+                        marks,
+                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value())),
+                false,
+                null,
+                shadowBefore,
+                shadowAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring metrics in this mode
+
+        return processedObject;
+    }
+
+    private static List<String> determineShadowEventMarks(ShadowType before, ShadowType after) {
+        List<String> marks = new ArrayList<>();
+        if (isClassificationChanged(before, after)) {
+            marks.add(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value());
+        }
+        if (isCorrelationStateChanged(before, after)) {
+            marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
+        }
+        return marks;
+    }
+
+    private static boolean isClassificationChanged(ShadowType before, ShadowType after) {
+        return before.getKind() != after.getKind()
+                || !Objects.equals(before.getIntent(), after.getIntent())
+                || !Objects.equals(before.getTag(), after.getTag());
+    }
+
+    private static boolean isCorrelationStateChanged(ShadowType before, ShadowType after) {
+        ShadowCorrelationStateType cBefore = before.getCorrelation();
+        ShadowCorrelationStateType cAfter = after.getCorrelation();
+        CorrelationSituationType situationBefore = cBefore != null ? cBefore.getSituation() : null;
+        CorrelationSituationType situationAfter = cAfter != null ? cAfter.getSituation() : null;
+        if (situationBefore != situationAfter) {
+            return true;
+        }
+        String resultingOwnerOidBefore = Referencable.getOid(cBefore != null ? cBefore.getResultingOwner() : null);
+        String resultingOwnerOidAfter = Referencable.getOid(cAfter != null ? cAfter.getResultingOwner() : null);
+        if (!Objects.equals(resultingOwnerOidBefore, resultingOwnerOidAfter)) {
+            return true;
+        }
+        ResourceObjectOwnerOptionsType ownerOptionsBefore = cBefore != null ? cBefore.getOwnerOptions() : null;
+        ResourceObjectOwnerOptionsType ownerOptionsAfter = cAfter != null ? cAfter.getOwnerOptions() : null;
+        return !Objects.equals(ownerOptionsBefore, ownerOptionsAfter);
     }
 
     private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
@@ -611,6 +684,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
         eventMarksMap = ModelCommonBeans.get().markManager.resolveMarkNames(
                 parsedMetricValues.getMatchingEventMarks(), result);
+    }
+
+    @Override
+    public boolean hasEventMark(@NotNull String eventMarkOid) {
+        return parsedMetricValues.getMatchingEventMarks().contains(eventMarkOid);
+    }
+
+    @Override
+    public boolean hasNoEventMarks() {
+        return parsedMetricValues.getMatchingEventMarks().isEmpty();
     }
 
     PartitionScope partitionScope() {

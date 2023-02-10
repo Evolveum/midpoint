@@ -451,7 +451,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             deltaForExecution = processChangeApplicationMode(result);
             objectToAdd = deltaForExecution.getObjectToAdd();
             String oid;
-            if (task.isPersistentExecution()) {
+            if (task.isExecutionFullyPersistent()) {
                 oid = executeRealAddition(objectToAdd, result);
             } else {
                 oid = executeSimulatedAddition(objectToAdd);
@@ -587,7 +587,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             }
 
             deltaForExecution = processChangeApplicationMode(result);
-            if (task.isPersistentExecution()) {
+            if (task.isExecutionFullyPersistent()) {
                 executeRealModification(objectClass, result);
             }
             task.recordObjectActionExecuted(
@@ -742,7 +742,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     task,
                     result);
 
-            if (task.isPersistentExecution()) {
+            if (task.isExecutionFullyPersistent()) {
                 executeRealDeletion(objectTypeClass, oid, result);
             }
             deleted = true;

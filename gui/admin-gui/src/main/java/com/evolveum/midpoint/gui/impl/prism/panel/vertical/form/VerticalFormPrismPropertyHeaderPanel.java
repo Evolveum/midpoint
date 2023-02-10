@@ -8,8 +8,11 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -34,5 +37,12 @@ public class VerticalFormPrismPropertyHeaderPanel<T> extends PrismPropertyHeader
      */
     public VerticalFormPrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void createRequired(String id) {
+        WebMarkupContainer required = new WebMarkupContainer(id);
+        required.add(new VisibleBehaviour(() -> false));
+        add(required);
     }
 }

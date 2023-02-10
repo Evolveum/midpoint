@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Ca
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -119,7 +120,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /** Used for "matching rules" test. */
     private static final File FILE_USERS_SMART_MATCHING_RULES = new File(TEST_DIR, "users-smart-matching-rules.xml");
 
-    @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
+    @Autowired private CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;
     @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
 

@@ -7023,7 +7023,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 "No simulation result after execution?");
     }
 
-    protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
+    protected @NotNull SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
         return simulationResultManager.defaultDefinition();
     }
 

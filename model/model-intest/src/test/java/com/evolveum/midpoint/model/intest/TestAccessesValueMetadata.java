@@ -6,29 +6,30 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicate;
-import com.evolveum.midpoint.test.asserter.predicates.SimplifiedGenericAssertionPredicate;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -95,35 +96,15 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         String userOid = addObject(user, task, result);
 
         then("roleMembershipRefs contain value metadata with accesses information");
-        // @formatter:off
-        assertUser(userOid, "after")
-            .displayXml() // XML also shows the metadata
-            .assertRoleMembershipRefs(3)
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid, appRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appService1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid, appRole1Oid, appService1Oid));
-        // @formatter:on
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+        assertAssignmentPath(userAsserter, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
     }
 
     @Test
@@ -141,56 +122,20 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         String userOid = addObject(user, task, result);
 
         then("roleMembershipRefs contain value metadata with accesses information");
-        // @formatter:off
         UserAsserter<Void> userAsserter = assertUser(userOid, "after")
-            .displayXml() // XML also shows the metadata
-            .assertRoleMembershipRefs(5);
-        userAsserter.valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid, appRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1bOid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1bOid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appRole1bOid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1bOid, appRole1bOid));
-        // @formatter:on
-
-        // TODO figure out how to assert the two paths in two different metadata containers
-        // 5th value is checked differently, as the selection of the value for match is just as complicated as the match.
-        Collection<ValueMetadataType> metadataValues = userAsserter
-                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appService1Oid))
-                .getRealValues();
-        Assertions.assertThat(metadataValues)
-                .hasSize(2)
-                .allMatch(m -> m.getStorage() != null && m.getStorage().getCreateTimestamp() != null)
-                .extracting(m -> m.getProvenance().getAssignmentPath())
-                .anySatisfy(assignmentPathSegmentsCheck(businessRole1Oid, appRole1Oid, appService1Oid))
-                .anySatisfy(assignmentPathSegmentsCheck(businessRole1bOid, appRole1bOid, appService1Oid));
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(5);
+        assertAssignmentPath(userAsserter, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(userAsserter, businessRole1bOid,
+                new ExpectedAssignmentPath(businessRole1bOid));
+        assertAssignmentPath(userAsserter, appRole1bOid,
+                new ExpectedAssignmentPath(businessRole1bOid, appRole1bOid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid),
+                new ExpectedAssignmentPath(businessRole1bOid, appRole1bOid, appService1Oid));
     }
 
     @Test
@@ -205,6 +150,11 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                                 RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)));
         String userOid = addObject(user, task, result);
 
+        and("all storage/createTimestamps are set");
+        long afterAddTs = System.currentTimeMillis();
+        UserType addedUser = assertUser(userOid, "before").displayXml().getObjectable();
+        assertAllStorageTimestampsAreBefore(addedUser, afterAddTs);
+
         when("user is modified and business role 1b is removed");
         executeChanges(prismContext.deltaFor(UserType.class)
                         .item(F_ASSIGNMENT).delete(new AssignmentType()
@@ -213,35 +163,57 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                         .<UserType>asObjectDelta(userOid),
                 null, task, result);
 
-        // @formatter:off
-        assertUser(userOid, "after")
-            .displayXml() // XML also shows the metadata
-            .assertRoleMembershipRefs(3)
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appRole1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid, appRole1Oid))
-                        .end()
-                    .end()
-                .end()
-            .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(appService1Oid))
-                .singleValue()
-                    .provenance()
-                        .assertItemsExactly(ProvenanceMetadataType.F_ASSIGNMENT_PATH)
-                        .assertItemValueSatisfies(ProvenanceMetadataType.F_ASSIGNMENT_PATH,
-                            assertAssignmentPathSegments(businessRole1Oid, appRole1Oid, appService1Oid));
-        // @formatter:on
+        then("metadata is still present on the left refs");
+        UserAsserter<Void> modifiedUser = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+        assertAssignmentPath(modifiedUser, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(modifiedUser, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(modifiedUser, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
+
+        and("original storage/createTimestamp of the value metadata is preserved");
+        assertAllStorageTimestampsAreBefore(modifiedUser.getObjectable(), afterAddTs);
+    }
+
+    @Test
+    public void test400AddingOneAssignmentFromUser() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user with assignments to business role 1");
+        UserType user = newUserWithBusinessRole1();
+        String userOid = addObject(user, task, result);
+        long afterAddTs = System.currentTimeMillis();
+        assertUser(userOid, "before").displayXml();
+
+        when("user is modified and business role 1b is added");
+        executeChanges(prismContext.deltaFor(UserType.class)
+                        .item(F_ASSIGNMENT).add(new AssignmentType()
+                                .targetRef(createObjectReference(businessRole1bOid,
+                                        RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)))
+                        .<UserType>asObjectDelta(userOid),
+                null, task, result);
+
+        then("metadata are modified as needed with original timestamp preserved for existing values");
+        UserAsserter<Void> modifiedUser = assertUser(userOid, "after")
+                .displayXml()
+                .assertRoleMembershipRefs(5);
+        assertAssignmentPath(modifiedUser, businessRole1Oid,
+                new ExpectedAssignmentPath(ts -> ts < afterAddTs, businessRole1Oid));
+        assertAssignmentPath(modifiedUser, appRole1Oid,
+                new ExpectedAssignmentPath(ts -> ts < afterAddTs, businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(modifiedUser, appService1Oid,
+                new ExpectedAssignmentPath(ts -> ts < afterAddTs, businessRole1Oid, appRole1Oid, appService1Oid),
+                // added path to existing ref
+                new ExpectedAssignmentPath(ts -> ts > afterAddTs, businessRole1bOid, appRole1bOid, appService1Oid));
+        // added refs
+        assertAssignmentPath(modifiedUser, businessRole1bOid,
+                new ExpectedAssignmentPath(ts -> ts > afterAddTs, businessRole1bOid));
+        assertAssignmentPath(modifiedUser, appRole1bOid,
+                new ExpectedAssignmentPath(ts -> ts > afterAddTs, businessRole1bOid, appRole1bOid));
     }
 
     @Test
@@ -284,24 +256,24 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 null, task, result);
 
         and("user is recomputed");
-        // TODO currently this does NOT add metadata
-        // The reason is that FocusChangeExecution.execute() L92 if considers the delta empty and doesn't call the modification.
-        // The change removing the old roleMembershipRefs before "reconcile(Focus)" would force the metadata creation.
-//        executeChanges(prismContext.deltaFor(UserType.class)
-//                        .item(F_ROLE_MEMBERSHIP_REF).replace()
-//                        .<UserType>asObjectDelta(userOid),
-//                null, task, result);
         executeChanges(prismContext.deltaFor(UserType.class)
                         .<UserType>asObjectDelta(userOid),
                 ModelExecuteOptions.create().reconcileFocus(),
                 task, result);
 
         then("roleMembershipRefs have now value metadata for accesses");
-        assertUser(userOid, "after")
-                .displayXml()
-        // TODO asserts, when the test scenario is finalized
-        ;
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+        assertAssignmentPath(userAsserter, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
     }
+
+    // TODO add check of no phantom deltas when no metadata change on refs
 
     private UserType newUserWithBusinessRole1() {
         return new UserType()
@@ -311,33 +283,79 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                                 RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)));
     }
 
-    private AssertionPredicate<AssignmentPathMetadataType> assertAssignmentPathSegments(String... targetOids) {
-        // A bit of a hack, we're using AssertionPredicate, but actually leaving failure to the AssertJ here.
-        return new SimplifiedGenericAssertionPredicate<>(ap -> {
-            SoftAssertions check = new SoftAssertions();
-            check.assertThat(ap.getSegment())
-                    .extracting(s -> s.getTargetRef().getOid())
-                    .containsExactly(targetOids);
-
-            return check.wasSuccess() ? null
-                    : "Assignment path segments error " + check.assertionErrorsCollected();
-        });
-    }
-
-    private Consumer<AssignmentPathMetadataType> assignmentPathSegmentsCheck(String... expectedTargetOids) {
-        return ap -> Assertions.assertThat(ap.getSegment())
-                .extracting(s -> s.getTargetRef().getOid())
-                .containsExactly(expectedTargetOids);
-    }
-
     private void assertNoRoleMembershipRefMetadata(String userOid, String... roleMembershipRefTargetOids)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+        UserAsserter<Void> userAsserter = assertUser(userOid, "no-value-metadata")
                 .displayXml() // XML also shows the metadata
                 .assertRoleMembershipRefs(roleMembershipRefTargetOids.length);
         for (String targetOid : roleMembershipRefTargetOids) {
             userAsserter.valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(targetOid))
                     .assertNullOrNoValues();
+        }
+    }
+
+    /** Checks that the ref with the first OID parameter has the specified assignment paths with expected target OIDs. */
+    private void assertAssignmentPath(UserAsserter<Void> userAsserter,
+            String roleMembershipTargetOid, ExpectedAssignmentPath... expectedAssignmentPaths)
+            throws SchemaException {
+        userAsserter.valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(roleMembershipTargetOid))
+                .assertSize(expectedAssignmentPaths.length);
+
+        Collection<ValueMetadataType> metadataValues = userAsserter
+                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(roleMembershipTargetOid))
+                .getRealValues();
+        userAsserter.end(); // to fix the state of asserter back after valueMetadata() call
+        var listAsserter = assertThat(metadataValues)
+                .hasSize(expectedAssignmentPaths.length);
+        // Now we check if any of the values match the expected value - for each expected value.
+        for (ExpectedAssignmentPath expectedAssignmentPath : expectedAssignmentPaths) {
+            listAsserter.anySatisfy(m -> {
+                assertThat(m)
+                        .extracting(ValueMetadataType::getStorage)
+                        .extracting(StorageMetadataType::getCreateTimestamp)
+                        .extracting(MiscUtil::asMillis)
+                        .isNotNull()
+                        .matches(ts -> expectedAssignmentPath.storageCreateTimestampPredicate.test(ts));
+                assertThat(m)
+                        .extracting(ValueMetadataType::getProvenance)
+                        .extracting(ProvenanceMetadataType::getAssignmentPath)
+                        .extracting(ap -> ap.getSegment(), listAsserterFactory(AssignmentPathSegmentMetadataType.class))
+                        .extracting(s -> s.getTargetRef().getOid())
+                        .containsExactly(expectedAssignmentPath.targetRefOids);
+            });
+        }
+    }
+
+    private void assertAllStorageTimestampsAreBefore(UserType user, long referenceMillis) {
+        for (ObjectReferenceType ref : user.getRoleMembershipRef()) {
+            for (PrismContainerValue<Containerable> metadataValue : ref.asReferenceValue().getValueMetadata().getValues()) {
+                ValueMetadataType metadata = metadataValue.getRealValue();
+                assertThat(metadata)
+                        .extracting(m -> m.getStorage())
+                        .extracting(s -> s.getCreateTimestamp())
+                        .extracting(ts -> MiscUtil.asMillis(ts))
+                        .satisfies(l -> assertThat(l)
+                                .as("storage/createTimestamp of value metadata for ref " + ref)
+                                .isLessThan(referenceMillis));
+            }
+        }
+    }
+
+    static class ExpectedAssignmentPath {
+        String[] targetRefOids; // in the order in the path
+
+        /** Additional condition on timestamp, no need to check not null, which is always done where needed. */
+        Predicate<Long> storageCreateTimestampPredicate;
+
+        public ExpectedAssignmentPath(String... targetRefOids) {
+            this.targetRefOids = targetRefOids;
+            this.storageCreateTimestampPredicate = ts -> true; // by default no special condition
+        }
+
+        public ExpectedAssignmentPath(
+                Predicate<Long> storageCreateTimestampPredicate, String... targetRefOids) {
+            this.targetRefOids = targetRefOids;
+            this.storageCreateTimestampPredicate = storageCreateTimestampPredicate;
         }
     }
 }

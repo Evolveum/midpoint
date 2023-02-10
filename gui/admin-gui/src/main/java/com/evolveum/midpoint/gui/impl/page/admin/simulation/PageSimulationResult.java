@@ -7,27 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -54,6 +33,27 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -77,8 +77,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
-    private static final String ID_WIDGETS = "widgets";
-    private static final String ID_WIDGET = "widget";
+    private static final String ID_MARKS = "marks";
+    private static final String ID_MARK = "mark";
+    private static final String ID_METRICS = "metrics";
+    private static final String ID_METRIC = "metric";
 
     private IModel<SimulationResultType> resultModel;
 
@@ -240,11 +242,19 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 detailsModel);
         add(details);
 
-        ListView<DashboardWidgetType> widgets = new ListView<>(ID_WIDGETS, metricsModel) {
+        ListView<DashboardWidgetType> marks = createWidgetList(ID_MARKS, ID_MARK, true);
+        add(marks);
+
+        ListView<DashboardWidgetType> metrics = createWidgetList(ID_METRICS, ID_METRIC, false);
+        add(metrics);
+    }
+
+    private ListView<DashboardWidgetType> createWidgetList(String id, String widgetId, boolean eventMarks) {
+        return new ListView<>(id, createWidgetListModel(eventMarks)) {
 
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                item.add(new MetricWidgetPanel(ID_WIDGET, item.getModel()) {
+                item.add(new MetricWidgetPanel(widgetId, item.getModel()) {
 
                     @Override
                     protected void onMoreInfoPerformed(AjaxRequestTarget target) {
@@ -253,8 +263,19 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 });
             }
         };
+    }
 
-        add(widgets);
+    private IModel<List<DashboardWidgetType>> createWidgetListModel(boolean eventMarkWidgets) {
+
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<DashboardWidgetType> load() {
+                return metricsModel.getObject().stream()
+                        .filter(d -> d.getData().getMetricRef().getEventMarkRef() != null ? eventMarkWidgets : !eventMarkWidgets)
+                        .collect(Collectors.toList());
+            }
+        };
     }
 
     private void onBackPerformed(AjaxRequestTarget target) {

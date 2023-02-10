@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
+import static com.evolveum.midpoint.schema.TaskExecutionMode.TaskPersistenceMode.*;
+
 /**
  * Describes the execution mode this task runs in. For example, if it is a "full execution" or a preview/simulation.
  * Or, if we should work with the production or development configuration.
@@ -22,33 +24,45 @@ import java.io.Serializable;
 public class TaskExecutionMode implements Serializable {
 
     public static final TaskExecutionMode PRODUCTION =
-            new TaskExecutionMode("PRODUCTION", true, true);
+            new TaskExecutionMode("PRODUCTION", FULL, true);
     public static final TaskExecutionMode SIMULATED_PRODUCTION =
-            new TaskExecutionMode("SIMULATED_PRODUCTION", false, true);
+            new TaskExecutionMode("SIMULATED_PRODUCTION", SHADOWS, true);
     public static final TaskExecutionMode SIMULATED_DEVELOPMENT =
-            new TaskExecutionMode("SIMULATED_DEVELOPMENT", false, false);
+            new TaskExecutionMode("SIMULATED_DEVELOPMENT", SHADOWS, false);
+    public static final TaskExecutionMode SIMULATED_SHADOWS_PRODUCTION =
+            new TaskExecutionMode("SIMULATED_SHADOWS_PRODUCTION", NONE, true);
+    public static final TaskExecutionMode SIMULATED_SHADOWS_DEVELOPMENT =
+            new TaskExecutionMode("SIMULATED_SHADOWS_DEVELOPMENT", NONE, false);
 
     private final String name;
 
     /** Should the effects of the task be persistent? The value is `false` for preview/simulation. */
-    private final boolean persistent;
+    @NotNull private final TaskPersistenceMode persistenceMode;
 
     /** Should the production configuration be used? */
     private final boolean productionConfiguration;
 
-    private TaskExecutionMode(String name, boolean persistent, boolean productionConfiguration) {
+    private TaskExecutionMode(String name, @NotNull TaskPersistenceMode persistenceMode, boolean productionConfiguration) {
         this.name = name;
-        this.persistent = persistent;
+        this.persistenceMode = persistenceMode;
         this.productionConfiguration = productionConfiguration;
     }
 
-    /** Should the effects of this task be persistent or not? The latter means "simulation", "preview", etc. */
-    public boolean isPersistent() {
-        return persistent;
+    /** TODO */
+    public boolean isFullyPersistent() {
+        return persistenceMode == FULL;
     }
 
-    public boolean isSimulation() {
-        return !persistent;
+    public boolean isShadowLevelPersistent() {
+        return persistenceMode == SHADOWS;
+    }
+
+    public boolean isNothingPersistent() {
+        return persistenceMode == NONE;
+    }
+
+    public boolean areShadowChangesSimulated() {
+        return persistenceMode == NONE;
     }
 
     /**
@@ -60,7 +74,7 @@ public class TaskExecutionMode implements Serializable {
      * However, in the future we may provide more customization options here (e.g. explicit enumeration of lifecycle states
      * to use, or even a set of specific deltas to apply).
      *
-     * If {@link #persistent} is `true` then {@link #productionConfiguration} should be `true` as well.
+     * If {@link #persistenceMode} is `true` then {@link #productionConfiguration} should be `true` as well.
      *
      * See https://docs.evolveum.com/midpoint/devel/design/simulations/ for more information.
      */
@@ -76,5 +90,26 @@ public class TaskExecutionMode implements Serializable {
     public @NotNull ConfigurationSpecificationType toConfigurationSpecification() {
         return new ConfigurationSpecificationType()
                 .productionConfiguration(productionConfiguration);
+    }
+
+    enum TaskPersistenceMode {
+        /** Every change is persistent. This is the traditional midPoint operation. */
+        FULL,
+
+        /**
+         * Only changes at the level of shadows are persistent: shadow kind/intent/tag and correlation state.
+         * This is OK for regular "model-level" simulations that can be run after shadow classification and correlation
+         * configuration is fine-tuned.
+         *
+         * TODO specify more precisely
+         */
+        SHADOWS,
+
+        /**
+         * Only changes of very basic shadow operational items (like cached attributes) are persistent.
+         *
+         * TODO specify more precisely
+         */
+        NONE
     }
 }

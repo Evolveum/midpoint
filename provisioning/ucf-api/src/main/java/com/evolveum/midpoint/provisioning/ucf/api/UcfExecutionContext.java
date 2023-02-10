@@ -201,8 +201,8 @@ public class UcfExecutionContext {
         return task;
     }
 
-    public void checkNotInSimulation() {
-        if (!task.isPersistentExecution()) {
+    public void checkExecutionFullyPersistent() {
+        if (!task.isExecutionFullyPersistent()) {
             LOGGER.error("MidPoint tried to execute an operation on {}. This is unexpected, as the task is running in simulation"
                             + " mode ({}). Please report this as a bug.",
                     resource, task.getExecutionMode());
@@ -210,9 +210,9 @@ public class UcfExecutionContext {
         }
     }
 
-    public static void checkNotInSimulation(@Nullable UcfExecutionContext ctx) {
+    public static void checkExecutionFullyPersistent(@Nullable UcfExecutionContext ctx) {
         if (ctx != null) {
-            ctx.checkNotInSimulation();
+            ctx.checkExecutionFullyPersistent();
         }
     }
 }

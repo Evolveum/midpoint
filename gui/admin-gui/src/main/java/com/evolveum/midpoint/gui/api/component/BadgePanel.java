@@ -40,7 +40,9 @@ public class BadgePanel extends BasePanel<Badge> {
 
     private void initLayout() {
         add(AttributeAppender.append("class", () -> getModelObject().getCssClass()));
-        add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getText()) || StringUtils.isNotEmpty(getModelObject().getIconCssClass())));
+        add(new VisibleBehaviour(() ->
+                getModelObject() != null
+                        && (StringUtils.isNotEmpty(getModelObject().getText()) || StringUtils.isNotEmpty(getModelObject().getIconCssClass()))));
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIconCssClass()));

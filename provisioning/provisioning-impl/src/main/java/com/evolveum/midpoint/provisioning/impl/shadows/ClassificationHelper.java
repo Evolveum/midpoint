@@ -12,10 +12,6 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
-import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,15 +20,21 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -126,19 +128,46 @@ class ClassificationHelper {
                 shadowTagGenerator.generateTag(
                         combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
                 null;
+        ShadowKindType oldKind = combinedObject.getKind();
+        String oldIntent = combinedObject.getIntent();
+        String oldTag = combinedObject.getTag();
         ShadowKindType kindToSet = classification.isKnown() ?
                 classification.getKind() :
                 Objects.requireNonNullElse( // We don't want to lose last-known kind even if classification is not known
-                        combinedObject.getKind(), ShadowKindType.UNKNOWN);
+                        oldKind, ShadowKindType.UNKNOWN);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_KIND).replace(kindToSet)
-                .item(ShadowType.F_INTENT).replace(classification.getIntent())
-                .item(ShadowType.F_TAG).replace(tag)
+                .optimizing()
+                .item(ShadowType.F_KIND).old(oldKind).replace(kindToSet)
+                .item(ShadowType.F_INTENT).old(oldIntent).replace(classification.getIntent())
+                .item(ShadowType.F_TAG).old(oldTag).replace(tag)
                 .asItemDeltas();
-        try {
-            repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
-        } catch (ObjectAlreadyExistsException e) {
-            throw SystemException.unexpected(e, "when updating classification and tag");
+
+        if (itemDeltas.isEmpty()) {
+            // Strange but possible. If the (new) classification is unknown but the current classification in only partially
+            // unknown (e.g. account/unknown), this method is called, but - in fact - it does not update anything.
+            assert !classification.isKnown();
+            LOGGER.trace("Classification stays unchanged in {}", combinedObject);
+            return;
+        }
+
+        if (ctx.getTask().areShadowChangesSimulated()) {
+            sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
+        } else {
+            try {
+                repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
+            } catch (ObjectAlreadyExistsException e) {
+                throw SystemException.unexpected(e, "when updating classification and tag");
+            }
+        }
+    }
+
+    private void sendSimulationData(ShadowType shadow, List<ItemDelta<?, ?>> itemDeltas, Task task, OperationResult result) {
+        SimulationTransaction transaction = task.getSimulationTransaction();
+        if (transaction == null) {
+            LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, itemDeltas);
+        } else {
+            transaction.writeSimulationData(
+                    ShadowSimulationData.of(shadow, itemDeltas), task, result);
         }
     }
 

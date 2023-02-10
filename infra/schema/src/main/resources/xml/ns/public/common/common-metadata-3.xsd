@@ -914,7 +914,9 @@
                 which indicates, whether the segment is an assignment or inducement.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:operational>false</a:operational> <!-- intentionally -->
                 <a:container/>
+                <a:since>4.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

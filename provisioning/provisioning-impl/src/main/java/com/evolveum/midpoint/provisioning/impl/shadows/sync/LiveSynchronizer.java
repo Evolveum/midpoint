@@ -249,8 +249,10 @@ public class LiveSynchronizer {
             return getInitialToken() != null;
         }
 
+        // TODO or should use task execution mode? (is it already set up here?)
         private boolean isPreview() {
-            return options.getExecutionMode() == ExecutionModeType.PREVIEW;
+            ExecutionModeType mode = options.getExecutionMode();
+            return mode == ExecutionModeType.PREVIEW || mode == ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
         }
 
         private boolean isDryRun() {

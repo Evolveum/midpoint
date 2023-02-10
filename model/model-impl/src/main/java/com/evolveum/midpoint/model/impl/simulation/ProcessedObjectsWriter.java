@@ -13,6 +13,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,9 +72,10 @@ class ProcessedObjectsWriter {
             writeFullData(((FullOperationSimulationDataImpl) data), result);
         } else if (data instanceof SingleDeltaSimulationDataImpl<?>) {
             writeSingleDelta(((SingleDeltaSimulationDataImpl<?>) data), result);
+        } else if (data instanceof ShadowSimulationData) {
+            writeShadowSimulationData(((ShadowSimulationData) data), result);
         } else {
             LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
-            return;
         }
     }
 
@@ -129,6 +132,20 @@ class ProcessedObjectsWriter {
 
             ProcessedObjectImpl<E> processedObject =
                     ProcessedObjectImpl.createSingleDelta(elementContext, simulationDelta, simulationTransaction, task, result);
+            storeProcessedObjects(List.of(processedObject), task, result);
+
+        } catch (CommonException e) {
+            // TODO which exception to treat?
+            throw SystemException.unexpected(e, "when storing processed object information");
+        }
+    }
+
+    private void writeShadowSimulationData(ShadowSimulationData data, OperationResult result) {
+        try {
+            LOGGER.trace("Storing delta in {} into {}", data, simulationTransaction);
+
+            ProcessedObjectImpl<ShadowType> processedObject =
+                    ProcessedObjectImpl.createForShadow(data, simulationTransaction);
             storeProcessedObjects(List.of(processedObject), task, result);
 
         } catch (CommonException e) {

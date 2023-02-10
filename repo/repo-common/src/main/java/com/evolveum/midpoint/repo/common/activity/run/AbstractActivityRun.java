@@ -489,8 +489,18 @@ public abstract class AbstractActivityRun<
         return activity.getDefinition().getExecutionMode();
     }
 
-    public boolean isPreview() {
+    // TODO sort these methods out
+
+    private boolean isPreview() {
         return getActivityExecutionMode() == ExecutionModeType.PREVIEW;
+    }
+
+    private boolean isShadowManagementPreview() {
+        return getActivityExecutionMode() == ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
+    }
+
+    private boolean isAnyPreview() {
+        return isPreview() || isShadowManagementPreview();
     }
 
     public boolean isDryRun() {
@@ -616,7 +626,7 @@ public abstract class AbstractActivityRun<
     }
 
     private void ensureNoPreview() {
-        if (isPreview()) {
+        if (isAnyPreview()) {
             throw new IllegalStateException("This activity cannot be run in simulation (preview) mode");
         }
     }

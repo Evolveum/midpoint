@@ -69,6 +69,8 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     boolean matches(@NotNull SimulationObjectPredicateType predicate, @NotNull Task task, @NotNull OperationResult result)
             throws CommonException;
     void resolveEventMarks(OperationResult result);
+    boolean hasEventMark(@NotNull String eventMarkOid);
+    boolean hasNoEventMarks();
 
     interface Factory {
         <O extends ObjectType> ProcessedObject<O> create(

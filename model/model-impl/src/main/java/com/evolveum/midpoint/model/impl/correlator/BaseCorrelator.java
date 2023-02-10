@@ -111,7 +111,6 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 
-
     @Override
     public @NotNull CorrelationExplanation explain(
             @NotNull CorrelationContext correlationContext,

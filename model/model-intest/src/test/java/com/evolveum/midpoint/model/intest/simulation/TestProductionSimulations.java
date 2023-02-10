@@ -36,8 +36,8 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 public class TestProductionSimulations extends AbstractBasicSimulationExecutionTest {
 
     @Override
-    TaskExecutionMode getExecutionMode() {
-        return TaskExecutionMode.SIMULATED_PRODUCTION;
+    TaskExecutionMode getExecutionMode(boolean shadowSimulation) {
+        return shadowSimulation ? TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION : TaskExecutionMode.SIMULATED_PRODUCTION;
     }
 
     /**

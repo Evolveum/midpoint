@@ -36,13 +36,6 @@ public class VerticalFormPasswordPropertyPanel extends ProtectedStringPropertyPa
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPasswordPropertyPanel.this);
             }
-
-            @Override
-            protected void createRequired(String id) {
-                WebMarkupContainer required = new WebMarkupContainer(id);
-                required.add(new VisibleBehaviour(() -> false));
-                add(required);
-            }
         };
     }
 

@@ -5139,7 +5139,7 @@ public final class WebComponentUtil {
 
     @Contract("_,true->!null")
     public static Long getTimestampAsLong(XMLGregorianCalendar cal, boolean currentIfNull) {
-        Long calAsLong = MiscUtil.asLong(cal);
+        Long calAsLong = MiscUtil.asMillis(cal);
         if (calAsLong == null) {
             if (currentIfNull) {
                 return System.currentTimeMillis();

@@ -214,6 +214,10 @@ public class ExpressionUtil {
         return getLiteralExpressionValues(expression).size() > 0;
     }
 
+    public static boolean isScriptExpressionValueNotEmpty(ExpressionType expression) throws SchemaException {
+        return getScriptExpressionValues(expression).size() > 0;
+    }
+
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
         expressionObject.getExpressionEvaluator().clear();
         if (StringUtils.isNotBlank(xml)) {
@@ -506,6 +510,17 @@ public class ExpressionUtil {
         return values;
     }
 
+    public static @NotNull List<ScriptExpressionEvaluatorType> getScriptExpressionValues(ExpressionType expression) throws SchemaException {
+        List<ScriptExpressionEvaluatorType> values = new ArrayList<>();
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_SCRIPT);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof ScriptExpressionEvaluatorType) {
+                values.add((ScriptExpressionEvaluatorType)element.getValue());
+            }
+        }
+        return values;
+    }
+
     public static void updateLiteralExpressionValue(ExpressionType expression, List<String> values, PrismContext prismContext) {
         if (expression == null) {
             expression = new ExpressionType();      // TODO ??? this is thrown away
@@ -515,6 +530,33 @@ public class ExpressionUtil {
             PrimitiveXNode<String> newValueNode = prismContext.xnodeFactory().primitive(value);
             RawType raw = new RawType(newValueNode.frozen(), prismContext);
             JAXBElement element = new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, RawType.class, raw);
+            expression.expressionEvaluator(element);
+        }
+    }
+
+    public static void updateScriptExpressionValue(ExpressionType expression, List<String> values) throws SchemaException {
+        if (expression == null) {
+            expression = new ExpressionType();      // TODO ??? this is thrown away
+        }
+
+        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_SCRIPT);
+
+        for (String value : values) {
+
+            if (value == null) {
+                continue;
+            }
+
+            JAXBElement<ScriptExpressionEvaluatorType> element;
+            if (value.contains(ELEMENT_SCRIPT)) {
+                LOGGER.trace("Script evaluator to serialize: {}", value);
+                element = PrismContext.get().parserFor(value).xml().parseRealValueToJaxbElement();
+            } else {
+                ScriptExpressionEvaluatorType evaluator = new ScriptExpressionEvaluatorType();
+                evaluator.code(value);
+                element = new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT, ScriptExpressionEvaluatorType.class, evaluator);
+            }
+
             expression.expressionEvaluator(element);
         }
     }
