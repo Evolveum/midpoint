@@ -11,7 +11,8 @@ import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isProtectedShadow;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isAddShadowEnabled;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isModifyShadowEnabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.*;
@@ -295,7 +296,7 @@ public class ResourceObjectConverter {
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, result)) {
+            if (!isAddShadowEnabled(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, result)) {
                 throw new SecurityViolationException("Cannot add protected shadow " + shadowClone);
             }
 
@@ -503,7 +504,7 @@ public class ResourceObjectConverter {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
-        if (isProtectedShadow(protectedPatterns, shadow, result)) {
+        if (!ProvisioningUtil.isDeleteShadowEnabled(protectedPatterns, shadow, result)) {
             // TODO remove this unnecessary logging statement (the error will be logged anyway)
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
@@ -561,7 +562,7 @@ public class ResourceObjectConverter {
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow, result)) {
+            if (!isModifyShadowEnabled(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow, result)) {
                 if (hasChangesOnResource(itemDeltas)) {
                     // TODO remove this unnecessary logging statement (the error will be logged anyway)
                     LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);

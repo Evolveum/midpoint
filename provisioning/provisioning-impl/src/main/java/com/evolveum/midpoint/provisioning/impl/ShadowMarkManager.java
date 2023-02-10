@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EffectiveShadowProvisioningPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
@@ -48,7 +49,8 @@ public class ShadowMarkManager {
 
         protected abstract boolean policyNotExcluded(ShadowType shadow, String markProtectedShadowOid);
 
-        protected abstract ShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+        protected abstract EffectiveShadowProvisioningPolicyType computeEffectivePolicy(
+                Collection<ObjectReferenceType> effectiveMarkRefs,
                 ShadowType shadow, OperationResult result);
 
         protected abstract void setEffectiveMarks(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs);
@@ -96,52 +98,8 @@ public class ShadowMarkManager {
         }
     }
 
-    public ShadowProvisioningPolicyType getShadowMarkPolicy(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
-        var ret = new ShadowProvisioningPolicyType();
-        Collection<MarkType>  marks = getShadowMarks(tagRefs, result);
-
-        // Account is protected if any of shadow marks set it to protected.
-        boolean isProtected = marks.stream().anyMatch(
-                t -> t.getProvisioningPolicy() != null &&
-                BooleanUtils.isTrue(t.getProvisioningPolicy().isProtected()));
-        ret.setProtected(isProtected);
-
-        return ret;
-    }
-
     public static ShadowMarkManager get() {
         return instance;
-    }
-
-    public boolean isProtectedShadow(ShadowType shadow, @NotNull OperationResult result) {
-        return getShadowMarkPolicy(shadow, result).isProtected();
-    }
-
-    private ShadowProvisioningPolicyType getShadowMarkPolicy(ShadowType shadow, @NotNull OperationResult result) {
-        if (shadow.getPolicyStatement() == null && shadow.getPolicyStatement().isEmpty()) {
-            return getShadowMarkPolicy(shadow.getEffectiveMarkRef(), result);
-        }
-        Set<ObjectReferenceType> tagRefs = new HashSet<>();
-        tagRefs.addAll(shadow.getEffectiveMarkRef());
-        for (var policy: shadow.getPolicyStatement()) {
-            if (PolicyStatementTypeType.APPLY.equals(policy.getType())) {
-                tagRefs.add(policy.getMarkRef());
-            }
-        }
-        return getShadowMarkPolicy(tagRefs, result);
-    }
-
-    public boolean isProtectedShadowPolicyNotExcluded(ShadowType shadow) {
-        if(shadow.getPolicyStatement() != null && !shadow.getPolicyStatement().isEmpty()) {
-            for (var policy : shadow.getPolicyStatement()) {
-                if ( PolicyStatementTypeType.EXCLUDE.equals(policy.getType())
-                        && policy.getMarkRef() != null
-                        && SystemObjectsType.MARK_PROTECTED_SHADOW.value().equals(policy.getMarkRef().getOid())) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     public void updateEffectiveMarksAndPolicies(Collection<ResourceObjectPattern> protectedAccountPatterns,
@@ -160,22 +118,20 @@ public class ShadowMarkManager {
             // so we need to check if shadow is protected
             if (ResourceObjectPattern.matches(shadow, protectedAccountPatterns)) {
                 // Shadow is protected by resource protected object configuration
-                // FIXME: Add metadata to policy mark
                 effectiveMarkRefs.add(resourceProtectedShadowMark());
             }
         }
 
-        ShadowProvisioningPolicyType effectivePolicy = behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
+        var effectivePolicy = behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
         updateShadowObject(shadow, effectiveMarkRefs, effectivePolicy);
     }
 
 
     private ObjectReferenceType resourceProtectedShadowMark() {
+        // TODO Maybe add metadata with provenance pointing that this was added by resource configuration
         ObjectReferenceType ret = new ObjectReferenceType();
         ret.setOid(MARK_PROTECTED_SHADOW_OID);
         ret.setType(MarkType.COMPLEX_TYPE);
-
-        // TODO Maybe add metadata with provenance pointing that this was added by resource configuration
         return ret;
     }
 
@@ -207,7 +163,7 @@ public class ShadowMarkManager {
     }
 
     private void updateShadowObject(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs,
-            ShadowProvisioningPolicyType effectivePolicy) {
+            EffectiveShadowProvisioningPolicyType effectivePolicy) {
         behaviour.setEffectiveMarks(shadow, effectiveMarkRefs);
 
         shadow.setEffectiveProvisioningPolicy(effectivePolicy);
@@ -272,9 +228,9 @@ public class ShadowMarkManager {
 
 
         @Override
-        protected ShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+        protected EffectiveShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
                 ShadowType shadow, OperationResult result) {
-            var ret = new ShadowProvisioningPolicyType();
+            var ret = new EffectiveShadowProvisioningPolicyType();
             Collection<MarkType>  marks = getShadowMarks(effectiveMarkRefs, result);
 
             // Account is protected if any of shadow marks set it to protected.
@@ -310,14 +266,14 @@ public class ShadowMarkManager {
         }
 
         @Override
-        protected ShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+        protected EffectiveShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
                 ShadowType shadow, OperationResult result) {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
-                return new ShadowProvisioningPolicyType()
+                return new EffectiveShadowProvisioningPolicyType()
                         ._protected(true)
                         .readOnly(true);
             }
-            return new ShadowProvisioningPolicyType()
+            return new EffectiveShadowProvisioningPolicyType()
                     ._protected(false)
                     .readOnly(false);
         }

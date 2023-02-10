@@ -316,12 +316,24 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
+    public static boolean isAddShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+    }
+
+    public static boolean isModifyShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+    }
+
+    public static boolean isDeleteShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+    }
+
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).isProtected();
     }
 
-    private static ShadowProvisioningPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
+    private static EffectiveShadowProvisioningPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
             ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
         if (shadow.getEffectiveProvisioningPolicy() != null) {
             return shadow.getEffectiveProvisioningPolicy();

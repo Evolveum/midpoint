@@ -296,6 +296,11 @@ public class Projector {
                 return;
             }
 
+            if (projectionContext.isMarkedReadOnly()) {
+                recordSkipReason(result, "Skipping projection because it is marked read-only.");
+                return;
+            }
+
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
                     projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
                 recordSkipReason(result,
