@@ -105,7 +105,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -143,7 +143,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .objectMetadata()
                                 .assertRequestTimestampPresent()
                                 .assertCreateTimestampPresent()
-                                .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                                .assertCreateChannel(CHANNEL_USER_URI)
                             .end()
                             .asFocus()
                                 .activation()
@@ -236,7 +236,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -258,7 +258,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertLastProvisioningTimestampPresent(accountShouldExist)
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                            .assertCreateChannel(CHANNEL_USER_URI)
                         .end()
                         .asFocus()
                             .activation()
@@ -348,7 +348,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -370,7 +370,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertLastProvisioningTimestampPresent(accountShouldExist)
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                            .assertCreateChannel(CHANNEL_USER_URI)
                         .end()
                         .asFocus()
                             .activation()
@@ -433,7 +433,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(createLinkRefDelta(userOid, target)),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -504,7 +504,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(createAssignmentDelta(userOid, target)),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -597,7 +597,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -638,7 +638,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue("test200")
                 .withTaskExecutionMode(getExecutionMode())
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
@@ -980,7 +980,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(user.asPrismObject().createAddDelta()),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -1003,7 +1003,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         .objectMetadata()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                            .assertCreateChannel(CHANNEL_USER_URI)
                         .end()
                         .asFocus()
                             .activation()
