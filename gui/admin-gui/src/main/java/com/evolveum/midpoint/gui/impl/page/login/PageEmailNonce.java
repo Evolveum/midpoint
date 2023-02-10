@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,7 +75,15 @@ public class PageEmailNonce extends PageAuthenticationBase {
     private boolean submited;
 
     public PageEmailNonce() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal != null) {
+            processResetPassword(null);
+            submited = true;
+
+//            throw new RestartResponseException(PageEmailNonce.class);
+        }
     }
+
 
     protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
@@ -157,7 +167,9 @@ public class PageEmailNonce extends PageAuthenticationBase {
         OperationResult result = saveUserNonce(user, noncePolicy);
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             submited = true;
-            target.add(PageEmailNonce.this);
+            if (target != null) {
+                target.add(PageEmailNonce.this);
+            }
         } else {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
@@ -310,10 +322,10 @@ public class PageEmailNonce extends PageAuthenticationBase {
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        if (AuthUtil.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
+//        if (AuthUtil.getPrincipalUser() != null) {
+//            MidPointApplication app = getMidpointApplication();
+//            throw new RestartResponseException(app.getHomePage());
+//        }
     }
 
     private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {

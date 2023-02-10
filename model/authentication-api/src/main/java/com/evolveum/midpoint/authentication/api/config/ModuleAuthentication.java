@@ -67,4 +67,6 @@ public interface ModuleAuthentication {
      * @return order for this module
      */
     Integer getOrder();
+
+    boolean applicable();
 }

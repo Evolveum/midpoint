@@ -86,7 +86,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
                 boolean continueSequence = false;
-                if (isNewSecurityPolicyFound(mpAuthentication)) {
+                boolean newSecPolicy = isNewSecurityPolicyFound(mpAuthentication);
+                if (newSecPolicy) {
                     SecurityPolicyType securityPolicy = ((MidPointPrincipal) mpAuthentication.getPrincipal()).getApplicableSecurityPolicy();
                     updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
                     if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {

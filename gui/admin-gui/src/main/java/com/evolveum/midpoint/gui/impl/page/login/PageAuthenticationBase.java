@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -165,6 +168,13 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
     }
 
     protected UserType searchUser() {
+
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal != null) {
+            FocusType focus = principal.getFocus();
+            return (UserType) focus;
+         }
+
         ObjectQuery query;
 
         if (isDynamicForm()) {

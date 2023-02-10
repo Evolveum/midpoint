@@ -4581,6 +4581,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public boolean applicable() {
+                return true;
+            }
+
+            @Override
             public String getPrefix() {
                 return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
                         + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER + "/";

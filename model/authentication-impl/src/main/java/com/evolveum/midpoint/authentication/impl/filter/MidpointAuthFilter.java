@@ -176,7 +176,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
             int indexOfProcessingModule;
-            if (needCreateNewAuthenticationToken(mpAuthentication, httpRequest)) {
+            boolean restartNeeded = needCreateNewAuthenticationToken(mpAuthentication, httpRequest);
+            if (restartNeeded) {
                 indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest);
                 mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             } else {
@@ -226,6 +227,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
+        if (mpAuthentication != null && mpAuthentication.getPrincipal() instanceof MidPointPrincipal && ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus() != null) {
+            return false;
+        }
         return AuthSequenceUtil.isSpecificSequence(httpRequest)
                 || needRestartAuthFlow(getIndexOfActualProcessingModule(mpAuthentication, httpRequest), mpAuthentication);
     }
@@ -324,6 +328,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         mpAuthentication.setSessionId(httpRequest.getSession(false) != null ?
                 httpRequest.getSession(false).getId() : RandomStringUtils.random(30, true, true).toUpperCase());
         mpAuthentication.addAuthentications(authWrapper.authModules.get(0).getBaseModuleAuthentication());
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            mpAuthentication.setPrincipal(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        }
         clearAuthentication(httpRequest);
         SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
     }
@@ -380,7 +387,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private void initializeAuthenticationSequence(
             MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
         if (mpAuthentication != null && AuthSequenceUtil.isLoginPage(httpRequest)) {
-            if (!mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
+            if (mpAuthentication.getAuthenticationChannel() != null && !mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
                     && AuthSequenceUtil.getSequenceByPath(httpRequest, authWrapper.authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
                 return;
             }

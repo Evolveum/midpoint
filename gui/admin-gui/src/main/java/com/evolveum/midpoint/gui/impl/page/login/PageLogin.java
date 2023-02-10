@@ -159,7 +159,7 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
         if (sequence == null) {
             sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
                     securityPolicy.getAuthentication());

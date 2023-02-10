@@ -80,6 +80,11 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         return order;
     }
 
+    @Override
+    public boolean applicable() {
+        return true;
+    }
+
     AuthenticationSequenceModuleType getSequenceModule() {
         return sequenceModule;
     }

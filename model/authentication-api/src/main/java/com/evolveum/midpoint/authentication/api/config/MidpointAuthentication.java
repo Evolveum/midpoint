@@ -324,7 +324,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         Validate.notNull(authentication);
 
         for (int i = 0; i < getAuthModules().size(); i++) {
-            if (getAuthModules().get(i).getModuleIdentifier().equals(authentication.getModuleIdentifier())) {
+            AuthModule module = getAuthModules().get(i);
+            if (module.getModuleIdentifier().equals(authentication.getModuleIdentifier())) {
                 return i;
             }
         }
@@ -335,7 +336,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getState().equals(AuthenticationModuleState.LOGIN_PROCESSING)
                     || authentication.getState().equals(AuthenticationModuleState.LOGOUT_PROCESSING)) {
-                return authentication;
+                if (authentication.applicable()) {
+                    return authentication;
+                }
             }
         }
         return null;
