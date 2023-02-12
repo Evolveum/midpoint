@@ -630,7 +630,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Makes the context and all sub-context non-fresh.
      */
     public void rot(String reason) {
-        if (!taskExecutionMode.isPersistent()) {
+        if (!taskExecutionMode.isFullyPersistent()) {
             LOGGER.trace("Not rotting the context ({}) because we are not in persistent execution mode", reason);
             return;
         }
@@ -649,7 +649,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * This is more intelligent than rot()
      */
     private void rotAfterExecution() throws SchemaException, ConfigurationException {
-        if (!taskExecutionMode.isPersistent()) {
+        if (!taskExecutionMode.isFullyPersistent()) {
             LOGGER.trace("Not rotting the context because we are not in persistent execution mode");
             return;
         }

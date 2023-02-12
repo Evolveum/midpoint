@@ -317,7 +317,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("single account is imported (on foreground, simulated production execution)");
         TestSimulationResult simResult = importHrAccountRequest("1")
                 .simulatedProduction()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("no deltas as the configuration is not visible");
         assertProcessedObjects(simResult, "simulated production")
@@ -326,7 +326,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("single account is imported (on foreground, simulated development execution)");
         TestSimulationResult simResult2 = importHrAccountRequest("1")
                 .simulatedDevelopment()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
         assertTest130SimulationResult(simResult2);
@@ -387,7 +387,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("single account is imported (on foreground, simulated development execution)");
         TestSimulationResult simResult1 = importHrAccountRequest("1")
                 .simulatedDevelopment()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         assertTest140SimulatedDeltasSingleAccount(simResult1, "(foreground)");
@@ -517,7 +517,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("single account is imported (on foreground, simulated production execution)");
         TestSimulationResult simResult1 = importHrAccountRequest("4")
                 .simulatedProduction()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         // @formatter:off
@@ -597,7 +597,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("the testing employee is imported (on foreground, simulated development execution)");
         TestSimulationResult simResult1 = importHrAccountRequest("999")
                 .simulatedDevelopment() // because resource is `proposed` now
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         // @formatter:off
@@ -632,7 +632,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("existing employee 4 is imported (on foreground, simulated development execution)");
         TestSimulationResult simResult4 = importHrAccountRequest("4")
                 .simulatedDevelopment()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         // @formatter:off
@@ -1144,7 +1144,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("previewing the inbound username mapping on single user before running import (foreground, prod sim)");
         TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedProduction()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         then("the user name should change (simulated)");
         assertSimulationResultAfter(simResult);
@@ -1263,7 +1263,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedDevelopment()
                 .withNotAssertingSuccess()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result1);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result1);
         result1.close();
 
         then("the operation should result in failure");
@@ -1300,7 +1300,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("trying the single-account import (development simulation)");
         TestSimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
                 .simulatedDevelopment()
-                .executeOnForegroundSimulated(getDefaultSimulationDefinition(), task, result);
+                .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
         and("there should be no deltas, as the DN matches");
         assertProcessedObjects(simResult, "single account simulated import")
@@ -1330,7 +1330,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         TestSimulationResult simResult2 =
                 executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
-                        getDefaultSimulationDefinition(),
+                        defaultSimulationDefinition(),
                         task, result);
 
         then("deltas are OK");
@@ -1383,7 +1383,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         TestSimulationResult simResult =
                 executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
-                        getDefaultSimulationDefinition(),
+                        defaultSimulationDefinition(),
                         task, result);
 
         then("deltas are OK");

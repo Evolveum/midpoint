@@ -859,6 +859,9 @@
 
                         Experimental. This may be a bad idea overall.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>EventMarkInformationType.domain</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
@@ -868,6 +871,9 @@
 
                         TODO is this the correct place (as it most probably applies only to simulations)?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>EventMarkInformationType.enabledByDefault</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -15605,13 +15611,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <!-- Do we want also these tags? -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
@@ -15701,6 +15700,20 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_PROJECTION_PASSWORD_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000736">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CLASSIFICATION_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000737">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_STATE_CHANGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

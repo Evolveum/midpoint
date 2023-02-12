@@ -44,8 +44,7 @@ public final class ClassicCollectionReportExportActivityRun<T>
     private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     /**
-     * Execution object (~ controller) that is used to transfer objects found into report data.
-     * Initialized on the activity execution start.
+     * Translates objects found into report data. Initialized on the activity run start.
      */
     private CollectionExportController<T> controller;
 
@@ -73,7 +72,7 @@ public final class ClassicCollectionReportExportActivityRun<T>
     @Override
     public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
         RunningTask task = getRunningTask();
-        support.beforeExecution(result);
+        support.beforeRun(result);
         @NotNull ReportType report = support.getReport();
 
         support.stateCheck(result);
@@ -123,17 +122,16 @@ public final class ClassicCollectionReportExportActivityRun<T>
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<T> request, @NotNull RunningTask workerTask,
-            OperationResult result)
-            throws CommonException, ActivityRunException {
+    public boolean processItem(
+            @NotNull ItemProcessingRequest<T> request, @NotNull RunningTask workerTask, OperationResult result) {
         T record = request.getItem();
         controller.handleDataRecord(request.getSequentialNumber(), record, workerTask, result);
         return true;
     }
 
     @Override
-    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
-        support.saveReportFile(dataWriter, result);
+    public void afterRun(OperationResult result) throws CommonException {
+        support.saveSimpleReportData(dataWriter, result);
     }
 
     @Override

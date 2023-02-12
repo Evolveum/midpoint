@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -875,7 +877,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         computeTenantRef(context);
     }
 
-    private <F extends ObjectType> void computeTenantRef(LensContext<F> context) throws PolicyViolationException, SchemaException {
+    private <F extends ObjectType> void computeTenantRef(LensContext<F> context)
+            throws PolicyViolationException, SchemaException {
         String tenantOid = null;
         LensFocusContext<F> focusContext = context.getFocusContext();
         PrismObject<F> objectNew = focusContext.getObjectNew();
@@ -1013,8 +1016,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
         setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
-
-        context.recompute(); // really needed?
     }
 
     private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
@@ -1028,47 +1029,60 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
         RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
         if (roleManagement == null || !Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled())) {
+        // TODO enable by default after fixing failing model tests
+//        if (roleManagement != null && Boolean.FALSE.equals(roleManagement.isAccessesMetadataEnabled())) {
             return; // not enabled
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget = findEvaluatedAssignmentTarget(roleRef, evalAssignment);
-            if (evaluatedAssignmentTarget == null) {
+            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets =
+                    findEvaluatedAssignmentTargets(roleRef, evalAssignment);
+            if (evaluatedAssignmentTargets.isEmpty()) {
                 LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
                 continue;
             }
 
-            AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
-            // There can be some value metadata already created by previous assignment evaluation
-            PrismContainer<ValueMetadataType> valueMetadataContainer = roleRef.getValueMetadataAsContainer();
-            if (valueMetadataContainer.hasAnyValue()) {
-                ValueMetadataType valueMetadata = valueMetadataContainer.getAnyValue().asContainerable();
-                ProvenanceMetadataType provenance = valueMetadata.getProvenance();
-                if (provenance == null) {
-                    // unlikely, but let's handle this case as well
-                    valueMetadata.provenance(new ProvenanceMetadataType()
-                            .assignmentPath(assignmentPath));
-                } else {
-                    provenance.assignmentPath(assignmentPath);
-                }
-            } else {
-                roleRef.setValueMetadata(new ValueMetadataType()
+            for (EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
+                AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
+                // There can be some value metadata already created by previous assignment evaluation,
+                // but we will add new metadata container for each assignment path without touching any existing ones.
+                //noinspection unchecked
+                roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
                         .provenance(new ProvenanceMetadataType()
-                                .assignmentPath(assignmentPath)));
+                                .assignmentPath(assignmentPathToMetadata(assignmentPath)))
+                        .storage(new StorageMetadataType()
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())))
+                        .asPrismContainerValue());
             }
         }
     }
 
-    private EvaluatedAssignmentTargetImpl findEvaluatedAssignmentTarget(
+    private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
+        AssignmentPathMetadataType metadata = new AssignmentPathMetadataType();
+        metadata.sourceRef(assignmentPath.getSegment().get(0).getSourceRef());
+        for (AssignmentPathSegmentType segment : assignmentPath.getSegment()) {
+            boolean isAssignment = BooleanUtils.isTrue(segment.isIsAssignment());
+            metadata.beginSegment()
+                    .segmentOrder(segment.getSegmentOrder())
+                    .targetRef(segment.getTargetRef())
+                    .matchingOrder(segment.isMatchingOrder())
+                    .assignmentId(isAssignment ? segment.getAssignmentId() : null)
+                    .inducementId(isAssignment ? null : segment.getAssignmentId());
+        }
+        return metadata;
+    }
+
+    private @NotNull List<EvaluatedAssignmentTargetImpl> findEvaluatedAssignmentTargets(
             PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evalAssignment) {
+        List<EvaluatedAssignmentTargetImpl> result = new ArrayList<>();
         for (EvaluatedAssignmentTargetImpl eat : evalAssignment.getRoles().getNonNegativeValues()) {
             ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
             if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
                     && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {
-                return eat;
+                result.add(eat);
             }
         }
-        return null;
+        return result;
     }
 
     private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,
@@ -1087,21 +1101,71 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     return;
                 }
             } else {
-                // we don't use QNameUtil.match here, because we want to ensure we store qualified values there
+                List<PrismReferenceValue> existingValues = existingState.getValues();
+                adoptExistingStorageCreateTimestampValueMetadata(targetState, existingValues);
+                // We don't use QNameUtil.match here, because we want to ensure we store qualified values there
                 // (and newValues are all qualified)
-                Comparator<PrismReferenceValue> comparator =
-                        (a, b) -> 2 * a.getOid().compareTo(b.getOid())
-                                + (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
-                if (MiscUtil.unorderedCollectionCompare(targetState, existingState.getValues(), comparator)) {
+                EqualsChecker<PrismReferenceValue> comparator =
+                        (a, b) -> Objects.equals(a.getOid(), b.getOid())
+                                && Objects.equals(a.getRelation(), b.getRelation())
+                                && a.getValueMetadata().equals(b.getValueMetadata(), EquivalenceStrategy.REAL_VALUE);
+                if (MiscUtil.unorderedCollectionEquals(targetState, existingValues, comparator)) {
                     return;
                 }
             }
         }
 
-        PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
+        PrismReferenceDefinition itemDef = focusContext.getObjectDefinition()
+                .findItemDefinition(itemName, PrismReferenceDefinition.class);
         ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
         itemDelta.setValuesToReplace(targetState);
         focusContext.swallowToSecondaryDelta(itemDelta);
+    }
+
+    /** If we find the same assignment path value metadata, we want to preserve original creation date. */
+    private void adoptExistingStorageCreateTimestampValueMetadata(
+            Collection<PrismReferenceValue> targetState, List<PrismReferenceValue> existingValues) {
+        for (PrismReferenceValue ref : targetState) {
+            PrismReferenceValue oldRefMatch = MiscUtil.find(existingValues, ref,
+                    (a, b) -> Objects.equals(a.getOid(), b.getOid())
+                            && Objects.equals(a.getRelation(), b.getRelation()));
+            if (oldRefMatch != null) {
+                mergeAssignmentPathMetadata(ref, oldRefMatch);
+            }
+        }
+    }
+
+    private void mergeAssignmentPathMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
+        List<PrismContainerValue<Containerable>> originalMetadataValues = originalRef.getValueMetadata().getValues();
+        if (originalMetadataValues.isEmpty()) {
+            return;
+        }
+
+        for (PrismContainerValue<Containerable> metadataValue : ref.getValueMetadata().getValues()) {
+            ValueMetadataType metadata = Objects.requireNonNull(metadataValue.getRealValue());
+            ProvenanceMetadataType provenance = metadata.getProvenance();
+            if (provenance == null) {
+                continue; // not assignment path metadata, we leave it as is
+            }
+
+            PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
+                    .filter(m -> provenance.equals(((ValueMetadataType) m.asContainerable()).getProvenance()))
+                    .findFirst()
+                    .orElse(null);
+            if (originalMetadataValue == null) {
+                continue; // no action needed
+            }
+            StorageMetadataType originalStorage = Objects.requireNonNull(
+                            (ValueMetadataType) (originalMetadataValue.getRealValue()))
+                    .getStorage();
+            if (originalStorage == null || originalStorage.getCreateTimestamp() == null) {
+                continue; // strange, but nothing to do about it
+            }
+
+            // This preserves the original assignment path creation time.
+            // Otherwise, each recompute would bump the time which is not what we want to show.
+            metadata.getStorage().setCreateTimestamp(originalStorage.getCreateTimestamp());
+        }
     }
 
     private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {

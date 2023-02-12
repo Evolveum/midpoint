@@ -49,8 +49,8 @@ class ExportDashboardActivitySupport extends ExportActivitySupport {
     }
 
     @Override
-    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
-        super.beforeExecution(result);
+    void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        super.beforeRun(result);
         setupDashboard(result);
         setupCompiledViewsForWidgets(result);
     }
@@ -60,7 +60,8 @@ class ExportDashboardActivitySupport extends ExportActivitySupport {
         List<DashboardWidgetType> widgets = dashboard.getWidget();
         for (DashboardWidgetType widget : widgets) {
             if (isWidgetTableVisible()) {
-                CompiledObjectCollectionView compiledView = reportService.createCompiledView(report.getDashboard(), widget, runningTask, result);
+                CompiledObjectCollectionView compiledView =
+                        reportService.createCompiledView(report.getDashboard(), widget, runningTask, result);
                 DisplayType newDisplay = widget.getDisplay();
                 if (compiledView.getDisplay() == null) {
                     compiledView.setDisplay(newDisplay);

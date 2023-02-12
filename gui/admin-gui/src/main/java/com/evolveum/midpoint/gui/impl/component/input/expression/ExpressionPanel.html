@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure child="typeChoice">
+        <div class="input-group mb-1">
+            <div class="custom-file" style="height: calc(1.8125rem + 2px);" wicket:id="typeChoice"/>
+            <wicket:enclosure child="typeButton">
+                <div class="input-group-append">
+                    <button class="pl-2 btn btn-sm btn-primary" wicket:id="typeButton"/>
+                </div>
+            </wicket:enclosure>
+        </div>
+    </wicket:enclosure>
+    <div wicket:id="infoContainer" class="d-flex">
+        <span class="text-info" wicket:id="infoLabel"/>
+        <span class="btn btn-tool mt-0">
+            <i class="p-1" wicket:id="infoIcon"/>
+        </span>
+        <button class="ml-auto btn btn-sm btn-primary" wicket:id="resetButton">
+            <wicket:message key="ExpressionPanel.resetButton"/>
+        </button>
+    </div>
+    <div wicket:id="evaluatorPanel"/>
+</wicket:panel>
+</html>
+

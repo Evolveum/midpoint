@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.InstanceOfAssertFactory;
-import org.assertj.core.api.ListAssert;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
@@ -186,12 +183,6 @@ public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
                 // two subresults are left, see test100 for details
                 .anyMatch(ort -> ort.getPartialResults().size() == 2
                         && ort.getStatus() == OperationResultStatusType.SUCCESS);
-    }
-
-    @SuppressWarnings({ "rawtypes", "unused" })
-    @NotNull
-    private <T> InstanceOfAssertFactory<List, ListAssert<T>> listAsserterFactory(Class<T> elementType) {
-        return new InstanceOfAssertFactory<>(List.class, Assertions::<T>assertThat);
     }
 
     private void createAuditRecordWithDeltas(OperationResult result) throws SchemaException {

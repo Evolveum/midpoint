@@ -10,11 +10,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -30,6 +33,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     private static final String TEST_TAG_2 = "00000000-0000-0000-0000-000000002000";
     private static final String TEST_ARCHETYPE = "d029f4e9-d0e9-4486-a927-20585d909dc7";
     private static final String RANDOM_OID = "24a89c52-e477-4a38-b3c0-75a01d8c13f3";
+    private @NotNull String simulationOid;
 
     @Test
     public void test100CreateSimulation() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -61,11 +65,11 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                         .before(systemConfiguration.clone()));
 
         when("result is added to the repository");
-        @NotNull String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
+        simulationOid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
         and("result is read back (as an object)");
         @NotNull PrismObject<SimulationResultType> resultReadBack =
-                repositoryService.getObject(SimulationResultType.class, oid, null, result);
+                repositoryService.getObject(SimulationResultType.class, simulationOid, null, result);
 
         then("result is OK but empty - processed objects should are available only via search");
         assertNotNull(resultReadBack);
@@ -76,7 +80,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         // And we search TEST_TAG_1 owned by created result
 
         ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                .ownerId(oid)
+                .ownerId(simulationOid)
                 .and()
                 .item(SimulationResultProcessedObjectType.F_EVENT_MARK_REF).ref(TEST_TAG_1)
                 .build();
@@ -139,6 +143,17 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
         then("nothing is found");
         assertThat(byAssignmentTargetRefNonMatching).as("by assignment/targetRef, non-matching").isEmpty();
+    }
+
+    @Test
+    public void test109deleteProcessedObjectsViaDelta() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        var delta = PrismContext.get().deltaFactory().object()
+                .createEmptyModifyDelta(SimulationResultType.class, simulationOid);
+        var cd = delta.createContainerModification(SimulationResultType.F_PROCESSED_OBJECT);
+        cd.setValuesToReplace(new ArrayList<>());
+
+        repositoryService.modifyObject(SimulationResultType.class, simulationOid, delta.getModifications(), null, createOperationResult());
+
     }
 
     protected boolean getPartitioned() {

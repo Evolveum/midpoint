@@ -78,7 +78,7 @@ public enum QuerydslUtils {
 
         long timestamp;
         if (value instanceof XMLGregorianCalendar) {
-            timestamp = MiscUtil.asLong((XMLGregorianCalendar) value);
+            timestamp = MiscUtil.asMillis((XMLGregorianCalendar) value);
         } else {
             throw new IllegalArgumentException(
                     "Unsupported temporal type " + value.getClass() + " for value: " + value);

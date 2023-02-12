@@ -172,16 +172,16 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
-            writeSimulationData(context, task, result);
+            writeFullSimulationData(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
         }
     }
 
-    private void writeSimulationData(LensContext<?> context, Task task, OperationResult result) {
+    private void writeFullSimulationData(LensContext<?> context, Task task, OperationResult result) {
         SimulationTransaction transactionContext = task.getSimulationTransaction();
-        if (task.isSimulatedExecution() && transactionContext != null) {
+        if (!task.isExecutionFullyPersistent() && transactionContext != null) {
             transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
         }
     }

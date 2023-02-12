@@ -25,6 +25,10 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -40,6 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
  * Created by Viliam Repan (lazyman).
  */
 public class SimulationResultsPanel extends MainObjectListPanel<SimulationResultType> {
+
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(SimulationResultsPanel.class);
+
+    private static final String DOT_CLASS = SimulationResultsPanel.class.getName() + ".";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
     public SimulationResultsPanel(String id, ContainerPanelConfigurationType config) {
         super(id, SimulationResultType.class, null, config);
@@ -67,7 +79,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        items.add(new ButtonInlineMenuItem(createStringResource("list processed objects")) {
+        items.add(new ButtonInlineMenuItem(createStringResource("PageSimulationResultObjects.listObjects")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa-solid fa-eye");
@@ -85,7 +97,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 };
             }
         });
-        items.add(new ButtonInlineMenuItem(createStringResource("delete")) {
+        items.add(new ButtonInlineMenuItem(createStringResource("PageSimulationResultObjects.delete")) {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -94,18 +106,85 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public InlineMenuItemAction initAction() {
-                return null;
+                return new ColumnMenuAction<SelectableBean<SimulationResultType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteConfirmedPerformed(target, getRowModel());
+                    }
+                };
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
+                return createConfirmationMessage((ColumnMenuAction) getAction(),
+                        "SimulationResultsPanel.message.deleteResultActionSingle", "SimulationResultsPanel.message.deleteResultActionMulti");
             }
         });
-        items.add(new InlineMenuItem(createStringResource("Delete processed objects")) {
+        items.add(new InlineMenuItem(createStringResource("PageSimulationResultObjects.deleteObjects")) {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return null;
+                return new ColumnMenuAction<SelectableBean<SimulationResultType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteResultObjectsConfirmedPerformed(target, getRowModel());
+                    }
+                };
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
+                return createConfirmationMessage((ColumnMenuAction<SelectableBean<SimulationResultType>>) getAction(),
+                        "SimulationResultsPanel.message.deleteResultObjectsActionSingle",
+                        "SimulationResultsPanel.message.deleteResultObjectsActionMulti");
             }
         });
 
         return items;
+    }
+
+    private void deleteResultObjectsConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultType>> rowModel) {
+        List<SelectableBean<SimulationResultType>> objects = isAnythingSelected(target, rowModel);
+
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT : OPERATION_DELETE_OBJECTS);
+        for (SelectableBean<SimulationResultType> object : objects) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
+            SimulationResultType simResult = object.getValue();
+
+            try {
+                getPageBase().getRepositoryService().deleteSimulatedProcessedObjects(simResult.getOid(), null, subResult);
+            } catch (Exception ex) {
+                String name = WebComponentUtil.getName(simResult);
+
+                subResult.recordFatalError(getString("SimulationResultsPanel.message.deleteResultObjectsFailed", name), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete processed objects for simulation result {}", ex, name);
+            } finally {
+                subResult.computeStatusIfUnknown();
+            }
+        }
+        result.computeStatusComposite();
+
+        getPageBase().showResult(result);
+        target.add(getFeedbackPanel());
+        refreshTable(target);
+        clearCache();
+    }
+
+    private IModel<String> createConfirmationMessage(ColumnMenuAction<SelectableBean<SimulationResultType>> action, String singleKey, String multiKey) {
+        return () -> {
+            IModel<SelectableBean<SimulationResultType>> result = action.getRowModel();
+            if (action.getRowModel() != null || getSelectedObjectsCount() == 1) {
+                return getString(singleKey, WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            return getString(multiKey, getSelectedRealObjects());
+        };
     }
 
     @Override

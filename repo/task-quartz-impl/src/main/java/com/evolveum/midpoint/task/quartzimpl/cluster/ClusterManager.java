@@ -279,7 +279,7 @@ public class ClusterManager {
     }
 
     private boolean isCheckInTimeLagging(NodeType node, int secondsLimit) {
-        Long lastCheckInTimestamp = MiscUtil.asLong(node.getLastCheckInTime());
+        Long lastCheckInTimestamp = MiscUtil.asMillis(node.getLastCheckInTime());
         return lastCheckInTimestamp == null ||
                 System.currentTimeMillis() > lastCheckInTimestamp + secondsLimit * 1000L;
     }

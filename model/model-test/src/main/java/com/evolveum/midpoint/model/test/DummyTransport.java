@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class DummyTransport implements Transport<GeneralTransportConfigurationType>, DebugDumpable {
 
     public static final String DEFAULT_NAME = "dummy";
@@ -106,5 +108,9 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     @Override
     public GeneralTransportConfigurationType getConfiguration() {
         return null;
+    }
+
+    public void assertNoMessages() {
+        assertThat(getMessages()).as("messages").isEmpty();
     }
 }

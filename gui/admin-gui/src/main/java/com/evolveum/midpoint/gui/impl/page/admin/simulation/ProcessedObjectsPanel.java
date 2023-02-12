@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -26,8 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -54,8 +58,15 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @Override
-    protected boolean isUseStorageSearch(Search search) {
-        return false;
+    protected void onConfigure() {
+        super.onConfigure();
+
+        String markOid = getMarkOid();
+        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        if (wrapper instanceof AvailableMarkSearchItemWrapper) {
+            AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
+            markWrapper.setValue(markOid);
+        }
     }
 
     @Override
@@ -237,5 +248,10 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
         return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        return new ArrayList<>();
     }
 }

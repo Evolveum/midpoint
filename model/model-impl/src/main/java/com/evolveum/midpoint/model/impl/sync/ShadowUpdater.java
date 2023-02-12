@@ -7,15 +7,28 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationDelta;
+import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationDescriptionDelta;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,21 +39,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.common.SynchronizationUtils.*;
-
 /**
  * Offloads {@link SynchronizationServiceImpl} from duties related to updating synchronization/correlation metadata.
  *
  * Accumulates deltas in {@link #deltas} list (along with applying them to the current shadow) and writes them into
- * repository when the {@link #commit(OperationResult)} method is called.
+ * repository - or to simulation result - when the {@link #commit(OperationResult)} method is called.
  *
  * Besides that, provides the business methods that update the operational data in the shadow.
  */
@@ -57,12 +60,12 @@ class ShadowUpdater {
         this.beans = beans;
     }
 
-    ShadowUpdater updateAllSyncMetadata() throws SchemaException {
+    ShadowUpdater updateAllSyncMetadataRespectingMode() throws SchemaException {
         assert syncCtx.isComplete();
 
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
 
-        if (syncCtx.isPersistentExecution()) {
+        if (syncCtx.isExecutionFullyPersistent()) {
             updateSyncSituation();
             updateSyncSituationDescription(now);
             updateBasicSyncTimestamp(now); // this is questionable, but the same behavior is in LinkUpdater class
@@ -188,33 +191,55 @@ class ShadowUpdater {
     }
 
     void commit(OperationResult result) {
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        if (deltas.isEmpty()) {
+            return;
+        }
         try {
-            beans.cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas, result);
-            deltas.clear();
+            if (syncCtx.getTask().areShadowChangesSimulated()) {
+                commitToSimulation(result);
+            } else {
+                commitToRepository(result);
+            }
             recordModificationExecuted(null);
+        } catch (Throwable t) {
+            recordModificationExecuted(t);
+            throw t;
+        }
+        deltas.clear();
+    }
+
+    private void commitToSimulation(OperationResult result) {
+        Task task = syncCtx.getTask();
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        SimulationTransaction simulationTransaction = task.getSimulationTransaction();
+        if (simulationTransaction == null) {
+            LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, deltas);
+        } else {
+            simulationTransaction.writeSimulationData(
+                    ShadowSimulationData.of(shadow, deltas), task, result);
+        }
+    }
+
+    private void commitToRepository(OperationResult result) {
+        try {
+            beans.cacheRepositoryService.modifyObject(ShadowType.class, syncCtx.getShadowOid(), deltas, result);
         } catch (ObjectNotFoundException ex) {
             recordModificationExecuted(ex);
             // This may happen e.g. during some recon-livesync interactions.
             // If the shadow is gone then it is gone. No point in recording the
             // situation any more.
             LOGGER.debug("Could not update synchronization metadata in account, because shadow {} does not "
-                            + "exist any more (this may be harmless)", shadow.getOid());
+                    + "exist any more (this may be harmless)", syncCtx.getShadowOid());
             syncCtx.setShadowExistsInRepo(false);
             result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
             recordModificationExecuted(ex);
-            LoggingUtils.logException(LOGGER,
-                    "### SYNCHRONIZATION # notifyChange(..): Save of synchronization metadata failed: could not modify shadow "
-                            + shadow.getOid() + ": " + ex.getMessage(),
-                    ex);
-            result.recordFatalError("Save of synchronization metadata failed: could not modify shadow "
-                    + shadow.getOid() + ": " + ex.getMessage(), ex);
-            throw new SystemException("Save of synchronization metadata failed: could not modify shadow "
-                    + shadow.getOid() + ": " + ex.getMessage(), ex);
-        } catch (Throwable t) {
-            recordModificationExecuted(t);
-            throw t;
+            String message = String.format(
+                    "Save of synchronization metadata failed: could not modify shadow %s: %s",
+                    syncCtx.getShadowOid(), ex.getMessage());
+            LoggingUtils.logException(LOGGER, "### SYNCHRONIZATION # notifyChange(..): {}", ex, message);
+            result.recordFatalError(message, ex);
+            throw new SystemException(message, ex);
         }
     }
 

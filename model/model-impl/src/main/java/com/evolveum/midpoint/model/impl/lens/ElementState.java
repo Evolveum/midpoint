@@ -726,7 +726,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
         archivedSecondaryDeltas.add(executionWave, secondaryDelta);
 
-        if (!taskExecutionMode.isPersistent()) {
+        if (!taskExecutionMode.isFullyPersistent()) {
             // FIXME temporary code
             if (currentObject == null && isAdd(primaryDelta)) {
                 currentObject = primaryDelta.getObjectToAdd().clone();

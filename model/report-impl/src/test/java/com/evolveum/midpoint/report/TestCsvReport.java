@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,15 +36,16 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         addObject(USER_JACK, initTask, initResult);
     }
 
-    List<String> basicCheckOutputFile(PrismObject<ReportType> report, int expectedRows, int expectedColumns, String lastLine)
-            throws IOException, ParseException {
+    List<String> basicCheckOutputFile(PrismObject<TaskType> task, int expectedRows, int expectedColumns, String lastLine)
+            throws IOException, ParseException, SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
 
         if (expectedRows != DONT_COUNT_ROWS) {
             // +1 for the final line with the subscription appeal
             expectedRows += 1;
         }
 
-        List<String> lines = getLinesOfOutputFile(report);
+        List<String> lines = getLinesOfOutputFile(task);
 
         if (expectedRows != DONT_COUNT_ROWS && lines.size() != expectedRows) {
             fail("Unexpected count of rows of csv report. Expected: " + expectedRows + ", Actual: " + lines.size());

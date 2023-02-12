@@ -104,7 +104,14 @@ public interface CommonInitialObjects {
             MARKS, "735-mark-projection-password-changed.xml",
             SystemObjectsType.MARK_PROJECTION_PASSWORD_CHANGED.value());
 
+    AbstractTestResource<MarkType> MARK_SHADOW_CLASSIFICATION_CHANGED = new ClassPathTestResource<>(
+            MARKS, "736-mark-shadow-classification-changed.xml",
+            SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value());
 
+    AbstractTestResource<MarkType> MARK_SHADOW_CORRELATION_STATE_CHANGED = new ClassPathTestResource<>(
+            MARKS, "737-mark-shadow-correlation-state-changed.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
+    
     AbstractTestResource<MarkType> MARK_PROTECTED_SHADOW = new ClassPathTestResource<>(
             MARKS, "750-mark-protected-shadow.xml",
             SystemObjectsType.MARK_PROTECTED_SHADOW.value());
@@ -131,6 +138,8 @@ public interface CommonInitialObjects {
         test.addObject(MARK_PROJECTION_IDENTIFIER_CHANGED, task, result);
         test.addObject(MARK_PROJECTION_ENTITLEMENT_CHANGED, task, result);
         test.addObject(MARK_PROJECTION_PASSWORD_CHANGED, task, result);
+        test.addObject(MARK_SHADOW_CLASSIFICATION_CHANGED, task, result);
+        test.addObject(MARK_SHADOW_CORRELATION_STATE_CHANGED, task, result);
         test.addObject(MARK_PROTECTED_SHADOW, task, result);
     }
 }

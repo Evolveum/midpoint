@@ -5096,22 +5096,34 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return options != null ? options : executeOptions();
     }
 
-    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Collection<ObjectDelta<? extends ObjectType>> deltas = singleton(createAddAccountDelta(userOid, accountFile));
-        modelService.executeChanges(deltas, null, task, result);
+    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result)
+            throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
+            SecurityViolationException {
+        modelService.executeChanges(
+                List.of(createAddAccountDelta(userOid, accountFile)), null, task, result);
     }
 
-    @NotNull
-    protected ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
             throws SchemaException, IOException {
-        PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+        return createAddAccountDelta(userOid, account);
+    }
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
-        accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-        userDelta.addModification(accountDelta);
-        return userDelta;
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
+    }
+
+    protected @NotNull ObjectDelta<UserType> createDeleteAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .delete(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
     }
 
     protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -6988,7 +7000,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     /** As {@link ProcedureCall} but has {@link TestSimulationResult} as a parameter. Currently for internal purposes. */
     public interface SimulatedProcedureCall {
-        void execute(TestSimulationResult simResult) throws CommonException;
+        void execute(TestSimulationResult simResult) throws CommonException, IOException;
     }
 
     /**
@@ -7009,7 +7021,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             TestSimulationResult testSimulationResult = new TestSimulationResult(
                     Objects.requireNonNull(task.getSimulationTransaction())
                             .getResultOid());
-            simulatedCall.execute(testSimulationResult);
+            try {
+                simulatedCall.execute(testSimulationResult);
+            } catch (IOException e) {
+                throw SystemException.unexpected(e);
+            }
             simulationResultHolder.setValue(testSimulationResult);
             return null;
         });
@@ -7018,7 +7034,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 "No simulation result after execution?");
     }
 
-    protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
+    protected @NotNull SimulationDefinitionType defaultSimulationDefinition() throws ConfigurationException {
         return simulationResultManager.defaultDefinition();
     }
 
@@ -7111,5 +7127,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)
+            throws SchemaException {
+        return TestSimulationResult.fromSimulationResultOid(
+                findSimulationResultRequired(result).getOid());
     }
 }

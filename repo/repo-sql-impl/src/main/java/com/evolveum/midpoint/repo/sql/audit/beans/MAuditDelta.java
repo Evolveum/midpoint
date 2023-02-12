@@ -1,15 +1,14 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.audit.beans;
 
-import static com.evolveum.midpoint.util.MiscUtil.binaryToHexPreview;
-
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
+import com.evolveum.midpoint.util.MiscUtil;
 
 /**
  * Querydsl "row bean" type related to {@link QAuditDelta}.
@@ -47,10 +46,10 @@ public class MAuditDelta {
         return "MAuditDelta{" +
                 "recordId=" + recordId +
                 ", checksum='" + checksum + '\'' +
-                ", delta=" + binaryToHexPreview(delta) +
+                ", delta=" + MiscUtil.bytesToHexPreview(delta) +
                 ", deltaOid='" + deltaOid + '\'' +
                 ", deltaType=" + deltaType +
-                ", fullResult=" + binaryToHexPreview(fullResult) +
+                ", fullResult=" + MiscUtil.bytesToHexPreview(fullResult) +
                 ", objectNameNorm='" + objectNameNorm + '\'' +
                 ", objectNameOrig='" + objectNameOrig + '\'' +
                 ", resourceNameNorm='" + resourceNameNorm + '\'' +

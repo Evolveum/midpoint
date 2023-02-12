@@ -113,6 +113,13 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     correlationContext.getPreFocus(),
                     correlationContext.getResourceObject());
         }
+
+        void ensureNotInShadowSimulationMode() {
+            if (task.areShadowChangesSimulated()) {
+                throw new UnsupportedOperationException(
+                        "Shadows-simulation mode cannot be used with ID Match correlator: " + task.getExecutionMode());
+            }
+        }
     }
 
     private class CorrelationLikeOperation extends Operation {
@@ -125,6 +132,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
+            ensureNotInShadowSimulationMode();
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
             String referenceId = mResult.getReferenceId();
             if (referenceId != null) {
@@ -145,8 +153,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
             // FIXME this assumes we are the top-level correlator!
             IdMatchCorrelatorStateType correlatorState = createCorrelatorState(mResult);
-            correlationContext.setCorrelatorState(correlatorState);
-            // we also need the state in the shadow in the case object
+            correlationContext.setCorrelatorState(correlatorState); // not connected with the resource object
             ShadowUtil.setCorrelatorState(resourceObject, correlatorState.clone());
 
             return mResult;
@@ -426,10 +433,10 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
         private CorrelatorConfiguration getFollowOnConfiguration(CompositeCorrelatorType configBean)
                 throws ConfigurationException {
-            Collection<CorrelatorConfiguration> followOnConfigs =
-                    CorrelatorConfiguration.getChildConfigurations(configBean);
-            configCheck(followOnConfigs.size() == 1, "Not a single 'follow on' correlator configured: %s",
-                    followOnConfigs);
+            Collection<CorrelatorConfiguration> followOnConfigs = CorrelatorConfiguration.getChildConfigurations(configBean);
+            configCheck(
+                    followOnConfigs.size() == 1,
+                    "Not a single 'follow on' correlator configured: %s", followOnConfigs);
             return followOnConfigs.iterator().next();
         }
     }

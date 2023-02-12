@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 
@@ -103,7 +104,7 @@ public class MarkManager {
                 prismContext.queryFor(MarkType.class)
                         .item(MarkType.F_URI).eq(uri)
                         .build(),
-                null,
+                createReadOnlyCollection(),
                 result);
         LOGGER.trace("Mark(s) by URI '{}': {}", uri, marks);
         return asObjectable(
@@ -118,7 +119,8 @@ public class MarkManager {
         }
         try {
             return asObjectables(
-                    cacheRepositoryService.searchObjects(MarkType.class, null, null, result));
+                    cacheRepositoryService.searchObjects(
+                            MarkType.class, null, createReadOnlyCollection(), result));
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when retrieving all marks");
         }
@@ -165,7 +167,7 @@ public class MarkManager {
         if (simulationTransaction != null) {
             return simulationTransaction.getSimulationResult().isEventMarkEnabled(mark);
         }
-        if (!task.isSimulatedExecution()) {
+        if (task.isExecutionFullyPersistent()) {
             return false; // Event marks are currently used only for simulations
         }
         // We have no simulation [result] definition, so no custom inclusion/exclusion of event marks.

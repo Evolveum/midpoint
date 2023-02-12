@@ -36,8 +36,8 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 public class TestProductionSimulations extends AbstractBasicSimulationExecutionTest {
 
     @Override
-    TaskExecutionMode getExecutionMode() {
-        return TaskExecutionMode.SIMULATED_PRODUCTION;
+    TaskExecutionMode getExecutionMode(boolean shadowSimulation) {
+        return shadowSimulation ? TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION : TaskExecutionMode.SIMULATED_PRODUCTION;
     }
 
     /**
@@ -64,7 +64,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -121,7 +121,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -168,7 +168,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
         TestSimulationResult simResult =
                 executeWithSimulationResult(
                         List.of(delta),
-                        getExecutionMode(), getDefaultSimulationDefinition(), task, result);
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
 
         then("everything is OK");
         assertSuccess(result);

@@ -147,13 +147,13 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
                 .assertSuccess()
                 .display();
 
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.oid);
-        File outputFile = findOutputFile(report);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        File outputFile = findOutputFile(reportTask);
         displayValue("Found report file", outputFile);
         if (StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeDataType)) {
-            assertThat(outputFile).withFailMessage("Output file for " + report + " exists").isNull();
+            assertThat(outputFile).withFailMessage("Output file for " + reportTask + " exists").isNull();
         } else {
-            assertThat(outputFile).withFailMessage("Output file for " + report + " does not exist").isNotNull();
+            assertThat(outputFile).withFailMessage("Output file for " + reportTask + " does not exist").isNotNull();
         }
         if (outputFile != null) {
             assertThat(outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName())))
@@ -295,8 +295,8 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
         assertNotificationMessage(reportResource.getObjectable(), "text/html");
 
-        PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
-        List<String> lines = getLinesOfOutputFile(report);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        List<String> lines = getLinesOfOutputFile(reportTask);
 
         if (lines.size() < 10) {
             fail("Html report too short (" + lines.size() + " lines)");
