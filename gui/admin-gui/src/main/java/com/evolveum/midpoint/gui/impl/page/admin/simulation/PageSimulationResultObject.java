@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,6 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
@@ -78,6 +83,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
+    private static final String ID_RELATED_OBJECTS = "relatedObjects";
     private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
@@ -114,11 +120,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected SimulationResultProcessedObjectType load() {
                 Task task = getPageTask();
 
-                Long id = null;
-                try {
-                    id = Long.parseLong(getPageParameterContainerId());
-                } catch (Exception ignored) {
-                }
+                Long id = getPageParameterContainerId();
 
                 if (id == null) {
                     throw new RestartResponseException(PageError404.class);
@@ -324,6 +326,34 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         };
         add(navigation);
 
+        IModel<Search<SimulationResultProcessedObjectType>> searchModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected Search<SimulationResultProcessedObjectType> load() {
+                return new SearchBuilder<>(SimulationResultProcessedObjectType.class)
+                        .modelServiceLocator(PageSimulationResultObject.this)
+                        .build();
+            }
+        };
+
+        RelatedObjectsProvider provider = new RelatedObjectsProvider(this, searchModel) {
+
+            @Override
+            protected @NotNull String getSimulationResultOid() {
+                return PageSimulationResultObject.this.getPageParameterResultOid();
+            }
+
+            @Override
+            protected @NotNull Long getProcessedObjectId() {
+                return PageSimulationResultObject.this.getPageParameterContainerId();
+            }
+        };
+
+        List<IColumn<SimulationResultProcessedObjectType, String>> columns = createColumns();
+
+        DataTable relatedObjects = new SelectableDataTable(ID_RELATED_OBJECTS, columns, provider, 20);
+        add(relatedObjects);
+
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 () -> "fa-solid fa-circle-question",
                 createStringResource("PageSimulationResultObject.details"),
@@ -332,6 +362,12 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
         add(panel);
+    }
+
+    private List<IColumn<SimulationResultProcessedObjectType, String>> createColumns() {
+        List<IColumn<SimulationResultProcessedObjectType, String>> columns = new ArrayList<>();
+
+        return columns;
     }
 
     @Override

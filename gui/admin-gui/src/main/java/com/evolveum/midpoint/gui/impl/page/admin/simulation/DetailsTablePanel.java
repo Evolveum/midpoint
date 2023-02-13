@@ -62,6 +62,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         add(icon);
 
         Label title = new Label(ID_TITLE, this.title);
+        title.setRenderBodyOnly(true);
         title.add(new VisibleBehaviour(() -> this.title.getObject() != null));
         add(title);
 
