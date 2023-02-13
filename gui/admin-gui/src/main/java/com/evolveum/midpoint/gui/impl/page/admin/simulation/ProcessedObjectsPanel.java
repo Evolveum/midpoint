@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,10 +20,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
@@ -36,9 +35,12 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.ProgressBarColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -214,9 +216,74 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             return createStateColumn(displayModel);
         } else if (SimulationResultProcessedObjectType.F_TYPE.equivalent(path)) {
             return createTypeColumn(displayModel);
+        } else if (SimulationResultProcessedObjectType.F_DELTA.equivalent(path)) {
+            return createDeltaColumn(displayModel);
         }
 
         return super.createCustomExportableColumn(displayModel, customColumn, expression);
+    }
+
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn(IModel<String> displayModel) {
+        return new ProgressBarColumn<>(displayModel) {
+
+            @Override
+            protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected List<ProgressBar> load() {
+                        SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
+                        ObjectDeltaType delta = object.getDelta();
+                        if (delta == null) {
+                            return Collections.emptyList();
+                        }
+
+                        switch (delta.getChangeType()) {
+                            case ADD:
+                                return Collections.singletonList(new ProgressBar(100, ProgressBar.State.SUCCESS));
+                            case DELETE:
+                                return Collections.singletonList(new ProgressBar(100, ProgressBar.State.DANGER));
+                            default:
+                        }
+
+                        List<ItemDeltaType> deltas = delta.getItemDelta();
+                        int total = deltas.size();
+                        int add = 0;
+                        int modify = 0;
+                        int delete = 0;
+
+                        for (ItemDeltaType id : deltas) {
+                            switch (id.getModificationType()) {
+                                case ADD:
+                                    add++;
+                                    break;
+                                case REPLACE:
+                                    modify++;
+                                    break;
+                                case DELETE:
+                                    delete++;
+                                    break;
+                            }
+                        }
+
+                        List<ProgressBar> bars = new ArrayList<>();
+                        addProgressBar(bars, ProgressBar.State.SUCCESS, add, total);
+                        addProgressBar(bars, ProgressBar.State.INFO, modify, total);
+                        addProgressBar(bars, ProgressBar.State.DANGER, delete, total);
+
+                        return bars;
+                    }
+
+                    private void addProgressBar(List<ProgressBar> bars, ProgressBar.State state, int size, int total) {
+                        if (size == 0) {
+                            return;
+                        }
+
+                        bars.add(new ProgressBar(size * 100 / (double) total, state));
+                    }
+                };
+            }
+        };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {

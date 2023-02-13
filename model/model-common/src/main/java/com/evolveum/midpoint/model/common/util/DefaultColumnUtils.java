@@ -115,7 +115,8 @@ public class DefaultColumnUtils {
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE)))
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_DELTA)))
                 .build();
     }
 
