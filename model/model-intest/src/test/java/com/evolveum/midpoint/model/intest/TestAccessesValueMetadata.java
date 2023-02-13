@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -309,20 +310,32 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 .hasSize(expectedAssignmentPaths.length);
         // Now we check if any of the values match the expected value - for each expected value.
         for (ExpectedAssignmentPath expectedAssignmentPath : expectedAssignmentPaths) {
-            listAsserter.anySatisfy(m -> {
-                assertThat(m)
-                        .extracting(ValueMetadataType::getStorage)
-                        .extracting(StorageMetadataType::getCreateTimestamp)
-                        .extracting(MiscUtil::asMillis)
-                        .isNotNull()
-                        .matches(ts -> expectedAssignmentPath.storageCreateTimestampPredicate.test(ts));
-                assertThat(m)
-                        .extracting(ValueMetadataType::getProvenance)
-                        .extracting(ProvenanceMetadataType::getAssignmentPath)
-                        .extracting(ap -> ap.getSegment(), listAsserterFactory(AssignmentPathSegmentMetadataType.class))
-                        .extracting(s -> s.getTargetRef().getOid())
-                        .containsExactly(expectedAssignmentPath.targetRefOids);
-            });
+            listAsserter
+                    .withFailMessage("No value metadata for roleMembershipRef with target OID "
+                            + roleMembershipTargetOid + " match the expected assignment path "
+                            + Arrays.toString(expectedAssignmentPath.targetRefOids) + " (or its timestamp predicate).")
+                    .anySatisfy(m -> {
+                        assertThat(m)
+                                .extracting(ValueMetadataType::getStorage)
+                                .extracting(StorageMetadataType::getCreateTimestamp)
+                                .extracting(MiscUtil::asMillis)
+                                .isNotNull()
+                                .matches(ts -> expectedAssignmentPath.storageCreateTimestampPredicate.test(ts));
+                        assertThat(m)
+                                .extracting(ValueMetadataType::getProvenance)
+                                .extracting(ProvenanceMetadataType::getAssignmentPath)
+                                .extracting(ap -> ap.getSegment(), listAsserterFactory(AssignmentPathSegmentMetadataType.class))
+                                .extracting(s -> s.getTargetRef().getOid())
+                                .containsExactly(expectedAssignmentPath.targetRefOids);
+                    });
+        }
+
+        // We also want to check that each path has assignmentId in its first segment.
+        for (ValueMetadataType metadataValue : metadataValues) {
+            AssignmentPathMetadataType assignmentPath = metadataValue.getProvenance().getAssignmentPath();
+            assertThat(assignmentPath.getSegment().get(0).getAssignmentId())
+                    .withFailMessage(() -> "assignmentId must not be null in the first segment for path " + assignmentPath)
+                    .isNotNull();
         }
     }
 

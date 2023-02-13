@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -260,9 +260,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             return delta;
         }
         if (lastRelated.getExecutionResult().isSuccess() &&
-                lastRelated.containsDelta(delta, EquivalenceStrategy.IGNORE_METADATA)) {
-            // case 1 - exact match found with SUCCESS result,
-            // let's skip the processing of our delta
+                lastRelated.containsDelta(delta, EquivalenceStrategy.DATA)) {
+            // Case 1 - exact match found with SUCCESS result, let's skip the processing of our delta.
+            // Equivalence strategy DATA is used to consider the metadata as well.
             return null;
         }
         if (!delta.isAdd()) {
