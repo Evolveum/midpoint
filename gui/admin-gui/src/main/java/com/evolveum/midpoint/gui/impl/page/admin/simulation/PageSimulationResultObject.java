@@ -16,6 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -28,6 +31,8 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,14 +47,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -78,6 +87,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
+    private static final String ID_RELATED_OBJECTS = "relatedObjects";
     private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
@@ -114,11 +124,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected SimulationResultProcessedObjectType load() {
                 Task task = getPageTask();
 
-                Long id = null;
-                try {
-                    id = Long.parseLong(getPageParameterContainerId());
-                } catch (Exception ignored) {
-                }
+                Long id = getPageParameterContainerId();
 
                 if (id == null) {
                     throw new RestartResponseException(PageError404.class);
@@ -248,7 +254,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                                 Object[] names = object.getEventMarkRef().stream()
                                         .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, PageSimulationResultObject.this))
-                                        .filter(name -> name != null)
+                                        .filter(Objects::nonNull)
                                         .sorted()
                                         .toArray();
 
@@ -276,6 +282,11 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected VisualizationDto load() {
+                ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
+                if (objectDelta == null) {
+                    return null;
+                }
+
                 Visualization visualization;
                 try {
                     ObjectDelta delta = DeltaConvertor.createObjectDelta(objectModel.getObject().getDelta());
@@ -319,10 +330,40 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                PageSimulationResultObject.this.onBackPerformed(target);
+                PageSimulationResultObject.this.onBackPerformed();
             }
         };
         add(navigation);
+
+        IModel<Search<SimulationResultProcessedObjectType>> searchModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected Search<SimulationResultProcessedObjectType> load() {
+                return new SearchBuilder<>(SimulationResultProcessedObjectType.class)
+                        .modelServiceLocator(PageSimulationResultObject.this)
+                        .build();
+            }
+        };
+
+        RelatedObjectsProvider provider = new RelatedObjectsProvider(this, searchModel) {
+
+            @Override
+            protected @NotNull String getSimulationResultOid() {
+                return PageSimulationResultObject.this.getPageParameterResultOid();
+            }
+
+            @Override
+            protected @NotNull Long getProcessedObjectId() {
+                return PageSimulationResultObject.this.getPageParameterContainerId();
+            }
+        };
+
+        List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
+
+        DataTable<SelectableBean<SimulationResultProcessedObjectType>, String> relatedObjects =
+                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 20);
+        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 0));
+        add(relatedObjects);
 
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 () -> "fa-solid fa-circle-question",
@@ -331,7 +372,52 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         add(details);
 
         VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
+        panel.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
         add(panel);
+    }
+
+    private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
+        List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
+        columns.add(GuiSimulationsUtil.createProcessedObjectIconColumn());
+        columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                onRelatedObjectClicked(rowModel.getObject());
+            }
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return () -> {
+                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
+                    if (obj == null || obj.getName() == null) {
+                        return getString("ProcessedObjectsPanel.unnamed");
+                    }
+
+                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
+                };
+            }
+        });
+        columns.add(new LambdaColumn<>(null, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue)));
+
+        return columns;
+    }
+
+    private void onRelatedObjectClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
+        SimulationResultProcessedObjectType object = bean.getValue();
+        if (object == null) {
+            return;
+        }
+
+        PageParameters params = new PageParameters();
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+        String markOid = getPageParameterMarkOid();
+        if (markOid != null) {
+            params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
+        }
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
+
+        navigateToNext(PageSimulationResultObject.class, params);
     }
 
     @Override
@@ -339,7 +425,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         return () -> null;
     }
 
-    private void onBackPerformed(AjaxRequestTarget target) {
+    private void onBackPerformed() {
         redirectBack();
     }
 }

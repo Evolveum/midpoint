@@ -13,6 +13,19 @@
     <div class="row">
         <div class="col-3">
             <div wicket:id="details"/>
+            <wicket:enclosure wicket:child="relatedObjects">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fa-sharp fa-solid fa-bookmark mr-1"></i>
+                            <wicket:message key="PageSimulationResultObject.relatedObjects"/>
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table" wicket:id="relatedObjects"/>
+                    </div>
+                </div>
+            </wicket:enclosure>
         </div>
         <div class="col-9 row">
             <div wicket:id="changes"/>

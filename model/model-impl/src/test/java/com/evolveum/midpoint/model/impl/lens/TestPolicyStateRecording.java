@@ -6,31 +6,34 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Tests recording of policy situations into objects and assignments.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyStateRecording extends AbstractLensTest {
 
@@ -46,19 +49,18 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     private static final File ROLE_A_TEST_2B_FILE = new File(TEST_DIR, "a-test-2b.xml");
     private static String roleATest2bOid;
     private static final File ROLE_A_TEST_2C_FILE = new File(TEST_DIR, "a-test-2c.xml");
-    private static String roleATest2cOid;
     private static final File ROLE_A_TEST_3A_FILE = new File(TEST_DIR, "a-test-3a.xml");
     private static String roleATest3aOid;
     private static final File ROLE_A_TEST_3B_FILE = new File(TEST_DIR, "a-test-3b.xml");
     private static String roleATest3bOid;
     private static final File ROLE_A_TEST_3X_FILE = new File(TEST_DIR, "a-test-3x.xml");
-    private static String roleATest3xOid;
     private static final File ROLE_A_TEST_3Y_FILE = new File(TEST_DIR, "a-test-3y.xml");
-    private static String roleATest3yOid;
     private static final File ROLE_A_TEST_WRONG_FILE = new File(TEST_DIR, "a-test-wrong.xml");
     private static String roleATestWrongOid;
     private static final File METAROLE_COMMON_RULES_FILE = new File(TEST_DIR, "metarole-common-rules.xml");
     private static String metaroleCommonRulesOid;
+
+    private int newAssignmentValueMetadataExecutionRecordOverhead = 0;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -73,9 +75,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         metaroleCommonRulesOid = addAndRecompute(METAROLE_COMMON_RULES_FILE, initTask, initResult);
         roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A_FILE, initTask, initResult);
         roleATest2bOid = addAndRecompute(ROLE_A_TEST_2B_FILE, initTask, initResult);
-        roleATest2cOid = addAndRecompute(ROLE_A_TEST_2C_FILE, initTask, initResult);
-        roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X_FILE, initTask, initResult);
-        roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y_FILE, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_2C_FILE, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3X_FILE, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3Y_FILE, initTask, initResult);
         roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A_FILE, initTask, initResult);
         roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B_FILE, initTask, initResult);
         roleATestWrongOid = addAndRecompute(ROLE_A_TEST_WRONG_FILE, initTask, initResult);
@@ -86,18 +88,20 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         InternalMonitor.reset();
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+        if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult))) {
+            newAssignmentValueMetadataExecutionRecordOverhead = 1;
+        }
     }
 
     @Test
     public void test100JackAssignRoleJudge() throws Exception {
-        // GIVEN
+        given();
         Task task = createPlainTask();
 
-        // WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, task.getResult());
 
-        // THEN
         then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
@@ -110,16 +114,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 jack.getAssignment().get(0).getPolicySituation());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(1);
+        dummyAuditService.assertExecutionRecords(1 + newAssignmentValueMetadataExecutionRecordOverhead);
     }
 
     @Test
     public void test110JackAssignRolePirate() throws Exception {
-        // WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
@@ -138,15 +140,13 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // should keep the situation for both assignments
     @Test
     public void test120RecomputeJack() throws Exception {
-        // GIVEN
+        given();
         dummyAuditService.clear();
 
-        // WHEN
         when();
         executeChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_JACK_OID),
                 executeOptions().reconcile(), getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
@@ -167,11 +167,10 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test130JackUnassignRolePirate() throws Exception {
-        // GIVEN
+        given();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         AssignmentType pirateAssignment = findAssignmentByTargetRequired(jack.asPrismObject(), ROLE_PIRATE_OID);
 
-        // WHEN
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
@@ -179,7 +178,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .asObjectDelta(USER_JACK_OID);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
@@ -197,18 +195,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test200BobAssign2a3a() throws Exception {
-        // GIVEN
-
-        // WHEN
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                        .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
-                                createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
+                        createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         UserType bob = getUser(userBobOid).asObjectable();
         display("bob", bob);
@@ -225,14 +219,12 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 bob.getAssignment().get(1).getPolicySituation());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(1);            // no policy state update
+        // no policy state update
+        dummyAuditService.assertExecutionRecords(1 + newAssignmentValueMetadataExecutionRecordOverhead);
     }
 
     @Test
     public void test210BobAssign2b3b() throws Exception {
-        // GIVEN
-
-        // WHEN
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
@@ -241,7 +233,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         UserType bob = getUser(userBobOid).asObjectable();
         display("bob", bob);
@@ -274,17 +265,15 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (no IDs)
     @Test
     public void test220AliceAssign2a2b() throws Exception {
-        // GIVEN
+        given();
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
                 .assignment(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext))
                 .assignment(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext));
 
-        // WHEN
         when();
         addObject(alice, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         alice = getUser(alice.getOid()).asObjectable();
         display("alice", alice);
@@ -305,7 +294,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (explicit IDs)
     @Test
     public void test230ChuckAssign2a2b() throws Exception {
-        // GIVEN
+        given();
         AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
         assignment2a.setId(100L);
         AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
@@ -315,11 +304,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(assignment2a)
                 .assignment(assignment2b);
 
-        // WHEN
         when();
         addObject(chuck, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         chuck = getUser(chuck.getOid()).asObjectable();
         display("chuck", chuck);
@@ -340,7 +327,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (explicit IDs, explicit OID)
     @Test
     public void test240DanAssign2a2b() throws Exception {
-        // GIVEN
+        given();
         AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
         assignment2a.setId(100L);
         AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
@@ -351,11 +338,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(assignment2a)
                 .assignment(assignment2b);
 
-        // WHEN
         when();
         addObject(dan, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         dan = getUser(dan.getOid()).asObjectable();
         display("dan", dan);
@@ -376,7 +361,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // modified user, new assignment (with ID)
     @Test
     public void test250EveAssign2b() throws Exception {
-        // WHEN
         when();
         AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
         assignment2b.setId(200L);
@@ -386,7 +370,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .asObjectDelta(userEveOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         UserType eve = getUser(userEveOid).asObjectable();
         display("eve after", eve);
@@ -406,16 +389,12 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test300MakeRoleWrong() throws Exception {
-        // GIVEN
-
-        // WHEN
         when();
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("wrong")
                 .asObjectDelta(roleATestWrongOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         RoleType wrong = getRole(roleATestWrongOid).asObjectable();
         display("role 'wrong'", wrong);
@@ -429,17 +408,15 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test310CreateWrongRole() throws Exception {
-        // GIVEN
+        given();
         RoleType wrong2 = prismContext.createObjectable(RoleType.class)
                 .name("wrong-2")
                 .description("wrong")
                 .assignment(createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext));
 
-        // WHEN
         when();
         addObject(wrong2, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         wrong2 = getRole(wrong2.getOid()).asObjectable();
         display("role 'wrong-2'", wrong2);
@@ -453,7 +430,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test320CreateWrongRoleKnownOid() throws Exception {
-        // GIVEN
+        given();
         AssignmentType assignmentCommon = createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext);
         assignmentCommon.setId(300L);
         RoleType wrong3 = prismContext.createObjectable(RoleType.class)
@@ -462,11 +439,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .description("wrong")
                 .assignment(assignmentCommon);
 
-        // WHEN
         when();
         addObject(wrong3, getTestTask(), getTestOperationResult());
 
-        // THEN
         then();
         wrong3 = getRole(wrong3.getOid()).asObjectable();
         display("role 'wrong-3'", wrong3);
@@ -477,5 +452,4 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);            // no extra policy state update
     }
-
 }

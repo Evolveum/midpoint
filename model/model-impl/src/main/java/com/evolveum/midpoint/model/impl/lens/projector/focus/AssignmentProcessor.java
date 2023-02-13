@@ -69,6 +69,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1023,14 +1024,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
-        if (sysconfig == null) {
-            return; // unlikely
-        }
-        RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
-        if (roleManagement == null || !Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled())) {
-        // TODO enable by default after fixing failing model tests
-//        if (roleManagement != null && Boolean.FALSE.equals(roleManagement.isAccessesMetadataEnabled())) {
-            return; // not enabled
+        if (!SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+            return;
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
