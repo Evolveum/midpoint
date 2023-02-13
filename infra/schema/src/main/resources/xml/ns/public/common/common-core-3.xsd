@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress XmlUnusedNamespaceDeclaration -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -14207,12 +14208,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO fix names, consult - experimental? -->
-            <xsd:element name="accessesMetadataEnabled" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="accessesMetadataEnabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Global switch that enables accesses metadata processing for assignment holders.
-                        That stores not only indirect assignments but also the details how it appeared on the object.
+                        Global switch that enables/disables accesses metadata processing for assignment holders.
+                        When enabled assignment holder object stores not only indirect assignments (roleMembershipRef)
+                        but also the details how it appeared on the object.
+
+                        This is enabled by default.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>
