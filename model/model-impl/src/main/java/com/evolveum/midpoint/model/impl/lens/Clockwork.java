@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
 
 import com.evolveum.midpoint.task.api.SimulationTransaction;
@@ -35,8 +36,6 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -73,8 +72,7 @@ public class Clockwork {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private EventDispatcher eventDispatcher;
     @Autowired private Tracer tracer;
-    @Autowired private PolicyRuleEnforcer policyRuleEnforcer;
-    @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private OperationExecutionRecorderForClockwork operationExecutionRecorder;
@@ -331,8 +329,7 @@ public class Clockwork {
                 throw new SystemException("Unexpected execution conflict detected: " + e.getMessage(), e);
             }
             clockworkHookHelper.invokePreview(context, task, result);
-            policyRuleEnforcer.execute(context, result);
-            policyRuleSuspendTaskExecutor.execute(context, task, result);
+            policyRuleProcessor.enforce(context, result);
 
         } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
                 CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |

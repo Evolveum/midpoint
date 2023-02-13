@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -38,8 +40,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSe
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -127,8 +127,7 @@ public class ModelBeans {
     @Autowired public PersonaProcessor personaProcessor;
     @Autowired public ChangeExecutor changeExecutor;
     @Autowired public Projector projector;
-    @Autowired public PolicyRuleEnforcer policyRuleEnforcer;
-    @Autowired public PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
+    @Autowired public PolicyRuleProcessor policyRuleProcessor;
     @Autowired public ClockworkHookHelper clockworkHookHelper;
     @Autowired public SecurityHelper securityHelper;
     @Autowired public CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;

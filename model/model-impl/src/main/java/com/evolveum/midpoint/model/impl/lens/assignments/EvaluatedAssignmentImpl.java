@@ -446,7 +446,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getAllTargetsPolicyRules() {
-        return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
+        return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream())
+                .collect(Collectors.toList());
     }
 
     @Override

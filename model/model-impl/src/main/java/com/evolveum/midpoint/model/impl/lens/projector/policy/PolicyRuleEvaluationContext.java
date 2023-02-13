@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 /**
- * Evaluation context for a policy rule.
+ * Evaluation context for a policy rule. Common for assignment- and object-based rules.
  */
 public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 

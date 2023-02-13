@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -42,7 +41,7 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
     private static final String CONSTRAINT_KEY = "transition";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private PolicyConstraintsEvaluator policyConstraintsEvaluator;
 
     @Override
     public <O extends ObjectType> EvaluatedPolicyRuleTrigger<?> evaluate(
@@ -86,8 +85,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
             return true;
         }
         PolicyRuleEvaluationContext<O> subContext = rctx.cloneWithStateConstraints(state);
-        List<EvaluatedPolicyRuleTrigger<?>> subTriggers = policyRuleProcessor
-                .evaluateConstraints(trans.getConstraints(), true, subContext, result);
+        List<EvaluatedPolicyRuleTrigger<?>> subTriggers =
+                policyConstraintsEvaluator.evaluateConstraints(trans.getConstraints(), true, subContext, result);
         triggers.addAll(subTriggers);
         boolean real = !subTriggers.isEmpty();
         return expected == real;

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleCounterUpdater;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
@@ -66,7 +65,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
-    @Autowired private PolicyRuleCounterUpdater policyRuleCounterUpdater;
     @Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
     @Autowired private ClockworkMedic medic;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -79,10 +77,11 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
     private RepositoryService cacheRepositoryService;
 
     @ProcessorMethod
-    public <AH extends AssignmentHolderType> void processFocus(LensContext<AH> context, String activityDescription, XMLGregorianCalendar now,
-            Task task, OperationResult result)
+    public <AH extends AssignmentHolderType> void processFocus(
+            LensContext<AH> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConflictDetectedException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
+            ConflictDetectedException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
@@ -115,21 +114,24 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
                 // ACTIVATION
 
-                medic.partialExecute(Components.FOCUS_ACTIVATION, focusActivationProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_ACTIVATION, focusActivationProcessor,
                         focusActivationProcessor::processActivationBeforeObjectTemplate,
                         partialProcessingOptions::getFocusActivation,
                         Projector.class, context, now, task, result);
 
                 // OBJECT TEMPLATE (before assignments)
 
-                medic.partialExecute(Components.OBJECT_TEMPLATE_BEFORE_ASSIGNMENTS, objectTemplateProcessor,
+                medic.partialExecute(
+                        Components.OBJECT_TEMPLATE_BEFORE_ASSIGNMENTS, objectTemplateProcessor,
                         objectTemplateProcessor::processTemplateBeforeAssignments,
                         partialProcessingOptions::getObjectTemplateBeforeAssignments,
                         Projector.class, context, now, task, result);
 
                 // Process activation again. Object template might have changed it.
 
-                medic.partialExecute(Components.FOCUS_ACTIVATION, focusActivationProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_ACTIVATION, focusActivationProcessor,
                         focusActivationProcessor::processActivationAfterObjectTemplate,
                         partialProcessingOptions::getFocusActivation,
                         Projector.class, context, now, task, result);
@@ -138,34 +140,40 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
                 focusContext.clearPendingPolicyStateModifications();
 
-                medic.partialExecute(Components.ASSIGNMENTS, assignmentProcessor,
+                medic.partialExecute(
+                        Components.ASSIGNMENTS, assignmentProcessor,
                         assignmentProcessor::processAssignments,
                         partialProcessingOptions::getAssignments,
                         Projector.class, context, now, task, result);
 
-                medic.partialExecute(Components.ASSIGNMENTS_ORG, assignmentProcessor,
+                medic.partialExecute(
+                        Components.ASSIGNMENTS_ORG, assignmentProcessor,
                         assignmentProcessor::processOrgAssignments,
                         partialProcessingOptions::getAssignmentsOrg,
                         Projector.class, context, now, task, result);
 
-                medic.partialExecute(Components.ASSIGNMENTS_MEMBERSHIP_AND_DELEGATE, assignmentProcessor,
+                medic.partialExecute(
+                        Components.ASSIGNMENTS_MEMBERSHIP_AND_DELEGATE, assignmentProcessor,
                         assignmentProcessor::processMembershipAndDelegatedRefs,
                         partialProcessingOptions::getAssignmentsMembershipAndDelegate,
                         Projector.class, context, now, task, result);
 
-                medic.partialExecute(Components.ASSIGNMENTS_CONFLICTS, assignmentProcessor,
+                medic.partialExecute(
+                        Components.ASSIGNMENTS_CONFLICTS, assignmentProcessor,
                         assignmentProcessor::checkForAssignmentConflicts,
                         partialProcessingOptions::getAssignmentsConflicts,
                         Projector.class, context, now, task, result);
 
-                medic.partialExecute(Components.FOCUS_LIFECYCLE, focusLifecycleProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_LIFECYCLE, focusLifecycleProcessor,
                         focusLifecycleProcessor::process,
                         partialProcessingOptions::getFocusLifecycle,
                         Projector.class, context, now, task, result);
 
                 // OBJECT TEMPLATE (after assignments)
 
-                medic.partialExecute(Components.OBJECT_TEMPLATE_AFTER_ASSIGNMENTS, objectTemplateProcessor,
+                medic.partialExecute(
+                        Components.OBJECT_TEMPLATE_AFTER_ASSIGNMENTS, objectTemplateProcessor,
                         objectTemplateProcessor::processTemplateAfterAssignments,
                         partialProcessingOptions::getObjectTemplateAfterAssignments,
                         Projector.class, context, now, task, result);
@@ -173,14 +181,16 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 // Process activation again. Second pass through object template might have changed it.
                 // We also need to apply assignment activation if needed.
 
-                medic.partialExecute(Components.FOCUS_ACTIVATION, focusActivationProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_ACTIVATION, focusActivationProcessor,
                         focusActivationProcessor::processActivationAfterAssignments,
                         partialProcessingOptions::getFocusActivation,
                         Projector.class, context, now, task, result);
 
                 // CREDENTIALS (including PASSWORD POLICY)
 
-                medic.partialExecute(Components.FOCUS_CREDENTIALS, credentialsProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_CREDENTIALS, credentialsProcessor,
                         credentialsProcessor::processFocusCredentials,
                         partialProcessingOptions::getFocusCredentials,
                         Projector.class, context, now, task, result);
@@ -188,7 +198,8 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 // We need to evaluate this as a last step. We need to make sure we have all the
                 // focus deltas so we can properly trigger the rules.
 
-                medic.partialExecute(Components.FOCUS_POLICY_RULES, policyRuleProcessor,
+                medic.partialExecute(
+                        Components.FOCUS_POLICY_RULES, policyRuleProcessor,
                         policyRuleProcessor::evaluateFocusPolicyRules,
                         partialProcessingOptions::getFocusPolicyRules,
                         Projector.class, context, now, task, result);
@@ -225,8 +236,10 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
         context.recomputeFocus();
         itemLimitationsChecker.checkItemsLimitations(focusContext);
 
-        medic.partialExecute(Components.POLICY_RULE_COUNTERS, policyRuleCounterUpdater,
-                policyRuleCounterUpdater::updateCounters,
+        medic.partialExecute(
+                Components.POLICY_RULE_COUNTERS,
+                policyRuleProcessor,
+                policyRuleProcessor::updateCounters,
                 partialProcessingOptions::getPolicyRuleCounters,
                 Projector.class, context, now, task, result);
 

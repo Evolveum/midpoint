@@ -454,7 +454,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
     }
 
-    private PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
+    private static PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
         if (assignment != null) {
             PrismContainerDefinition<?> definition = assignment.asPrismContainerValue().getDefinition();
             if (definition != null) {
@@ -537,6 +537,39 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public void setCount(int value) {
         count = value;
+    }
+
+    @Override
+    public boolean isOverThreshold() throws ConfigurationException {
+        // TODO: better implementation that takes high water mark into account
+        PolicyThresholdType thresholdSettings = getPolicyThreshold();
+        WaterMarkType lowWaterMark = thresholdSettings != null ? thresholdSettings.getLowWaterMark() : null;
+        if (lowWaterMark == null) {
+            LOGGER.trace("No low water mark defined.");
+            return true;
+        }
+        Integer lowWaterCount = lowWaterMark.getCount();
+        if (lowWaterCount == null) {
+            throw new ConfigurationException("No count in low water mark in a policy rule");
+        }
+        return count >= lowWaterCount;
+    }
+
+    @Override
+    public boolean hasSituationConstraint() {
+        return hasSituationConstraint(getPolicyConstraints());
+    }
+
+    private boolean hasSituationConstraint(Collection<PolicyConstraintsType> constraints) {
+        return constraints.stream().anyMatch(this::hasSituationConstraint);
+    }
+
+    private boolean hasSituationConstraint(PolicyConstraintsType constraints) {
+        return constraints != null &&
+                (!constraints.getSituation().isEmpty() ||
+                        hasSituationConstraint(constraints.getAnd()) ||
+                        hasSituationConstraint(constraints.getOr()) ||
+                        hasSituationConstraint(constraints.getNot()));
     }
 
     @NotNull Collection<String> getTriggeredEventMarks() {

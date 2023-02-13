@@ -8,7 +8,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -497,5 +499,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void deleteEmptyPrimaryDelta() {
         state.deleteEmptyPrimaryDelta();
+    }
+
+    public @NotNull LensContext<O> getLensContext() {
+        //noinspection unchecked
+        return (LensContext<O>) lensContext;
     }
 }

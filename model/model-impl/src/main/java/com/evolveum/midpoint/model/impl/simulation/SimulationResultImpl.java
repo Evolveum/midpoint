@@ -131,14 +131,14 @@ public class SimulationResultImpl implements SimulationResult {
                 for (SearchFilterType includeFilter : marksUse.getInclude()) {
                     var filter = PrismContext.get().getQueryConverter().parseFilter(includeFilter, MarkType.class);
                     if (filter.match(eventMark.asPrismContainerValue(), matchingRuleRegistry)) {
-                        LOGGER.trace("Mark {} is enabled by include filter: {}", eventMark, filter);
+                        LOGGER.trace("computeMarkEnabled: Mark {} is enabled by include filter: {}", eventMark, filter);
                         return true;
                     }
                 }
                 for (SearchFilterType excludeFilter : marksUse.getExclude()) {
                     var filter = PrismContext.get().getQueryConverter().parseFilter(excludeFilter, MarkType.class);
                     if (filter.match(eventMark.asPrismContainerValue(), matchingRuleRegistry)) {
-                        LOGGER.trace("Mark {} is disabled by exclude filter: {}", eventMark, filter);
+                        LOGGER.trace("computeMarkEnabled: Mark {} is disabled by exclude filter: {}", eventMark, filter);
                         return false;
                     }
                 }
@@ -147,7 +147,7 @@ public class SimulationResultImpl implements SimulationResult {
                         String.format("Couldn't evaluate event mark filter for %s: %s", eventMark, e.getMessage()), e);
             }
         }
-        LOGGER.trace("Mark {} is enabled/disabled by default: {}", eventMark, enabledByDefault);
+        LOGGER.trace("computeMarkEnabled: Mark {} is enabled by default: {}", eventMark, enabledByDefault);
         return enabledByDefault;
     }
 }

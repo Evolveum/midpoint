@@ -6,36 +6,30 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.Objects;
 
 /**
- * Takes care of updating policySituation and triggered rules for focus and assignments. (Originally was a part of PolicyRuleProcessor.)
+ * Takes care of updating policySituation and triggered rules for focus and assignments. (Originally was a part of PolicyRuleEvaluator.)
  *
  * @author semancik
  */
-@Component
-public class PolicyStateRecorder {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PolicyStateRecorder.class);
-
-    @Autowired private PrismContext prismContext;
+class PolicyStateRecorder {
 
     <O extends ObjectType> void applyObjectState(LensElementContext<O> elementContext, List<EvaluatedPolicyRule> rulesToRecord)
             throws SchemaException {
@@ -47,24 +41,27 @@ public class PolicyStateRecorder {
         O objectNew = elementContext.getObjectNew().asObjectable();
         ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
-            elementContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
-                    .item(ObjectType.F_POLICY_SITUATION)
+            elementContext.addToPendingObjectPolicyStateModifications(
+                    PrismContext.get().deltaFor(ObjectType.class)
+                            .item(ObjectType.F_POLICY_SITUATION)
                             .oldRealValues(cr.oldPolicySituations)
                             .replaceRealValues(cr.newPolicySituations)
-                    .asItemDelta());
+                            .asItemDelta());
         }
         if (cr.rulesNeedUpdate) {
-            elementContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
-                    .item(ObjectType.F_TRIGGERED_POLICY_RULE)
+            elementContext.addToPendingObjectPolicyStateModifications(
+                    PrismContext.get().deltaFor(ObjectType.class)
+                            .item(ObjectType.F_TRIGGERED_POLICY_RULE)
                             .oldRealValues(cr.oldTriggeredRules)
                             .replaceRealValues(cr.newTriggeredRules)
-                    .asItemDelta());
+                            .asItemDelta());
         }
     }
 
-    <F extends AssignmentHolderType> void applyAssignmentState(LensContext<F> context,
-            EvaluatedAssignmentImpl<F> evaluatedAssignment, PlusMinusZero mode, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
+    void applyAssignmentState(
+            LensContext<?> context, EvaluatedAssignmentImpl<?> evaluatedAssignment, PlusMinusZero mode,
+            List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
+        LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
             return;
         }
@@ -82,24 +79,30 @@ public class PolicyStateRecorder {
         Long id = assignmentToMatch.getId();
         ComputationResult cr = compute(rulesToRecord, assignmentToCompute.getPolicySituation(), assignmentToCompute.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
-            focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
-                    mode, prismContext.deltaFor(FocusType.class)
-                    .item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION)
-                    .oldRealValues(cr.oldPolicySituations)
-                    .replaceRealValues(cr.newPolicySituations)
-                    .asItemDelta());
+            focusContext.addToPendingAssignmentPolicyStateModifications(
+                    assignmentToMatch,
+                    mode,
+                    PrismContext.get().deltaFor(FocusType.class)
+                            .item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION)
+                            .oldRealValues(cr.oldPolicySituations)
+                            .replaceRealValues(cr.newPolicySituations)
+                            .asItemDelta());
         }
         if (cr.rulesNeedUpdate) {
-            focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
-                    mode, prismContext.deltaFor(FocusType.class)
-                    .item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGERED_POLICY_RULE)
-                    .oldRealValues(cr.oldTriggeredRules)
-                    .replaceRealValues(cr.newTriggeredRules)
-                    .asItemDelta());
+            focusContext.addToPendingAssignmentPolicyStateModifications(
+                    assignmentToMatch,
+                    mode,
+                    PrismContext.get().deltaFor(FocusType.class)
+                            .item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGERED_POLICY_RULE)
+                            .oldRealValues(cr.oldTriggeredRules)
+                            .replaceRealValues(cr.newTriggeredRules)
+                            .asItemDelta());
         }
     }
 
-    private ComputationResult compute(@NotNull List<EvaluatedPolicyRule> rulesToRecord, @NotNull List<String> existingPolicySituation,
+    private ComputationResult compute(
+            @NotNull List<EvaluatedPolicyRule> rulesToRecord,
+            @NotNull List<String> existingPolicySituation,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();
         for (EvaluatedPolicyRule rule : rulesToRecord) {

@@ -29,7 +29,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     public final boolean isKept;
     public final boolean isDeleted;
     public final boolean isDirect;
-    public final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
+    public final DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
     @NotNull private final LensFocusContext<AH> focusContext;
 
     AssignmentPolicyRuleEvaluationContext(
@@ -37,7 +37,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
             boolean isDirect,
             @NotNull LensFocusContext<AH> focusContext,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Task task,
             RulesEvaluationContext globalCtx) {
         this(policyRule, evaluatedAssignment, isDirect, focusContext, evaluatedAssignmentTriple,
@@ -49,7 +49,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
             boolean isDirect,
             @NotNull LensFocusContext<AH> focusContext,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Task task,
             ObjectState state,
             RulesEvaluationContext globalCtx) {

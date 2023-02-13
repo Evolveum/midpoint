@@ -146,7 +146,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             LOGGER.trace("Collecting target policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
 
             EvaluatedPolicyRuleImpl policyRule = createEvaluatedPolicyRule(policyRuleBean);
-            if (appliesDirectly(ctx.assignmentPath)) {
+            if (ctx.assignmentPath.appliesDirectly()) {
                 ctx.evalAssignment.addThisTargetPolicyRule(policyRule);
             } else {
                 ctx.evalAssignment.addOtherTargetPolicyRule(policyRule);
@@ -158,14 +158,5 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean) {
         String ruleId = PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId());
         return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ruleId, ctx.assignmentPath.clone(), ctx.evalAssignment);
-    }
-
-    private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {
-        assert !assignmentPath.isEmpty();
-        // TODO what about deputy relation which does not increase summaryOrder?
-        long zeroOrderCount = assignmentPath.getSegments().stream()
-                .filter(seg -> seg.getEvaluationOrderForTarget().getSummaryOrder() == 0)
-                .count();
-        return zeroOrderCount == 1;
     }
 }

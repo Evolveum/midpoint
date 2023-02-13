@@ -11,12 +11,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -68,7 +71,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     Collection<PolicyExceptionType> getPolicyExceptions();
 
     void addToEvaluatedPolicyRuleBeans(
-            Collection<EvaluatedPolicyRuleType> rules,
+            Collection<EvaluatedPolicyRuleType> ruleBeans,
             PolicyRuleExternalizationOptions options,
             Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector);
 
@@ -106,4 +109,20 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     int getCount();
 
     void setCount(int value);
+
+    boolean isOverThreshold() throws ConfigurationException;
+
+    boolean hasSituationConstraint();
+
+    default boolean isApplicableToFocusObject() {
+        return PolicyRuleTypeUtil.isApplicableToObject(getPolicyRule());
+    }
+
+    default boolean isApplicableToProjection() {
+        return PolicyRuleTypeUtil.isApplicableToProjection(getPolicyRule());
+    }
+
+    default boolean isApplicableToAssignment() {
+        return PolicyRuleTypeUtil.isApplicableToAssignment(getPolicyRule());
+    }
 }
