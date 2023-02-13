@@ -18,6 +18,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -252,7 +254,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                                 Object[] names = object.getEventMarkRef().stream()
                                         .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, PageSimulationResultObject.this))
-                                        .filter(name -> name != null)
+                                        .filter(Objects::nonNull)
                                         .sorted()
                                         .toArray();
 
@@ -280,6 +282,11 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected VisualizationDto load() {
+                ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
+                if (objectDelta == null) {
+                    return null;
+                }
+
                 Visualization visualization;
                 try {
                     ObjectDelta delta = DeltaConvertor.createObjectDelta(objectModel.getObject().getDelta());
@@ -323,7 +330,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                PageSimulationResultObject.this.onBackPerformed(target);
+                PageSimulationResultObject.this.onBackPerformed();
             }
         };
         add(navigation);
@@ -353,7 +360,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
-        DataTable relatedObjects = new SelectableDataTable(ID_RELATED_OBJECTS, columns, provider, 20);
+        DataTable<SelectableBean<SimulationResultProcessedObjectType>, String> relatedObjects =
+                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 20);
         relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 0));
         add(relatedObjects);
 
@@ -364,6 +372,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         add(details);
 
         VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
+        panel.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
         add(panel);
     }
 
@@ -374,11 +383,11 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                onRelatedObjectClicked(target, rowModel.getObject());
+                onRelatedObjectClicked(rowModel.getObject());
             }
 
             @Override
-            protected IModel createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+            protected IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
                     if (obj == null || obj.getName() == null) {
@@ -389,12 +398,26 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 };
             }
         });
+        columns.add(new LambdaColumn<>(null, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue)));
 
         return columns;
     }
 
-    private void onRelatedObjectClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
-        // todo implement
+    private void onRelatedObjectClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
+        SimulationResultProcessedObjectType object = bean.getValue();
+        if (object == null) {
+            return;
+        }
+
+        PageParameters params = new PageParameters();
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+        String markOid = getPageParameterMarkOid();
+        if (markOid != null) {
+            params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
+        }
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
+
+        navigateToNext(PageSimulationResultObject.class, params);
     }
 
     @Override
@@ -402,7 +425,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         return () -> null;
     }
 
-    private void onBackPerformed(AjaxRequestTarget target) {
+    private void onBackPerformed() {
         redirectBack();
     }
 }

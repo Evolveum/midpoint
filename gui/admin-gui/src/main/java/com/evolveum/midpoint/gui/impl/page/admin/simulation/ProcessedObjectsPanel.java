@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -236,5 +237,34 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public void refreshTable(AjaxRequestTarget target) {
+        super.refreshTable(target);
+
+        // Here we want to align what is search item for "event mark" (which oid) with page url.
+        // Url should be updated if selected mark oid has changed so that navigation works correctly
+        // between processed object list and details, same for bookmarking urls.
+
+        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        if (!(wrapper instanceof AvailableMarkSearchItemWrapper)) {
+            return;
+        }
+
+        AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
+        DisplayableValue<String> value = markWrapper.getValue();
+        String newMarkOid = value != null ? value.getValue() : null;
+        if (Objects.equals(getMarkOid(), newMarkOid)) {
+            return;
+        }
+
+        PageParameters params = getPage().getPageParameters();
+        params.remove(SimulationPage.PAGE_PARAMETER_MARK_OID);
+        if (newMarkOid != null) {
+            params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, newMarkOid);
+        }
+
+        throw new RestartResponseException(getPage());
     }
 }

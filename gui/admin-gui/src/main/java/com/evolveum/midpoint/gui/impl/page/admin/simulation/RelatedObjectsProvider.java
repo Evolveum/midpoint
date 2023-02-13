@@ -15,7 +15,7 @@ public class RelatedObjectsProvider extends SelectableBeanContainerDataProvider<
     public static final String SORT_BY_NAME = "name";
 
     public RelatedObjectsProvider(Component component, @NotNull IModel<Search<SimulationResultProcessedObjectType>> searchModel) {
-        super(component, searchModel, null, false);
+        super(component, searchModel, null, true);
     }
 
     @Override
