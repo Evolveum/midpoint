@@ -230,6 +230,19 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return true;
         }
 
+        if (syncCtx.isMarkedSkipSynchronization()) {
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for marked shadow %s, ignoring change from channel %s", shadow, channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .updateCoordinatesIfMissing();
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(PROTECTED);
+            return true;
+        }
+
+
         if (syncCtx.isProtected()) {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);

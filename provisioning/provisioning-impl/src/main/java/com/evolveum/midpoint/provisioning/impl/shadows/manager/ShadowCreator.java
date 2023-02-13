@@ -213,8 +213,8 @@ public class ShadowCreator {
             repoShadow.setProtectedObject(null);
         }
 
-        if (repoShadow.getEffectiveProvisioningPolicy() != null) {
-            repoShadow.setEffectiveProvisioningPolicy(null);
+        if (repoShadow.getEffectiveOperationPolicy() != null) {
+            repoShadow.setEffectiveOperationPolicy(null);
         }
 
         normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());

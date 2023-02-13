@@ -1,19 +1,16 @@
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.repo.common;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,13 +24,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EffectiveShadowProvisioningPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowProvisioningPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizeOperationPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueSeverityType;
 import com.google.common.base.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.*;
@@ -43,15 +43,15 @@ public class ShadowMarkManager {
 
     private abstract class Impl {
 
-        protected abstract Collection<ObjectReferenceType> getEffectiveMarkRefs(ShadowType shadow, OperationResult result);
+        protected abstract Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result);
 
         protected abstract boolean isProtectedByResourcePolicy(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs);
 
-        protected abstract boolean policyNotExcluded(ShadowType shadow, String markProtectedShadowOid);
+        protected abstract boolean policyNotExcluded(ObjectType shadow, String markProtectedShadowOid);
 
-        protected abstract EffectiveShadowProvisioningPolicyType computeEffectivePolicy(
+        protected abstract ObjectOperationPolicyType computeEffectivePolicy(
                 Collection<ObjectReferenceType> effectiveMarkRefs,
-                ShadowType shadow, OperationResult result);
+                ObjectType shadow, OperationResult result);
 
         protected abstract void setEffectiveMarks(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs);
 
@@ -86,7 +86,7 @@ public class ShadowMarkManager {
         ObjectQuery query = prismContext.queryFor(MarkType.class)
             //.item(TagType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
              // Tag is Shadow Marks
-            .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
+            .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
             .and()
             // Tag is assigned to shadow
             .id(tagRefIds)
@@ -100,6 +100,12 @@ public class ShadowMarkManager {
 
     public static ShadowMarkManager get() {
         return instance;
+    }
+
+    public ObjectOperationPolicyType computeEffectivePolicy(ObjectType shadow, OperationResult result) {
+        Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);
+        return behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
+
     }
 
     public void updateEffectiveMarksAndPolicies(Collection<ResourceObjectPattern> protectedAccountPatterns,
@@ -163,11 +169,16 @@ public class ShadowMarkManager {
     }
 
     private void updateShadowObject(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs,
-            EffectiveShadowProvisioningPolicyType effectivePolicy) {
+            ObjectOperationPolicyType effectivePolicy) {
         behaviour.setEffectiveMarks(shadow, effectiveMarkRefs);
 
-        shadow.setEffectiveProvisioningPolicy(effectivePolicy);
-        if (Boolean.TRUE.equals(effectivePolicy.isProtected())) {
+        shadow.setEffectiveOperationPolicy(effectivePolicy);
+        if (!effectivePolicy.getAdd().isEnabled()
+                && !effectivePolicy.getModify().isEnabled()
+                && !effectivePolicy.getDelete().isEnabled()
+                && !effectivePolicy.getSynchronize().getInbound().isEnabled()
+                && !effectivePolicy.getSynchronize().getOutbound().isEnabled()
+                ) {
             shadow.setProtectedObject(true);
         }
     }
@@ -181,7 +192,7 @@ public class ShadowMarkManager {
         }
 
         @Override
-        protected Collection<ObjectReferenceType> getEffectiveMarkRefs(ShadowType shadow, OperationResult result) {
+        protected Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result) {
             List<ObjectReferenceType> ret = new ArrayList<>();
             for (var mark : shadow.getEffectiveMarkRef()) {
                 if (mark.getOid() != null && policyNotExcluded(shadow, mark.getOid())) {
@@ -210,11 +221,11 @@ public class ShadowMarkManager {
         }
 
         @Override
-        protected boolean policyNotExcluded(ShadowType shadow, String markOid) {
+        protected boolean policyNotExcluded(ObjectType shadow, String markOid) {
             return containsPolicyStatement(shadow, markOid, EXCLUDE);
         }
 
-        protected boolean containsPolicyStatement(@NotNull ShadowType shadow, @NotNull String markOid, @NotNull PolicyStatementTypeType policyType) {
+        protected boolean containsPolicyStatement(@NotNull ObjectType shadow, @NotNull String markOid, @NotNull PolicyStatementTypeType policyType) {
             for (var statement : shadow.getPolicyStatement()) {
                 if (policyType.equals(statement.getType())) {
                     var markRef = statement.getMarkRef();
@@ -228,21 +239,28 @@ public class ShadowMarkManager {
 
 
         @Override
-        protected EffectiveShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
-                ShadowType shadow, OperationResult result) {
-            var ret = new EffectiveShadowProvisioningPolicyType();
+        protected ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+                ObjectType shadow, OperationResult result) {
+            var ret = new ObjectOperationPolicyType();
             Collection<MarkType>  marks = getShadowMarks(effectiveMarkRefs, result);
 
-            // Account is protected if any of shadow marks set it to protected.
 
-            ret.setProtected(firstNonDefaultValue(marks, ShadowProvisioningPolicyType::isProtected, false));
 
-            // If account is protected all other flags must be marked so.
-            if (Boolean.TRUE.equals(ret.isProtected())) {
-                ret.setReadOnly(true);
-            } else {
-                ret.setReadOnly(firstNonDefaultValue(marks, ShadowProvisioningPolicyType::isReadOnly, false));
-            }
+            ret.setSynchronize(new SynchronizeOperationPolicyConfigurationType()
+                    .inbound(firstNonDefaultValue(marks,
+                            m -> m.getSynchronize() != null ? m.getSynchronize().getInbound(): null,
+                                    true))
+                    .outbound(firstNonDefaultValue(marks,
+                            m -> m.getSynchronize() != null ? m.getSynchronize().getOutbound(): null,
+                                    true))
+
+                    );
+
+
+
+            ret.setAdd(firstNonDefaultValue(marks, ObjectOperationPolicyType::getAdd, true));
+            ret.setModify(firstNonDefaultValue(marks, ObjectOperationPolicyType::getModify, true));
+            ret.setDelete(firstNonDefaultValue(marks, ObjectOperationPolicyType::getDelete, true));
             return ret;
         }
 
@@ -251,7 +269,7 @@ public class ShadowMarkManager {
     private class Legacy extends Impl {
 
         @Override
-        protected Collection<ObjectReferenceType> getEffectiveMarkRefs(ShadowType shadow, OperationResult result) {
+        protected Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result) {
             return new ArrayList<>();
         }
 
@@ -261,21 +279,40 @@ public class ShadowMarkManager {
         }
 
         @Override
-        protected boolean policyNotExcluded(ShadowType shadow, String markProtectedShadowOid) {
+        protected boolean policyNotExcluded(ObjectType shadow, String markProtectedShadowOid) {
             return true;
         }
 
         @Override
-        protected EffectiveShadowProvisioningPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
-                ShadowType shadow, OperationResult result) {
+        protected ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+                ObjectType shadow, OperationResult result) {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
-                return new EffectiveShadowProvisioningPolicyType()
-                        ._protected(true)
-                        .readOnly(true);
+                return new ObjectOperationPolicyType()
+                        .synchronize(new SynchronizeOperationPolicyConfigurationType()
+                                .inbound(op(false, ValidationIssueSeverityType.INFO))
+                                .outbound(op(false, ValidationIssueSeverityType.WARNING))
+                                )
+                        .add(op(false, ValidationIssueSeverityType.ERROR))
+                        .modify(op(false, ValidationIssueSeverityType.ERROR))
+                        .delete(op(false, ValidationIssueSeverityType.ERROR));
             }
-            return new EffectiveShadowProvisioningPolicyType()
-                    ._protected(false)
-                    .readOnly(false);
+            return new ObjectOperationPolicyType()
+                    .synchronize(new SynchronizeOperationPolicyConfigurationType()
+                            .inbound(op(true, null))
+                            .outbound(op(true, null))
+                            )
+                    .add(op(true, null))
+                    .modify(op(true, null))
+                    .delete(op(true, null));
+        }
+
+        private OperationPolicyConfigurationType op(boolean value, ValidationIssueSeverityType severity) {
+            var ret = new OperationPolicyConfigurationType();
+            ret.setEnabled(value);
+            if (!value) {
+                ret.setSeverity(severity);
+            }
+            return ret;
         }
 
         @Override
@@ -284,18 +321,21 @@ public class ShadowMarkManager {
         }
     }
 
-    public static boolean firstNonDefaultValue(Collection<MarkType> marks,
-            Function<ShadowProvisioningPolicyType, Boolean> extractor, boolean defaultValue) {
+    public static OperationPolicyConfigurationType firstNonDefaultValue(Collection<MarkType> marks,
+            Function<ObjectOperationPolicyType, OperationPolicyConfigurationType> extractor, boolean defaultValue) {
         for (var mark : marks) {
-            if (mark.getProvisioningPolicy() != null) {
-                var value = extractor.apply(mark.getProvisioningPolicy());
+            if (mark.getObjectOperationPolicy() != null) {
+                var value = extractor.apply(mark.getObjectOperationPolicy());
+                if (value == null) {
+                    continue;
+                }
+                var enabled = value.isEnabled();
                 // If value is different from default, we return and use it
-                if (value != null && !Objects.equal(defaultValue, value)) {
-                    return value;
+                if (enabled != null && !Objects.equal(defaultValue, enabled)) {
+                    return value.clone();
                 }
             }
         }
-
-        return defaultValue;
+        return new OperationPolicyConfigurationType().enabled(defaultValue);
     }
 }

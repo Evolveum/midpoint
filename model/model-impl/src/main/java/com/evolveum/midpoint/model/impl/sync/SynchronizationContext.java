@@ -193,6 +193,10 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
+    public boolean isMarkedSkipSynchronization() {
+        return !shadowedResourceObject.getEffectiveOperationPolicy().getSynchronize().getInbound().isEnabled();
+    }
+
     public boolean isProtected() {
         return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }

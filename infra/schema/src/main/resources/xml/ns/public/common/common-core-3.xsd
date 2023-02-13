@@ -506,6 +506,37 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="effectiveMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                       Tags and Shadow marks assigned to the shadow.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                        <a:experimental />
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
+           <xsd:element name="policyStatement" type="tns:PolicyStatementType" minOccurs="0" maxOccurs="unbounded">
+               <xsd:annotation>
+                   <xsd:documentation>
+                      Policy statements to manually add or exclude effective marks of shadow.
+                   </xsd:documentation>
+                   <xsd:appinfo>
+                       <a:experimental>true</a:experimental>
+                   </xsd:appinfo>
+               </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="effectiveOperationPolicy" type="tns:ObjectOperationPolicyType" minOccurs="0">
+               <xsd:annotation>
+                 <xsd:documentation>
+                    Effective provisioning policy derived from Shadow marks and resource configuration.
+                 </xsd:documentation>
+                 <xsd:appinfo>
+                     <a:experimental>true</a:experimental>
+                 </xsd:appinfo>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
 
         <xsd:attribute name="oid" type="xsd:string">
@@ -808,7 +839,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="provisioningPolicy" type="tns:ShadowProvisioningPolicyType" minOccurs="0">
+                    <xsd:element name="objectOperationPolicy" type="tns:ObjectOperationPolicyType" minOccurs="0">
                        <xsd:annotation>
                             <xsd:documentation>
                                 Provisioning policy, which is applied to shadows, which have this tag assigned.
@@ -15611,6 +15642,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <!-- Do we want also these tags? -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
@@ -19764,4 +19802,47 @@
             <xsd:element name="selector" type="q:SearchFilterType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="OperationPolicyConfigurationType">
+        <xsd:sequence>
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true" />
+            <xsd:element name="severity" minOccurs="0" type="tns:ValidationIssueSeverityType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="SynchronizeOperationPolicyConfigurationType">
+        <xsd:sequence>
+            <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectOperationPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Shadow specific provisioning policy. This policy is applied to concrete shadows using TagType.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- 
+                 If false: (like protected)
+                 Inbound / outbound mapping changes are disabled 
+                 do not run clockwork (SynchronizationServiceImpl)
+                 do not run inbounds
+                 do not run outbounds
+            -->
+
+            <xsd:element name="synchronize" type="tns:SynchronizeOperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="add" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="modify" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="delete" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    
 </xsd:schema>

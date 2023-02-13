@@ -7,11 +7,35 @@
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000750">
-    <name>Protected Shadow</name>
+    <name>Protected</name>
     <assignment>
-        <targetRef oid="00000000-0000-0000-0000-000000000702" type="ArchetypeType"/>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
     </assignment>
-    <provisioningPolicy>
-       <protected>true</protected>
-    </provisioningPolicy>
+
+    <objectOperationPolicy>
+        <!--  Model Level  -->
+        <synchronize>
+          <inbound>
+              <enabled>false</enabled>
+              <severity>info</severity>
+          </inbound>
+          <outbound>
+              <enabled>false</enabled>
+              <severity>error</severity>
+          </outbound>
+        </synchronize>
+        <!--  Provisioning level -->
+        <add>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </add>
+        <modify>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </modify>
+        <delete>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </delete>
+    </objectOperationPolicy>
 </mark>

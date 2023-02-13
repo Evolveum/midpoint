@@ -50,6 +50,7 @@ import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.ShadowMarkManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -1903,6 +1904,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isMarkedReadOnly() {
-                return Boolean.TRUE.equals(getObjectCurrentOrOld().asObjectable().getEffectiveProvisioningPolicy().isReadOnly());
+        var policy = ShadowMarkManager.get().computeEffectivePolicy(getObjectCurrentOrOld().asObjectable(), new OperationResult("markReadOnly"));
+        return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
     }
 }

@@ -38,10 +38,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ShadowMarkManager;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.repo.common.ShadowMarkManager;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -317,30 +317,31 @@ public class ProvisioningUtil {
     }
 
     public static boolean isAddShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
-        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getAdd().isEnabled();
     }
 
     public static boolean isModifyShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
-        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
     }
 
     public static boolean isDeleteShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
-        return !isProtectedShadow(protectedAccountPatterns, shadow, result);
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
     }
 
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
             throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).isProtected();
+        throw new UnsupportedOperationException("Use operation policy");
+        //return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result);
     }
 
-    private static EffectiveShadowProvisioningPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
+    private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
             ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
-        if (shadow.getEffectiveProvisioningPolicy() != null) {
-            return shadow.getEffectiveProvisioningPolicy();
+        if (shadow.getEffectiveOperationPolicy() != null) {
+            return shadow.getEffectiveOperationPolicy();
         }
         ShadowMarkManager.get().updateEffectiveMarksAndPolicies(
                 protectedAccountPatterns, shadow, result);
-        return shadow.getEffectiveProvisioningPolicy();
+        return shadow.getEffectiveOperationPolicy();
     }
 
     public static void setEffectiveProvisioningPolicy (
