@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.intest.simulation;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -15,6 +17,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -24,6 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
@@ -63,7 +68,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     static final TestResource<ArchetypeType> ARCHETYPE_CUSTOMER = new TestResource<>(
             SIM_TEST_DIR, "archetype-customer.xml", "075ebbed-f3b9-4bac-90c2-bb8811121636");
 
-    private static final String ATTR_TYPE = "type";
+    static final String ATTR_TYPE = "type";
     private static final String ATTR_TELEPHONE_NUMBER = "telephoneNumber";
     private static final String ATTR_MAIL = "mail";
 
@@ -95,14 +100,21 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "resource-simple-production-source.xml",
             "c6caaa46-96c4-4244-883f-2771e18b82c9",
             "simple-production-source",
-            controller -> controller.addAttrDef(
-                    controller.getDummyResource().getAccountObjectClass(),
-                    ATTR_TYPE, String.class, false, false));
-    private static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_SOURCE = new DummyTestResource(
+            controller -> addTypeAttribute(controller));
+
+    static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-source.xml",
             "6d8ba4fd-95ee-4d98-80c2-3a194b566f89",
-            "simple-development-source");
+            "simple-development-source",
+            controller -> addTypeAttribute(controller));
+
+    private static void addTypeAttribute(DummyResourceContoller controller)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        controller.addAttrDef(
+                controller.getDummyResource().getAccountObjectClass(),
+                ATTR_TYPE, String.class, false, false);
+    }
 
     static final String METRIC_ATTRIBUTE_MODIFICATIONS_ID = "attribute-modifications";
 

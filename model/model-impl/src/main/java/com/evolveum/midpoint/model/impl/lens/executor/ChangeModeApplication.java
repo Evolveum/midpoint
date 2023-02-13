@@ -86,7 +86,7 @@ class ChangeModeApplication<E extends ObjectType> {
         Holder<Boolean> reportOnlySeen = new Holder<>(false);
         PrismObject<E> reduced1 = reduce(objectToAdd, configuration.getIgnoredItems(), ignoredSeen);
         PrismObject<E> reduced2 =
-                task.isPersistentExecution() ?
+                task.isExecutionFullyPersistent() ?
                         reduce(reduced1, configuration.getReportOnlyItems(), reportOnlySeen) :
                         reduced1; // no need to skip "report" items, as they will be provided in the simulation report
 
@@ -132,11 +132,11 @@ class ChangeModeApplication<E extends ObjectType> {
                     toApply.add(modification);
                     break;
                 case REPORT:
-                    if (task.isSimulatedExecution()) {
+                    if (task.isExecutionFullyPersistent()) {
+                        toReport.add(modification);
+                    } else {
                         // "report" items will be provided in the simulation report
                         toApply.add(modification);
-                    } else {
-                        toReport.add(modification);
                     }
                     break;
                 case IGNORE:

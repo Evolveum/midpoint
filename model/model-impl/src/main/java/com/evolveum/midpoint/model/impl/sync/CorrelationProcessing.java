@@ -104,7 +104,6 @@ class CorrelationProcessing<F extends FocusType> {
         OperationResult result = parentResult.subresult(OP_CORRELATE)
                 .build();
         try {
-            clearExistingCorrelationState(result);
             CompleteCorrelationResult correlationResult = correlateInRootCorrelator(result);
             applyCorrelationResultToShadow(correlationResult);
 
@@ -133,10 +132,11 @@ class CorrelationProcessing<F extends FocusType> {
             return null;
         }
         CorrelationSituationType situation = correlation.getSituation();
-        if (situation == CorrelationSituationType.EXISTING_OWNER && correlation.getResultingOwner() != null) {
-            ObjectType owner = resolveExistingOwner(correlation.getResultingOwner(), result);
+        ObjectReferenceType resultingOwnerRef = correlation.getResultingOwner();
+        if (situation == CorrelationSituationType.EXISTING_OWNER && resultingOwnerRef != null) {
+            ObjectType owner = resolveExistingOwner(resultingOwnerRef, result);
             if (owner != null) {
-                // We are not interested in other candidates here, hence the null values.
+                // We are not interested in other candidates here, hence the null value into candidateOwnersMap.
                 return CompleteCorrelationResult.existingOwner(owner, null, null);
             } else {
                 LOGGER.trace("Owner reference could not be resolved -> retry the correlation.");
@@ -197,19 +197,6 @@ class CorrelationProcessing<F extends FocusType> {
     private void processFinalResult(OperationResult result) throws SchemaException {
         beans.correlationCaseManager.closeCaseIfStillOpen(getShadow(), result);
         // TODO record case close if needed
-    }
-
-    private void clearExistingCorrelationState(OperationResult result) throws SchemaException {
-        if (syncCtx.getShadowedResourceObject().getCorrelation() == null) {
-            return; // nothing to clear
-        }
-        syncCtx.applyShadowDeltas(
-                beans.prismContext.deltaFor(ShadowType.class)
-                        .item(ShadowType.F_CORRELATION)
-                        .replace()
-                        .asItemDeltas());
-        // We commit this delta now to avoid overlapping with the follow-up correlation state deltas that will be added later.
-        syncCtx.getUpdater().commit(result);
     }
 
     private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {

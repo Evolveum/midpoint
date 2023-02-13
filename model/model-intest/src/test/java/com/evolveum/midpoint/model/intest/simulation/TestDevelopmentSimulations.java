@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 public class TestDevelopmentSimulations extends AbstractBasicSimulationExecutionTest {
 
     @Override
-    TaskExecutionMode getExecutionMode() {
-        return TaskExecutionMode.SIMULATED_DEVELOPMENT;
+    TaskExecutionMode getExecutionMode(boolean shadowSimulation) {
+        return shadowSimulation ? TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT : TaskExecutionMode.SIMULATED_DEVELOPMENT;
     }
 }

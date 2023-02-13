@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.mark;
 
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -21,8 +18,10 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -72,13 +71,7 @@ public class PageMarks extends PageAdmin {
         form.add(new VisibleBehaviour(() -> isNativeRepo()));
         add(form);
 
-        MainObjectListPanel<MarkType> table = new MainObjectListPanel<>(ID_TABLE, MarkType.class) {
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_TAGS_TABLE;
-            }
-        };
+        MainObjectListPanel<MarkType> table = new MarkObjectListPanel(ID_TABLE);
         form.add(table);
     }
 }

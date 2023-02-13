@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class SimplePopupable implements Popupable {
+public abstract class SimplePopupable extends BasePanel implements Popupable {
 
     private int width;
 
@@ -25,7 +27,8 @@ public abstract class SimplePopupable implements Popupable {
 
     private IModel<String> title;
 
-    public SimplePopupable(int width, int height, IModel<String> title) {
+    public SimplePopupable(String id, int width, int height, IModel<String> title) {
+        super(id);
         this.width = width;
         this.height = height;
         this.title = title;
@@ -74,5 +77,10 @@ public abstract class SimplePopupable implements Popupable {
 
     public void setTitle(IModel<String> title) {
         this.title = title;
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
     }
 }

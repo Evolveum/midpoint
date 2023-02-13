@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -148,7 +149,7 @@ public class ProcessingCoordinator<I> {
         LOGGER.warn("Processing was interrupted while processing {} in {}", request, coordinatorTask);
     }
 
-    public void createWorkerThreads() {
+    public void createWorkerThreads() throws ConfigurationException {
         if (threadsCount == 0) {
             return;
         }

@@ -185,7 +185,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
-        if (executionMode.isPersistent()) {
+        if (executionMode.isFullyPersistent()) {
             LOGGER.warn("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
                     task.getName());
 
@@ -203,7 +203,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (options.getSimulationOptions() == null) {
             SimulationOptionsType simulation = new SimulationOptionsType();
 
-            SimulationOptionType option = task.isPersistentExecution() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
+            SimulationOptionType option = task.isExecutionFullyPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
             simulation.setCreateOnDemand(option);
             simulation.setSequence(option);
 

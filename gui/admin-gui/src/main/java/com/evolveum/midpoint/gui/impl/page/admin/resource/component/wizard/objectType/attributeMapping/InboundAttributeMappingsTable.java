@@ -68,6 +68,31 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         columns.add(new IconColumn<>(Model.of()) {
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                return new DisplayType().beginIcon().cssClass("fa fa-minus text-secondary").end();
+            }
+
+            @Override
+            public String getCssClass() {
+                return "";
+            }
+        });
+
+        columns.add(new PrismPropertyWrapperColumn(
+                getMappingTypeDefinition(),
+                MappingType.F_EXPRESSION,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()){
+
+            @Override
+            public String getCssClass() {
+                return "col-xl-2 col-lg-2 col-md-3";
+            }
+
+        });
+
+        columns.add(new IconColumn<>(Model.of()) {
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 return new DisplayType().beginIcon().cssClass("fa fa-arrow-right-long text-secondary").end();
             }
 

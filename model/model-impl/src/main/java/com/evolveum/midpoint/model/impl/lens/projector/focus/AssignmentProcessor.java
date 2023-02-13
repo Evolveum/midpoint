@@ -54,6 +54,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
@@ -1015,8 +1016,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
         setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
-
-        context.recompute(); // really needed?
     }
 
     private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
@@ -1030,6 +1029,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
         RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
         if (roleManagement == null || !Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled())) {
+        // TODO enable by default after fixing failing model tests
+//        if (roleManagement != null && Boolean.FALSE.equals(roleManagement.isAccessesMetadataEnabled())) {
             return; // not enabled
         }
 
@@ -1100,14 +1101,15 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     return;
                 }
             } else {
-                // we don't use QNameUtil.match here, because we want to ensure we store qualified values there
+                List<PrismReferenceValue> existingValues = existingState.getValues();
+                adoptExistingStorageCreateTimestampValueMetadata(targetState, existingValues);
+                // We don't use QNameUtil.match here, because we want to ensure we store qualified values there
                 // (and newValues are all qualified)
                 EqualsChecker<PrismReferenceValue> comparator =
                         (a, b) -> Objects.equals(a.getOid(), b.getOid())
-                                && Objects.equals(a.getRelation(), b.getRelation()
-                                // TODO metadata equals
-                        );
-                if (MiscUtil.unorderedCollectionEquals(targetState, existingState.getValues(), comparator)) {
+                                && Objects.equals(a.getRelation(), b.getRelation())
+                                && a.getValueMetadata().equals(b.getValueMetadata(), EquivalenceStrategy.REAL_VALUE);
+                if (MiscUtil.unorderedCollectionEquals(targetState, existingValues, comparator)) {
                     return;
                 }
             }
@@ -1118,6 +1120,52 @@ public class AssignmentProcessor implements ProjectorProcessor {
         ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
         itemDelta.setValuesToReplace(targetState);
         focusContext.swallowToSecondaryDelta(itemDelta);
+    }
+
+    /** If we find the same assignment path value metadata, we want to preserve original creation date. */
+    private void adoptExistingStorageCreateTimestampValueMetadata(
+            Collection<PrismReferenceValue> targetState, List<PrismReferenceValue> existingValues) {
+        for (PrismReferenceValue ref : targetState) {
+            PrismReferenceValue oldRefMatch = MiscUtil.find(existingValues, ref,
+                    (a, b) -> Objects.equals(a.getOid(), b.getOid())
+                            && Objects.equals(a.getRelation(), b.getRelation()));
+            if (oldRefMatch != null) {
+                mergeAssignmentPathMetadata(ref, oldRefMatch);
+            }
+        }
+    }
+
+    private void mergeAssignmentPathMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
+        List<PrismContainerValue<Containerable>> originalMetadataValues = originalRef.getValueMetadata().getValues();
+        if (originalMetadataValues.isEmpty()) {
+            return;
+        }
+
+        for (PrismContainerValue<Containerable> metadataValue : ref.getValueMetadata().getValues()) {
+            ValueMetadataType metadata = Objects.requireNonNull(metadataValue.getRealValue());
+            ProvenanceMetadataType provenance = metadata.getProvenance();
+            if (provenance == null) {
+                continue; // not assignment path metadata, we leave it as is
+            }
+
+            PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
+                    .filter(m -> provenance.equals(((ValueMetadataType) m.asContainerable()).getProvenance()))
+                    .findFirst()
+                    .orElse(null);
+            if (originalMetadataValue == null) {
+                continue; // no action needed
+            }
+            StorageMetadataType originalStorage = Objects.requireNonNull(
+                            (ValueMetadataType) (originalMetadataValue.getRealValue()))
+                    .getStorage();
+            if (originalStorage == null || originalStorage.getCreateTimestamp() == null) {
+                continue; // strange, but nothing to do about it
+            }
+
+            // This preserves the original assignment path creation time.
+            // Otherwise, each recompute would bump the time which is not what we want to show.
+            metadata.getStorage().setCreateTimestamp(originalStorage.getCreateTimestamp());
+        }
     }
 
     private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {

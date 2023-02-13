@@ -92,7 +92,7 @@ class ScriptExecutor<O extends ObjectType> {
             return;
         }
 
-        if (!task.isPersistentExecution()) {
+        if (!task.isExecutionFullyPersistent()) {
             LOGGER.trace("Not a persistent execution. Skipping processing reconciliation scripts.");
             return;
         }

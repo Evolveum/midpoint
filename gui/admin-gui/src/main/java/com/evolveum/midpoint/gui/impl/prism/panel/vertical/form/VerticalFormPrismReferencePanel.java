@@ -58,13 +58,6 @@ public class VerticalFormPrismReferencePanel<R extends Referencable>
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismReferencePanel.this);
             }
-
-            @Override
-            protected void createRequired(String id) {
-                WebMarkupContainer required = new WebMarkupContainer(id);
-                required.add(new VisibleBehaviour(() -> false));
-                add(required);
-            }
         };
     }
 

@@ -114,7 +114,7 @@ public class ResourceAttributePanel extends ItemRefinedPanel<ResourceAttributeDe
 //    private void collectionOutbounds() {
 //        PrismContainerWrapper<ResourceAttributeDefinitionType> resourceAttributeDef = getModelObject();
 //
-//        for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> resourceAttributeDefVal : resourceAttributeDef.getValues()) {
+//        for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> resourceAttributeDefVal : resourceAttributeDef.getEvaluatorValues()) {
 //            ResourceAttributeDefinitionType resourceAttrRealValue = resourceAttributeDefVal.getRealValue();
 //            if (resourceAttributeDef == null) {
 //                continue;

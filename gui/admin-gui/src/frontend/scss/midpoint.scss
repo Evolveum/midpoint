@@ -1728,9 +1728,9 @@ th.debug-list-buttons {
   }
 }
 
-.conflict-item {
+.card-outline-left {
   @each $name, $color in $theme-colors {
-    &.conflict-item-#{$name} {
+    &.card-outline-left-#{$name} {
       border-left: 5px solid $color;
     }
   }

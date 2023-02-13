@@ -763,11 +763,13 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             RootUpdateContext<SimulationResultType, QObject<MObject>, MObject> update = prepareUpdateContext(jdbcSession, SimulationResultType.class, SqaleUtils.oidToUuidMandatory(oid));
 
             QProcessedObject alias = QProcessedObjectMapping.getProcessedObjectMapping().defaultAlias();
-            jdbcSession.newDelete(alias)
-                    .where(alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
-                            .and(alias.transactionId.eq(transactionId))
-                    )
-                    .execute();
+
+            var predicate = alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid));
+            // If transactionId is null, delete all processed objects
+            // otherwise delete only ones in particular transaction
+            predicate = transactionId != null ? alias.transactionId.eq(transactionId) : predicate;
+
+            jdbcSession.newDelete(alias).where(predicate).execute();
             update.finishExecutionOwn();
             jdbcSession.commit();
             return new ModifyObjectResult<>(update.getPrismObject(), update.getPrismObject(), Collections.emptyList());
