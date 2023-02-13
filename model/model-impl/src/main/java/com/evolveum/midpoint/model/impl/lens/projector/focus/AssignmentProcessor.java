@@ -1089,13 +1089,13 @@ public class AssignmentProcessor implements ProjectorProcessor {
             Collection<PrismReferenceValue> targetState) throws SchemaException {
 
         ItemName itemName = ItemName.fromQName(name);
-        PrismObject<F> focusOld = focusContext.getObjectOld();
-        if (focusOld == null) {
+        PrismObject<F> existingFocus = focusContext.getObjectCurrent();
+        if (existingFocus == null) {
             if (targetState.isEmpty()) {
                 return;
             }
         } else {
-            PrismReference existingState = focusOld.findReference(itemName);
+            PrismReference existingState = existingFocus.findReference(itemName);
             if (existingState == null || existingState.isEmpty()) {
                 if (targetState.isEmpty()) {
                     return;
@@ -1104,7 +1104,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 List<PrismReferenceValue> existingValues = existingState.getValues();
                 adoptExistingStorageCreateTimestampValueMetadata(targetState, existingValues);
                 // We don't use QNameUtil.match here, because we want to ensure we store qualified values there
-                // (and newValues are all qualified)
+                // (and newValues are all qualified).
                 EqualsChecker<PrismReferenceValue> comparator =
                         (a, b) -> Objects.equals(a.getOid(), b.getOid())
                                 && Objects.equals(a.getRelation(), b.getRelation())
@@ -1149,7 +1149,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
-                    .filter(m -> provenance.equals(((ValueMetadataType) m.asContainerable()).getProvenance()))
+                    // LITERAL is important here not to ignore "operational" elements.
+                    .filter(m -> provenance.asPrismContainerValue()
+                            .equals(((ValueMetadataType) m.asContainerable()).getProvenance().asPrismContainerValue(),
+                                    EquivalenceStrategy.LITERAL))
                     .findFirst()
                     .orElse(null);
             if (originalMetadataValue == null) {
