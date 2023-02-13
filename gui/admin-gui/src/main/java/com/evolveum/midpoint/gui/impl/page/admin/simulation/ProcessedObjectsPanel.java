@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -93,21 +90,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        return new RoundedIconColumn<>(null) {
-
-            @Override
-            protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                SimulationResultProcessedObjectType object = model.getObject().getValue();
-                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
-                if (obj == null || obj.asPrismObject() == null) {
-                    return new DisplayType()
-                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
-                }
-
-                return new DisplayType()
-                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
-            }
-        };
+        return GuiSimulationsUtil.createProcessedObjectIconColumn();
     }
 
     @Override

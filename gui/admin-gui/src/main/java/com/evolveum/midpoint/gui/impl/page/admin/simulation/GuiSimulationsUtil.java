@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -19,8 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -85,5 +87,23 @@ public class GuiSimulationsUtil {
         String key = WebComponentUtil.createEnumResourceKey(ot);
 
         return getString(null, key);
+    }
+
+    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn() {
+        return new RoundedIconColumn<>(null) {
+
+            @Override
+            protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
+                SimulationResultProcessedObjectType object = model.getObject().getValue();
+                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
+                if (obj == null || obj.asPrismObject() == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
+                }
+
+                return new DisplayType()
+                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
+            }
+        };
     }
 }

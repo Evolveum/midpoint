@@ -47,9 +47,11 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -349,9 +351,10 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
-        List<IColumn<SimulationResultProcessedObjectType, String>> columns = createColumns();
+        List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
         DataTable relatedObjects = new SelectableDataTable(ID_RELATED_OBJECTS, columns, provider, 20);
+        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 0));
         add(relatedObjects);
 
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
@@ -364,10 +367,34 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         add(panel);
     }
 
-    private List<IColumn<SimulationResultProcessedObjectType, String>> createColumns() {
-        List<IColumn<SimulationResultProcessedObjectType, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
+        List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
+        columns.add(GuiSimulationsUtil.createProcessedObjectIconColumn());
+        columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                onRelatedObjectClicked(target, rowModel.getObject());
+            }
+
+            @Override
+            protected IModel createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return () -> {
+                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
+                    if (obj == null || obj.getName() == null) {
+                        return getString("ProcessedObjectsPanel.unnamed");
+                    }
+
+                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
+                };
+            }
+        });
 
         return columns;
+    }
+
+    private void onRelatedObjectClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
+        // todo implement
     }
 
     @Override
