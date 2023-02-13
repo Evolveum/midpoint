@@ -1686,6 +1686,15 @@ span.yui-skin-sam {
   width: 100% !important;
 }
 
+.login-panel-description {
+  color: $text-muted;
+  font-size: 14px;
+}
+
+.login-panel-title {
+  font-weight: bold;
+}
+
 .info-box.activity-item-processing > .info-box-content > .progress-description {
   overflow-wrap: break-word;
   word-break: break-word;

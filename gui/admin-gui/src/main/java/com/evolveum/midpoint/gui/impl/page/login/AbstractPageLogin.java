@@ -24,6 +24,8 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -46,6 +48,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEQUENCE = "sequence";
+    private static final String ID_PANEL_TITLE = "panelTitle";
+    private static final String ID_PANEL_DESCRIPTION = "panelDescription";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
 
     public AbstractPageLogin(PageParameters parameters) {
@@ -80,6 +84,17 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private void initLayout() {
+        Label panelTitle = new Label(ID_PANEL_TITLE, getLoginPanelTitleModel());
+        panelTitle.setOutputMarkupId(true);
+        panelTitle.add(new VisibleBehaviour(() -> getLoginPanelTitleModel().getObject() != null));
+        add(panelTitle);
+
+        Label panelDescription = new Label(ID_PANEL_DESCRIPTION, getLoginPanelDescriptionModel());
+        panelTitle.setOutputMarkupId(true);
+        panelTitle.add(new VisibleBehaviour(() -> getLoginPanelDescriptionModel().getObject() != null));
+        add(panelDescription);
+
+
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
@@ -99,6 +114,14 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         addFeedbackPanel();
 
         add(new LocaleTextPanel("locale"));
+    }
+
+    protected IModel<String> getLoginPanelTitleModel() {
+        return Model.of();
+    }
+
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return Model.of();
     }
 
     private String getSequenceName() {
