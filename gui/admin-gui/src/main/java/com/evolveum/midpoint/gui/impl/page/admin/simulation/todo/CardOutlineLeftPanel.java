@@ -21,8 +21,6 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-// todo refactor ConflictItemPanel to be subclass of this, move css classes "under" this one (rename them to match)
-
 /**
  * Created by Viliam Repan (lazyman).
  */

@@ -7,25 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -41,6 +22,25 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -152,14 +152,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
-                        onObjectNameClicked(target, rowModel.getObject());
+                        onObjectNameClicked(rowModel.getObject());
                     }
                 });
             }
         };
     }
 
-    private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
+    private void onObjectNameClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
             return;
