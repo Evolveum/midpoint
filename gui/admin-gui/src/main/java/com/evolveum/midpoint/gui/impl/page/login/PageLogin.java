@@ -198,5 +198,13 @@ public class PageLogin extends AbstractPageLogin {
         super.onDetach();
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageLogin.loginToYourAccount");
+    }
 
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageLogin.enterAccountDetails");
+    }
 }

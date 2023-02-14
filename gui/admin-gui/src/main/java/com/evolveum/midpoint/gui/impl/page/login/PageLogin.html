@@ -10,24 +10,34 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
     <form method="post" wicket:id="form" class="justify-content-end">
-        <div class="input-group mb-3">
-            <input name="username" type="text" class="form-control" wicket:message="placeholder:PageLogin.username">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-user"></span>
+        <div class="d-flex flex-wrap">
+            <label class="col-form-label">
+                <wicket:message key="PageLogin.username"/>
+            </label>
+            <div class="input-group d-flex login-panel-control">
+                <input name="username" type="text" class="form-control">
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-user"></span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="input-group mb-3">
-            <input name="password" type="password" class="form-control" wicket:message="placeholder:PageLogin.password">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-lock"></span>
+        <div class="d-flex flex-wrap">
+            <label class="col-form-label">
+                <wicket:message key="PageLogin.password"/>
+            </label>
+            <div class="input-group d-flex login-panel-control">
+                <input name="password" type="password" class="form-control d-flex flex-wrap gap-2">
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-lock"></span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-primary login-button">
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-primary login-panel-control">
                 <wicket:message key="PageLogin.signIn"/>
             </button>
         </div>
@@ -36,10 +46,10 @@
     </form>
 
     <div class="d-flex justify-content-end mb-1">
-        <a wicket:id="resetPassword" class="text-center login-button"><wicket:message key="PageLogin.resetPassword"/></a>
+        <a wicket:id="resetPassword" class="text-center login-panel-control"><wicket:message key="PageLogin.resetPassword"/></a>
     </div>
-    <div class="d-flex justify-content-end mb-0">
-        <a wicket:id="selfRegistration" class="text-center login-button"><wicket:message key="PageLogin.selfRegistration"/></a>
+    <div class="d-flex justify-content-end mb-1">
+        <a wicket:id="selfRegistration" class="text-center login-panel-control"><wicket:message key="PageLogin.selfRegistration"/></a>
     </div>
 
 </wicket:extend>

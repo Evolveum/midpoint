@@ -192,18 +192,6 @@ public abstract class PageBase extends PageAdminLTE {
         getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
-    public GuiProfiledPrincipal getPrincipal() {
-        return AuthUtil.getPrincipalUser();
-    }
-
-    public FocusType getPrincipalFocus() {
-        MidPointPrincipal principal = getPrincipal();
-        if (principal == null) {
-            return null;
-        }
-        return principal.getFocus();
-    }
-
     public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
         FocusType focusType = getPrincipalFocus();
         if (focusType == null) {

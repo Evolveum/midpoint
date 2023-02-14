@@ -213,7 +213,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
     }
 
-
     private void validateUserNotNullOrFail() {
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));

@@ -847,6 +847,9 @@
 
                         Experimental. This may be a bad idea overall.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>EventMarkInformationType.domain</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
@@ -856,6 +859,9 @@
 
                         TODO is this the correct place (as it most probably applies only to simulations)?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>EventMarkInformationType.enabledByDefault</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

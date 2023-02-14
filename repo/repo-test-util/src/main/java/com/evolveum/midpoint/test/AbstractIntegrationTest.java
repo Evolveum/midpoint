@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -1350,10 +1354,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrementMin, int expectedIncrementMax) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
+        LOGGER.debug("Increment for {}: {}, expected: {}-{}",
+                counter, actualIncrement, expectedIncrementMin, expectedIncrementMax);
         assertTrue(actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax,
                 "Unexpected increment in " + counter.getLabel() + ". Expected "
                         + expectedIncrementMin + "-" + expectedIncrementMax + " but was " + actualIncrement);
         lastCountMap.put(counter, currentCount);
+    }
+
+    protected void assertNoShadowFetchOperations() {
+        assertShadowFetchOperations(0);
+    }
+
+    protected void assertShadowFetchOperations(int expected) {
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, expected);
     }
 
     protected void rememberResourceCacheStats() {
@@ -4408,5 +4422,32 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     public boolean areMarksSupported() {
         return repositoryService.supportsMarks();
+    }
+
+    /** Useful when we don't know the result OID and want to find one - see */
+    protected void deleteAllSimulationResults(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assert repositoryService.isNative();
+        var allResults = repositoryService.searchObjects(SimulationResultType.class, null, null, result);
+        for (PrismObject<SimulationResultType> simulationResult : allResults) {
+            repositoryService.deleteObject(SimulationResultType.class, simulationResult.getOid(), result);
+        }
+    }
+
+    protected @NotNull SimulationResultType findSimulationResult(OperationResult result) throws SchemaException {
+        assert repositoryService.isNative();
+        List<PrismObject<SimulationResultType>> allResults =
+                repositoryService.searchObjects(SimulationResultType.class, null, null, result);
+        return asObjectable(
+                MiscUtil.extractSingleton(
+                        allResults,
+                        () -> new AssertionError("Multiple simulation results: " + allResults)));
+    }
+
+    protected @NotNull SimulationResultType findSimulationResultRequired(OperationResult result)
+            throws SchemaException {
+        assert repositoryService.isNative();
+        return MiscUtil.requireNonNull(
+                findSimulationResult(result),
+                () -> new AssertionError("no simulation result found"));
     }
 }

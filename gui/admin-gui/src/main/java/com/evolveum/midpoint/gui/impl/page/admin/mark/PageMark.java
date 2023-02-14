@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -28,10 +27,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -74,23 +73,7 @@ public class PageMark extends PageAssignmentHolderDetails<MarkType, AssignmentHo
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<MarkType> summaryModel) {
-        return new ObjectSummaryPanel<>(id, MarkType.class, summaryModel, getSummaryPanelSpecification()) {
-
-            @Override
-            protected String getDefaultIconCssClass() {
-                return null;
-            }
-
-            @Override
-            protected String getIconBoxAdditionalCssClass() {
-                return null;
-            }
-
-            @Override
-            protected String getBoxAdditionalCssClass() {
-                return null;
-            }
-        };
+        return new MarkSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
     private List<Class<? extends Containerable>> getAllDetailsTypes() {

@@ -141,7 +141,7 @@ public class PagePasswordHint extends PageAuthenticationBase {
 
             @Override
             protected String load() {
-                return createStringResource("PageEmailNonce.passwordHintLabel", getHintValue()).getString();
+                return createStringResource("PageEmailNonce.passwordHintLabel", getUserPasswordHint(searchUser())).getString();
             }
         });
         hintLabel.setOutputMarkupId(true);

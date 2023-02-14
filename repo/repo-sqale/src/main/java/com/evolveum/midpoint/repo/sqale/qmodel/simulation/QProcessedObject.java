@@ -8,6 +8,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.querydsl.core.types.dsl.ArrayPath;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -69,6 +70,9 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
         super(MProcessedObject.class, variable, schema, table);
     }
 
-
+    @Override
+    public BooleanExpression isOwnedBy(MSimulationResult ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
+    }
 
 }

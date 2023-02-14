@@ -1682,8 +1682,17 @@ span.yui-skin-sam {
   font-size: 13px;
 }
 
-.login-button {
+.login-panel-control {
   width: 100% !important;
+}
+
+.login-panel-description {
+  color: $text-muted;
+  font-size: 14px;
+}
+
+.login-panel-title {
+  font-weight: bold;
 }
 
 .info-box.activity-item-processing > .info-box-content > .progress-description {
