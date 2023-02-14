@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -229,6 +229,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+    private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
         dummyAuditService = DummyAuditService.getInstance();
@@ -257,6 +258,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
+
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -7133,5 +7137,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException {
         return TestSimulationResult.fromSimulationResultOid(
                 findSimulationResultRequired(result).getOid());
+    }
+
+    /**
+     * Returns the input number if accesses metadata are enabled, otherwise returns 0.
+     * Usable for audit record count assertions depending on the state of accesses metadata.
+     */
+    protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
+        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
     }
 }
