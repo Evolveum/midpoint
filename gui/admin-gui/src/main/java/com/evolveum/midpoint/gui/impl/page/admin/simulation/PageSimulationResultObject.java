@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
@@ -265,9 +266,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 });
 
                 items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.projectionCount"),
-                        () -> "" + objectModel.getObject().getProjectionRecords()));
-
-                // todo implement
+                        () -> Integer.toString(Objects.requireNonNullElse(objectModel.getObject().getProjectionRecords(), 0))));
 
                 return items;
             }
@@ -364,9 +363,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
-        VisualizationPanel panel = new VisualizationPanel(ID_CHANGES, changesModel);
-        panel.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
-        add(panel);
+        VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
+        add(changes);
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
