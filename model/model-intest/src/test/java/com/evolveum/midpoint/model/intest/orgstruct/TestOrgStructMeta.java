@@ -49,13 +49,13 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TestOrgStructMeta extends TestOrgStruct {
 
     private static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
-    protected static final String OBJECT_TEMPLATE_ORG_OID = "3e62558c-ca0f-11e3-ba83-001e8c717e5b";
+    private static final String OBJECT_TEMPLATE_ORG_OID = "3e62558c-ca0f-11e3-ba83-001e8c717e5b";
 
-    protected static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
-    protected static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
+    private static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
+    private static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
 
-    protected static final File ROLE_ORGANIZED_FILE = new File(TEST_DIR, "role-organized.xml");
-    protected static final String ROLE_ORGANIZED_OID = "12345111-1111-2222-1111-121212111001";
+    private static final File ROLE_ORGANIZED_FILE = new File(TEST_DIR, "role-organized.xml");
+    private static final String ROLE_ORGANIZED_OID = "12345111-1111-2222-1111-121212111001";
 
     @Override
     protected boolean doAddOrgstruct() {
@@ -96,6 +96,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
      */
     @Override
     protected void addOrgStruct() throws Exception {
+        //noinspection unchecked,rawtypes
         List<PrismObject<OrgType>> orgs = (List) PrismTestUtil.parseObjects(ORG_MONKEY_ISLAND_FILE);
 
         // WHEN
@@ -111,19 +112,19 @@ public class TestOrgStructMeta extends TestOrgStruct {
     protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
         super.assertUserOrg(user, orgOids);
         List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
-        List<PolyStringType> expextedOrgs = new ArrayList<>();
+        List<PolyStringType> expectedOrgs = new ArrayList<>();
         for (String orgOid: orgOids) {
             PrismObject<OrgType> org = getObject(OrgType.class, orgOid);
             List<String> orgType = FocusTypeUtil.determineSubTypes(org);
             if (orgType.contains("functional")) {
                 PolyStringType orgName = org.asObjectable().getName();
                 assertTrue("Value "+orgName+" not found in user organization property: "+userOrganizations, userOrganizations.contains(orgName));
-                if (!expextedOrgs.contains(orgName)) {
-                    expextedOrgs.add(orgName);
+                if (!expectedOrgs.contains(orgName)) {
+                    expectedOrgs.add(orgName);
                 }
             }
         }
-        assertEquals("Wrong number of user organization property values: "+userOrganizations,  expextedOrgs.size(), userOrganizations.size());
+        assertEquals("Wrong number of user organization property values: "+userOrganizations,  expectedOrgs.size(), userOrganizations.size());
     }
 
     @Override
@@ -250,7 +251,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
                 .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
         // WHEN
-        traced(() -> executeChanges(userDelta, null, task, result));
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         result.computeStatus();

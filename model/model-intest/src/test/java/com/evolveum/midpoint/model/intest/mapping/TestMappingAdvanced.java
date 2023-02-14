@@ -288,7 +288,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(USER_MAGNUS.oid);
 
         when();
-        traced(() -> executeChanges(delta, null, task, result));
+        executeChanges(delta, null, task, result);
 
         then();
         assertSuccess(task);
@@ -403,7 +403,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(USER_VLADIMIR.oid);
 
         when();
-        traced(() -> executeChanges(delta, null, task, result));
+        executeChanges(delta, null, task, result);
 
         then();
         assertSuccess(task);
