@@ -52,10 +52,9 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()));
+        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()));
 
-        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()) {
-
+        steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
