@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -92,7 +93,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     String dumpObjectPolicyRules(int indent, boolean alsoMessages);
 
-    Map<String, Collection<Containerable>> getHookPreviewResultsMap();
+    Map<String, Collection<? extends Containerable>> getHookPreviewResultsMap();
 
     @NotNull
     <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
@@ -101,6 +102,11 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     PolicyRuleEnforcerPreviewOutputType getPolicyRuleEnforcerPreviewOutput();
 
     boolean isPreview();
+
+    /** TODO reconcile with {@link #isPreview()} */
+    default boolean isSimulation() {
+        return !getTaskExecutionMode().isFullyPersistent();
+    }
 
     @NotNull
     ObjectTreeDeltas<F> getTreeDeltas();
@@ -114,4 +120,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     String getTaskTreeOid(Task task, OperationResult result);
 
     ExpressionProfile getPrivilegedExpressionProfile();
+
+    @NotNull TaskExecutionMode getTaskExecutionMode();
 }

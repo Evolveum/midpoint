@@ -431,14 +431,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public boolean isCurrentProjectionActivated()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return !wasCurrentProjectionActive() && willCurrentProjectionBeActive();
+        boolean wasActive = wasCurrentProjectionActive();
+        boolean willBeActive = willCurrentProjectionBeActive();
+        LOGGER.trace("isCurrentProjectionActivated: wasActive = {}, willBeActive = {}", wasActive, willBeActive);
+        return !wasActive && willBeActive;
     }
 
     @Override
     public boolean isCurrentProjectionDeactivated()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return wasCurrentProjectionActive() && !willCurrentProjectionBeActive();
+        boolean wasActive = wasCurrentProjectionActive();
+        boolean willBeActive = willCurrentProjectionBeActive();
+        LOGGER.trace("isCurrentProjectionDeactivated: wasActive = {}, willBeActive = {}", wasActive, willBeActive);
+        return wasActive && !willBeActive;
     }
 
     private boolean wasCurrentProjectionActive()
@@ -458,14 +464,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private boolean willCurrentProjectionBeActive()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
+        // "objectNew" is not a good indicator here - we have to look at sync decision instead
         LensProjectionContext projCtx = getCurrentProjectionContextRequired();
         if (projCtx.isAdministrativeStatusSupported()) {
             ensureActivationInformationAvailable(projCtx);
             ShadowType objectNew = asObjectable(projCtx.getObjectNew());
-            return objectNew != null && isShadowEnabled(objectNew);
+            return objectNew != null && !projCtx.isDelete() && isShadowEnabled(objectNew);
         } else {
             // No need to load the shadow, as the administrative status is not relevant here
-            return projCtx.getObjectNew() != null;
+            return projCtx.getObjectNew() != null && !projCtx.isDelete();
         }
     }
 

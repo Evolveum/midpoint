@@ -53,8 +53,11 @@ public class CertificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-            @NotNull OperationResult result) {
+    public <O extends ObjectType> HookOperationMode invoke(
+            @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult result) {
+        if (context.isPreview() || context.isSimulation()) {
+            return HookOperationMode.FOREGROUND;
+        }
         if (context.getState() != ModelState.FINAL) {
             return HookOperationMode.FOREGROUND;
         }
@@ -91,9 +94,9 @@ public class CertificationHook implements ChangeHook {
     }
 
     @Override
-    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task,
+    public void invokeOnException(
+            @NotNull ModelContext<?> context, @NotNull Throwable throwable, @NotNull Task task,
             @NotNull OperationResult result) {
         // Nothing to do
     }
-
 }

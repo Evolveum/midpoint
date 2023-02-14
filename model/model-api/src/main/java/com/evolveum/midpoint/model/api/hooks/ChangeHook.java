@@ -56,7 +56,8 @@ public interface ChangeHook {
      * This method has no return value, as it is not expected that the processing would continue in
      * the background. (This could change in the future.)
      */
-    void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result);
+    void invokeOnException(
+            @NotNull ModelContext<?> context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result);
 
     default int getPriority() {
         return Integer.MAX_VALUE;

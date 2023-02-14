@@ -250,7 +250,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /** Denotes (legacy) "preview changes" mode. */
     private transient boolean preview;
 
-    private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;
+    private transient Map<String, Collection<? extends Containerable>> hookPreviewResultsMap;
 
     private transient PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
 
@@ -1604,14 +1604,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @NotNull
-    public Map<String, Collection<Containerable>> getHookPreviewResultsMap() {
+    public Map<String, Collection<? extends Containerable>> getHookPreviewResultsMap() {
         if (hookPreviewResultsMap == null) {
             hookPreviewResultsMap = new HashMap<>();
         }
         return hookPreviewResultsMap;
     }
 
-    public void addHookPreviewResults(String hookUri, Collection<Containerable> results) {
+    public void addHookPreviewResults(String hookUri, Collection<? extends Containerable> results) {
         getHookPreviewResultsMap().put(hookUri, results);
     }
 
@@ -1619,7 +1619,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz) {
         List<T> rv = new ArrayList<>();
-        for (Collection<Containerable> previewResults : getHookPreviewResultsMap().values()) {
+        for (Collection<? extends Containerable> previewResults : getHookPreviewResultsMap().values()) {
             for (Containerable previewResult : CollectionUtils.emptyIfNull(previewResults)) {
                 if (previewResult != null && clazz.isAssignableFrom(previewResult.getClass())) {
                     //noinspection unchecked
@@ -1988,7 +1988,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return modelBeans;
     }
 
-    @NotNull TaskExecutionMode getTaskExecutionMode() {
+    @Override
+    public @NotNull TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
     }
 
