@@ -497,12 +497,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public boolean isFocusActivated() {
-        return !wasFocusActive() && willFocusBeActive();
+        boolean wasActive = wasFocusActive();
+        boolean willBeActive = willFocusBeActive();
+        LOGGER.trace("isFocusActivated: wasActive = {}, willBeActive = {}", wasActive, willBeActive);
+        return !wasActive && willBeActive;
     }
 
     @Override
     public boolean isFocusDeactivated() {
-        return wasFocusActive() && !willFocusBeActive();
+        boolean wasActive = wasFocusActive();
+        boolean willBeActive = willFocusBeActive();
+        LOGGER.trace("isFocusDeactivated: wasActive = {}, willBeActive = {}", wasActive, willBeActive);
+        return wasActive && !willBeActive;
     }
 
     private boolean wasFocusActive() {

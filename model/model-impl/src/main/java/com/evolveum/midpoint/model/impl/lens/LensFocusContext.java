@@ -56,6 +56,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      * (Note we do not currently provide this kind of flag on the projection contexts, because of not being
      * sure if deleted projection cannot be somehow "resurrected" during the processing. For focal objects nothing like
      * this should happen.)
+     *
+     * Used to clarify context (re)loading for deleted focus situations. See MID-4856.
      */
     protected boolean deleted;
 
