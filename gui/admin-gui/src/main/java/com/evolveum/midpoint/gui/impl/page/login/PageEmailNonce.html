@@ -12,15 +12,12 @@
 <body>
 <wicket:extend>
     <form class="form-horizontal" action="ignore" wicket:id="mainForm">
-        <div class="form-group mb-2" wicket:id="staticLayout">
-            <label class="col-md-4 col-lg-4 control-label">
+        <div class="form-group mb-2 login-panel-control" wicket:id="staticLayout">
+            <label class="col-form-label">
                 <wicket:message key="PageForgetPassword.email"/>
             </label>
 
-            <div class="col-md-8 col-lg-8">
-                <input name="email" type="text" class="form-control form-control-sm focus-username"
-                        wicket:message="placeholder:PageForgetPassword.email" wicket:id="email">
-            </div>
+            <input name="email" type="text" class="form-control form-control-sm focus-username" wicket:id="email">
         </div>
 
         <div wicket:id="dynamicLayout" class="mb-2">
@@ -36,9 +33,6 @@
             </a>
         </div>
     </form>
-    <div style="text-align: center">
-        <h2 wicket:id="resetPasswordInfo"></h2>
-    </div>
 </wicket:extend>
 
 </body>

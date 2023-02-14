@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -81,7 +82,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
     private static final String ID_BACK_BUTTON_LABEL = "backButtonLabel";
     private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
     private static final String ID_CONTINUE_RESET_PASSWORD = "continueResetPassword";
-    private static final String ID_PASSWORD_RESET_SUBMITED = "resetPasswordInfo";
 
     private boolean submited;
     private UserType user = null;
@@ -115,25 +115,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
         initDynamicLayout(form, PageEmailNonce.this);
 
         initButtons(form);
-
-        MultiLineLabel label = new MultiLineLabel(ID_PASSWORD_RESET_SUBMITED,
-                createStringResource("PageForgotPassword.form.submited.message"));
-        add(label);
-        label.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return submited;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return submited;
-            }
-
-        });
 
     }
     private void initButtons(MidpointForm form) {
@@ -416,6 +397,29 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
 
         return getModelInteractionService().generateValue(policy, 24, false, user, "nonce generation", task, result);
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected String load() {
+                return createStringResource(submited ? "PageEmailNonce.checkYourMail" : "PageEmailNonce.identification").getString();
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected String load() {
+                return createStringResource(submited ? "PageForgotPassword.form.submited.message"
+                        : "PageEmailNonce.specifyMailDescription").getString();
+            }
+        };
     }
 
 }
