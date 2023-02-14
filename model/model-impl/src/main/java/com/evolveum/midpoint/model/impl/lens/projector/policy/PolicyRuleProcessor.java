@@ -33,14 +33,26 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @ProcessorExecution
 public class PolicyRuleProcessor implements ProjectorProcessor {
 
+    private static final String CLASS_DOT = PolicyRuleProcessor.class.getName() + ".";
+    private static final String OP_EVALUATE_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "evaluateAssignmentPolicyRules";
+    private static final String OP_ENFORCE = CLASS_DOT + "enforce";
+
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(
             @NotNull LensFocusContext<F> focusContext,
             @NotNull Task task,
-            @NotNull OperationResult result)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        new AssignmentPolicyRuleEvaluator<>(focusContext, task)
-                .evaluate(result);
+        OperationResult result = parentResult.createSubresult(OP_EVALUATE_ASSIGNMENT_POLICY_RULES);
+        try {
+            new AssignmentPolicyRuleEvaluator<>(focusContext, task)
+                    .evaluate(result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     @ProcessorMethod
@@ -48,6 +60,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             LensContext<AH> context, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
+        // No need for custom operation result, as this already has one
         new ObjectPolicyRulesEvaluator.FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task)
                 .evaluate(result);
     }
@@ -62,6 +75,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
+        // No need for custom operation result, as this already has one
         new ObjectPolicyRulesEvaluator.ProjectionPolicyRulesEvaluator(projectionContext, task)
                 .evaluate(result);
     }
@@ -71,13 +85,22 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     public <AH extends AssignmentHolderType> void updateCounters(
             LensContext<AH> context, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        // No need for custom operation result, as this already has one
         new PolicyRuleCounterUpdater<>(context, task)
                 .updateCounters(result);
     }
 
-    public <O extends ObjectType> void enforce(@NotNull LensContext<O> context, OperationResult result)
+    public <O extends ObjectType> void enforce(@NotNull LensContext<O> context, OperationResult parentResult)
             throws PolicyViolationException, ConfigurationException {
-        new PolicyRuleEnforcer<>(context)
-                .enforce(result);
+        OperationResult result = parentResult.createMinorSubresult(OP_ENFORCE);
+        try {
+            new PolicyRuleEnforcer<>(context)
+                    .enforce(result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 }

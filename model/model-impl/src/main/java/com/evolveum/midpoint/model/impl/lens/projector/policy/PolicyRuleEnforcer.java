@@ -52,8 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 class PolicyRuleEnforcer<O extends ObjectType> {
 
-    private static final String OP_ENFORCE = PolicyRuleEnforcer.class.getName() + ".enforce";
-
     @NotNull private final LensContext<O> context;
     @NotNull private final List<LocalizableMessage> messages = new ArrayList<>();
     @NotNull private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
@@ -62,18 +60,9 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         this.context = context;
     }
 
-    public void enforce(OperationResult parentResult)
-            throws PolicyViolationException, ConfigurationException {
-        OperationResult result = parentResult.createMinorSubresult(OP_ENFORCE);
-        try {
-            enforceRulesWithoutThresholds(result);
-            enforceThresholds();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
+    public void enforce(OperationResult result) throws PolicyViolationException, ConfigurationException {
+        enforceRulesWithoutThresholds(result);
+        enforceThresholds();
     }
 
     private void enforceRulesWithoutThresholds(OperationResult result)
