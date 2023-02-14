@@ -28,12 +28,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-
-import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
-
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -97,6 +91,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -108,6 +104,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
@@ -118,6 +115,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
@@ -157,6 +155,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
@@ -180,8 +179,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -3226,11 +3223,12 @@ public final class WebComponentUtil {
         return values;
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String translateLabel(String lookupTableOid, LookupTableRowType row) {
-        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
-
-        String fallback = row.getLabel() != null ? row.getLabel().getOrig() : row.getKey();
-        return localizationService.translate(lookupTableOid + "." + row.getKey(), new String[0], getCurrentLocale(), fallback);
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLookupTableRowLabel(lookupTableOid, row);
     }
 
     public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
@@ -5572,15 +5570,15 @@ public final class WebComponentUtil {
         new Toast()
                 .success()
                 .title(PageBase.createStringResourceStatic(
-                        key,
-                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
+                                key,
+                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
                         .getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
                 .body(PageBase.createStringResourceStatic(
-                        key + ".text",
-                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
+                                key + ".text",
+                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
                         .getString())
                 .show(target);
     }
@@ -5589,17 +5587,12 @@ public final class WebComponentUtil {
         return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String translateMessage(LocalizableMessage msg) {
-        if (msg == null) {
-            return null;
-        }
-
-        MidPointApplication application = MidPointApplication.get();
-        if (application == null) {
-            return msg.getFallbackMessage();
-        }
-
-        return application.getLocalizationService().translate(msg, getCurrentLocale());
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage(msg);
     }
 
     public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
