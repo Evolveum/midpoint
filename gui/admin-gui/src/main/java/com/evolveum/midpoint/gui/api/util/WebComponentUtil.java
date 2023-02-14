@@ -1168,32 +1168,28 @@ public final class WebComponentUtil {
                 : WebComponentUtil.getOrigStringFromPoly(name);
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyStringType value) {
-        return getTranslatedPolyString(PolyString.toPolyString(value));
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
-    public static String getTranslatedPolyString(PolyStringType value, ModelServiceLocator modelServiceLocator) {
-        return getTranslatedPolyString(PolyString.toPolyString(value), modelServiceLocator.getLocalizationService());
-    }
-
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyString value) {
-        MidPointApplication application = MidPointApplication.get();
-        return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyString value, LocalizationService localizationService) {
-        if (value == null) {
-            return "";
-        }
-        if (localizationService == null) {
-            localizationService = MidPointApplication.get().getLocalizationService();
-        }
-        String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
-        String translationKey = value.getTranslation() != null ? value.getTranslation().getKey() : null;
-        if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
-            return translatedValue;
-        }
-        return value.getOrig();
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {

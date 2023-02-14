@@ -2,15 +2,18 @@ package com.evolveum.midpoint.gui.api.util;
 
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class LocalizationUtil {
 
@@ -42,10 +45,14 @@ public class LocalizationUtil {
     }
 
     public static String translate(String key, Object[] params, String defaultMsg) {
+        Locale locale = findLocale();
+        return translate(key, params, defaultMsg, locale);
+    }
+
+    public static String translate(String key, Object[] params, String defaultMsg, Locale locale) {
         MidPointApplication ma = MidPointApplication.get();
         LocalizationService service = ma.getLocalizationService();
 
-        Locale locale = findLocale();
         return service.translate(key, params, locale, defaultMsg);
     }
 
@@ -67,5 +74,38 @@ public class LocalizationUtil {
 
         String fallback = row.getLabel() != null ? row.getLabel().getOrig() : row.getKey();
         return localizationService.translate(lookupTableOid + "." + row.getKey(), new String[0], findLocale(), fallback);
+    }
+
+    public static String translatePolyString(PolyStringType poly) {
+        Locale locale = findLocale();
+
+        return translatePolyString(PolyString.toPolyString(poly), locale);
+    }
+
+    public static String translatePolyString(PolyStringType poly, Locale locale) {
+        return translatePolyString(PolyString.toPolyString(poly), locale);
+    }
+
+    public static String translatePolyString(PolyString poly) {
+        Locale locale = findLocale();
+
+        return translatePolyString(poly, locale);
+    }
+
+    public static String translatePolyString(PolyString poly, Locale locale) {
+        if (poly == null) {
+            return null;
+        }
+
+        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
+
+        String translatedValue = localizationService.translate(poly, locale, true);
+        String translationKey = poly.getTranslation() != null ? poly.getTranslation().getKey() : null;
+
+        if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
+            return translatedValue;
+        }
+
+        return poly.getOrig();
     }
 }
