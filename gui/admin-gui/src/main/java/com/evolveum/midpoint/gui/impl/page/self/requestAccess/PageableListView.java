@@ -125,7 +125,7 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
                 return itemsPerPage;
             }
 
-            MidPointAuthWebSession session = MidPointAuthWebSession.getSession();
+            MidPointAuthWebSession session = MidPointAuthWebSession.get();
             UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
 
             return userProfile.getPagingSize(tableId);

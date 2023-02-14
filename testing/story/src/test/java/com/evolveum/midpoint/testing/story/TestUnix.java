@@ -841,11 +841,9 @@ public class TestUnix extends AbstractStoryTest {
 
         dummyAuditService.clear();
 
-        // WHEN
         when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -862,7 +860,7 @@ public class TestUnix extends AbstractStoryTest {
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,8 +59,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     private static final File METAROLE_COMMON_RULES_FILE = new File(TEST_DIR, "metarole-common-rules.xml");
     private static String metaroleCommonRulesOid;
 
-    private int newAssignmentValueMetadataExecutionRecordOverhead = 0;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -88,10 +85,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         InternalMonitor.reset();
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-        if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
-                systemObjectCache.getSystemConfigurationBean(initResult))) {
-            newAssignmentValueMetadataExecutionRecordOverhead = 1;
-        }
     }
 
     @Test
@@ -114,7 +107,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 jack.getAssignment().get(0).getPolicySituation());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(1 + newAssignmentValueMetadataExecutionRecordOverhead);
+        dummyAuditService.assertExecutionRecords(1 + accessesMetadataAuditOverhead(1));
     }
 
     @Test
@@ -220,7 +213,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         displayDumpable("Audit", dummyAuditService);
         // no policy state update
-        dummyAuditService.assertExecutionRecords(1 + newAssignmentValueMetadataExecutionRecordOverhead);
+        dummyAuditService.assertExecutionRecords(1 + accessesMetadataAuditOverhead(1));
     }
 
     @Test

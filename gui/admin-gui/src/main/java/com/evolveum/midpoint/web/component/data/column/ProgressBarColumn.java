@@ -23,10 +23,20 @@ public class ProgressBarColumn<R extends Serializable, S extends Serializable> e
 
     @Override
     public void populateItem(Item<ICellPopulator<R>> item, String id, IModel<R> rowModel) {
-        item.add(new ProgressBarPanel(id, createProgressBarModel(rowModel)));
+        item.add(new ProgressBarPanel(id, createProgressBarModel(rowModel)) {
+
+            @Override
+            protected IModel<String> createTextModel(IModel<List<ProgressBar>> model) {
+                return ProgressBarColumn.this.createTextModel(rowModel, model);
+            }
+        });
     }
 
     protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(IModel<R> rowModel) {
         return () -> new ArrayList<>();
+    }
+
+    protected @NotNull IModel<String> createTextModel(IModel<R> rowModel, IModel<List<ProgressBar>> model) {
+        return () -> null;
     }
 }
