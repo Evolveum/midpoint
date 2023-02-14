@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.File;
 import java.util.Arrays;
@@ -297,15 +296,6 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
         assertAssignmentPath(userAsserter, appService1Oid,
                 new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
-    }
-
-    private void switchAccessesMetadata(Boolean value, Task task, OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
-                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
-                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
-                null, task, result);
     }
 
     // TODO add check of no phantom deltas when no metadata change on refs

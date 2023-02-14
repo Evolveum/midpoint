@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCol
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -6806,6 +6807,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Long id = ruleInducements.get(0).getId();
         argCheck(id != null, "Policy rule inducement in %s has no PCV ID", roleOid);
         return roleOid + ":" + id;
+    }
+
+    protected void switchAccessesMetadata(Boolean value, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
+                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
     }
 
     public interface FunctionCall<X> {
