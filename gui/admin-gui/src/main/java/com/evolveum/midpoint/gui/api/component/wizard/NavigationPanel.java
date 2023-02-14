@@ -13,6 +13,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,8 @@ public class NavigationPanel extends BasePanel {
     private static final String ID_TITLE = "title";
     private static final String ID_CONTENT = "content";
     private static final String ID_NEXT = "next";
+    private static final String ID_NEXT_FRAGMENT = "nextFragment";
+    private static final String ID_NEXT_LINK = "nextLink";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
     public NavigationPanel(String id) {
@@ -44,7 +47,7 @@ public class NavigationPanel extends BasePanel {
 
         AjaxLink back = createBackButton(ID_BACK);
         add(back);
-        AjaxLink next = createNextButton(ID_NEXT, createNextTitleModel());
+        Component next = createNextButton(ID_NEXT, createNextTitleModel());
         add(next);
 
         add(new Label(ID_TITLE, createTitleModel()));
@@ -68,21 +71,26 @@ public class NavigationPanel extends BasePanel {
         return () -> null;
     }
 
-    protected AjaxLink createNextButton(String id, IModel<String> nextTitle) {
-        AjaxLink next = new AjaxLink<>(id) {
+    protected Component createNextButton(String id, IModel<String> nextTitle) {
+        Fragment next = new Fragment(id, ID_NEXT_FRAGMENT, this);
+        next.setRenderBodyOnly(true);
+
+        AjaxLink nextLink = new AjaxLink<>(ID_NEXT_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onNextPerformed(target);
             }
         };
-        next.setOutputMarkupId(true);
-        next.setOutputMarkupPlaceholderTag(true);
-        WebComponentUtil.addDisabledClassBehavior(next);
+        nextLink.add(AttributeAppender.append("class", "btn btn-success"));
+        nextLink.setOutputMarkupId(true);
+        nextLink.setOutputMarkupPlaceholderTag(true);
+        nextLink.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
+        WebComponentUtil.addDisabledClassBehavior(nextLink);
 
-        next.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
+        nextLink.add(new Label(ID_NEXT_LABEL, nextTitle));
+        next.add(nextLink);
 
-        next.add(new Label(ID_NEXT_LABEL, nextTitle));
         return next;
     }
 
