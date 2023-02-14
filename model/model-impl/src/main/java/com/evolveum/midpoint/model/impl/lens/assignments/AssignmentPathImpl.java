@@ -302,13 +302,4 @@ public class AssignmentPathImpl implements AssignmentPath {
             return constructionSource.getSource(); // first role (for order=2) a.k.a. index -2 (generally)
         }
     }
-
-    public boolean appliesDirectly() {
-        assert !isEmpty();
-        // TODO what about deputy relation which does not increase summaryOrder?
-        long zeroOrderCount = segments.stream()
-                .filter(seg -> seg.getEvaluationOrderForTarget().getSummaryOrder() == 0)
-                .count();
-        return zeroOrderCount == 1;
-    }
 }

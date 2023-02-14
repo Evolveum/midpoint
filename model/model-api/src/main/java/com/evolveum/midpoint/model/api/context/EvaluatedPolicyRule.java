@@ -59,12 +59,6 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     AssignmentPath getAssignmentPath();
 
-    /**
-     * Object that "directly owns" the rule. TODO. [consider if really needed]
-     */
-    @Nullable
-    ObjectType getDirectOwner();
-
     // TODO consider removing
     String getPolicySituation();
 
@@ -124,5 +118,32 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     default boolean isApplicableToAssignment() {
         return PolicyRuleTypeUtil.isApplicableToAssignment(getPolicyRule());
+    }
+
+    /** To which object is the policy rule targeted and how. */
+    @NotNull TargetType getTargetType();
+
+    /**
+     * To which object is the policy rule targeted, from the point of assignment mechanisms - and how?
+     * For example, if it's assigned to the focus, then it's {@link #OBJECT}. If it's assigned directly to the assignment
+     * target, it's {@link #DIRECT_ASSIGNMENT_TARGET}.
+     */
+    enum TargetType {
+
+        /** Focus or projection */
+        OBJECT,
+
+        /** The rule applies directly to the target of the current evaluated assignment (attached to this rule!). */
+        DIRECT_ASSIGNMENT_TARGET,
+
+        /**
+         * The rule applies to a different target (induced to focus), stemming from the current evaluated assignment
+         * (attached to this rule).
+         *
+         * An example: Let `Engineer` induce `Employee` which conflicts with `Contractor`. An SoD rule is attached
+         * to `Employee`. But let the user have assignments for `Engineer` and `Contractor` only. So the target type
+         * for such rule is this one.
+         */
+        INDIRECT_ASSIGNMENT_TARGET
     }
 }

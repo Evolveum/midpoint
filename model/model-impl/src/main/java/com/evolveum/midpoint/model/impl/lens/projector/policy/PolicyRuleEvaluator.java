@@ -89,13 +89,15 @@ class PolicyRuleEvaluator {
             ConfigurationException, SecurityViolationException {
 
         String ruleShortString = ctx.policyRule.toShortString();
+        String ruleIdentifier = ctx.policyRule.getPolicyRuleIdentifier();
         String ctxShortDescription = ctx.getShortDescription();
         OperationResult result = parentResult.subresult(OP_EVALUATE_RULE)
                 .addParam(OperationResult.PARAM_POLICY_RULE, ruleShortString)
+                .addParam(OperationResult.PARAM_POLICY_RULE_ID, ruleIdentifier)
                 .addContext("context", ctxShortDescription)
                 .build();
         try {
-            LOGGER.trace("Evaluating policy rule {} in {}", ruleShortString, ctxShortDescription);
+            LOGGER.trace("Evaluating policy rule {} ({}) in {}", ruleShortString, ruleIdentifier, ctxShortDescription);
             PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
             JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
             EvaluatedCompositeTrigger trigger = CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);

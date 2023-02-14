@@ -313,7 +313,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         executeAssignRoles123ToJack(true, true, true, true);
     }
 
-    @Test   // MID-4355
+    @Test // MID-4355
     public void test100AddCreateDelegation() throws Exception {
         login(userAdministrator);
 
@@ -322,9 +322,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         OperationResult result = getTestOperationResult();
 
         when();
-        assignDeputy(USER_JACK_DEPUTY.oid, userJackOid, a -> {
-            //a.beginLimitTargetContent().allowTransitive(true);
-        }, task, result);
+        assignDeputy(USER_JACK_DEPUTY.oid, userJackOid, task, result);
 
         then();
         PrismObject<UserType> deputy = getUser(USER_JACK_DEPUTY.oid);

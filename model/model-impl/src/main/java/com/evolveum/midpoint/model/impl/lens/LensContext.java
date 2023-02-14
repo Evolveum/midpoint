@@ -1227,14 +1227,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
             DebugUtil.indentDebugDump(sb, indent);
             sb.append(assignment.toHumanReadableString());
-            Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-            dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules, alsoMessages);
-            @SuppressWarnings({ "raw" })
-            Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
-            dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules, alsoMessages);
-            @SuppressWarnings({ "raw" })
-            Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = assignment.getFocusPolicyRules();
-            dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules, alsoMessages);
+            dumpPolicyRulesCollection(
+                    "targetPolicyRules", indent + 1, sb, assignment.getAllTargetsPolicyRules(), alsoMessages);
+            dumpPolicyRulesCollection(
+                    "focusPolicyRules", indent + 1, sb, assignment.getFocusPolicyRules(), alsoMessages);
         }, 1);
         return sb.toString();
     }

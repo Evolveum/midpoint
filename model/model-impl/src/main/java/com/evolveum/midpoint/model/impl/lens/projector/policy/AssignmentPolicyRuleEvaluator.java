@@ -70,7 +70,6 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
                             new AssignmentPolicyRuleEvaluationContext<>(
                                     policyRule,
                                     evaluatedAssignment,
-                                    policyRule.getAssignmentPath().appliesDirectly(),
                                     focusContext,
                                     evaluatedAssignmentTriple,
                                     task,

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -82,7 +83,11 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules();
+    default Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Returns all policy rules that apply to some other target object of this assignment
@@ -90,7 +95,11 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules();
+    default Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Returns all policy rules that apply to any of the target objects provided by this assignment
@@ -99,16 +108,16 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      *
      * The difference to getThisTargetPolicyRules is that if e.g.
      * jack is a Pirate, and Pirate induces Sailor, then
-     * - getThisTargetPolicyRules will show rules that are attached to Pirate
-     * - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
-     * - getOtherTargetsPolicyRules will show rules that are attached to Sailor
+     *
+     * - `getThisTargetPolicyRules` will show rules that are attached to Pirate
+     * - `getAllTargetsPolicyRules` will show rules that are attached to Pirate and Sailor
+     * - `getOtherTargetsPolicyRules` will show rules that are attached to Sailor
      */
     @NotNull
     Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
     /**
-     * How many target policy rules are there. This is more efficient than getAllTargetsPolicyRules().size(), as the
-     * collection of all targets policy rules is computed on demand.
+     * How many target policy rules are there.
      */
     int getAllTargetsPolicyRulesCount();
 

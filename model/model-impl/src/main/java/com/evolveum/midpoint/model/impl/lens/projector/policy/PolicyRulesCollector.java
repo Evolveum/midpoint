@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.model.common.GlobalRuleWithId;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
@@ -43,6 +44,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -103,10 +106,11 @@ class PolicyRulesCollector<O extends ObjectType> {
             if (isRuleConditionTrue(ruleBean, focus, null,  result)) {
                 rules.add(
                         new EvaluatedPolicyRuleImpl(
-                                ruleBean.clone(), ruleWithId.getRuleId(), null, null));
+                                ruleBean.clone(), ruleWithId.getRuleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
-                LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", ruleBean.getName(), ruleBean);
+                LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}",
+                        ruleBean.getName(), ruleBean);
             }
         }
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
@@ -126,11 +130,15 @@ class PolicyRulesCollector<O extends ObjectType> {
             String ruleName = ruleBean.getName();
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
                 for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
-                    if (!target.getAssignmentPath().last().isMatchingOrder() && !target.isDirectlyAssigned()) {
+                    boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
+                    if (!appliesDirectlyToTarget && !target.getAssignmentPath().last().isMatchingOrder()) {
                         // This is to be thought out well. It is of no use to include global policy rules
-                        // attached to meta-roles assigned to the role being assigned to the focus. But we certainly need to include rules
-                        // attached to all directly assigned roles (because they might be considered for assignment) as
-                        // well as all indirectly assigned roles but of the matching order (because of exclusion violation).
+                        // attached to meta-roles assigned to the role being assigned to the focus.
+                        //
+                        // But we certainly need to include rules
+                        //
+                        // 1. attached to a directly assigned role (because they might be considered for assignment)
+                        // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
                         continue;
                     }
                     if (!repositoryService.selectorMatches(
@@ -145,18 +153,15 @@ class PolicyRulesCollector<O extends ObjectType> {
                                 ruleName, ruleWithId);
                         continue;
                     }
-                    EvaluatedPolicyRuleImpl evaluatedRule =
+                    LOGGER.trace("Collecting global policy rule '{}' in {}, considering target {} (applies directly: {})",
+                            ruleBean.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
+                    evaluatedAssignment.addTargetPolicyRule(
                             new EvaluatedPolicyRuleImpl(
                                     ruleBean.clone(),
                                     ruleWithId.getRuleId(),
                                     target.getAssignmentPath().clone(),
-                                    evaluatedAssignment);
-                    boolean direct = target.getAssignmentPath().appliesDirectly();
-                    if (direct) {
-                        evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
-                    } else {
-                        evaluatedAssignment.addOtherTargetPolicyRule(evaluatedRule);
-                    }
+                                    evaluatedAssignment,
+                                    appliesDirectlyToTarget ? DIRECT_ASSIGNMENT_TARGET : INDIRECT_ASSIGNMENT_TARGET));
                     globalRulesInstantiated++;
                 }
             }

@@ -28,26 +28,23 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     public final boolean isAdded;
     public final boolean isKept;
     public final boolean isDeleted;
-    public final boolean isDirect;
     public final DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
     @NotNull private final LensFocusContext<AH> focusContext;
 
     AssignmentPolicyRuleEvaluationContext(
             @NotNull EvaluatedPolicyRule policyRule,
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
-            boolean isDirect,
             @NotNull LensFocusContext<AH> focusContext,
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Task task,
             RulesEvaluationContext globalCtx) {
-        this(policyRule, evaluatedAssignment, isDirect, focusContext, evaluatedAssignmentTriple,
+        this(policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple,
                 task, ObjectState.AFTER, globalCtx);
     }
 
     private AssignmentPolicyRuleEvaluationContext(
             @NotNull EvaluatedPolicyRule policyRule,
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
-            boolean isDirect,
             @NotNull LensFocusContext<AH> focusContext,
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Task task,
@@ -59,7 +56,6 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
         this.isAdded = origin.isBeingAdded();
         this.isKept = origin.isBeingKept();
         this.isDeleted = origin.isBeingDeleted();
-        this.isDirect = isDirect;
         this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
         this.focusContext = focusContext;
     }
@@ -67,7 +63,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
         return new AssignmentPolicyRuleEvaluationContext<>(
-                policyRule, evaluatedAssignment, isDirect, focusContext, evaluatedAssignmentTriple, task, state, globalCtx);
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, state, globalCtx);
     }
 
     @Override
@@ -88,6 +84,10 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
         }
     }
 
+    public boolean isDirect() {
+        return policyRule.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+    }
+
     @Override
     public String getShortDescription() {
         return evaluatedAssignment.getTarget() + " (" +
@@ -95,7 +95,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
                 (isDeleted ? "-":"") +
                 (isKept ? "0":"") +
                 ") " +
-                (isDirect ? "directly":"indirectly") +
+                (isDirect() ? "directly":"indirectly") +
                 " in " + ObjectTypeUtil.toShortString(elementContext.getObjectAny()) + " / " + state;
     }
 
@@ -103,7 +103,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> clone() {
         return new AssignmentPolicyRuleEvaluationContext<>(
-                policyRule, evaluatedAssignment, isDirect, focusContext, evaluatedAssignmentTriple, task, globalCtx);
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, globalCtx);
     }
 
     @Override

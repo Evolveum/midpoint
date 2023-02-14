@@ -113,7 +113,4 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable,
      * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
      */
     boolean equivalent(AssignmentPath other);
-
-    /** TODO */
-    boolean appliesDirectly();
 }

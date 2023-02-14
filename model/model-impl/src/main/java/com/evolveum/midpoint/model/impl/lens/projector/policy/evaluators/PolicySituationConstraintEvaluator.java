@@ -58,7 +58,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
             // So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
             // "situation" constraint is present directly on it.
             if (rctx instanceof AssignmentPolicyRuleEvaluationContext
-                    && !((AssignmentPolicyRuleEvaluationContext<?>) rctx).isDirect) {
+                    && !((AssignmentPolicyRuleEvaluationContext<?>) rctx).isDirect()) {
                 return null;
             }
 
