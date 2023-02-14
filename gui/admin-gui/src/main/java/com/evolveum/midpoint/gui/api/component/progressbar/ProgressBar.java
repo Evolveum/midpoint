@@ -31,8 +31,13 @@ public class ProgressBar {
     private LocalizableMessage text;
 
     public ProgressBar(double value, State state) {
+        this(value, state, null);
+    }
+
+    public ProgressBar(double value, State state, LocalizableMessage text) {
         this.value = value;
         this.state = state;
+        this.text = text;
     }
 
     public double getValue() {

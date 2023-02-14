@@ -32,6 +32,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult
 
 import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -471,7 +473,7 @@ public final class WebComponentUtil {
         if (localizableMessage == null) {
             return null;
         }
-        return resolveLocalizableMessage(LocalizationUtil.toLocalizableMessage(localizableMessage), component);
+        return resolveLocalizableMessage(com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage(localizableMessage), component);
     }
 
     public static String resolveLocalizableMessage(LocalizableMessage localizableMessage, Component component) {
