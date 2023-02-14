@@ -1801,3 +1801,17 @@ th.debug-list-buttons {
     }
   }
 }
+
+.simple-container {
+
+  & .simple-container-header {
+
+    padding: 0.75rem 0;
+
+    & .simple-container-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-bottom: 0.25rem;
+    }
+  }
+}

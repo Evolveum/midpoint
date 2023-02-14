@@ -17,6 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -77,8 +78,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
+    private static final String ID_MARKS_CONTAINER = "marksContainer";
     private static final String ID_MARKS = "marks";
     private static final String ID_MARK = "mark";
+    private static final String ID_METRICS_CONTAINER = "metricsContainer";
     private static final String ID_METRICS = "metrics";
     private static final String ID_METRIC = "metric";
 
@@ -256,11 +259,33 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 detailsModel);
         add(details);
 
+        SimpleContainerPanel marksContainer = new SimpleContainerPanel(ID_MARKS_CONTAINER, createStringResource("PageSimulationResult.eventMarks")) {
+
+            @Override
+            protected Component createContent(String id) {
+                Component content = super.createContent(id);
+                content.add(AttributeModifier.replace("class", "row"));
+                return content;
+            }
+        };
+        add(marksContainer);
+
         ListView<DashboardWidgetType> marks = createWidgetList(ID_MARKS, ID_MARK, true);
-        add(marks);
+        marksContainer.add(marks);
+
+        SimpleContainerPanel metricsContainer = new SimpleContainerPanel(ID_METRICS_CONTAINER, createStringResource("PageSimulationResult.metrics")) {
+
+            @Override
+            protected Component createContent(String id) {
+                Component content = super.createContent(id);
+                content.add(AttributeModifier.replace("class", "row"));
+                return content;
+            }
+        };
+        add(metricsContainer);
 
         ListView<DashboardWidgetType> metrics = createWidgetList(ID_METRICS, ID_METRIC, false);
-        add(metrics);
+        metricsContainer.add(metrics);
     }
 
     private void onViewAllPerformed() {
