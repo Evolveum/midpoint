@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.AttributeVerificationAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.HintAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
@@ -27,7 +28,7 @@ public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurit
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointFormLoginConfigurer<>(new AttributeVerificationAuthenticationFilter()))
+        getOrApply(http, new MidpointFormLoginConfigurer<>(new HintAuthenticationFilter()))
                 .loginPage("/hint")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())

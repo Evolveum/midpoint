@@ -338,6 +338,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
                     || authentication.getState().equals(AuthenticationModuleState.LOGOUT_PROCESSING)) {
                 if (authentication.applicable()) {
                     return authentication;
+                } else {
+                    authentication.setState(AuthenticationModuleState.CALLED_OFF);
                 }
             }
         }

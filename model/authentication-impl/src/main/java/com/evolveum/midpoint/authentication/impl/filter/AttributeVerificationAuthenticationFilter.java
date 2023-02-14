@@ -10,6 +10,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -60,7 +61,12 @@ public class AttributeVerificationAuthenticationFilter extends MidpointUsernameP
         for (int i = 0; i < attributeValuesArray.length(); i++) {
             JSONObject entry = attributeValuesArray.getJSONObject(i);
 
-            ItemPath path = ItemPath.create(entry.get(AuthConstants.ATTR_VERIFICATION_J_PATH));
+            ItemPathType itemPath = PrismContext.get().itemPathParser().asItemPathType(entry.getString(AuthConstants.ATTR_VERIFICATION_J_PATH));
+
+            if (itemPath == null) {
+                continue;
+            }
+            ItemPath path = itemPath.getItemPath();
             String value = entry.getString(AuthConstants.ATTR_VERIFICATION_J_VALUE);
             attributeValuesMap.put(path, value);
         }

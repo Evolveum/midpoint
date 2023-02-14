@@ -11,15 +11,23 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.SecurityQuestionsAuthenticationToken;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.util.StringUtil;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author skublik
@@ -30,6 +38,26 @@ public class SecurityQuestionsAuthenticationFilter
     private static final String SPRING_SECURITY_FORM_ANSWER_KEY = "answer";
     private static final String SPRING_SECURITY_FORM_USER_KEY = "user";
 
+    private String getIdentifiedUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(!(authentication instanceof MidpointAuthentication)) {
+            return "";
+        }
+
+        MidpointAuthentication midpointAuthentication = (MidpointAuthentication) authentication;
+        Object principal = midpointAuthentication.getPrincipal();
+        if (!(principal instanceof MidPointPrincipal)) {
+            return "";
+        }
+
+        FocusType focus = ((MidPointPrincipal) principal).getFocus();
+        if (focus == null) {
+            return "";
+        }
+
+        return focus.getName().getNorm();
+
+    }
     public Authentication attemptAuthentication(
             HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (isPostOnly() && !request.getMethod().equals("POST")) {
@@ -38,7 +66,10 @@ public class SecurityQuestionsAuthenticationFilter
         }
 
         setUsernameParameter(SPRING_SECURITY_FORM_USER_KEY);
-        String username = obtainUsername(request);
+        String username = getIdentifiedUsername();
+        if (StringUtils.isBlank(username)) {
+             obtainUsername(request);
+        }
         Map<String, String> answers = obtainAnswers(request);
 
         if (username == null) {

@@ -85,12 +85,10 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
     private boolean submited;
     private UserType user = null;
-    private ProtectedStringType hint = null;
-
     public PageEmailNonce() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null) {
-            processResetPassword(null);
+            userIdentifierSubmitPerformed(null);
             submited = true;
 
 //            throw new RestartResponseException(PageEmailNonce.class);
@@ -116,8 +114,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         initDynamicLayout(form, PageEmailNonce.this);
 
-        initHintPanel(form);
-
         initButtons(form);
 
         MultiLineLabel label = new MultiLineLabel(ID_PASSWORD_RESET_SUBMITED,
@@ -140,33 +136,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
         });
 
     }
-
-    private void initHintPanel(MidpointForm<?> form) {
-        WebMarkupContainer hintPanel = new WebMarkupContainer(ID_HINT_PANEL);
-        hintPanel.setOutputMarkupId(true);
-        hintPanel.add(new VisibleBehaviour(this::isHintPresent));
-        form.add(hintPanel);
-
-        Label hintLabel = new Label(ID_HINT_LABEL, new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return createStringResource("PageEmailNonce.passwordHintLabel", getHintValue()).getString();
-            }
-        });
-        hintLabel.setOutputMarkupId(true);
-        hintPanel.add(hintLabel);
-    }
-
-    private boolean isHintPresent() {
-        return StringUtils.isNotEmpty(getHintValue());
-    }
-
-    private String getHintValue() {
-        return hint != null ? hint.getClearValue() : null;
-    }
-
     private void initButtons(MidpointForm form) {
         AjaxSubmitButton submitUserIdentifier = new AjaxSubmitButton(ID_SUBMIT_IDENTIFIER, createStringResource("PageBase.button.submit")) {
 
@@ -183,26 +152,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
             }
 
         };
-        submitUserIdentifier.add(new VisibleBehaviour(() -> !isHintPresent()));
         form.add(submitUserIdentifier);
-
-        AjaxSubmitButton continuePasswordResetButton = new AjaxSubmitButton(ID_CONTINUE_RESET_PASSWORD, createStringResource("PageEmailNonce.continuePasswordResetLabel")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                continuePasswordReset(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
-            }
-
-        };
-        continuePasswordResetButton.add(new VisibleBehaviour(this::isHintPresent));
-        form.add(continuePasswordResetButton);
 
         form.add(createBackButton(ID_BACK_BUTTON));
     }
@@ -224,7 +174,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
             @Override
             protected String load() {
-                return createStringResource(isHintPresent() ? "PageEmailNonce.backButtonAfterHintLabel" : "PageEmailNonce.backButtonLabel").getString();
+                return createStringResource("PageEmailNonce.backButtonLabel").getString();
             }
         });
         backButton.add(backButtonLabel);
@@ -238,13 +188,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
         LOGGER.trace("Reset Password user: {}", user);
 
-        hint = getUserPasswordHint(user);
-        if (hint != null) {
-            WebComponentUtil.encryptProtectedString(hint, false, PageEmailNonce.this);
-            target.add(PageEmailNonce.this);
-        } else {
-            continuePasswordReset(target);
-        }
+        continuePasswordReset(target);
     }
 
     private void continuePasswordReset(AjaxRequestTarget target) {
@@ -275,11 +219,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
             throw new RestartResponseException(PageEmailNonce.class);
         }
-    }
-
-    private ProtectedStringType getUserPasswordHint(@NotNull UserType user) {
-        return user.getCredentials() != null && user.getCredentials().getPassword() != null ?
-                user.getCredentials().getPassword().getHint() : null;
     }
 
     private NonceCredentialsPolicyType getMailNoncePolicy(PrismObject<UserType> user) {
@@ -353,7 +292,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
         staticLayout.setOutputMarkupId(true);
-        staticLayout.add(new VisibleBehaviour(() -> !isDynamicForm() && !isHintPresent()));
+        staticLayout.add(new VisibleBehaviour(() -> !isDynamicForm()));
         form.add(staticLayout);
 
         RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_EMAIL, new Model<>());
@@ -368,7 +307,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
     @Override
     protected boolean isDynamicFormVisible() {
-        return super.isDynamicFormVisible() && !isHintPresent();
+        return super.isDynamicFormVisible();
     }
 
     @Override
