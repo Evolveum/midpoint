@@ -292,14 +292,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
-        /*
-        TODO for new repo - why does it complain about raw when there is raw above?
-        java.lang.IllegalStateException: Raw value PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))
-         in item PP({.../resource/instance/10000000-0000-0000-0000-000000000004}location):[PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))]
-          (attributes/location in shadow:3a727816-70f7-4301-98ab-c1a0020d1ea2(jack))
-         */
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(
+                ShadowType.class, accountJackOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -942,12 +936,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);          // there's no password for that account
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0); // there's no password for that account
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 0);               // account has no owner
+        checkDummyTransportMessages("simpleUserNotifier", 0); // account has no owner
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
@@ -1020,8 +1014,58 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** Simulated deletion of the account while it is still linked. */
     @Test
-    public void test128ModifyUserDeleteAccountRef() throws Exception {
+    public void test123DeleteLinkedAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        objectsCounter.remember(result);
+
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+                .createDeleteDelta(ShadowType.class, accountJackOid);
+
+        when();
+        when("account is deleted in the simulation mode");
+        var simulationResult = executeWithSimulationResult(
+                List.of(accountDelta),
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("no resource access, steady resources");
+        assertShadowFetchOperations(1); // Because of the event mark policy rules
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(2);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test124ModifyUserDeleteAccountRef() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1089,6 +1133,53 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** Simulated deletion of an unlinked account. */
+    @Test
+    public void test126DeleteUnlinkedAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        objectsCounter.remember(result);
+
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+                .createDeleteDelta(ShadowType.class, accountJackOid);
+
+        when();
+        when("account is deleted in the simulation mode");
+        var simulationResult = traced( () -> executeWithSimulationResult(
+                List.of(accountDelta),
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result) );
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("single resource access (because of sims), steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display() // No user, because the account was not linked
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(1);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
     @Test
     public void test129DeleteAccount() throws Exception {
         given();
@@ -1098,10 +1189,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountJackOid);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 
         when();
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(List.of(accountDelta), null, task, result);
 
         then();
         assertSuccess("executeChanges result", result);
@@ -1109,15 +1199,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
-        // Check accountRef
-        assertUserNoAccountRefs(userJack);
-
-        // Check is shadow is gone
-        assertNoShadow(accountJackOid);
-
-        // Check if dummy resource account is gone
-        assertNoDummyAccount("jack");
-
+        assertUserNoAccountRefs(userJack); // Check that linkRef is gone
+        assertNoShadow(accountJackOid); // Check is shadow is gone
+        assertNoDummyAccount("jack"); // Check if dummy resource account is gone
         assertDummyScriptsDelete();
 
         // Check audit

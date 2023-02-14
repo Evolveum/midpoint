@@ -685,8 +685,8 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     /**
      * Sets both current and (if the operation is not `ADD`) also the old object.
      */
-    void setInitialObject(@NotNull PrismObject<O> object, boolean isAdd) {
-        setCurrentAndOptionallyOld(object, !isAdd);
+    void setInitialObject(@NotNull PrismObject<O> object) {
+        setCurrentAndOptionallyOld(object, true);
     }
 
     /**

@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMap
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -164,9 +165,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <AH extends AssignmentHolderType> void processAssignmentsInternal(LensContext<AH> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <AH extends AssignmentHolderType> void processAssignmentsInternal(
+            LensContext<AH> context, XMLGregorianCalendar now, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
 
@@ -195,14 +197,13 @@ public class AssignmentProcessor implements ProjectorProcessor {
             assignmentTripleEvaluator.reset(false);
             evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         }
-        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
         LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         // PROCESSING POLICIES
 
-        policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
+        policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
         boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
         if (needToReevaluateAssignments) {
@@ -215,11 +216,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
             // TODO implement isMemberOf invocation result change check here! MID-5784
             //  Actually, we should factor out the relevant code to avoid code duplication.
 
-            policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
-
             LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
-            policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
+            policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
         }
 
         // PROCESSING FOCUS

@@ -2410,7 +2410,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getFocusPolicyRules(), EvaluatedPolicyRule::getName);
+        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getObjectPolicyRules(), EvaluatedPolicyRule::getName);
     }
 
     private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
