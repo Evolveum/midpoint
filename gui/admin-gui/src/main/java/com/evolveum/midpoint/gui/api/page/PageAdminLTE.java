@@ -258,7 +258,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         Validate.notNull(taskManager, "Task manager was not injected.");
         Validate.notNull(reportManager, "Report manager was not injected.");
 
-        MidPointAuthWebSession.getSession().setClientCustomization();
+        MidPointAuthWebSession.get().setClientCustomization();
 
         add(new NewWindowNotifyingBehavior());
     }
