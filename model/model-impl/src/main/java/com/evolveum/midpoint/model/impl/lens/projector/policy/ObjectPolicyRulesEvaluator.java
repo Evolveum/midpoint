@@ -72,7 +72,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
                 LOGGER.trace("Rule {} is not applicable to the focus/projection, skipping: {}", rule.getName(), rule);
             }
         }
-        elementContext.setObjectPolicyRules(rules);
+        elementContext.setObjectPolicyRules(applicableRules);
         return applicableRules;
     }
 
