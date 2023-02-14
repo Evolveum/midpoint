@@ -23,6 +23,8 @@ import java.util.Collection;
 
 /**
  * Evaluation context for a policy rule. Common for assignment- and object-based rules.
+ *
+ * Should be quite short-living, only during policy rule evaluation.
  */
 public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
 

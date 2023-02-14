@@ -38,6 +38,8 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
     private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyRulesEvaluator.class);
 
     @NotNull private final LensElementContext<O> elementContext;
+
+    /** Selects focus vs. projection rules. */
     @NotNull private final Predicate<EvaluatedPolicyRule> ruleSelector;
 
     ObjectPolicyRulesEvaluator(
@@ -54,7 +56,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
             ConfigurationException, CommunicationException {
 
         collector.initialize(result);
-        List<EvaluatedPolicyRuleImpl> rules = collector.collectFocusRules(result);
+        List<EvaluatedPolicyRuleImpl> rules = collector.collectObjectRules(result);
 
         LOGGER.trace("Selecting rules from {} focus-attached policy rules", rules.size());
         List<EvaluatedPolicyRuleImpl> applicableRules = selectAndSetApplicableRules(rules);
@@ -63,15 +65,14 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
 
     private @NotNull List<EvaluatedPolicyRuleImpl> selectAndSetApplicableRules(List<EvaluatedPolicyRuleImpl> rules) {
         List<EvaluatedPolicyRuleImpl> applicableRules = new ArrayList<>();
-        elementContext.clearObjectPolicyRules();
         for (EvaluatedPolicyRuleImpl rule : rules) {
             if (ruleSelector.test(rule)) {
                 applicableRules.add(rule);
-                elementContext.addObjectPolicyRule(rule);
             } else {
                 LOGGER.trace("Rule {} is not applicable to the focus/projection, skipping: {}", rule.getName(), rule);
             }
         }
+        elementContext.setObjectPolicyRules(rules);
         return applicableRules;
     }
 
@@ -89,15 +90,14 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
         new PolicyStateRecorder().applyObjectState(elementContext, globalCtx.rulesToRecord);
     }
 
-    /**
-     * Evaluates policy rules attached to the focus.
-     */
+    /** Evaluates object policy rules attached to the focus. */
     static class FocusPolicyRulesEvaluator<F extends AssignmentHolderType> extends ObjectPolicyRulesEvaluator<F> {
         FocusPolicyRulesEvaluator(@NotNull LensFocusContext<F> focusContext, @NotNull Task task) {
             super(focusContext, task, EvaluatedPolicyRule::isApplicableToFocusObject);
         }
     }
 
+    /** Evaluates object policy rules attached to projections. */
     static class ProjectionPolicyRulesEvaluator extends ObjectPolicyRulesEvaluator<ShadowType> {
         ProjectionPolicyRulesEvaluator(@NotNull LensProjectionContext projectionContext, @NotNull Task task) {
             super(projectionContext, task, EvaluatedPolicyRule::isApplicableToProjection);

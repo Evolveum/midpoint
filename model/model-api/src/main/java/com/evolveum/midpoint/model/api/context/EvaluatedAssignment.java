@@ -70,12 +70,12 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
     boolean isPresentInOldObject();
 
     /**
-     * Returns all policy rules that apply to the focal object and are derived from this assignment
+     * Returns all policy rules that apply to the focal/projections objects and are derived from this assignment
      * - even those that were not triggered. The policy rules are compiled from all the applicable
      * sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<? extends EvaluatedPolicyRule> getFocusPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
 
     /**
      * Returns all policy rules that directly apply to the target object of this assignment

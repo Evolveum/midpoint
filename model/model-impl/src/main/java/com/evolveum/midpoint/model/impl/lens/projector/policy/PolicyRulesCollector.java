@@ -51,7 +51,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 /**
  * Collects relevant rules (for assignments, focus, or projection) from all relevant sources.
  *
- * @see #collectFocusRules(OperationResult)
+ * @see #collectObjectRules(OperationResult)
  * @see #collectGlobalAssignmentRules(DeltaSetTriple, OperationResult)
  */
 class PolicyRulesCollector<O extends ObjectType> {
@@ -77,40 +77,41 @@ class PolicyRulesCollector<O extends ObjectType> {
         stateCheck(rulesWithIds != null, "Not initialized");
     }
 
-    @NotNull List<EvaluatedPolicyRuleImpl> collectFocusRules(OperationResult result)
+    /** Collects "object rules" (i.e. for focus and assignments) from all sources: assignments and global config, incl. marks. */
+    @NotNull List<EvaluatedPolicyRuleImpl> collectObjectRules(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectFocusRulesFromAssignments(rules);
+        collectObjectRulesFromAssignments(rules);
         collectGlobalObjectRules(rules, result);
         resolveConstraintReferences(rules);
         return rules;
     }
 
-    private void collectFocusRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {
+    private void collectObjectRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules) {
         // We intentionally evaluate rules also from negative (deleted) assignments.
         for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getAllEvaluatedAssignments()) {
-            rules.addAll(evaluatedAssignment.getFocusPolicyRules());
+            rules.addAll(evaluatedAssignment.getObjectPolicyRules());
         }
     }
 
     private void collectGlobalObjectRules(List<EvaluatedPolicyRuleImpl> rules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-
         PrismObject<O> focus = getFocusForSelection();
-        List<GlobalRuleWithId> focusMatching = getFocusMatchingGlobalRules(focus);
+        List<GlobalRuleWithId> ruleMatchingFocus = getGlobalRulesMatchingFocus(focus);
         int globalRulesFound = 0;
-        for (GlobalRuleWithId ruleWithId: focusMatching) {
+        for (GlobalRuleWithId ruleWithId : ruleMatchingFocus) {
             GlobalPolicyRuleType ruleBean = ruleWithId.getRuleBean();
-            if (isRuleConditionTrue(ruleBean, focus, null,  result)) {
+            if (isRuleConditionTrue(ruleBean, focus, null, result)) {
+                LOGGER.trace("Collecting global policy rule '{}' ({})", ruleBean.getName(), ruleWithId.getRuleId());
                 rules.add(
                         new EvaluatedPolicyRuleImpl(
                                 ruleBean.clone(), ruleWithId.getRuleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
-                LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}",
-                        ruleBean.getName(), ruleBean);
+                LOGGER.trace("Skipping global policy rule {} ({}) because the condition evaluated to false: {}",
+                        ruleBean.getName(), ruleWithId.getRuleId(), ruleBean);
             }
         }
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
@@ -123,7 +124,7 @@ class PolicyRulesCollector<O extends ObjectType> {
 
         PrismObject<O> focus = getFocusForSelection();
 
-        List<GlobalRuleWithId> focusMatching = getFocusMatchingGlobalRules(focus);
+        List<GlobalRuleWithId> focusMatching = getGlobalRulesMatchingFocus(focus);
         int globalRulesInstantiated = 0;
         for (GlobalRuleWithId ruleWithId : focusMatching) {
             GlobalPolicyRuleType ruleBean = ruleWithId.getRuleBean();
@@ -169,7 +170,8 @@ class PolicyRulesCollector<O extends ObjectType> {
         LOGGER.trace("Global policy rules instantiated {} times for further evaluation", globalRulesInstantiated);
     }
 
-    private List<GlobalRuleWithId> getFocusMatchingGlobalRules(PrismObject<O> focus)
+    /** Treats both config- and mark-based rules. */
+    private List<GlobalRuleWithId> getGlobalRulesMatchingFocus(@Nullable PrismObject<O> focus)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         checkInitialized();
@@ -210,7 +212,11 @@ class PolicyRulesCollector<O extends ObjectType> {
         return focusContext.isDeleted() ? focusContext.getObjectOld() : null;
     }
 
-    /** TODO implement more efficiently */
+    /**
+     * Gets all global policy rules: from configuration + from enabled marks.
+     *
+     * TODO implement more efficiently (but beware, marks can be enabled/disabled per task)
+     */
     private @NotNull List<GlobalRuleWithId> getAllGlobalPolicyRules(@NotNull OperationResult result) {
         SystemConfigurationType systemConfiguration = context.getSystemConfigurationBean();
         List<GlobalRuleWithId> allRules = new ArrayList<>();

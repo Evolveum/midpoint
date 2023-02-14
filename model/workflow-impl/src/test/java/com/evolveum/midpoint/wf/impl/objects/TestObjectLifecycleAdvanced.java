@@ -182,7 +182,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
         //noinspection unchecked
         LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
-        System.out.println(context.dumpFocusPolicyRules(0));
+        System.out.println(context.dumpObjectPolicyRules(0));
         EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
                 .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
                 .findFirst()
@@ -217,7 +217,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
         //noinspection unchecked
         LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
-        System.out.println(context.dumpFocusPolicyRules(0));
+        System.out.println(context.dumpObjectPolicyRules(0));
         EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getObjectPolicyRules().stream()
                 .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
                 .findFirst()

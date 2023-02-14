@@ -56,7 +56,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     collectFocusMappings(); // but mappings from invalid direct assignments are not
                 }
                 if (segment.isNonNegativeRelativeRelativityMode()) {
-                    collectFocusPolicyRule(); // focus policy rules from invalid assignments are collected (why?) but only if non-negative (why?)
+                    // object policy rules from invalid assignments are collected (why?) but only if non-negative (why?)
+                    collectObjectPolicyRule();
                 }
             }
 
@@ -136,11 +137,11 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
-    private void collectFocusPolicyRule() {
+    private void collectObjectPolicyRule() {
         PolicyRuleType policyRuleBean = segment.assignment.getPolicyRule();
         if (policyRuleBean != null) {
-            LOGGER.trace("Collecting focus policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
-            ctx.evalAssignment.addFocusPolicyRule(
+            LOGGER.trace("Collecting object policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
+            ctx.evalAssignment.addObjectPolicyRule(
                     createEvaluatedPolicyRule(policyRuleBean, TargetType.OBJECT));
         }
     }

@@ -63,6 +63,8 @@ class PolicyRuleEvaluator {
      *
      *    Situation(URL1) -> Action1 [URL2]
      *    Situation(URL2) -> Action2 [URL1]
+     *
+     * TODO migrate to marks
      */
     void evaluateRules(
             List<? extends PolicyRuleEvaluationContext<?>> contexts, OperationResult result)

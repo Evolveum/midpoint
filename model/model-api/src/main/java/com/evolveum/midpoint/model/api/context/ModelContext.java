@@ -86,11 +86,11 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
 
-    default String dumpFocusPolicyRules(int indent) {
-        return dumpFocusPolicyRules(indent, false);
+    default String dumpObjectPolicyRules(int indent) {
+        return dumpObjectPolicyRules(indent, false);
     }
 
-    String dumpFocusPolicyRules(int indent, boolean alsoMessages);
+    String dumpObjectPolicyRules(int indent, boolean alsoMessages);
 
     Map<String, Collection<Containerable>> getHookPreviewResultsMap();
 

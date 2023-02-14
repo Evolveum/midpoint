@@ -57,7 +57,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     @ProcessorMethod
     public <AH extends AssignmentHolderType> void evaluateFocusPolicyRules(
-            LensContext<AH> context, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
+            LensContext<AH> context, XMLGregorianCalendar ignoredNow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         // No need for custom operation result, as this already has one

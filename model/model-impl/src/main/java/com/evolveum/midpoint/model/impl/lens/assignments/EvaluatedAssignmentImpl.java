@@ -84,14 +84,14 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
     /**
-     * Policy rules assigned to the focus directly or indirectly through this assignment.
-     * They may or may not be really applicable to the focus. This is not our responsibility.
+     * Policy rules assigned to the focus/projections directly or indirectly through this assignment.
+     * They may or may not be really applicable to the focus/projections. This is not our responsibility.
      * We only check that the rule was induced to the focus object.
      *
      * A typical focus-assigned policy rule is e.g. "forbid focus modifications".
      * Shadow-related rules can be present here as well.
      */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
 
     /**
      * Policy rules assigned to the target of this assignment, directly or indirectly.
@@ -403,12 +403,12 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @Override
     @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getFocusPolicyRules() {
-        return focusPolicyRules;
+    public Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+        return objectPolicyRules;
     }
 
-    void addFocusPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        focusPolicyRules.add(policyRule);
+    void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        objectPolicyRules.add(policyRule);
     }
 
     @Override
@@ -520,7 +520,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(
-                sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
+                sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent+1);
         Collection<? extends EvaluatedPolicyRule> thisTargetRules = getThisTargetPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent+1);
@@ -555,7 +555,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; autz=" + authorizations
                 + "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
                 + "; " + focusMappings.size() + " focus mappings"
-                + "; " + focusPolicyRules.size() + " rules"
+                + "; " + objectPolicyRules.size() + " rules"
                 + "; refs=" + membershipRefVals.size() + "m, " + delegationRefVals.size() + "d, " + archetypeRefVals.size() + "a"
                 +")";
     }

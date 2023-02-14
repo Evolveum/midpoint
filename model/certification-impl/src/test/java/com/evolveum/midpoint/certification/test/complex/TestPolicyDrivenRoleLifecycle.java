@@ -171,7 +171,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     private void dumpRules(Holder<LensContext<?>> contextHolder) {
         displayValue("focus policy rules",
-                contextHolder.getValue().dumpFocusPolicyRules(0, true));
+                contextHolder.getValue().dumpObjectPolicyRules(0, true));
     }
 
     /**

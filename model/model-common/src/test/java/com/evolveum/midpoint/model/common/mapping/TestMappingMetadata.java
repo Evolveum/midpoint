@@ -1194,7 +1194,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
+            public String dumpObjectPolicyRules(int indent, boolean alsoMessages) {
                 return null;
             }
 

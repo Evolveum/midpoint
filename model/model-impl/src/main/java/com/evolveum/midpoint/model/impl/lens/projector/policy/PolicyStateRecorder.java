@@ -25,7 +25,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Takes care of updating policySituation and triggered rules for focus and assignments. (Originally was a part of PolicyRuleEvaluator.)
+ * Takes care of updating `policySituation` and triggered rules for focus and assignments.
+ * (Originally was a part of `PolicyRuleEvaluator`.)
+ *
+ * TODO migrate to marks somehow
  *
  * @author semancik
  */

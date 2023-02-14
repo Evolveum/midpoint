@@ -297,18 +297,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Assumes that clockwork has not started yet.
      */
     public void setInitialObject(@NotNull PrismObject<O> object) {
-        setInitialObject(object, null);
-    }
-
-    /**
-     * Sets the value of an object that should be present on the clockwork start:
-     * both objectCurrent, and (if delta is not "add") also objectOld.
-     *
-     * Assumes that clockwork has not started yet.
-     */
-    private void setInitialObject(@NotNull PrismObject<O> object, @Nullable ObjectDelta<O> objectDelta) {
         lensContext.checkNotStarted("set initial object value", this);
-        state.setInitialObject(object, ObjectDelta.isAdd(objectDelta));
+        state.setInitialObject(object);
     }
 
     /**
@@ -520,12 +510,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return policyRulesContext.getObjectPolicyRules();
     }
 
-    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        policyRulesContext.addObjectPolicyRule(policyRule);
+    public void setObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+        policyRulesContext.clearObjectPolicyRules();
+        policyRulesContext.addObjectPolicyRules(policyRules);
     }
 
-    public void clearObjectPolicyRules() {
-        policyRulesContext.clearObjectPolicyRules();
+    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        policyRulesContext.addObjectPolicyRule(policyRule);
     }
 
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
@@ -741,11 +732,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return object.toDebugType();
     }
 
-    protected String getDebugDumpTitle() {
+    String getDebugDumpTitle() {
         return StringUtils.capitalize(getElementDesc());
     }
 
-    protected String getDebugDumpTitle(String suffix) {
+    String getDebugDumpTitle(String suffix) {
         return getDebugDumpTitle()+" "+suffix;
     }
 
@@ -767,7 +758,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         PrismObject<O> objectOld = state.getOldObject();
         if (objectOld != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, PrismContext.get()));
+                bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld));
             } else {
                 bean.setObjectOld(objectOld.asObjectable().clone());
             }
@@ -779,7 +770,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         PrismObject<O> objectNew = state.getNewObject();
         if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, PrismContext.get()));
+                bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew));
             } else {
                 bean.setObjectNew(objectNew.asObjectable().clone());
             }

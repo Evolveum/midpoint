@@ -125,8 +125,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     /**
      * To which object is the policy rule targeted, from the point of assignment mechanisms - and how?
-     * For example, if it's assigned to the focus, then it's {@link #OBJECT}. If it's assigned directly to the assignment
-     * target, it's {@link #DIRECT_ASSIGNMENT_TARGET}.
+     * For example, if it's assigned to the focus (to be applied either to the focus or the projections),
+     * then it's {@link #OBJECT}. If it's assigned directly to the assignment target, it's {@link #DIRECT_ASSIGNMENT_TARGET}.
      */
     enum TargetType {
 
