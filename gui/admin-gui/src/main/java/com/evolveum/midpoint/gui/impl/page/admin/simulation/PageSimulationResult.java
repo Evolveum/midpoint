@@ -233,16 +233,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             }
 
             @Override
-            protected void onNextPerformed(AjaxRequestTarget target) {
-                onViewAllPerformed();
-            }
-
-            @Override
             protected AjaxLink createNextButton(String id, IModel<String> nextTitle) {
                 AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> "View results") {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+                        onViewAllPerformed();
                     }
                 };
                 next.showTitleAsLabel(true);
@@ -289,7 +284,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void onViewAllPerformed() {
-        // todo implement
+        PageParameters params = new PageParameters();
+        params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+
+        navigateToNext(PageSimulationResultObjects.class, params);
     }
 
     private ListView<DashboardWidgetType> createWidgetList(String id, String widgetId, boolean eventMarks) {

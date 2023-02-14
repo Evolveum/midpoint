@@ -194,11 +194,6 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                             return null;
                         }
 
-                        // todo probably use this to get display name?
-                        // Resource.of(resourceObject)
-                        //        .getCompleteSchemaRequired()
-                        //        .findObjectDefinitionRequired(discriminator.getKind(), discriminator.getIntent())
-                        //        .getDisplayName();
                         String displayName = found.getDisplayName();
                         if (displayName == null) {
                             displayName = getString("PageSimulationResultObject.unknownResourceObject");
@@ -323,9 +318,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected IModel<String> createTitleModel() {
-                return () ->
-                        WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                                + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+                return PageSimulationResultObject.this.createTitleModel();
             }
 
             @Override
@@ -427,5 +420,16 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private void onBackPerformed() {
         redirectBack();
+    }
+
+    private IModel<String> createTitleModel() {
+        return () ->
+                WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
+                        + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
     }
 }
