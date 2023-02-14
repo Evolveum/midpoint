@@ -3347,7 +3347,54 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test640AddUserMorganWithAssignment() throws Exception {
+    public void test640AddUserMorganWithAssignmentSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        ObjectDelta<UserType> delta =
+                DeltaFactory.Object.createAddDelta(
+                        PrismTestUtil.parseObject(
+                                new File(TEST_DIR, "user-morgan-assignment-dummy.xml")));
+
+        when();
+        var simulationResult = executeWithSimulationResult(
+                List.of(delta),
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("no shadow fetch, steady resources");
+        assertNoShadowFetchOperations();
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
+                    .assertEventMarks(MARK_FOCUS_ACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test645AddUserMorganWithAssignment() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3424,7 +3471,50 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test650RenameUserMorgan() throws Exception {
+    public void test650RenameUserMorganSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        when();
+        var simulationResult = executeWithSimulationResult(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result,
+                (sr) -> modifyUserReplace(
+                        USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry")));
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("one shadow fetch, steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_RENAMED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test655RenameUserMorgan() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
