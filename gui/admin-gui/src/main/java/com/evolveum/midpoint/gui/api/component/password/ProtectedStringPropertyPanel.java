@@ -44,7 +44,7 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
             panel = new PasswordHintPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()), getPasswordModel(item.getModelObject()),
                     getModelObject() != null && getModelObject().isReadOnly());
         } else {
-            panel = new PasswordPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
+            panel = new PasswordPropertyPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null,
                     getPrismObjectParentIfExist()) {

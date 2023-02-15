@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
@@ -53,7 +55,7 @@ public class MailServerPanel extends ComplexPropertyInputPanel<MailServerConfigu
 
         add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(c -> c.getUsername(), (c, o) -> c.setUsername(o))), "MailServerPanel.username");
 
-        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o))), false, "MailServerPanel.password");
+        add(new PasswordPropertyPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o))), false, "MailServerPanel.password");
 
         DropDownChoicePanel transportSecurity = WebComponentUtil.createEnumPanel(MailTransportSecurityType.class, ID_TRANSPORT_SECURITY,
                 createEmbeddedModel(c -> c.getTransportSecurity(), (c, o) -> c.setTransportSecurity(o)), this);

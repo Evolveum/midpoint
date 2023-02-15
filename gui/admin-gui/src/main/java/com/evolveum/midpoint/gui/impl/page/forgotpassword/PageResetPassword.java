@@ -114,6 +114,11 @@ public class PageResetPassword extends AbstractPageLogin {
                 target.add(getFeedbackPanel());
             }
 
+            @Override
+            protected boolean isPasswordLimitationPopupVisible() {
+                return true;
+            }
+
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);

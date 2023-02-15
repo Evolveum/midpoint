@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -240,7 +242,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
-        PasswordPanel password = new PasswordPanel(ID_PASSWORD,
+        PasswordPanel password = new PasswordPropertyPanel(ID_PASSWORD,
                 new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().setRequired(true);

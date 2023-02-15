@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordHintPanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
-import com.evolveum.midpoint.gui.api.component.password.ProtectedStringModel;
+import com.evolveum.midpoint.gui.api.component.password.*;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -153,8 +150,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
 
             @Override
-            protected boolean isPasswordLimitationPanelVisible() {
-                return false;
+            protected boolean isPasswordLimitationPopupVisible() {
+                return ChangePasswordPanel.this.isPasswordLimitationPopupVisible();
             }
 
             @Override
@@ -162,10 +159,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return !savedPassword;
             }
 
-            @Override
-            protected boolean isRemovePasswordVisible() {
-                return false;
-            }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
@@ -179,6 +172,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         };
 
         PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
+        passwordLimitationsPanel.add(new VisibleBehaviour(() -> !isPasswordLimitationPopupVisible()));
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
 
@@ -416,6 +410,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     .body(getString(result.getStatus()))
                     .show(target);
         }
+    }
+
+    protected boolean isPasswordLimitationPopupVisible() {
+        return false;
     }
 
 }
