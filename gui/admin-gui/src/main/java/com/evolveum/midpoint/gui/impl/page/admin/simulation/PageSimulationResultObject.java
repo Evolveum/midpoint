@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -33,6 +30,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationFactory;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -98,6 +97,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private IModel<List<DetailsTableItem>> detailsModel;
 
+    private IModel<List<ObjectVisualization>> changesNewModel;
+
     private IModel<VisualizationDto> changesModel;
 
     public PageSimulationResultObject() {
@@ -156,7 +157,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> items = new ArrayList<>();
 
-                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> SimulationsGuiUtil.getProcessedObjectType(objectModel)));
 
                 IModel<String> resourceCoordinatesModel = new LoadableDetachableModel<>() {
 
@@ -216,7 +217,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return GuiSimulationsUtil.createProcessedObjectStateLabel(id, objectModel);
+                        return SimulationsGuiUtil.createProcessedObjectStateLabel(id, objectModel);
                     }
                 });
 
@@ -306,6 +307,27 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 return new VisualizationDto(wrapper);
             }
         };
+
+        changesNewModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<ObjectVisualization> load() {
+                ObjectDeltaType delta = objectModel.getObject().getDelta();
+                if (delta == null) {
+                    return Collections.emptyList();
+                }
+
+                try {
+                    ObjectVisualization visualization = VisualizationFactory.createObjectVisualization(delta);
+
+                    return Collections.singletonList(visualization);
+                } catch (Exception ex) {
+                    // todo handle exception
+                    ex.printStackTrace();
+                }
+
+                return Collections.emptyList();
+            }
+        };
     }
 
     private void initLayout() {
@@ -364,8 +386,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
-        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> new ArrayList<>());
-        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, changesNewModel);
+        changesNew.add(new VisibleBehaviour(() -> changesNewModel.getObject().size() > 0 && WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changesNew);
 
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
@@ -375,7 +397,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
-        columns.add(GuiSimulationsUtil.createProcessedObjectIconColumn());
+        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn());
         columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
@@ -395,7 +417,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 };
             }
         });
-        columns.add(new LambdaColumn<>(null, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue)));
+        columns.add(new LambdaColumn<>(null, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue)));
 
         return columns;
     }

@@ -12,8 +12,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.todo.ObjectVisualization;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.todo.ObjectVisualizationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualizationPanel;
 
 public class ChangesPanel extends BasePanel<List<ObjectVisualization>> {
 

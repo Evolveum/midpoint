@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class GuiSimulationsUtil {
+public class SimulationsGuiUtil {
 
     public static Label createProcessedObjectStateLabel(String id, IModel<SimulationResultProcessedObjectType> model) {
         Label label = new Label(id, () -> {
