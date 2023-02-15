@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class SystemConfigurationTypeUtil {
 
@@ -30,7 +31,7 @@ public class SystemConfigurationTypeUtil {
             }
         } else {
             if (s.getInternals() == null) {
-                s.setInternals(new InternalsConfigurationType());           // hopefully prismContext etc is correctly set
+                s.setInternals(new InternalsConfigurationType()); // hopefully prismContext etc is correctly set
             }
             s.getInternals().setEnableExperimentalCode(enableExperimentalCode);
         }
@@ -69,5 +70,21 @@ public class SystemConfigurationTypeUtil {
         } else {
             return null;
         }
+    }
+
+    public static boolean isAccessesMetadataEnabled(SystemConfigurationType sysconfig) {
+        boolean defaultValue = true;
+        if (sysconfig == null) {
+            return defaultValue;
+        }
+        RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
+        if (roleManagement == null) {
+            return defaultValue;
+        }
+        Boolean accessesMetadataEnabled = roleManagement.isAccessesMetadataEnabled();
+        if (accessesMetadataEnabled == null) {
+            return defaultValue;
+        }
+        return Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled());
     }
 }

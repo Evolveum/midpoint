@@ -353,7 +353,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         //noinspection unchecked,rawtypes
         DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
                 (DeltaSetTriple) context.getEvaluatedAssignmentTriple();
-        evaluatedAssignmentTriple.simpleAccept(assignment -> assignment.getFocusPolicyRules().forEach(handler));
+        evaluatedAssignmentTriple.simpleAccept(assignment -> assignment.getObjectPolicyRules().forEach(handler));
     }
 
     void dumpPolicyRules(LensContext<? extends FocusType> context) {

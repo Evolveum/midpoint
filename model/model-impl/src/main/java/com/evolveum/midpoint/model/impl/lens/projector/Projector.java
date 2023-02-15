@@ -214,7 +214,8 @@ public class Projector {
 
             context.checkConsistenceIfNeeded();
 
-            medic.partialExecute(Components.OBJECT_TEMPLATE_AFTER_PROJECTIONS, objectTemplateProcessor,
+            medic.partialExecute(
+                    Components.OBJECT_TEMPLATE_AFTER_PROJECTIONS, objectTemplateProcessor,
                     objectTemplateProcessor::processTemplateAfterProjections,
                     partialProcessingOptions::getObjectTemplateAfterAssignments,
                     Projector.class, context, now, task, result);
@@ -248,11 +249,12 @@ public class Projector {
         }
     }
 
-    private <F extends ObjectType> void projectProjection(LensContext<F> context, LensProjectionContext projectionContext,
+    private <F extends ObjectType> void projectProjection(
+            LensContext<F> context, LensProjectionContext projectionContext,
             PartialProcessingOptionsType partialProcessingOptions,
             XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-                    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         String projectionDesc = projectionContext.getDescription();
         parentResult.addParam(OperationResult.PARAM_PROJECTION, projectionDesc); // a bit of hack -> to have projection info also on the root "component" operation result
@@ -333,7 +335,8 @@ public class Projector {
             // TODO: decide if we need to continue
 
             // This is a "composite" processor. it contains several more processor invocations inside
-            medic.partialExecute(Components.PROJECTION_VALUES, projectionValuesProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_VALUES, projectionValuesProcessor,
                     projectionValuesProcessor::process,
                     partialProcessingOptions::getProjectionValues,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
@@ -343,27 +346,32 @@ public class Projector {
                 return;
             }
 
-            medic.partialExecute(Components.PROJECTION_CREDENTIALS, projectionCredentialsProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_CREDENTIALS, projectionCredentialsProcessor,
                     projectionCredentialsProcessor::processProjectionCredentials,
                     partialProcessingOptions::getProjectionCredentials,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
-            medic.partialExecute(Components.PROJECTION_RECONCILIATION, reconciliationProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_RECONCILIATION, reconciliationProcessor,
                     reconciliationProcessor::processReconciliation,
                     partialProcessingOptions::getProjectionReconciliation,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
-            medic.partialExecute(Components.PROJECTION_VALUES_POST_RECON, projectionValuesProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_VALUES_POST_RECON, projectionValuesProcessor,
                     projectionValuesProcessor::processPostRecon,
                     partialProcessingOptions::getProjectionValues,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
-            medic.partialExecute(Components.PROJECTION_LIFECYCLE, activationProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_LIFECYCLE, activationProcessor,
                     activationProcessor::processLifecycle,
                     partialProcessingOptions::getProjectionLifecycle,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
-            medic.partialExecute(Components.PROJECTION_POLICY_RULES, policyRuleProcessor,
+            medic.partialExecute(
+                    Components.PROJECTION_POLICY_RULES, null,
                     policyRuleProcessor::evaluateProjectionPolicyRules,
                     partialProcessingOptions::getProjectionPolicyRules,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);

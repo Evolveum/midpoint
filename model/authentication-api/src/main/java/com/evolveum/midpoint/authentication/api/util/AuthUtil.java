@@ -6,16 +6,25 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
-import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -25,15 +34,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Objects;
 
 public class AuthUtil {
 
@@ -179,8 +179,8 @@ public class AuthUtil {
     public static void clearMidpointAuthentication() {
         Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (oldAuthentication instanceof MidpointAuthentication
-                && ((MidpointAuthentication)oldAuthentication).getAuthenticationChannel() != null
-                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(((MidpointAuthentication)oldAuthentication).getAuthenticationChannel().getChannelId())) {
+                && ((MidpointAuthentication) oldAuthentication).getAuthenticationChannel() != null
+                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(((MidpointAuthentication) oldAuthentication).getAuthenticationChannel().getChannelId())) {
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) oldAuthentication);
         }
         SecurityContextHolder.getContext().setAuthentication(null);

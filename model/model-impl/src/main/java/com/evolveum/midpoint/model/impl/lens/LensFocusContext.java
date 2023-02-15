@@ -8,7 +8,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -54,6 +56,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      * (Note we do not currently provide this kind of flag on the projection contexts, because of not being
      * sure if deleted projection cannot be somehow "resurrected" during the processing. For focal objects nothing like
      * this should happen.)
+     *
+     * Used to clarify context (re)loading for deleted focus situations. See MID-4856.
      */
     protected boolean deleted;
 
@@ -497,5 +501,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void deleteEmptyPrimaryDelta() {
         state.deleteEmptyPrimaryDelta();
+    }
+
+    public @NotNull LensContext<O> getLensContext() {
+        //noinspection unchecked
+        return (LensContext<O>) lensContext;
     }
 }

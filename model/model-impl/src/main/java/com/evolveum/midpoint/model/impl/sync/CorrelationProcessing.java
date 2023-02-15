@@ -94,10 +94,10 @@ class CorrelationProcessing<F extends FocusType> {
 
         assert syncCtx.getLinkedOwner() == null;
 
-        CompleteCorrelationResult existing = getResultFromExistingCorrelationState(parentResult);
+        CompleteCorrelationResult existing = getDefiniteResultFromExistingCorrelationState(parentResult);
         if (existing != null) {
-            LOGGER.debug("Result determined from existing correlation state in shadow: {}", existing.getSituation());
-            markShadowCorrelationFinished();
+            LOGGER.debug("Definite result determined from existing correlation state in shadow: {}", existing.getSituation());
+            setShadowCorrelationEndTime(existing.isDone()); // isDone is true here
             return existing;
         }
 
@@ -108,7 +108,7 @@ class CorrelationProcessing<F extends FocusType> {
             applyCorrelationResultToShadow(correlationResult);
 
             if (correlationResult.isDone()) {
-                processFinalResult(result);
+                closeCaseIfNeeded(result);
             }
             result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
             return correlationResult;
@@ -120,14 +120,17 @@ class CorrelationProcessing<F extends FocusType> {
         }
     }
 
-    private CompleteCorrelationResult getResultFromExistingCorrelationState(OperationResult result) throws SchemaException {
+    /** Returns non-null only if there's certain result. */
+    private CompleteCorrelationResult getDefiniteResultFromExistingCorrelationState(OperationResult result)
+            throws SchemaException {
+        LOGGER.trace("Trying to get existing correlation result from the correlation state");
         ShadowCorrelationStateType correlation = syncCtx.getShadowedResourceObject().getCorrelation();
         if (correlation == null) {
-            LOGGER.trace("No correlation state");
+            LOGGER.trace("-> No correlation state");
             return null;
         }
         if (correlation.getCorrelationEndTimestamp() != null) {
-            LOGGER.trace("Existing correlation state found, but the correlation process is done. Ignoring the state:\n{}",
+            LOGGER.trace("-> Existing correlation state found, but the correlation process is done. Ignoring the state:\n{}",
                     correlation.debugDumpLazily(1));
             return null;
         }
@@ -136,16 +139,18 @@ class CorrelationProcessing<F extends FocusType> {
         if (situation == CorrelationSituationType.EXISTING_OWNER && resultingOwnerRef != null) {
             ObjectType owner = resolveExistingOwner(resultingOwnerRef, result);
             if (owner != null) {
+                LOGGER.trace("-> Found resultingOwnerRef, and resolved it into {}", owner);
                 // We are not interested in other candidates here, hence the null value into candidateOwnersMap.
                 return CompleteCorrelationResult.existingOwner(owner, null, null);
             } else {
-                LOGGER.trace("Owner reference could not be resolved -> retry the correlation.");
+                LOGGER.trace("-> Owner reference could not be resolved -> retry the correlation.");
                 return null;
             }
         } else if (situation == CorrelationSituationType.NO_OWNER) {
+            LOGGER.trace("-> was resolved to 'no owner'");
             return CompleteCorrelationResult.noOwner();
         } else {
-            LOGGER.trace("Neither 'existing owner' nor 'no owner' situation -> retry the correlation.");
+            LOGGER.trace("-> Neither 'existing owner' nor 'no owner' situation -> retry the correlation.");
             return null;
         }
     }
@@ -194,14 +199,16 @@ class CorrelationProcessing<F extends FocusType> {
         return beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result);
     }
 
-    private void processFinalResult(OperationResult result) throws SchemaException {
+    private void closeCaseIfNeeded(OperationResult result) throws SchemaException {
         beans.correlationCaseManager.closeCaseIfStillOpen(getShadow(), result);
         // TODO record case close if needed
     }
 
     private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
         S_ItemEntry builder = PrismContext.get().deltaFor(ShadowType.class);
-        if (getShadowCorrelationStartTimestamp() == null) {
+        XMLGregorianCalendar lastStart = getShadowCorrelationStartTimestamp();
+        XMLGregorianCalendar lastEnd = getShadowCorrelationEndTimestamp();
+        if (lastStart == null || lastEnd != null) {
             builder = builder
                     .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
                     .replace(thisCorrelationStart);
@@ -232,17 +239,18 @@ class CorrelationProcessing<F extends FocusType> {
         syncCtx.applyShadowDeltas(
                 builder.asItemDeltas());
 
-        if (correlationResult.isDone()) {
-            markShadowCorrelationFinished();
-        }
+        setShadowCorrelationEndTime(correlationResult.isDone());
     }
 
-    private void markShadowCorrelationFinished() throws SchemaException {
+    private void setShadowCorrelationEndTime(boolean done) throws SchemaException {
+        if (!done && getShadowCorrelationEndTimestamp() == null) {
+            return;
+        }
         syncCtx.applyShadowDeltas(
                 PrismContext.get().deltaFor(ShadowType.class)
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
                         .replace(
-                                XmlTypeConverter.createXMLGregorianCalendar())
+                                done ? XmlTypeConverter.createXMLGregorianCalendar() : null)
                         .asItemDeltas());
     }
 
@@ -257,6 +265,11 @@ class CorrelationProcessing<F extends FocusType> {
     private @Nullable XMLGregorianCalendar getShadowCorrelationStartTimestamp() {
         ShadowCorrelationStateType state = getShadowCorrelationState();
         return state != null ? state.getCorrelationStartTimestamp() : null;
+    }
+
+    private @Nullable XMLGregorianCalendar getShadowCorrelationEndTimestamp() {
+        ShadowCorrelationStateType state = getShadowCorrelationState();
+        return state != null ? state.getCorrelationEndTimestamp() : null;
     }
 
     private @Nullable CorrelationSituationType getShadowCorrelationSituation() {

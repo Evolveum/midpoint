@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import com.evolveum.midpoint.model.impl.lens.*;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
@@ -17,8 +22,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Evaluation of assignment payload i.e. constructions (resource/persona), focus mappings
@@ -53,7 +56,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     collectFocusMappings(); // but mappings from invalid direct assignments are not
                 }
                 if (segment.isNonNegativeRelativeRelativityMode()) {
-                    collectFocusPolicyRule(); // focus policy rules from invalid assignments are collected (why?) but only if non-negative (why?)
+                    // object policy rules from invalid assignments are collected (why?) but only if non-negative (why?)
+                    collectObjectPolicyRule();
                 }
             }
 
@@ -94,7 +98,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
-    private <ACT extends AbstractConstructionType> void populateConstructionBuilder(AbstractConstructionBuilder<AH, ACT, ? extends EvaluatedAbstractConstruction<AH>, ?> builder,
+    private <ACT extends AbstractConstructionType> void populateConstructionBuilder(
+            AbstractConstructionBuilder<AH, ACT, ? extends EvaluatedAbstractConstruction<AH>, ?> builder,
             ACT constructionBean) {
         builder.constructionBean(constructionBean)
                 .assignmentPath(ctx.assignmentPath.clone()) // We have to clone here as the path is constantly changing during evaluation
@@ -132,40 +137,51 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
-    private void collectFocusPolicyRule() {
+    private void collectObjectPolicyRule() {
         PolicyRuleType policyRuleBean = segment.assignment.getPolicyRule();
         if (policyRuleBean != null) {
-            LOGGER.trace("Collecting focus policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
-            ctx.evalAssignment.addFocusPolicyRule(createEvaluatedPolicyRule(policyRuleBean));
+            LOGGER.trace("Collecting object policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
+            ctx.evalAssignment.addObjectPolicyRule(
+                    createEvaluatedPolicyRule(policyRuleBean, TargetType.OBJECT));
         }
     }
 
     private void collectTargetPolicyRule() {
         PolicyRuleType policyRuleBean = segment.assignment.getPolicyRule();
         if (policyRuleBean != null) {
-            LOGGER.trace("Collecting target policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
-
-            EvaluatedPolicyRuleImpl policyRule = createEvaluatedPolicyRule(policyRuleBean);
-            if (appliesDirectly(ctx.assignmentPath)) {
-                ctx.evalAssignment.addThisTargetPolicyRule(policyRule);
-            } else {
-                ctx.evalAssignment.addOtherTargetPolicyRule(policyRule);
-            }
+            boolean appliesDirectly = appliesDirectly(ctx.assignmentPath);
+            LOGGER.trace("Collecting target policy rule '{}' in {} (applies directly = {})",
+                    policyRuleBean.getName(), segment.source, appliesDirectly);
+            ctx.evalAssignment.addTargetPolicyRule(
+                    createEvaluatedPolicyRule(
+                            policyRuleBean,
+                            appliesDirectly ? TargetType.DIRECT_ASSIGNMENT_TARGET : TargetType.INDIRECT_ASSIGNMENT_TARGET));
         }
     }
 
-    @NotNull
-    private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean) {
-        String ruleId = PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId());
-        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ruleId, ctx.assignmentPath.clone(), ctx.evalAssignment);
-    }
-
+    /**
+     * Decides whether the policy rule (pointed to by `assignmentPath`) is attached directly to the target of the current
+     * `evaluatedAssignment` or not. For example, if `jack` is `captain` that induces `sailor`, then any rules attached
+     * (possibly via metaroles) to `captain` are considered to apply directly to this evaluated assignment target,
+     * whereas any rules attached (possibly via metaroles) to `sailor` are not.
+     *
+     * We assume there are no deputy relations except for potentially the first one (focus -> eval assignment target).
+     */
     private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {
         assert !assignmentPath.isEmpty();
-        // TODO what about deputy relation which does not increase summaryOrder?
         long zeroOrderCount = assignmentPath.getSegments().stream()
                 .filter(seg -> seg.getEvaluationOrderForTarget().getSummaryOrder() == 0)
                 .count();
         return zeroOrderCount == 1;
+    }
+
+    @NotNull
+    private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean, TargetType targetType) {
+        return new EvaluatedPolicyRuleImpl(
+                policyRuleBean.clone(),
+                PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId()),
+                ctx.assignmentPath.clone(),
+                ctx.evalAssignment,
+                targetType);
     }
 }

@@ -11,12 +11,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -56,19 +59,13 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     AssignmentPath getAssignmentPath();
 
-    /**
-     * Object that "directly owns" the rule. TODO. [consider if really needed]
-     */
-    @Nullable
-    ObjectType getDirectOwner();
-
     // TODO consider removing
     String getPolicySituation();
 
     Collection<PolicyExceptionType> getPolicyExceptions();
 
     void addToEvaluatedPolicyRuleBeans(
-            Collection<EvaluatedPolicyRuleType> rules,
+            Collection<EvaluatedPolicyRuleType> ruleBeans,
             PolicyRuleExternalizationOptions options,
             Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector);
 
@@ -106,4 +103,47 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     int getCount();
 
     void setCount(int value);
+
+    boolean isOverThreshold() throws ConfigurationException;
+
+    boolean hasSituationConstraint();
+
+    default boolean isApplicableToFocusObject() {
+        return PolicyRuleTypeUtil.isApplicableToObject(getPolicyRule());
+    }
+
+    default boolean isApplicableToProjection() {
+        return PolicyRuleTypeUtil.isApplicableToProjection(getPolicyRule());
+    }
+
+    default boolean isApplicableToAssignment() {
+        return PolicyRuleTypeUtil.isApplicableToAssignment(getPolicyRule());
+    }
+
+    /** To which object is the policy rule targeted and how. */
+    @NotNull TargetType getTargetType();
+
+    /**
+     * To which object is the policy rule targeted, from the point of assignment mechanisms - and how?
+     * For example, if it's assigned to the focus (to be applied either to the focus or the projections),
+     * then it's {@link #OBJECT}. If it's assigned directly to the assignment target, it's {@link #DIRECT_ASSIGNMENT_TARGET}.
+     */
+    enum TargetType {
+
+        /** Focus or projection */
+        OBJECT,
+
+        /** The rule applies directly to the target of the current evaluated assignment (attached to this rule!). */
+        DIRECT_ASSIGNMENT_TARGET,
+
+        /**
+         * The rule applies to a different target (induced to focus), stemming from the current evaluated assignment
+         * (attached to this rule).
+         *
+         * An example: Let `Engineer` induce `Employee` which conflicts with `Contractor`. An SoD rule is attached
+         * to `Employee`. But let the user have assignments for `Engineer` and `Contractor` only. So the target type
+         * for such rule is this one.
+         */
+        INDIRECT_ASSIGNMENT_TARGET
+    }
 }

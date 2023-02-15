@@ -28,8 +28,5 @@
                 </expression>
             </custom>
         </policyConstraints>
-        <focusSelector>
-            <type>FocusType</type>
-        </focusSelector>
     </policyRule>
 </mark>

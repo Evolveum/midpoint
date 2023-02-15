@@ -250,7 +250,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /** Denotes (legacy) "preview changes" mode. */
     private transient boolean preview;
 
-    private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;
+    private transient Map<String, Collection<? extends Containerable>> hookPreviewResultsMap;
 
     private transient PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
 
@@ -1227,20 +1227,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
             DebugUtil.indentDebugDump(sb, indent);
             sb.append(assignment.toHumanReadableString());
-            Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-            dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules, alsoMessages);
-            @SuppressWarnings({ "raw" })
-            Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
-            dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules, alsoMessages);
-            @SuppressWarnings({ "raw" })
-            Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = assignment.getFocusPolicyRules();
-            dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules, alsoMessages);
+            dumpPolicyRulesCollection(
+                    "targetsPolicyRules", indent + 1, sb, assignment.getAllTargetsPolicyRules(), alsoMessages);
+            dumpPolicyRulesCollection(
+                    "objectPolicyRules", indent + 1, sb, assignment.getObjectPolicyRules(), alsoMessages);
         }, 1);
         return sb.toString();
     }
 
     @Override
-    public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
+    public String dumpObjectPolicyRules(int indent, boolean alsoMessages) {
         StringBuilder sb = new StringBuilder();
         if (focusContext != null) {
             dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getObjectPolicyRules(), alsoMessages);
@@ -1318,7 +1314,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("-> ");
             assignment.shortDump(sb);
-            dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getFocusPolicyRules());
+            dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getObjectPolicyRules());
             dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
             dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
         }
@@ -1608,14 +1604,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @NotNull
-    public Map<String, Collection<Containerable>> getHookPreviewResultsMap() {
+    public Map<String, Collection<? extends Containerable>> getHookPreviewResultsMap() {
         if (hookPreviewResultsMap == null) {
             hookPreviewResultsMap = new HashMap<>();
         }
         return hookPreviewResultsMap;
     }
 
-    public void addHookPreviewResults(String hookUri, Collection<Containerable> results) {
+    public void addHookPreviewResults(String hookUri, Collection<? extends Containerable> results) {
         getHookPreviewResultsMap().put(hookUri, results);
     }
 
@@ -1623,7 +1619,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz) {
         List<T> rv = new ArrayList<>();
-        for (Collection<Containerable> previewResults : getHookPreviewResultsMap().values()) {
+        for (Collection<? extends Containerable> previewResults : getHookPreviewResultsMap().values()) {
             for (Containerable previewResult : CollectionUtils.emptyIfNull(previewResults)) {
                 if (previewResult != null && clazz.isAssignableFrom(previewResult.getClass())) {
                     //noinspection unchecked
@@ -1992,7 +1988,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return modelBeans;
     }
 
-    @NotNull TaskExecutionMode getTaskExecutionMode() {
+    @Override
+    public @NotNull TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
     }
 

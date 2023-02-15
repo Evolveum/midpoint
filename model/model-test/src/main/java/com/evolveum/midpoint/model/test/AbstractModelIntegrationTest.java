@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCol
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -229,6 +230,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+    private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
         dummyAuditService = DummyAuditService.getInstance();
@@ -257,6 +259,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
+
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -6804,6 +6809,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return roleOid + ":" + id;
     }
 
+    protected void switchAccessesMetadata(Boolean value, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
+                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
+    }
+
     public interface FunctionCall<X> {
         X execute() throws CommonException, IOException;
     }
@@ -7133,5 +7147,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException {
         return TestSimulationResult.fromSimulationResultOid(
                 findSimulationResultRequired(result).getOid());
+    }
+
+    /**
+     * Returns the input number if accesses metadata are enabled, otherwise returns 0.
+     * Usable for audit record count assertions depending on the state of accesses metadata.
+     */
+    protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
+        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
     }
 }

@@ -10,38 +10,23 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class GuiSimulationsUtil {
-
-    //todo move elsewhere
-    @Deprecated
-    public StringResourceModel createStringResource(String resourceKey, IModel<?> model, Object... objects) {
-        return new StringResourceModel(resourceKey).setModel(model)
-                .setDefaultValue(resourceKey)
-                .setParameters(objects);
-    }
-
-    //todo move elsewhere
-    @Deprecated
-    public static String getString(Component component, String key, Object... params) {
-        return new StringResourceModel(key, component)
-                .setDefaultValue(key)
-                .setParameters(params).getString();
-    }
 
     public static Label createProcessedObjectStateLabel(String id, IModel<SimulationResultProcessedObjectType> model) {
         Label label = new Label(id, () -> {
@@ -50,8 +35,9 @@ public class GuiSimulationsUtil {
                 return null;
             }
 
-            return getString(null, WebComponentUtil.createEnumResourceKey(state));
+            return LocalizationUtil.translate(WebComponentUtil.createEnumResourceKey(state));
         });
+
         label.add(AttributeModifier.append("class", () -> {
             ObjectProcessingStateType state = model.getObject().getState();
             if (state == null) {
@@ -84,6 +70,24 @@ public class GuiSimulationsUtil {
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
         String key = WebComponentUtil.createEnumResourceKey(ot);
 
-        return getString(null, key);
+        return LocalizationUtil.translate(key);
+    }
+
+    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn() {
+        return new RoundedIconColumn<>(null) {
+
+            @Override
+            protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
+                SimulationResultProcessedObjectType object = model.getObject().getValue();
+                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
+                if (obj == null || obj.asPrismObject() == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
+                }
+
+                return new DisplayType()
+                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
+            }
+        };
     }
 }

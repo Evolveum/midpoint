@@ -685,8 +685,8 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     /**
      * Sets both current and (if the operation is not `ADD`) also the old object.
      */
-    void setInitialObject(@NotNull PrismObject<O> object, boolean isAdd) {
-        setCurrentAndOptionallyOld(object, !isAdd);
+    void setInitialObject(@NotNull PrismObject<O> object) {
+        setCurrentAndOptionallyOld(object, true);
     }
 
     /**
@@ -727,32 +727,36 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         archivedSecondaryDeltas.add(executionWave, secondaryDelta);
 
         if (!taskExecutionMode.isFullyPersistent()) {
-            // FIXME temporary code
-            if (currentObject == null && isAdd(primaryDelta)) {
-                currentObject = primaryDelta.getObjectToAdd().clone();
-            }
-            if (currentObject == null) {
-                if (isAdd(currentDelta)) {
-                    currentObject = currentDelta.getObjectToAdd();
-                } else if (currentDelta != null) {
-                    LOGGER.warn("No current object and current delta is not add? Ignoring:\n{}", currentDelta.debugDump());
-                }
-            } else if (currentDelta != null) {
-                if (currentDelta.isAdd()) {
-                    LOGGER.warn("Current object exists and current delta is ADD? Ignoring. Object:\n{}\nDelta:\n{}",
-                            currentObject.debugDump(1), currentDelta.debugDump(1));
-                } else if (currentDelta.isDelete()) {
-                    LOGGER.debug("Ignoring application of DELETE delta in simulation mode: {}", currentDelta);
-                } else {
-                    currentDelta.applyTo(currentObject);
-                }
-            }
-            if (currentObject != null) {
-                generateMissingContainerIds(currentObject);
-            }
+            updateInSimulation();
         }
 
         clearSecondaryDelta();
+    }
+
+    private void updateInSimulation() throws SchemaException {
+        if (currentObject == null && isAdd(primaryDelta)) {
+            currentObject = primaryDelta.getObjectToAdd().clone();
+        }
+        if (currentObject == null) {
+            if (isAdd(currentDelta)) {
+                currentObject = currentDelta.getObjectToAdd();
+            } else if (currentDelta != null) {
+                LOGGER.warn("No current object and current delta is not add? Ignoring:\n{}", currentDelta.debugDump());
+            }
+        } else if (currentDelta != null) {
+            if (currentDelta.isAdd()) {
+                LOGGER.warn("Current object exists and current delta is ADD? Ignoring. Object:\n{}\nDelta:\n{}",
+                        currentObject.debugDump(1), currentDelta.debugDump(1));
+            } else if (currentDelta.isDelete()) {
+                LOGGER.debug("Ignoring application of DELETE delta in simulation mode: {}", currentDelta);
+                currentObject = null;
+            } else {
+                currentDelta.applyTo(currentObject);
+            }
+        }
+        if (currentObject != null) {
+            generateMissingContainerIds(currentObject);
+        }
     }
 
     private void generateMissingContainerIds(PrismObject<O> currentObject) throws SchemaException {

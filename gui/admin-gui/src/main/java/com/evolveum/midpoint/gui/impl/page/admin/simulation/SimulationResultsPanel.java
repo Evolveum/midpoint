@@ -79,7 +79,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        items.add(new ButtonInlineMenuItem(createStringResource("PageSimulationResultObjects.listObjects")) {
+        items.add(new ButtonInlineMenuItem(createStringResource("SimulationResultsPanel.listObjects")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa-solid fa-eye");
@@ -97,7 +97,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 };
             }
         });
-        items.add(new ButtonInlineMenuItem(createStringResource("PageSimulationResultObjects.delete")) {
+        items.add(new ButtonInlineMenuItem(createStringResource("SimulationResultsPanel.delete")) {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -121,7 +121,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                         "SimulationResultsPanel.message.deleteResultActionSingle", "SimulationResultsPanel.message.deleteResultActionMulti");
             }
         });
-        items.add(new InlineMenuItem(createStringResource("PageSimulationResultObjects.deleteObjects")) {
+        items.add(new InlineMenuItem(createStringResource("SimulationResultsPanel.deleteObjects")) {
 
             @Override
             public InlineMenuItemAction initAction() {
