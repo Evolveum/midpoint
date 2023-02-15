@@ -13,10 +13,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -47,8 +51,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
@@ -90,6 +96,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final String ID_RELATED_OBJECTS = "relatedObjects";
     private static final String ID_CHANGES_NEW = "changesNew";
     private static final String ID_CHANGES = "changes";
+    private static final String ID_PAGING = "paging";
+    private static final String ID_FOOTER = "footer";
+    private static final String ID_COUNT = "count";
 
     private IModel<SimulationResultType> resultModel;
 
@@ -360,7 +369,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
-        RelatedObjectsProvider provider = new RelatedObjectsProvider(this, searchModel) {
+        CombinedRelatedObjectsProvider provider = new CombinedRelatedObjectsProvider(this, searchModel, objectModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
@@ -376,9 +385,35 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
         DataTable<SelectableBean<SimulationResultProcessedObjectType>, String> relatedObjects =
-                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 10);
+                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 10) {
+
+                    @Override
+                    protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
+                        Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
+                        item.add(AttributeAppender.append("class", "align-middle"));
+
+                        return item;
+                    }
+
+                };
         relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 1));
         add(relatedObjects);
+
+        final WebMarkupContainer footer = new WebMarkupContainer(ID_FOOTER);
+        footer.add(new VisibleBehaviour(() -> relatedObjects.getPageCount() > 1));
+        add(footer);
+
+        final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(relatedObjects));
+        footer.add(count);
+
+        final NavigatorPanel paging = new NavigatorPanel(ID_PAGING, relatedObjects, true) {
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
+        };
+        footer.add(paging);
 
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 () -> "fa-solid fa-circle-question",

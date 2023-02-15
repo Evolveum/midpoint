@@ -12,8 +12,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
 
 public class RelatedObjectsProvider extends SelectableBeanContainerDataProvider<SimulationResultProcessedObjectType> {
 
-    public static final String SORT_BY_NAME = "name";
-
     public RelatedObjectsProvider(Component component, @NotNull IModel<Search<SimulationResultProcessedObjectType>> searchModel) {
         super(component, searchModel, null, true);
     }
