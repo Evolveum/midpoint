@@ -1904,7 +1904,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isMarkedReadOnly() {
-        var policy = ShadowMarkManager.get().computeEffectivePolicy(getObjectCurrentOrOld().asObjectable(), new OperationResult("markReadOnly"));
+        var policy = ShadowMarkManager.get().computeEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), new OperationResult("markReadOnly"));
         return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
     }
 }
