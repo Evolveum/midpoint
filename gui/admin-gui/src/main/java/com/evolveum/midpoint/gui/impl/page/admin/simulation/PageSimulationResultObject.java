@@ -89,6 +89,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
     private static final String ID_RELATED_OBJECTS = "relatedObjects";
+    private static final String ID_CHANGES_NEW = "changesNew";
     private static final String ID_CHANGES = "changes";
 
     private IModel<SimulationResultType> resultModel;
@@ -300,7 +301,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 }
 
                 final WrapperVisualization wrapper =
-                        new WrapperVisualization(Arrays.asList(visualization), "PagePreviewChanges.primaryChangesOne", 1);
+                        new WrapperVisualization(Arrays.asList(visualization), "PageSimulationResultObject.changes");
 
                 return new VisualizationDto(wrapper);
             }
@@ -353,8 +354,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
         DataTable<SelectableBean<SimulationResultProcessedObjectType>, String> relatedObjects =
-                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 20);
-        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 0));
+                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 10);
+        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 1));
         add(relatedObjects);
 
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
@@ -363,8 +364,12 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> new ArrayList<>());
+        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
+        add(changesNew);
+
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null)); // todo add && !WebComponentUtil.isEnabledExperimentalFeatures()
         add(changes);
     }
 

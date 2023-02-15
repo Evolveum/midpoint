@@ -77,7 +77,7 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
         icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(model.getObject().getIconCss())));
         defaultButtonContent.add(icon);
 
-        Label label = new Label(ID_LABEL, () -> model.getObject().getLabel());
+        Label label = new Label(ID_LABEL, () -> getString(model.getObject().getLabel(), null, model.getObject().getLabel()));
         label.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(model.getObject().getLabel())));
         defaultButtonContent.add(label);
 
