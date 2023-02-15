@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.Visualization;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.util.LocalizableMessage;
 

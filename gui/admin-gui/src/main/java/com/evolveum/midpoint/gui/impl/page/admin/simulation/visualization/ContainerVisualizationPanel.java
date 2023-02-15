@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -16,5 +17,11 @@ public class ContainerVisualizationPanel extends CardOutlineLeftPanel<ContainerV
 
     public ContainerVisualizationPanel(String id, IModel<ContainerVisualization> model) {
         super(id, model);
+
+        initLayout();
+    }
+
+    private void initLayout() {
+        add(AttributeAppender.append("class", () -> VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(getModelObject().getChangeType())));
     }
 }
