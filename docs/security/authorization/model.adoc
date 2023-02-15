@@ -93,14 +93,14 @@ Each individual created object also needs to pass through authorization for `add
 | Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets
 
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeChanges
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript
 | N/A
 | N/A
 | Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. bulk actions]
 | Authorizes only the possibility to execute the scripts, not individual actions carried out by those scripts.
-footnote:[For example, if you want to create a set of users via a bulk action, you need both `#executeChanges` and `#add` authorizations:
+footnote:[For example, if you want to create a set of users via a bulk action, you need both `#executeScript` and `#add` authorizations:
 The former to execute the bulk action at all, the latter to allow the bulk action to add the users.
-The main purpose of `#executeChanges` authorization is to provide a protection against e.g. denial of service attacks based on execution of resource-intensive bulk actions.
+The main purpose of `#executeScript` authorization is to provide a protection against e.g. denial of service attacks based on execution of resource-intensive bulk actions.
 Note that the execution of arbitrary Groovy scripts (or Velocity, Python, JavaScript, and similar ones) is _not_ covered by this authorization.
 Because of their power, they currently require the super-user ("all") authorization.]
 |===
