@@ -122,7 +122,7 @@ class ColumnDataConverter<C> {
         }
 
         if (expression != null) {
-            dataValues = evaluateExportExpressionOverPrismValues(expression, dataValues);
+            dataValues = evaluateExportExpressionOverPrismValues(expression, dataValues, column);
         }
 
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
@@ -259,7 +259,7 @@ class ColumnDataConverter<C> {
     }
 
     private Collection<? extends PrismValue> evaluateExportExpressionOverPrismValues(@NotNull ExpressionType expression,
-            @NotNull Collection<? extends PrismValue> prismValues) {
+            @NotNull Collection<? extends PrismValue> prismValues, @NotNull GuiObjectColumnType column) {
         Object input;
         if (prismValues.isEmpty()) {
             input = null;
@@ -271,10 +271,11 @@ class ColumnDataConverter<C> {
                     .map(PrismValue::getRealValue)
                     .collect(Collectors.toList());
         }
-        return evaluateExportExpressionOverRealValues(expression, input);
+        return evaluateExportExpressionOverRealValues(expression, input, column);
     }
 
-    private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(ExpressionType expression, Object input) {
+    private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(
+            ExpressionType expression, Object input, @NotNull GuiObjectColumnType column) {
         VariablesMap variables = new VariablesMap();
         variables.putAll(parameters);
         if (input == null) {
@@ -284,7 +285,7 @@ class ColumnDataConverter<C> {
         }
         try {
             return reportService.evaluateScript(report.asPrismObject(), expression, variables,
-                    "value for column (export)", task, result);
+                    "value for column '" + column.getName() + "' (export)", task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             return List.of();
