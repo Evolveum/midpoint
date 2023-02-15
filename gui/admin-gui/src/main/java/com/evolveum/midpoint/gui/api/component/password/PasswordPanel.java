@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -224,16 +226,14 @@ public class PasswordPanel extends InputPanel {
         ValuePolicyType valuePolicyType = null;
         try {
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (getPage() instanceof PageBase && getPageBase() != null) {
-                if (user != null) {
-                    Task task = getPageBase().createSimpleTask("load value policy");
-                    valuePolicyType = searchValuePolicy(object, task);
-                } else {
-                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
-                        Task task = getPageBase().createAnonymousTask("load value policy");
-                        return searchValuePolicy(object, task);
-                    });
-                }
+            if (user != null) {
+                Task task = getParentPage().createSimpleTask("load value policy");
+                valuePolicyType = searchValuePolicy(object, task);
+            } else {
+                valuePolicyType = getParentPage().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
+                    Task task = getParentPage().createAnonymousTask("load value policy");
+                    return searchValuePolicy(object, task);
+                });
             }
         } catch (Exception e) {
             LOGGER.warn("Couldn't load security policy for focus " + object, e);
@@ -247,11 +247,11 @@ public class PasswordPanel extends InputPanel {
 
     private <F extends FocusType> ValuePolicyType searchValuePolicy(PrismObject<F> object, Task task) {
         try {
-            CredentialsPolicyType credentials = getPageBase().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
+            CredentialsPolicyType credentials = getParentPage().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
             if (credentials != null && credentials.getPassword() != null
                     && credentials.getPassword().getValuePolicyRef() != null) {
                 PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                        credentials.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+                        credentials.getPassword().getValuePolicyRef(), getParentPage(), task, task.getResult());
                 if (valuePolicy != null) {
                     return valuePolicy.asObjectable();
                 }
@@ -287,10 +287,10 @@ public class PasswordPanel extends InputPanel {
 
     public List<StringLimitationResult> getLimitationsForActualPassword(ValuePolicyType valuePolicy, PrismObject<? extends ObjectType> object) {
         if (valuePolicy != null) {
-            Task task = getPageBase().createAnonymousTask("validation of password");
+            Task task = getParentPage().createAnonymousTask("validation of password");
             try {
                 ProtectedStringType newValue = passwordModel == null ? new ProtectedStringType() : passwordModel.getObject();
-                return getPageBase().getModelInteractionService().validateValue(
+                return getParentPage().getModelInteractionService().validateValue(
                         newValue, valuePolicy, object, task, task.getResult());
             } catch (Exception e) {
                 LOGGER.error("Couldn't validate password security policy", e);
@@ -341,5 +341,9 @@ public class PasswordPanel extends InputPanel {
 
     public PrismObject<? extends FocusType> getPrismObject() {
         return prismObject;
+    }
+
+    private PageAdminLTE getParentPage() {
+        return WebComponentUtil.getPage(PasswordPanel.this, PageAdminLTE.class);
     }
 }

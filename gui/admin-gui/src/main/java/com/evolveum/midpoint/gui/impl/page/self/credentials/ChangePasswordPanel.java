@@ -93,8 +93,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             private static final long serialVersionUID = 1L;
             @Override
             protected CredentialsPolicyType load() {
-                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
-                return WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getPageBase(), task);
+                Task task = getParentPage().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
+                return WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getParentPage(), task);
             }
         };
     }
@@ -219,9 +219,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private List<StringLimitationResult> getLimitationsForActualPassword(ProtectedStringType passwordValue) {
         ValuePolicyType valuePolicy = getValuePolicy();
         if (valuePolicy != null) {
-            Task task = getPageBase().createAnonymousTask(OPERATION_VALIDATE_PASSWORD);
+            Task task = getParentPage().createAnonymousTask(OPERATION_VALIDATE_PASSWORD);
             try {
-                return getPageBase().getModelInteractionService().validateValue(passwordValue == null ? new ProtectedStringType() : passwordValue,
+                return getParentPage().getModelInteractionService().validateValue(passwordValue == null ? new ProtectedStringType() : passwordValue,
                         valuePolicy, getModelObject().asPrismObject(), task, task.getResult());
             } catch (Exception e) {
                 LOGGER.error("Couldn't validate password security policy", e);
@@ -242,16 +242,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         ValuePolicyType valuePolicyType = null;
         try {
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (getPageBase() != null) {
-                if (user != null) {
-                    Task task = getPageBase().createSimpleTask("load value policy");
-                    valuePolicyType = getSearchValuePolicy(task);
-                } else {
-                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
-                        Task task = getPageBase().createAnonymousTask("load value policy");
-                        return getSearchValuePolicy(task);
-                    });
-                }
+            if (user != null) {
+                Task task = getParentPage().createSimpleTask("load value policy");
+                valuePolicyType = getSearchValuePolicy(task);
+            } else {
+                valuePolicyType = getParentPage().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
+                    Task task = getParentPage().createAnonymousTask("load value policy");
+                    return getSearchValuePolicy(task);
+                });
             }
         } catch (Exception e) {
             LOGGER.warn("Couldn't load security policy for focus " + getModelObject().asPrismObject(), e);
@@ -264,7 +262,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
                 && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
             PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                    credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+                    credentialsPolicy.getPassword().getValuePolicyRef(), getParentPage(), task, task.getResult());
             if (valuePolicy != null) {
                 return valuePolicy.asObjectable();
             }
@@ -293,11 +291,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return;
             } else {
                 OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
-                Task checkPasswordTask = getPageBase().createSimpleTask(OPERATION_CHECK_PASSWORD);
+                Task checkPasswordTask = getParentPage().createSimpleTask(OPERATION_CHECK_PASSWORD);
                 try {
                     currentPassword = new ProtectedStringType();
                     currentPassword.setClearValue(currentPasswordValue);
-                    boolean isCorrectPassword = getPageBase().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
+                    boolean isCorrectPassword = getParentPage().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
                             checkPasswordTask, checkPasswordResult);
                     if (!isCorrectPassword) {
                         new Toast()
@@ -344,14 +342,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         boolean showFeedback = true;
         try {
             if (!newPasswordValue.isEncrypted()) {
-                WebComponentUtil.encryptProtectedString(newPasswordValue, true, getPageBase().getMidpointApplication());
+                WebComponentUtil.encryptProtectedString(newPasswordValue, true, getParentPage().getMidpointApplication());
             }
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
-            getPageBase().getModelService().executeChanges(
-                    deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+            getParentPage().getModelService().executeChanges(
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
