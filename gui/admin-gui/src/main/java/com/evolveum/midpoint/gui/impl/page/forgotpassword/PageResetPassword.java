@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,10 +45,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                         label = PageSelf.AUTH_SELF_ALL_LABEL,
                         description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
-                        label = "PageSelfCredentials.auth.credentials.label",
-                        description = "PageSelfCredentials.auth.credentials.description") })
-public class PageResetPassword extends PageBase {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL) })
+public class PageResetPassword extends AbstractPageLogin {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageResetPassword.class);
@@ -60,12 +59,7 @@ public class PageResetPassword extends PageBase {
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -126,17 +120,12 @@ public class PageResetPassword extends PageBase {
     }
 
     @Override
-    protected boolean isSideMenuVisible() {
-        return false;
-    }
-
-    @Override
     public Task createSimpleTask(String operation) {
         return createAnonymousTask(operation);
     }
 
     @Override
-    protected void createBreadcrumb() {
-        // we don't want breadcrumbs here
+    protected void confirmAuthentication() {
     }
+
 }
