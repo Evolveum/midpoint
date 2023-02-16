@@ -826,7 +826,7 @@ public class TestFirstSteps extends AbstractStoryTest {
      * This is not covered by the "first steps" document but we want to check that import works as well.
      */
     @Test
-    public void test215OpenDjCorrelationOnEmpNoUsingImport() throws CommonException {
+    public void test215OpenDjCorrelationOnEmpNoUsingImport() throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         focusCounter.remember(result);
@@ -1003,7 +1003,7 @@ public class TestFirstSteps extends AbstractStoryTest {
      * *HIGHLY EXPERIMENTAL* Just to implement "Account marking phase" in the First Steps Solution Notes document.
      */
     @Test
-    public void test230MarkUnmatchedAccounts() throws CommonException {
+    public void test230MarkUnmatchedAccounts() throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         focusCounter.remember(result);
