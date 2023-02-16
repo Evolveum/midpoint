@@ -13,8 +13,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -79,51 +80,6 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         skipIfNotNativeRepository();
         // 50 * 3 (normal) + 50 // 3 (direct assignments) + 3 (without metadata) + jack + header
         // (subscription footer is considered automatically later, do not count it here)
-        runTest(REPORT_INDIRECT_ASSIGNMENTS, 171, 7, null);
-    }
-
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
-            String lastLine, ReportParameterType parameters) throws Exception {
-        given();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        if (parameters != null) {
-            modifyObjectReplaceContainer(TaskType.class,
-                    TASK_EXPORT_CLASSIC.oid,
-                    ItemPath.create(TaskType.F_ACTIVITY,
-                            ActivityDefinitionType.F_WORK,
-                            WorkDefinitionsType.F_REPORT_EXPORT,
-                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM),
-                    task,
-                    result,
-                    parameters);
-        }
-
-        dummyTransport.clearMessages();
-
-        runExportTaskClassic(reportResource, result);
-
-        when();
-
-        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
-
-        then();
-
-        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
-                .assertSuccess()
-                .display()
-                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
-
-        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
-
-        assertNotificationMessage(reportResource);
-    }
-
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, String lastLine)
-            throws Exception {
-        runTest(reportResource, expectedRows, expectedColumns, lastLine, null);
+        testClassicExport(REPORT_INDIRECT_ASSIGNMENTS, 171, 7, null);
     }
 }
