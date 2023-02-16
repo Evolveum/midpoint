@@ -39,6 +39,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -60,6 +61,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_PASSWORD_HINT_PANEL = "passwordHintPanel";
     private static final String ID_CHANGE_PASSWORD = "changePassword";
     private static final String ID_PASSWORD_VALIDATION_PANEL = "passwordValidationPanel";
+    private static final String CHANGE_PASSWORD_BUTTON_STYLE = "btn btn-success";
 
     private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
@@ -203,12 +205,17 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         };
         changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));
+        changePasswordButton.add(AttributeAppender.append("class", getChangePasswordButtonStyle()));
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
     }
 
-    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+    protected String getChangePasswordButtonStyle() {
+        return CHANGE_PASSWORD_BUTTON_STYLE;
+    }
+
+    private void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
         target.add(get(ID_PASSWORD_VALIDATION_PANEL));
     }
 

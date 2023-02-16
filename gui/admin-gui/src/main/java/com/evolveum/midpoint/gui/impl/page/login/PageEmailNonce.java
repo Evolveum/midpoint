@@ -12,7 +12,6 @@ import javax.servlet.http.HttpSession;
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -22,13 +21,11 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
@@ -57,8 +54,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -98,16 +93,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
     protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
-        form.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !submited;
-            }
-
-        });
+        form.add(new VisibleBehaviour(() -> !submited));
         add(form);
 
         initStaticLayout(form);
@@ -133,9 +119,10 @@ public class PageEmailNonce extends PageAuthenticationBase {
             }
 
         };
+        submitUserIdentifier.add(new VisibleBehaviour(() -> !submited));
         form.add(submitUserIdentifier);
 
-        form.add(createBackButton(ID_BACK_BUTTON));
+        add(createBackButton(ID_BACK_BUTTON));
     }
 
     @Override
@@ -150,14 +137,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
         };
         backButton.setOutputMarkupId(true);
 
-        Label backButtonLabel = new Label(ID_BACK_BUTTON_LABEL, new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return createStringResource("PageEmailNonce.backButtonLabel").getString();
-            }
-        });
+        Label backButtonLabel = new Label(ID_BACK_BUTTON_LABEL, createStringResource("PageEmailNonce.backButtonLabel"));
         backButton.add(backButtonLabel);
         return backButton;
     }

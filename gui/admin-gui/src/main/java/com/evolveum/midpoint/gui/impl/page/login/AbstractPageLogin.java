@@ -205,4 +205,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         }
     }
 
+    protected void cancelPerformed() {
+        setResponsePage(getMidpointApplication().getHomePage());
+    }
+
 }
