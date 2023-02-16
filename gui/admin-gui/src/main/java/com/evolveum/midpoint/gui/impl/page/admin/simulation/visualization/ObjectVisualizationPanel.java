@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ObjectVisualizationPanel extends CardOutlineLeftPanel<ObjectVisualization> {
+public class ObjectVisualizationPanel extends BasePanel<ObjectVisualization> {
 
     private static final long serialVersionUID = 1L;
 
@@ -24,18 +25,10 @@ public class ObjectVisualizationPanel extends CardOutlineLeftPanel<ObjectVisuali
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
 
-    private boolean headless;
-
     private IModel<ContainerVisualization> defaultContainerModel;
 
     public ObjectVisualizationPanel(String id, IModel<ObjectVisualization> model) {
-        this(id, model, false);
-    }
-
-    public ObjectVisualizationPanel(String id, IModel<ObjectVisualization> model, boolean headless) {
         super(id, model);
-
-        this.headless = headless;
 
         initModels();
         initLayout();
@@ -55,8 +48,6 @@ public class ObjectVisualizationPanel extends CardOutlineLeftPanel<ObjectVisuali
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", () -> VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(getModelObject().getChangeType())));
-
         ContainerVisualizationPanel defaultContainer = new ContainerVisualizationPanel(ID_DEFAULT_CONTAINER, defaultContainerModel);
         add(defaultContainer);
 

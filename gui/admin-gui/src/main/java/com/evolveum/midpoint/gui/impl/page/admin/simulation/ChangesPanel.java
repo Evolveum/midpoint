@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.CardObjectVisualizationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualizationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationFactory;
@@ -130,7 +132,13 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
 
             @Override
             protected void populateItem(ListItem<ObjectVisualization> item) {
-                ObjectVisualizationPanel change = new ObjectVisualizationPanel(ID_CHANGE, item.getModel(), true);
+                Component change;
+                if (changesNewModel.getObject().size() > 1) {
+                    change = new CardObjectVisualizationPanel(ID_CHANGE, item.getModel());
+                } else {
+                    change = new ObjectVisualizationPanel(ID_CHANGE, item.getModel());
+                }
+
                 item.add(change);
             }
         };
