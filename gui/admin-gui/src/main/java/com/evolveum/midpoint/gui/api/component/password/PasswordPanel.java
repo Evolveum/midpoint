@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -39,12 +38,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -58,6 +55,9 @@ public class PasswordPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
+    private static final String DOT_CLASS = PasswordPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_CREDENTIALS_POLICY = DOT_CLASS + "loadCredentialsPolicy";
+    private static final String OPERATION_LOAD_PASSWORD_VALUE_POLICY = DOT_CLASS + "loadPasswordValuePolicy";
 
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
@@ -103,12 +103,7 @@ public class PasswordPanel extends InputPanel {
         LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             @Override
             protected List<StringLimitationResult> load() {
-                ValuePolicyType valuePolicy = null;
-                if (prismObject == null || !prismObject.canRepresent(ResourceType.class)) {
-                    //we skip getting value policy for ResourceType because it is some protected string from connector configuration
-                    valuePolicy = getValuePolicy(prismObject);
-                }
-                return getLimitationsForActualPassword(valuePolicy, prismObject);
+                return getLimitationsForActualPassword();
             }
         };
 
@@ -222,44 +217,9 @@ public class PasswordPanel extends InputPanel {
         return "";
     }
 
-    protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
-        ValuePolicyType valuePolicyType = null;
-        try {
-            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (user != null) {
-                Task task = getParentPage().createSimpleTask("load value policy");
-                valuePolicyType = searchValuePolicy(object, task);
-            } else {
-                valuePolicyType = getParentPage().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
-                    Task task = getParentPage().createAnonymousTask("load value policy");
-                    return searchValuePolicy(object, task);
-                });
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Couldn't load security policy for focus " + object, e);
-        }
-        return valuePolicyType;
-    }
 
     protected boolean canEditPassword() {
         return true;
-    }
-
-    private <F extends FocusType> ValuePolicyType searchValuePolicy(PrismObject<F> object, Task task) {
-        try {
-            CredentialsPolicyType credentials = getParentPage().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
-            if (credentials != null && credentials.getPassword() != null
-                    && credentials.getPassword().getValuePolicyRef() != null) {
-                PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                        credentials.getPassword().getValuePolicyRef(), getParentPage(), task, task.getResult());
-                if (valuePolicy != null) {
-                    return valuePolicy.asObjectable();
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Couldn't load security policy for focus " + object, e);
-        }
-        return null;
     }
 
     @Override
@@ -285,18 +245,46 @@ public class PasswordPanel extends InputPanel {
         return (FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE);
     }
 
-    public List<StringLimitationResult> getLimitationsForActualPassword(ValuePolicyType valuePolicy, PrismObject<? extends ObjectType> object) {
+    public List<StringLimitationResult> getLimitationsForActualPassword() {
+        ValuePolicyType valuePolicy = getValuePolicy();
         if (valuePolicy != null) {
             Task task = getParentPage().createAnonymousTask("validation of password");
             try {
                 ProtectedStringType newValue = passwordModel == null ? new ProtectedStringType() : passwordModel.getObject();
                 return getParentPage().getModelInteractionService().validateValue(
-                        newValue, valuePolicy, object, task, task.getResult());
+                        newValue, valuePolicy, prismObject, task, task.getResult());
             } catch (Exception e) {
                 LOGGER.error("Couldn't validate password security policy", e);
             }
         }
         return new ArrayList<>();
+    }
+
+    protected <F extends FocusType> ValuePolicyType getValuePolicy() {
+        ValuePolicyType valuePolicy = null;
+        if (prismObject == null || !prismObject.canRepresent(ResourceType.class)) {
+            //we skip getting value policy for ResourceType because it is some protected string from connector configuration
+            Task task = createTask(OPERATION_LOAD_CREDENTIALS_POLICY);
+            CredentialsPolicyType credentials = null;
+            try {
+                credentials = getParentPage().getModelInteractionService().getCredentialsPolicy(prismObject, task, task.getResult());
+            } catch (Exception e) {
+                LOGGER.warn("Couldn't load credentials policy for focus " + prismObject, e);
+            }
+            valuePolicy = WebComponentUtil.getPasswordValuePolicy(credentials, OPERATION_LOAD_PASSWORD_VALUE_POLICY, getParentPage());
+        }
+        return valuePolicy;
+    }
+
+    protected Task createTask(String operation) {
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
+        Task task = null;
+        if (user != null) {
+            task = getParentPage().createSimpleTask(operation);
+        } else {
+            task = getParentPage().createAnonymousTask(operation);
+        }
+        return task;
     }
 
     private static class PasswordValidator implements IValidator<String> {

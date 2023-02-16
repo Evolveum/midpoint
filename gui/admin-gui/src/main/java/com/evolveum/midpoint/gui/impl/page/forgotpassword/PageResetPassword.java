@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.pages.RedirectPage;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -74,7 +73,7 @@ public class PageResetPassword extends AbstractPageLogin {
         }) {
 
             @Override
-            protected boolean isCheckOldPassword() {
+            protected boolean shouldCheckOldPassword() {
                 return false;
             }
 

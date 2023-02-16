@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.*;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -22,9 +19,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -70,6 +65,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
     private static final String OPERATION_LOAD_CREDENTIALS_POLICY = DOT_CLASS + "loadCredentialsPolicy";
     protected static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
+    private static final String OPERATION_LOAD_PASSWORD_VALUE_POLICY = DOT_CLASS + "loadPasswordValuePolicy";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
 
    protected String currentPasswordValue = null;
@@ -119,7 +115,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             public boolean isVisible() {
-                return isCheckOldPassword();
+                return shouldCheckOldPassword();
             }
 
             @Override
@@ -217,7 +213,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     }
 
     private List<StringLimitationResult> getLimitationsForActualPassword(ProtectedStringType passwordValue) {
-        ValuePolicyType valuePolicy = getValuePolicy();
+        ValuePolicyType valuePolicy = WebComponentUtil.getPasswordValuePolicy(credentialsPolicyModel.getObject(),
+                OPERATION_LOAD_PASSWORD_VALUE_POLICY, getParentPage());
         if (valuePolicy != null) {
             Task task = getParentPage().createAnonymousTask(OPERATION_VALIDATE_PASSWORD);
             try {
@@ -230,44 +227,12 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return new ArrayList<>();
     }
 
-    protected boolean isCheckOldPassword() {
+    protected boolean shouldCheckOldPassword() {
         return (getPasswordChangeSecurity() == null) ||
                 (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD) ||
                         (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS) &&
                                 getModelObject().asPrismObject()
                                 .findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null));
-    }
-
-    protected <F extends FocusType> ValuePolicyType getValuePolicy() {
-        ValuePolicyType valuePolicyType = null;
-        try {
-            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (user != null) {
-                Task task = getParentPage().createSimpleTask("load value policy");
-                valuePolicyType = getSearchValuePolicy(task);
-            } else {
-                valuePolicyType = getParentPage().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
-                    Task task = getParentPage().createAnonymousTask("load value policy");
-                    return getSearchValuePolicy(task);
-                });
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Couldn't load security policy for focus " + getModelObject().asPrismObject(), e);
-        }
-        return valuePolicyType;
-    }
-
-    private ValuePolicyType getSearchValuePolicy(Task task) {
-        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
-        if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
-                && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
-            PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                    credentialsPolicy.getPassword().getValuePolicyRef(), getParentPage(), task, task.getResult());
-            if (valuePolicy != null) {
-                return valuePolicy.asObjectable();
-            }
-        }
-        return null;
     }
 
     private PasswordChangeSecurityType getPasswordChangeSecurity() {
@@ -279,7 +244,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private void changePasswordPerformed(AjaxRequestTarget target) {
         ProtectedStringType currentPassword = null;
-        if (isCheckOldPassword()) {
+        if (shouldCheckOldPassword()) {
             LOGGER.debug("Check old password");
             if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
                 new Toast()

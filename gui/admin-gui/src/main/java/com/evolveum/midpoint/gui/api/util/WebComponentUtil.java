@@ -5137,6 +5137,38 @@ public final class WebComponentUtil {
         return credentialsPolicyType;
     }
 
+    public static  <F extends FocusType> ValuePolicyType getPasswordValuePolicy(CredentialsPolicyType credentialsPolicy,
+            String operation, PageAdminLTE parentPage) {
+        ValuePolicyType valuePolicyType = null;
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
+        try {
+            if (user != null) {
+                Task task = parentPage.createSimpleTask(operation);
+                valuePolicyType = resolvePasswordValuePolicy(credentialsPolicy, task, parentPage);
+            } else {
+                valuePolicyType = parentPage.getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
+                    Task task = parentPage.createAnonymousTask(operation);
+                    return resolvePasswordValuePolicy(credentialsPolicy, task, parentPage);
+                });
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't load password value policy for focus " + (user != null ? user.getFocus().asPrismObject() : null), e);
+        }
+        return valuePolicyType;
+    }
+
+    private static ValuePolicyType resolvePasswordValuePolicy(CredentialsPolicyType credentialsPolicy, Task task, PageAdminLTE parentPage) {
+        if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+            PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                    credentialsPolicy.getPassword().getValuePolicyRef(), parentPage, task, task.getResult());
+            if (valuePolicy != null) {
+                return valuePolicy.asObjectable();
+            }
+        }
+        return null;
+    }
+
     @Contract("_,true->!null")
     public static Long getTimestampAsLong(XMLGregorianCalendar cal, boolean currentIfNull) {
         Long calAsLong = MiscUtil.asMillis(cal);
