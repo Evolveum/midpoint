@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -46,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 /**
  * Tests with several inter-dependent resources.
@@ -124,6 +127,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_LAVENDER_NAME,
                 RESOURCE_DUMMY_LAVENDER_FILE, RESOURCE_DUMMY_LAVENDER_OID, initTask, initResult);
@@ -906,19 +911,104 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
+     * The "dummies" role assigns two dummy resources that are in a dependency. The value of
+     * {@link DummyResourceContoller#DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME} is propagated from one
      * resource through the user to the other resource. If dependency does not work then no value is propagated.
+     *
+     * We do the simulation first, then the real execution.
      */
     private void jackAssignRoleDummies() throws Exception {
         Task task = createTask("jackAssignRoleDummies");
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
-        // WHEN
+        if (isNativeRepository()) {
+            jackAssignRoleDummiesSimulated(task, result);
+        }
+        jackAssignRoleDummiesReal(task, result);
+    }
+
+    /**
+     * For the explanation of attribute/property assertions, see {@link #jackAssignRoleDummiesReal(Task, OperationResult)}.
+     */
+    private void jackAssignRoleDummiesSimulated(Task task, OperationResult result) throws Exception {
+        when();
+        var simulationResult = executeWithSimulationResult(
+                task, result,
+                () -> assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result));
+
+        then();
+        assertSuccess(result);
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .delta()
+                        .assertPolyStringModification(
+                                UserType.F_ORGANIZATIONAL_UNIT,
+                                null,
+                                "The crew of The Lost Souls") // see the "real" assertions
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_OID).find()
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME, "The Great Voodoo Master")
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                    .assertValue(
+                                            DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME,
+                                            "Jack Sparrow must be the best captain the Caribbean has ever seen")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    private void jackAssignRoleDummiesReal(Task task, OperationResult result) throws Exception {
         when();
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -936,7 +1026,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The Great Voodoo Master")
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The Great Voodoo Master")
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
@@ -1811,9 +1901,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        traced( () ->
-                modifyUserReplace(
-                        userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock")));
+        modifyUserReplace(
+                userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
 
         // THEN
         then();

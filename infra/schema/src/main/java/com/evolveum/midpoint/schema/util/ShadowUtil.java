@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1057,5 +1058,34 @@ public class ShadowUtil {
 
     public static @NotNull String resolveDefault(String intent) {
         return Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT);
+    }
+
+    public static boolean hasResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .anyMatch(ShadowUtil::isResourceModification);
+    }
+
+    public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .filter(ShadowUtil::isResourceModification)
+                .collect(Collectors.toList());
+    }
+
+    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
+        QName firstPathName = modification.getPath().firstName();
+        return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
+    }
+
+    public static boolean isAttributeModification(QName firstPathName) {
+        return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
+    }
+
+    public static boolean isNonAttributeResourceModification(QName firstPathName) {
+        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
+                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 }

@@ -34,6 +34,7 @@ public class ProcessedObjectFinder<RA> {
     private ChangeType changeType;
     private String eventMarkOid;
     private boolean noEventMarks;
+    private String resourceOid;
     private Integer index;
 
     ProcessedObjectFinder(ProcessedObjectsAsserter<RA> processedObjectsAsserter) {
@@ -67,6 +68,11 @@ public class ProcessedObjectFinder<RA> {
 
     public ProcessedObjectFinder<RA> noEventMarks() {
         this.noEventMarks = true;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> resourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
         return this;
     }
 
@@ -113,6 +119,9 @@ public class ProcessedObjectFinder<RA> {
                 continue;
             }
             if (noEventMarks && !processedObject.hasNoEventMarks()) {
+                continue;
+            }
+            if (resourceOid != null && !resourceOid.equals(processedObject.getResourceOid())) {
                 continue;
             }
             if (index != null) {

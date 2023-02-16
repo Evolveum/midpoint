@@ -6823,7 +6823,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public interface ProcedureCall {
-        void execute() throws CommonException;
+        void execute() throws CommonException, IOException;
     }
 
     protected <X> X traced(FunctionCall<X> tracedCall)
@@ -6831,11 +6831,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    protected void traced(ProcedureCall tracedCall) throws CommonException {
+    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
         traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException {
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
         setGlobalTracingOverride(profile);
         try {
             tracedCall.execute();
@@ -7046,6 +7046,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return Objects.requireNonNull(
                 simulationResultHolder.getValue(),
                 "No simulation result after execution?");
+    }
+
+    /**
+     * Simplified version of {@link #executeWithSimulationResult(TaskExecutionMode, SimulationDefinitionType,
+     * Task, OperationResult, SimulatedProcedureCall)}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull ProcedureCall call)
+            throws CommonException, IOException {
+        return executeWithSimulationResult(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result,
+                (sr) -> call.execute());
+    }
+
+    /**
+     * Simplified version of {@link #executeWithSimulationResult(Collection, TaskExecutionMode, SimulationDefinitionType,
+     * Task, OperationResult)}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeWithSimulationResult(
+                deltas,
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result);
     }
 
     protected @NotNull SimulationDefinitionType defaultSimulationDefinition() throws ConfigurationException {

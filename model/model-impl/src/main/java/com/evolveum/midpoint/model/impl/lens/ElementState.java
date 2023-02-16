@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -112,6 +111,12 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      */
     private PrismObject<O> currentObject;
 
+    /** See {@link LensProjectionContext#getStateBeforeSimulatedOperation()} for explanation. */
+    private PrismObject<O> currentShadowBeforeSimulatedDeltaExecution;
+
+    /** Number of simulated executions carried out. Should be 0-1 for projections, 0-N for focus. */
+    private int simulatedExecutions;
+
     /**
      * Adjusted current state of the object. It is used as a workaround for projection context
      * computations, where we need coordinates in the new object even if the current delta is (not yet) present.
@@ -133,13 +138,15 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      * Indicates that the objectOld and objectCurrent contain relevant values.
      * Generally set to true by {@link ContextLoader}
      * and reset to false by {@link LensContext#rot(String)} and {@link LensContext#rotAfterExecution()} methods.
+     *
+     * @see LensContext#isFresh
      */
     private boolean fresh;
 
     /**
      * Primary delta i.e. one that the caller specified that has to be executed.
      *
-     * Sometimes it is also cleared e.g. in ConsolidationProcessor. TODO is this ok?
+     * Sometimes it is also cleared e.g. in `ConsolidationProcessor`. TODO is this ok?
      */
     private ObjectDelta<O> primaryDelta;
 
@@ -159,12 +166,19 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     @NotNull private final ObjectDeltaWaves<O> archivedSecondaryDeltas;
 
     /**
-     * Delta that moves objectCurrent to objectNew.
+     * Delta that moves {@link #currentObject} to {@link #newObject}.
+     *
+     * WARNING: But not always! For projections, it is possible that {@link #currentObject} is `null` but this delta is `MODIFY`.
+     * It is because we have no place to put the "add" information to, if it's computed by midPoint: it should not go to the
+     * primary delta (as it is, in fact, not primary ~ user requested), and the secondary delta is currently always "modify" one.
+     * *TODO this should be fixed somehow*
      */
     private ObjectDelta<O> currentDelta;
 
     /**
-     * Delta that moves objectOld to objectNew.
+     * Delta that moves {@link #oldObject} to {@link #newObject}.
+     *
+     * *TODO for projections being added or deleted, it can be misleading, see {@link #currentDelta}*
      */
     private ObjectDelta<O> summaryDelta;
 
@@ -287,6 +301,11 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     PrismObject<O> getCurrentObject() {
         return currentObject;
+    }
+
+    /** See {@link LensProjectionContext#getStateBeforeSimulatedOperation()} for explanation. Only for shadows. */
+    PrismObject<O> getCurrentShadowBeforeSimulatedDeltaExecution() {
+        return simulatedExecutions > 0 ? currentShadowBeforeSimulatedDeltaExecution : currentObject;
     }
 
     private PrismObject<O> getAdjustedCurrentObject() throws SchemaException, ConfigurationException {
@@ -716,52 +735,58 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         invalidateSecondaryDeltaDependencies();
     }
 
-    /**
-     * Updates the state to reflect that a delta was executed.
-     *
-     * CURRENTLY CALLED ONLY FOR FOCUS. ASSUMES SUCCESSFUL EXECUTION.
-     */
-    void updateAfterExecution(@NotNull TaskExecutionMode taskExecutionMode, int executionWave) throws SchemaException {
+    /** Manages the deltas after execution. */
+    void updateDeltasAfterExecution(int executionWave) {
         wasPrimaryDeltaExecuted = true;
-
         archivedSecondaryDeltas.add(executionWave, secondaryDelta);
-
-        if (!taskExecutionMode.isFullyPersistent()) {
-            updateInSimulation();
-        }
-
         clearSecondaryDelta();
     }
 
-    private void updateInSimulation() throws SchemaException {
-        if (currentObject == null && isAdd(primaryDelta)) {
-            currentObject = primaryDelta.getObjectToAdd().clone();
-        }
-        if (currentObject == null) {
-            if (isAdd(currentDelta)) {
-                currentObject = currentDelta.getObjectToAdd();
-            } else if (currentDelta != null) {
-                LOGGER.warn("No current object and current delta is not add? Ignoring:\n{}", currentDelta.debugDump());
-            }
-        } else if (currentDelta != null) {
-            if (currentDelta.isAdd()) {
-                LOGGER.warn("Current object exists and current delta is ADD? Ignoring. Object:\n{}\nDelta:\n{}",
-                        currentObject.debugDump(1), currentDelta.debugDump(1));
-            } else if (currentDelta.isDelete()) {
-                LOGGER.debug("Ignoring application of DELETE delta in simulation mode: {}", currentDelta);
-                currentObject = null;
+    /**
+     * Simulates the execution of the delta. In simulation mode we don't have the luxury of executing the deltas and then
+     * re-loading the current object. So we have to apply the deltas onto the object ourselves.
+     *
+     * Beware, the delta may be different from {@link #currentDelta}. Projection delta execution creates "deltas to execute"
+     * in quite a special way.
+     */
+    void simulateDeltaExecution(ObjectDelta<O> delta) throws SchemaException {
+        if (simulatedExecutions == 0) {
+            if (currentObject != null && currentObject.asObjectable() instanceof ShadowType) {
+                currentShadowBeforeSimulatedDeltaExecution = currentObject.clone();
             } else {
-                currentDelta.applyTo(currentObject);
+                // not necessary for focus objects
+            }
+        }
+        simulatedExecutions++;
+
+        if (currentObject == null) {
+            if (isAdd(delta)) {
+                setCurrentObject(delta.getObjectToAdd());
+            } else if (delta != null) {
+                LOGGER.warn("No current object and current delta is not add? Ignoring:\n{}", delta.debugDump());
+            }
+        } else if (delta != null) {
+            if (delta.isAdd()) {
+                LOGGER.warn("Current object exists and current delta is ADD? Ignoring. Object:\n{}\nDelta:\n{}",
+                        currentObject.debugDump(1), delta.debugDump(1));
+            } else if (delta.isDelete()) {
+                clearCurrentObject();
+            } else {
+                delta.applyTo(currentObject);
+                invalidateCurrentObjectDependencies();
             }
         }
         if (currentObject != null) {
-            generateMissingContainerIds(currentObject);
+            if (generateMissingContainerIds(currentObject)) {
+                invalidateCurrentObjectDependencies();
+            }
         }
     }
 
-    private void generateMissingContainerIds(PrismObject<O> currentObject) throws SchemaException {
+    private boolean generateMissingContainerIds(PrismObject<O> currentObject) throws SchemaException {
         StolenContainerValueIdGenerator generator = new StolenContainerValueIdGenerator(currentObject);
         generator.generateForNewObject(); // temporary
+        return generator.getGenerated() > 0;
     }
 
     /**

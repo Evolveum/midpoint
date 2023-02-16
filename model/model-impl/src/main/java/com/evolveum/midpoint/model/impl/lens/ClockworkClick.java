@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -220,14 +219,10 @@ public class ClockworkClick<F extends ObjectType> {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
-        Holder<Boolean> restartRequestedHolder = new Holder<>(false);
-        context.clearAnyDeltasExecutedFlag();
+        context.clearLastChangeExecutionResult();
 
         beans.medic.partialExecute(Components.EXECUTION,
-                (result1) -> {
-                    boolean restartRequested = beans.changeExecutor.executeChanges(context, task, result1);
-                    restartRequestedHolder.setValue(restartRequested);
-                },
+                (result1) -> beans.changeExecutor.executeChanges(context, task, result1),
                 context.getPartialProcessingOptions()::getExecution,
                 Clockwork.class, context, null, result);
 
@@ -235,16 +230,22 @@ public class ClockworkClick<F extends ObjectType> {
 
         context.updateAfterExecution();
 
-        if (!restartRequestedHolder.getValue()) {
+        if (!context.isProjectionRecomputationRequested()) {
             context.incrementExecutionWave();
         } else {
-            LOGGER.trace("Restart of the current execution wave ({}) was requested by the change executor",
-                    context.getExecutionWave());
-            // Shouldn't we explicitly rot context here?
+            LOGGER.trace("Restart of the current execution wave ({}) was requested by the change executor; "
+                            + "setting focus context as not fresh", context.getExecutionWave());
+            LensFocusContext<?> focusContext = context.getFocusContext();
+            if (focusContext != null) {
+                focusContext.setFresh(false); // will run activation again (hopefully)
+            }
+            // Shouldn't we explicitly rot the whole context here? (maybe not)
             // BTW, what if restart is requested indefinitely?
         }
 
-        beans.medic.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
+        beans.medic.traceContext(
+                LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false,
+                context, false);
     }
 
     private void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) throws SchemaException {

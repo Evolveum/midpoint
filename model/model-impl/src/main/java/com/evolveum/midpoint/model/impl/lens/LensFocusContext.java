@@ -8,9 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -40,7 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Nullable;
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
 
 /**
  * @author semancik
@@ -267,12 +265,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 //        }
     }
 
-//    @Override
-//    public void reset() {
-//        super.reset();
-//        secondaryDeltas = new ObjectDeltaWaves<O>();
-//    }
-
     /**
      * Returns true if there is any change in organization membership.
      * I.e. in case that there is a change in parentOrgRef.
@@ -484,15 +476,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
                 result);
     }
 
-    /**
-     * Updates the state to reflect that a delta was executed.
-     *
-     * CURRENTLY CALLED ONLY FOR FOCUS. ASSUMES SUCCESSFUL EXECUTION.
-     */
-    void updateAfterExecution() throws SchemaException {
-        state.updateAfterExecution(lensContext.getTaskExecutionMode(), lensContext.getExecutionWave());
-    }
-
     boolean primaryItemDeltaExists(ItemPath path) {
         ObjectDelta<O> primaryDelta = getPrimaryDelta();
         return primaryDelta != null &&
@@ -506,5 +489,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public @NotNull LensContext<O> getLensContext() {
         //noinspection unchecked
         return (LensContext<O>) lensContext;
+    }
+
+    void rotAfterExecution(boolean projectionsUpdated) {
+        if (hasExecutedDelta(lastChangeExecutionResult) || projectionsUpdated) {
+            LOGGER.debug("Context rot: focus context rotten because there were some (focus or projection) deltas executed");
+            rot(); // It is OK to refresh focus all the time there was any change. This is cheap.
+        }
+    }
+
+    void updateDeltasAfterExecution() {
+        state.updateDeltasAfterExecution(lensContext.getExecutionWave());
+    }
+
+    /**
+     * The "object old" represents the state "before operation" for focus objects precisely.
+     */
+    public PrismObject<O> getStateBeforeSimulatedOperation() {
+        return getObjectOld();
     }
 }

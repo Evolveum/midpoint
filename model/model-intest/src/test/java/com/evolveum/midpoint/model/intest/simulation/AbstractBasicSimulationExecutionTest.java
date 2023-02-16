@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -20,7 +21,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
 import org.testng.annotations.Test;
@@ -176,8 +176,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         FocusType.F_ITERATION_TOKEN,
                         FocusType.F_METADATA,
                         FocusType.F_ROLE_MEMBERSHIP_REF,
-                        FocusType.F_ARCHETYPE_REF,
-                        ItemPath.create(FocusType.F_ASSIGNMENT, 1L)); // effective status + metadata
+                        FocusType.F_ARCHETYPE_REF);
         // @formatter:on
     }
 
@@ -196,8 +195,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         PATH_ACTIVATION_EFFECTIVE_STATUS,
                         PATH_ACTIVATION_ENABLE_TIMESTAMP,
                         FocusType.F_ITERATION,
-                        FocusType.F_ITERATION_TOKEN,
-                        FocusType.F_METADATA);
+                        FocusType.F_ITERATION_TOKEN);
         // @formatter:on
     }
 
@@ -752,7 +750,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
     @SuppressWarnings("SameParameterValue")
     private String executeProductionAccountImportOnBackground(String name, boolean shadowSimulation, OperationResult result)
-            throws CommonException {
+            throws CommonException, IOException {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue(name)

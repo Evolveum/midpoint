@@ -334,11 +334,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         if (areMarksSupported()) {
             when("changes are simulated");
-            var simResult = executeWithSimulationResult(
-                    deltas,
-                    TaskExecutionMode.SIMULATED_PRODUCTION,
-                    defaultSimulationDefinition(),
-                    task, result);
+            var simResult = executeWithSimulationResult(deltas, task, result);
 
             then("the result is OK");
             checkers.simChecker.check(simResult);
@@ -604,11 +600,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE));
 
         when();
-        var simResult = executeWithSimulationResult(
-                List.of(delta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simResult = executeWithSimulationResult(List.of(delta), task, result);
 
         then();
         assertProcessedObjects(simResult, "after")

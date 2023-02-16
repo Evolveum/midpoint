@@ -142,15 +142,11 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
         MappingInitializer<PrismValue, ItemDefinition<?>> initializer =
                 (builder) -> {
                     if (projectionContext.getObjectNew() == null) {
-                        projectionContext.recompute();
-                        if (projectionContext.getObjectNew() == null) {
-                            // Still null? something must be really wrong here.
-                            String message = "Recomputing account " + projectionContext.getKey()
-                                    + " results in null new account. Something must be really broken.";
-                            LOGGER.error(message);
-                            LOGGER.trace("Account context:\n{}", projectionContext.debugDumpLazily());
-                            throw new SystemException(message);
-                        }
+                        String message = "Recomputing account " + projectionContext.getKey()
+                                + " results in null new account. Something must be really broken.";
+                        LOGGER.error(message);
+                        LOGGER.trace("Account context:\n{}", projectionContext.debugDumpLazily());
+                        throw new SystemException(message);
                     }
 
                     ItemDelta<PrismPropertyValue<?>, PrismPropertyDefinition<?>> specialAttributeDelta;

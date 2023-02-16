@@ -582,7 +582,7 @@ public class ResourceObjectConverter {
             for (ItemDelta<?, ?> modification: itemDeltas) {
                 ItemPath path = modification.getPath();
                 QName firstPathName = path.firstName();
-                if (ProvisioningUtil.isAttributeModification(firstPathName)) {
+                if (ShadowUtil.isAttributeModification(firstPathName)) {
                     hasResourceModification = true;
                     QName attrName = path.rest().firstNameOrFail();
                     ResourceAttributeDefinition<?> attrDef =
@@ -592,7 +592,7 @@ public class ResourceObjectConverter {
                         hasVolatilityTriggerModification = true;
                         break;
                     }
-                } else if (ProvisioningUtil.isNonAttributeResourceModification(firstPathName)) {
+                } else if (ShadowUtil.isNonAttributeResourceModification(firstPathName)) {
                     hasResourceModification = true;
                 }
             }

@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.Synch
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
@@ -81,7 +82,7 @@ public class SynchronizationRequest {
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
     }
 
-    public String execute(OperationResult result) throws CommonException {
+    public String execute(OperationResult result) throws CommonException, IOException {
         ObjectQuery query = createResourceObjectQuery(result);
         WorkDefinitionsType work;
         ResourceObjectSetType resourceObjectSet = new ResourceObjectSetType()
@@ -161,7 +162,7 @@ public class SynchronizationRequest {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void executeOnForeground(OperationResult result) throws CommonException {
+    public void executeOnForeground(OperationResult result) throws CommonException, IOException {
         List<PrismObject<ShadowType>> shadows =
                 getProvisioningService().searchObjects(
                         ShadowType.class,
@@ -426,11 +427,11 @@ public class SynchronizationRequest {
             return new SynchronizationRequest(this);
         }
 
-        public String execute(OperationResult result) throws CommonException {
+        public String execute(OperationResult result) throws CommonException, IOException {
             return build().execute(result);
         }
 
-        public void executeOnForeground(OperationResult result) throws CommonException {
+        public void executeOnForeground(OperationResult result) throws CommonException, IOException {
             build().executeOnForeground(result);
         }
 

@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -63,6 +64,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 public class LensProjectionContext extends LensElementContext<ShadowType> implements ModelProjectionContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
+
+    private static final boolean DEBUG_DUMP_DEPENDENCIES = false;
 
     /**
      * Delta that came from the resource (using live sync, async update, import, reconciliation, and so on) that
@@ -101,8 +104,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /**
      * Was the processing of this projection (in its execution wave) complete?
      * We use this flag to avoid re-processing projections when wave is repeated.
+     *
+     * @see ChangeExecutionResult#projectionRecomputationRequested
      */
-    @Experimental
     private boolean completed;
 
     /**
@@ -1429,7 +1433,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (fullShadow) {
             sb.append(", full");
         } else {
-            sb.append(", shadow");
+            sb.append(", shadow-only (not full)");
         }
         sb.append(", exists=").append(exists);
         if (!shadowExistsInRepo) {
@@ -1498,11 +1502,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed auxiliary object classes"), squeezedAuxiliaryObjectClasses, indent + 1);
 
-            // This is just a debug thing
-//            sb.append("\n");
-//            DebugUtil.indentDebugDump(sb, indent);
-//            sb.append("ACCOUNT dependencies\n");
-//            sb.append(DebugUtil.debugDump(dependencies, indent + 1));
+            if (DEBUG_DUMP_DEPENDENCIES) {
+                sb.append("\n");
+                DebugUtil.indentDebugDump(sb, indent);
+                sb.append(getDebugDumpTitle("dependencies\n"));
+                sb.append(DebugUtil.debugDump(dependencies, indent + 1));
+            }
         }
 
         sb.append("\n");
@@ -1748,6 +1753,40 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         cachedValueMetadata = null;
     }
 
+    boolean rotAfterExecution() {
+        if (wave != lensContext.getExecutionWave()) {
+            LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", this);
+            return false;
+        }
+
+        // We do not care if the delta execution was successful. We want to rot the context even in the case of failure.
+        ObjectDelta<ShadowType> execDelta = getExecutedDelta(lastChangeExecutionResult);
+        if (!isShadowDeltaSignificant(execDelta)) {
+            LOGGER.trace("Context rot: projection {} NOT rotten because there's no significant delta", this);
+            return false;
+        }
+
+        LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", this, execDelta);
+
+        rot();
+
+        // Propagate to higher-order projections
+        for (LensProjectionContext relCtx : lensContext.findRelatedContexts(this)) {
+            relCtx.rot();
+        }
+
+        return true;
+    }
+
+    private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
+        if (delta == null || delta.isEmpty()) {
+            return false;
+        }
+        return delta.isAdd()
+                || delta.isDelete()
+                || ShadowUtil.hasResourceModifications(delta.getModifications());
+    }
+
     public ValueMetadataType getCachedValueMetadata() {
         return cachedValueMetadata;
     }
@@ -1888,5 +1927,43 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
             throws SchemaException, ConfigurationException {
         return ItemChangeApplicationModeConfiguration.of(getCompositeObjectDefinition());
+    }
+
+    /**
+     * Returns the (estimated) state before the simulated operation began.
+     *
+     * Ideally, we would like to return "old object", just as we do in
+     * {@link LensFocusContext#getStateBeforeSimulatedOperation()}.
+     *
+     * Unfortunately, the "old object" usually contains only the repo shadow, not the state from the resource
+     * (called full shadow). The reason is that when the full shadow is is loaded during processing, it is put into "current",
+     * not into "old" object.
+     *
+     * Hence it's best to take "current object" for projections.
+     * Unfortunately, this object is changed when the simulated operation is executed.
+     * Therefore, we store its copy before we apply the operation.
+     *
+     * TODO: Maybe we should get rid of all this hackery, and explicitly remember the first full shadow loaded.
+     *  But it is not trivial to do so: there are many places where full shadow is (tried to be) loaded.
+     *  And it is not always clear if we get the full shadow or not. So it is doable, but definitely not simple.
+     */
+    public PrismObject<ShadowType> getStateBeforeSimulatedOperation() {
+        return state.getCurrentShadowBeforeSimulatedDeltaExecution();
+    }
+
+    @Override
+    public void simulateDeltaExecution(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
+        super.simulateDeltaExecution(delta);
+        if (delta.isDelete()) {
+            // This is something that is normally done by the context loaded.
+            // However, in simulation mode the context is not rotten, so no re-loading is done.
+            // (Or, should we do some fake loading instead? Not sure, probably this is the best approach.)
+            setFullShadow(false);
+            setShadowExistsInRepo(false);
+        }
+    }
+
+    boolean isProjectionRecomputationRequested() {
+        return ChangeExecutionResult.isProjectionRecomputationRequested(lastChangeExecutionResult);
     }
 }
