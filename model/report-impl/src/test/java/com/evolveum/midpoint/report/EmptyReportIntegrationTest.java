@@ -16,6 +16,11 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.report.api.ReportConstants;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -32,10 +37,10 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Common superclass for "empty" report integration tests.
- *
- * VERY EXPERIMENTAL
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -174,7 +179,8 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         }
         modelService.postInit(initResult);
 
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
+        PrismObject<UserType> userAdministrator =
+                repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         login(userAdministrator);
 
         repoAdd(ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC, initResult);
@@ -293,5 +299,25 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         assertThat(attachments).as("notification message attachments").hasSize(1);
         NotificationMessageAttachmentType attachment = attachments.get(0);
         assertThat(attachment.getContentType()).as("attachment content type").isEqualTo(expectedContentType);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    ReportParameterType getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
+        ReportParameterType reportParam = new ReportParameterType();
+        //noinspection unchecked
+        PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
+
+        QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
+        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+                new QName(ReportConstants.NS_EXTENSION, name), typeName);
+        def.setDynamic(true);
+        def.setRuntimeSchema(true);
+        def.toMutable().setMaxOccurs(1);
+
+        PrismProperty<Object> prop = def.instantiate();
+        prop.addRealValue(realValue);
+        reportParamValue.add(prop);
+
+        return reportParam;
     }
 }

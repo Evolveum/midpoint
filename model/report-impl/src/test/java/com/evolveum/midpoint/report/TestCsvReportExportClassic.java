@@ -230,22 +230,4 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         testClassicExport(REPORT_SUBREPORT_AUDIT, 5, 4, null, parameters);
     }
-
-    private ReportParameterType getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
-        ReportParameterType reportParam = new ReportParameterType();
-        PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
-
-        QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
-                new QName(ReportConstants.NS_EXTENSION, name), typeName);
-        def.setDynamic(true);
-        def.setRuntimeSchema(true);
-        def.toMutable().setMaxOccurs(1);
-
-        PrismProperty<Object> prop = def.instantiate();
-        prop.addRealValue(realValue);
-        reportParamValue.add(prop);
-
-        return reportParam;
-    }
 }

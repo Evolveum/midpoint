@@ -74,16 +74,16 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
 
     @Override
     protected FileFormatConfigurationType getFileFormatConfiguration() {
-        FileFormatConfigurationType config = new FileFormatConfigurationType();
-        config.setType(FileFormatTypeType.CSV);
-        return config;
+        return new FileFormatConfigurationType()
+                .type(FileFormatTypeType.CSV);
     }
 
     void assertNotificationMessage(TestResource<ReportType> reportTestResource) {
         assertNotificationMessage(reportTestResource.getObjectable(), "text/csv");
     }
 
-    protected void testClassicExport(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
+    protected List<String> testClassicExport(
+            TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
             String lastLine, ReportParameterType parameters) throws Exception {
         given();
         Task task = getTestTask();
@@ -114,9 +114,11 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
+        var rows = basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
 
         assertNotificationMessage(reportResource);
+
+        return rows;
     }
 
     protected void testClassicExport(TestResource<ReportType> reportResource,

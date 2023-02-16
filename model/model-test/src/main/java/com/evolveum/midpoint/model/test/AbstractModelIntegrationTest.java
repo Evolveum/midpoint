@@ -7188,4 +7188,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
         return accessesMetadataEnabled ? relevantExecutionRecords : 0;
     }
+
+    /**
+     * Provides a model-level objects creator.
+     *
+     * @see AbstractIntegrationTest#realRepoCreator()
+     */
+    private <O extends ObjectType> ObjectCreator.RealCreator<O> realModelCreator() {
+        return (o, result) -> {
+            addObject(o.asPrismObject(), getTestTask(), result);
+        };
+    }
+
+    protected <O extends ObjectType> ObjectCreatorBuilder<O> modelObjectCreatorFor(Class<O> type) {
+        return ObjectCreator.forType(type)
+                .withRealCreator(realModelCreator());
+    }
+
+    protected CsvAsserter<Void> assertCsv(List<String> lines, String message) {
+        CsvAsserter<Void> asserter = new CsvAsserter<>(lines, null, message);
+        initializeAsserter(asserter);
+        return asserter;
+    }
 }

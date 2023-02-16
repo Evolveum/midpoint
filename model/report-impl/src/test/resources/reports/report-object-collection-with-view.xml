@@ -28,7 +28,7 @@
                 <previousColumn>nameColumn</previousColumn>
                 <export>
                     <expression>
-                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <script>
                             <code>
                                 return "Test nick: " + object;
                             </code>

@@ -135,4 +135,8 @@ public class TestSimulationResult {
                 CloneUtil.cloneCollectionMembers(processedObjectBeans));
         return simulationResult;
     }
+
+    public @NotNull String getSimulationResultOid() {
+        return simulationResultOid;
+    }
 }
