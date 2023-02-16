@@ -1066,6 +1066,12 @@ public class ShadowUtil {
                 .anyMatch(ShadowUtil::isResourceModification);
     }
 
+    public static boolean hasAttributeModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .anyMatch(delta -> isAttributeModification(delta.getPath().firstName()));
+    }
+
     public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         return modifications.stream()

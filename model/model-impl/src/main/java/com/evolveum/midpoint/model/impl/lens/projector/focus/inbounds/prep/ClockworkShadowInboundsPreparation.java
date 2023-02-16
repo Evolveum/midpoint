@@ -132,7 +132,7 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
 
         ObjectDelta<F> userPrimaryDelta = lensContext.getFocusContext().getPrimaryDelta();
         if (userPrimaryDelta != null) {
-            PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(targetPath);
+            PropertyDelta<?> primaryPropDelta = userPrimaryDelta.findPropertyDelta(targetPath);
             if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
                 LOGGER.trace("Primary delta of 'replace' overrides any inbounds, skipping. Delta: {}", primaryPropDelta);
                 return;
