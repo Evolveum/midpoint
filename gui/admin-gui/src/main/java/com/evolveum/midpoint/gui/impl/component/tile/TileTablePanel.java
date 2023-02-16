@@ -8,8 +8,14 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.Toggle;
+import com.evolveum.midpoint.gui.api.component.TogglePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.Component;
@@ -19,6 +25,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -37,14 +44,18 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_TILES_CONTAINER = "tilesContainer";
+    static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";
 
-    private static final String ID_TILES_HEADER = "tilesHeader";
+    private static final String ID_HEADER_FRAGMENT = "headerFragment";
+    static final String ID_HEADER = "header";
+    private static final String ID_VIEW_TOGGLE = "viewToggle";
+    private static final String ID_PANEL_HEADER = "panelHeader";
+
     private static final String ID_TILE = "tile";
     private static final String ID_TABLE = "table";
 
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_TILES_PAGING = "tilesPaging";
 
@@ -86,9 +97,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private void initLayout() {
         setOutputMarkupId(true);
 
-        Component header = createTilesHeader(ID_TILES_HEADER);
-        header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
-        add(header);
+        add(createHeaderFragment(ID_HEADER));
 
         WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
@@ -130,8 +139,13 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
 
-        List<IColumn<O, String>> columns = createColumns();
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns, tableId) {
+        BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
+        table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
+        add(table);
+    }
+
+    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+        return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -140,7 +154,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
             @Override
             protected Component createHeader(String headerId) {
-                return createTableHeader(headerId);
+                return createHeaderFragment(headerId);
             }
 
             @Override
@@ -148,8 +162,47 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 return null;
             }
         };
-        table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
-        add(table);
+    }
+
+    private TogglePanel createTogglePanel(String id) {
+        IModel<List<Toggle<ViewToggle>>> items = new LoadableModel<>(false) {
+
+            @Override
+            protected List<Toggle<ViewToggle>> load() {
+
+                ViewToggle toggle = getViewToggleModel().getObject();
+                List<Toggle<ViewToggle>> list = new ArrayList<>();
+
+                Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
+                asList.setActive(ViewToggle.TABLE == toggle);
+                asList.setValue(ViewToggle.TABLE);
+                list.add(asList);
+
+                Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
+                asTile.setActive(ViewToggle.TILE == toggle);
+                asTile.setValue(ViewToggle.TILE);
+                list.add(asTile);
+
+                return list;
+            }
+        };
+
+        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(id, items) {
+
+            @Override
+            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+                super.itemSelected(target, item);
+
+                getViewToggleModel().setObject(item.getObject().getValue());
+                target.add(TileTablePanel.this);
+            }
+        };
+        viewToggle.add(new VisibleEnableBehaviour(this::isTogglePanelVisible));
+        return viewToggle;
+    }
+
+    protected boolean isTogglePanelVisible() {
+        return false;
     }
 
     protected List<IColumn<O, String>> createColumns() {
@@ -206,12 +259,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return searchModel;
     }
 
-    protected Component createTilesHeader(String id) {
-        return createHeader(id);
-    }
+    Fragment createHeaderFragment(String id) {
+        Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
 
-    protected Component createTableHeader(String id) {
-        return createHeader(id);
+        Component header = createHeader(ID_PANEL_HEADER);
+        header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
+        fragment.add(header);
+
+        fragment.add(createTogglePanel(ID_VIEW_TOGGLE));
+
+        return fragment;
     }
 
     protected Component createHeader(String id) {

@@ -2,7 +2,9 @@ package com.evolveum.midpoint.gui.api.component.progressbar;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-public class ProgressBar {
+import java.io.Serializable;
+
+public class ProgressBar implements Serializable {
 
     public enum State {
 

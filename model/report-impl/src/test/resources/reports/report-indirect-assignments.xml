@@ -21,8 +21,8 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>. ownedBy (@type = UserType and @path = roleMembershipRef
-                    /*and name = 'user-v1'*/)
+                <q:text>
+                    . ownedBy (@type = UserType and @path = roleMembershipRef)
                 </q:text>
             </filter>
         </collection>
@@ -78,7 +78,7 @@
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                return !data.owner ? 'Unknown owner' : data.owner.name.orig
+                                return data?.owner?.name?.orig ?: 'Unknown owner'
                             </code>
                         </script>
                     </expression>
@@ -95,7 +95,7 @@
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                return input?.object?.name
+                                return input?.object?.name?.orig
                             </code>
                         </script>
                     </expression>
@@ -114,7 +114,7 @@
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
                                 //com.evolveum.midpoint.util.DebugUtil.dump(assignmentPaths)
-                                if (!data.assignmentPath) {
+                                if (!data?.assignmentPath) {
                                     return '?'
                                 }
 
@@ -142,7 +142,7 @@
                     <expression>
                         <script>
                             <code>
-                                if (!data.assignmentPath) {
+                                if (!data?.assignmentPath) {
                                     return "?"
                                 }
 
@@ -168,7 +168,7 @@
                 <export>
                     <expression>
                         <script>
-                            <code>data.assignment?.activation?.effectiveStatus</code>
+                            <code>data?.assignment?.activation?.effectiveStatus</code>
                         </script>
                     </expression>
                 </export>
@@ -182,7 +182,7 @@
                 <export>
                     <expression>
                         <script>
-                            <code>data.assignment?.activation?.validTo</code>
+                            <code>data?.assignment?.activation?.validTo</code>
                         </script>
                     </expression>
                 </export>
@@ -196,7 +196,7 @@
                 <export>
                     <expression>
                         <script>
-                            <code>data.createTimestamp</code>
+                            <code>data?.createTimestamp</code>
                         </script>
                     </expression>
                 </export>

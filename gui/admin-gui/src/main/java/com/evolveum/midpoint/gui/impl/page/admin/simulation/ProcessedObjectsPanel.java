@@ -93,7 +93,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        return GuiSimulationsUtil.createProcessedObjectIconColumn();
+        return SimulationsGuiUtil.createProcessedObjectIconColumn();
     }
 
     @Override
@@ -242,13 +242,13 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
-                item.add(GuiSimulationsUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
+                item.add(SimulationsGuiUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
+        return new LambdaColumn<>(displayModel, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
     }
 
     @Override

@@ -7,13 +7,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div class="card-header" wicket:id="header"/>
     <div class="card-body">
-        <div class="d-flex gap-2 border-bottom border-gray align-items-center pb-3 mb-3" wicket:id="header"/>
+        <div wicket:id="bodyHeader"/>
 
         <wicket:child/>
     </div>
 
-    <wicket:fragment wicket:id="header">
+    <wicket:fragment wicket:id="bodyHeader">
         <h5 class="mb-0" wicket:id="title"/>
         <span wicket:id="badge"/>
     </wicket:fragment>

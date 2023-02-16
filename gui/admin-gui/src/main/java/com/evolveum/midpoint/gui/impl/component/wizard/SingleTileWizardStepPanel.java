@@ -1,21 +1,13 @@
-package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,18 +15,19 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
 public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
         extends SelectTileWizardStepPanel<O, ODM, V> {
@@ -101,6 +94,7 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
         SingleSelectTileTablePanel<O> tilesTable =
                 new SingleSelectTileTablePanel<>(
                         ID_TABLE,
+                        getDefaultViewToggle(),
                         UserProfileStorage.TableId.PANEL_ACCESS_WIZARD_STEP) {
 
                     @Override
@@ -122,17 +116,26 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                     protected Class<O> getType() {
                         return SingleTileWizardStepPanel.this.getType();
                     }
+
+                    @Override
+                    protected boolean isTogglePanelVisible() {
+                        return SingleTileWizardStepPanel.this.isTogglePanelVisible();
+                    }
+
+                    @Override
+                    protected List<IColumn<SelectableBean<O>, String>> createColumns() {
+                        return SingleTileWizardStepPanel.this.createColumns();
+                    }
                 };
         add(tilesTable);
     }
 
-    protected void performSelectedTiles() {
-        Optional<TemplateTile<SelectableBean<O>>> selectedTile =
-                getTable().getTilesModel().getObject().stream().filter(tile -> tile.isSelected()).findFirst();
-        if (selectedTile.isPresent()) {
+    protected void performSelectedObjects() {
+        if (!((SelectableBeanDataProvider) getTable().getProvider()).getSelected().isEmpty()) {
+            O selectedValue = (O) ((SelectableBeanDataProvider) getTable().getProvider()).getSelected().iterator().next();
             performSelectedTile(
-                    selectedTile.get().getValue().getValue().getOid(),
-                    selectedTile.get().getValue().getValue().asPrismObject().getDefinition().getTypeName(),
+                    selectedValue.getOid(),
+                    selectedValue.asPrismObject().getDefinition().getTypeName(),
                     getValueModel().getObject());
         } else {
             try {

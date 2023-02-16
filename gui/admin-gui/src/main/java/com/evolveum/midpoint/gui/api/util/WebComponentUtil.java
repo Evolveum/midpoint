@@ -29,6 +29,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
@@ -2284,7 +2285,10 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
         }
 
-        ShadowKindType kind = shadow.getKind();
+        return createShadowIcon(shadow.getKind());
+    }
+
+    public static String createShadowIcon(@Nullable ShadowKindType kind) {
         if (kind == null) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
         }
@@ -3711,7 +3715,6 @@ public final class WebComponentUtil {
 
     public static ResourceObjectDefinition getResourceObjectDefinition(ConstructionType construction, PageBase pageBase) throws CommonException {
 
-        PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
             return null;
         }
@@ -5620,5 +5623,16 @@ public final class WebComponentUtil {
         }
 
         return column.getPath().getItemPath();
+    }
+
+    public static boolean isEnabledExperimentalFeatures() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal == null) {
+            return false;
+        }
+
+        CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+
+        return profile != null && BooleanUtils.isTrue(profile.isEnableExperimentalFeatures());
     }
 }

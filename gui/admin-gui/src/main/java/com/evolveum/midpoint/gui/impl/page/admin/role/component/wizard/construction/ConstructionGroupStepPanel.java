@@ -6,12 +6,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -23,7 +40,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.MultiSelectTileWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -45,6 +62,9 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 @PanelType(name = "roleWizard-construction-group")
 @PanelInstance(identifier = "roleWizard-construction-group",
         applicableForType = RoleType.class,
@@ -58,7 +78,8 @@ public class ConstructionGroupStepPanel
 
     public static final String PANEL_TYPE = "roleWizard-construction-group";
 
-    private static final String SKIP_INFO = "skipInfo";
+    private static final String ID_FOOTER_FRAGMENT = "footerFragment";
+    private static final String ID_SEARCH_ON_RESOURCE_BUTTON = "searchOnResourceButton";
     private IModel<List<AssociationWrapper>> selectedItems = Model.ofList(new ArrayList<>());
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
@@ -128,14 +149,13 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<ShadowType>> tile) {
+    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value) {
         if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }
 
-        SelectableBean<ShadowType> value = tile.getValue();
         ShadowType shadow = value.getValue();
-        if (tile.isSelected()) {
+        if (value.isSelected()) {
             selectedItems.getObject().add(
                     new AssociationWrapper(
                             shadow.getOid(),
@@ -179,7 +199,7 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected void performSelectedTiles() {
+    protected void performSelectedObjects() {
         try {
             PrismContainerWrapper<ResourceObjectAssociationType> associationContainer =
                     getValueModel().getObject().findContainer(ConstructionType.F_ASSOCIATION);
@@ -238,7 +258,7 @@ public class ConstructionGroupStepPanel
     }
 
     protected String getIcon() {
-        return "fa fa-building";
+        return "fa fa-users-rectangle";
     }
 
     @Override
@@ -274,15 +294,19 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected void customizeTile(SelectableBean<ShadowType> object, TemplateTile<SelectableBean<ShadowType>> tile) {
+    protected void customizeTile(@NotNull SelectableBean<ShadowType> object, @Nullable TemplateTile<SelectableBean<ShadowType>> tile) {
         object.setSelected(false);
-        tile.setSelected(false);
+        if (tile != null){
+            tile.setSelected(false);
+        }
 
         getSelectedItemsModel().getObject().forEach(association -> {
             if (association.oid.equals(object.getValue().getOid())
                     && association.associationName.equivalent(getAssociationRef().getValue())) {
                 object.setSelected(true);
-                tile.setSelected(true);
+                if (tile != null) {
+                    tile.setSelected(true);
+                }
             }
         });
     }
@@ -319,5 +343,65 @@ public class ConstructionGroupStepPanel
         public int hashCode() {
             return oid.hashCode() + name.hashCode() + associationName.hashCode() + associationDisplayName.hashCode();
         }
+    }
+
+    @Override
+    protected boolean isDefaultViewTile() {
+        return false;
+    }
+
+    @Override
+    protected boolean isTogglePanelVisible() {
+        return true;
+    }
+
+    @Override
+    protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
+        List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
+
+        columns.add(ColumnUtils.createIconColumn(getPageBase()));
+
+        columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> item, String id, IModel<SelectableBean<ShadowType>> row) {
+                item.add(AttributeAppender.append("class", "align-middle"));
+                item.add(new Label(id,
+                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject())));
+            }
+        });
+        return columns;
+    }
+
+    @Override
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        Fragment fragment = new Fragment(id, ID_FOOTER_FRAGMENT, ConstructionGroupStepPanel.this);
+        fragment.add(new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssociationSearchItemWrapper associationWrapper =
+                        (AssociationSearchItemWrapper) getTable().getSearchModel().getObject().getItems().stream()
+                        .filter(wrapper -> wrapper instanceof AssociationSearchItemWrapper).findFirst().orElse(null);
+
+                if (associationWrapper != null) {
+                    ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
+                            .filter(associationWrapper.createFilter(ShadowType.class, getPageBase(), null)).build();
+                    OperationResult result = new OperationResult("Search shadows on Resource");
+                    WebModelServiceUtils.searchObjects(ShadowType.class, query, result, getPageBase());
+                    if (result.isError()) {
+                        getPageBase().showResult(result);
+                        target.add(getFeedback());
+                    } else {
+                        getTable().refresh(target);
+                    }
+                } else {
+                    getPageBase().error(
+                            getPageBase().createStringResource(
+                                    "ConstructionGroupStepPanel.message.error.notFoundAssociation").getString());
+                    target.add(getFeedback());
+                }
+            }
+        });
+        return fragment;
     }
 }
