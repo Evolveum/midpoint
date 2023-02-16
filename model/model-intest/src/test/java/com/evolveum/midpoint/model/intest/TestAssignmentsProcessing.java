@@ -84,7 +84,7 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
         OperationResult result = task.getResult();
 
         // @formatter:off
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test100")
                 .beginAssignment()
                     .description("a1")
@@ -98,12 +98,12 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
         addObject(user.asPrismObject(), null, task, result);
 
         when();
-        traced(() -> executeChanges(
+        executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .delete(user.getAssignment().get(1).clone())
                         .asObjectDelta(user.getOid()),
-                null, task, result));
+                null, task, result);
 
         then();
         assertSuccess(result);
@@ -132,7 +132,7 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
         OperationResult result = task.getResult();
 
         // @formatter:off
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test110")
                 .beginAssignment()
                     .description("a1")
@@ -154,12 +154,12 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
         // @formatter:on
 
         when();
-        traced(() -> executeChanges(
+        executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .delete(user.getAssignment().get(1).clone())
                         .asObjectDelta(user.getOid()),
-                null, task, result));
+                null, task, result);
 
         then();
         assertSuccess(result);
@@ -194,7 +194,7 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
 
         when();
         // @formatter:off
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test120")
                 .beginAssignment()
                     .description("disabled")
@@ -242,7 +242,7 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
 
         when();
         // @formatter:off
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test130")
                 .beginAssignment()
                     .targetRef(ROLE_INDUCING_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE)
@@ -269,7 +269,7 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
     }
 
     private ActivationType disabled() {
-        return new ActivationType(prismContext)
+        return new ActivationType()
                 .administrativeStatus(ActivationStatusType.DISABLED);
     }
 }

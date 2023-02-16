@@ -123,7 +123,7 @@ public class SqlLogger extends SQLBaseListener {
         } else if (o instanceof Null) {
             return "NULL";
         } else if (o.getClass() == byte[].class) {
-            return MiscUtil.binaryToHexPreview((byte[]) o, BYTE_ARRAY_PREVIEW_LEN);
+            return MiscUtil.bytesToHexPreview((byte[]) o, BYTE_ARRAY_PREVIEW_LEN);
         } else if (o.getClass().isArray()) {
             return ArrayUtils.toString(o);
         } else {

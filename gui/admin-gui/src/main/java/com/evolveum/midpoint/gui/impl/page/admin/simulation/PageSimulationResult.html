@@ -14,9 +14,16 @@
         <div class="col-3">
             <div wicket:id="details"/>
         </div>
-        <div class="col-9 row gap-3">
-            <div class="col-2" wicket:id="widgets">
-                <div wicket:id="widget"/>
+        <div class="col-9 d-flex flex-column">
+            <div wicket:id="marksContainer">
+                <div class="col-2 mb-3" wicket:id="marks">
+                    <div wicket:id="mark"/>
+                </div>
+            </div>
+            <div wicket:id="metricsContainer">
+                <div class="col-2 mb-3" wicket:id="metrics">
+                    <div wicket:id="metric"/>
+                </div>
             </div>
         </div>
     </div>

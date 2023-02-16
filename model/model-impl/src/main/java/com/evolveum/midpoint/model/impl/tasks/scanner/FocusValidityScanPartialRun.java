@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 
 import org.jetbrains.annotations.NotNull;
@@ -213,7 +214,7 @@ public final class FocusValidityScanPartialRun
         String ruleId = PolicyRuleTypeUtil.createId(workerTask.getOid());
 
         EvaluatedPolicyRuleImpl policyRule =
-                new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, null);
+                new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, TargetType.OBJECT);
         policyRule.computeEnabledActions(null, focus.asPrismObject(), workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ?

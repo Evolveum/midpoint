@@ -213,6 +213,7 @@ public class OperationResult
     public static final String PARAM_PROJECTION = "projection";
     public static final String PARAM_LANGUAGE = "language";
     public static final String PARAM_POLICY_RULE = "policyRule";
+    public static final String PARAM_POLICY_RULE_ID = "policyRuleId";
 
     public static final String RETURN_COUNT = "count";
     public static final String RETURN_COMMENT = "comment";

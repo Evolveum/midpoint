@@ -32,6 +32,8 @@ public class ProcessedObjectFinder<RA> {
     private String objectOid;
     private ObjectProcessingStateType state;
     private ChangeType changeType;
+    private String eventMarkOid;
+    private boolean noEventMarks;
     private Integer index;
 
     ProcessedObjectFinder(ProcessedObjectsAsserter<RA> processedObjectsAsserter) {
@@ -55,6 +57,16 @@ public class ProcessedObjectFinder<RA> {
 
     public ProcessedObjectFinder<RA> changeType(ChangeType changeType) {
         this.changeType = changeType;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> eventMarkOid(String eventMarkOid) {
+        this.eventMarkOid = eventMarkOid;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> noEventMarks() {
+        this.noEventMarks = true;
         return this;
     }
 
@@ -95,6 +107,12 @@ public class ProcessedObjectFinder<RA> {
             }
             ObjectDelta<?> delta = processedObject.getDelta();
             if (changeType != null && (delta == null || delta.getChangeType() != changeType)) {
+                continue;
+            }
+            if (eventMarkOid != null && !processedObject.hasEventMark(eventMarkOid)) {
+                continue;
+            }
+            if (noEventMarks && !processedObject.hasNoEventMarks()) {
                 continue;
             }
             if (index != null) {
@@ -139,6 +157,12 @@ public class ProcessedObjectFinder<RA> {
         }
         if (changeType != null) {
             components.add("changeType=" + changeType);
+        }
+        if (eventMarkOid != null) {
+            components.add("eventMarkOid=" + eventMarkOid);
+        }
+        if (noEventMarks) {
+            components.add("noEventMarks");
         }
         if (index != null) {
             components.add("index=" + index);

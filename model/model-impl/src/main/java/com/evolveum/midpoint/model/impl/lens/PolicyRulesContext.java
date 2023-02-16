@@ -35,7 +35,7 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
      * Evaluated object-level policy rules, coming both from global configuration and assignments.
      * Note that target-level rules are stored exclusively in {@link EvaluatedAssignmentImpl}.
      *
-     * Life cycle: Cleared at the beginning of each `focusPolicyRules` projector step.
+     * Life cycle: Cleared at the beginning of each policy rules evaluation.
      */
     @NotNull private final Collection<EvaluatedPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
 
@@ -74,6 +74,10 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
 
     void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         this.objectPolicyRules.add(policyRule);
+    }
+
+    void addObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+        this.objectPolicyRules.addAll(policyRules);
     }
 
     void clearObjectPolicyRules() {

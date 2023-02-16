@@ -55,7 +55,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @NotNull private volatile Map<String, SimulationMetricDefinitionType> metricDefinitions = new HashMap<>();
 
     @Override
-    public SimulationDefinitionType defaultDefinition() throws ConfigurationException {
+    public @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException {
         List<SimulationDefinitionType> allDefinitions = this.simulationDefinitions;
         if (allDefinitions.size() == 1) {
             return allDefinitions.get(0); // regardless of whether it's marked as default

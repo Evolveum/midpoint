@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,7 +19,7 @@ public class OperationPerformanceInformation implements ShortDumpable, Cloneable
 
     private int invocationCount;
     private int executionCount; // counts each attempt, including retries
-    private long totalTime;
+    private long totalTime; // ms
     private Long minTime;
     private Long maxTime;
     private long totalWastedTime;
@@ -130,5 +130,20 @@ public class OperationPerformanceInformation implements ShortDumpable, Cloneable
         } catch (CloneNotSupportedException e) {
             throw new SystemException(e);
         }
+    }
+
+    /** Shortened string info mentioned mostly for debugger usage. */
+    @Override
+    public String toString() {
+        return "OpPerfInfo{" +
+                "I=" + invocationCount +
+                ", E=" + executionCount +
+                ", totalMs=" + totalTime +
+                ", minMs=" + minTime +
+                ", maxMs=" + maxTime +
+                ", wastedMs=" + totalWastedTime +
+                ", minWMs=" + minWastedTime +
+                ", maxWMs=" + maxWastedTime +
+                '}';
     }
 }

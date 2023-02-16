@@ -104,7 +104,10 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
                 .put(MarkType.class, Arrays.asList(
                         new ColumnWrapper(MarkType.F_NAME),
-                        new ColumnWrapper(MarkType.F_DESCRIPTION)))
+                        new ColumnWrapper(ItemPath.create(MarkType.F_DISPLAY, DisplayType.F_LABEL)),
+                        new ColumnWrapper(MarkType.F_DESCRIPTION),
+                        new ColumnWrapper(ItemPath.create(MarkType.F_EVENT_MARK, EventMarkInformationType.F_DOMAIN)),
+                        new ColumnWrapper(ItemPath.create(MarkType.F_EVENT_MARK, EventMarkInformationType.F_ENABLED_BY_DEFAULT))))
                 .put(SimulationResultType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultType.F_NAME),
                         new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
@@ -112,7 +115,8 @@ public class DefaultColumnUtils {
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE)))
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_DELTA)))
                 .build();
     }
 
@@ -161,14 +165,20 @@ public class DefaultColumnUtils {
             return getSimulationResultView();
         } else if (SimulationResultProcessedObjectType.class.equals(type)) {
             return getDefaultSimulationResultProcessedObjectView();
+        } else if (MarkType.class.equals(type)) {
+            return getMarkView();
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
     }
 
+    public static GuiObjectListViewType getMarkView() {
+        return getDefaultView(MarkType.COMPLEX_TYPE, "default-mark", MarkType.class);
+    }
+
     public static GuiObjectListViewType getSimulationResultView() {
-        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
+        return getDefaultView(SimulationResultType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
     }
 
     public static GuiObjectListViewType getDefaultSimulationResultProcessedObjectView() {
@@ -223,8 +233,7 @@ public class DefaultColumnUtils {
         return getDefaultView(ObjectType.COMPLEX_TYPE, "default-object", ObjectType.class);
     }
 
-    private static <C extends Containerable> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends
-            C> type) {
+    private static <C extends Containerable> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends C> type) {
         GuiObjectListViewType view = new GuiObjectListViewType();
         view.setType(qname);
         view.setIdentifier(identifier);

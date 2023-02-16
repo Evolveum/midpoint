@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +50,12 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMap
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
@@ -67,6 +69,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -162,9 +165,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <AH extends AssignmentHolderType> void processAssignmentsInternal(LensContext<AH> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <AH extends AssignmentHolderType> void processAssignmentsInternal(
+            LensContext<AH> context, XMLGregorianCalendar now, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
 
@@ -193,14 +197,13 @@ public class AssignmentProcessor implements ProjectorProcessor {
             assignmentTripleEvaluator.reset(false);
             evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         }
-        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
         LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         // PROCESSING POLICIES
 
-        policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
+        policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
         boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
         if (needToReevaluateAssignments) {
@@ -213,11 +216,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
             // TODO implement isMemberOf invocation result change check here! MID-5784
             //  Actually, we should factor out the relevant code to avoid code duplication.
 
-            policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
-
             LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
-            policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
+            policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
         }
 
         // PROCESSING FOCUS
@@ -1015,8 +1016,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
         setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
-
-        context.recompute(); // really needed?
     }
 
     private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
@@ -1025,12 +1024,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
-        if (sysconfig == null) {
-            return; // unlikely
-        }
-        RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
-        if (roleManagement == null || !Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled())) {
-            return; // not enabled
+        if (!SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+            return;
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
@@ -1088,26 +1083,27 @@ public class AssignmentProcessor implements ProjectorProcessor {
             Collection<PrismReferenceValue> targetState) throws SchemaException {
 
         ItemName itemName = ItemName.fromQName(name);
-        PrismObject<F> focusOld = focusContext.getObjectOld();
-        if (focusOld == null) {
+        PrismObject<F> existingFocus = focusContext.getObjectCurrent();
+        if (existingFocus == null) {
             if (targetState.isEmpty()) {
                 return;
             }
         } else {
-            PrismReference existingState = focusOld.findReference(itemName);
+            PrismReference existingState = existingFocus.findReference(itemName);
             if (existingState == null || existingState.isEmpty()) {
                 if (targetState.isEmpty()) {
                     return;
                 }
             } else {
-                // we don't use QNameUtil.match here, because we want to ensure we store qualified values there
-                // (and newValues are all qualified)
+                List<PrismReferenceValue> existingValues = existingState.getValues();
+                adoptExistingStorageCreateTimestampValueMetadata(targetState, existingValues);
+                // We don't use QNameUtil.match here, because we want to ensure we store qualified values there
+                // (and newValues are all qualified).
                 EqualsChecker<PrismReferenceValue> comparator =
                         (a, b) -> Objects.equals(a.getOid(), b.getOid())
-                                && Objects.equals(a.getRelation(), b.getRelation()
-                                // TODO metadata equals
-                        );
-                if (MiscUtil.unorderedCollectionEquals(targetState, existingState.getValues(), comparator)) {
+                                && Objects.equals(a.getRelation(), b.getRelation())
+                                && a.getValueMetadata().equals(b.getValueMetadata(), EquivalenceStrategy.REAL_VALUE);
+                if (MiscUtil.unorderedCollectionEquals(targetState, existingValues, comparator)) {
                     return;
                 }
             }
@@ -1118,6 +1114,55 @@ public class AssignmentProcessor implements ProjectorProcessor {
         ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
         itemDelta.setValuesToReplace(targetState);
         focusContext.swallowToSecondaryDelta(itemDelta);
+    }
+
+    /** If we find the same assignment path value metadata, we want to preserve original creation date. */
+    private void adoptExistingStorageCreateTimestampValueMetadata(
+            Collection<PrismReferenceValue> targetState, List<PrismReferenceValue> existingValues) {
+        for (PrismReferenceValue ref : targetState) {
+            PrismReferenceValue oldRefMatch = MiscUtil.find(existingValues, ref,
+                    (a, b) -> Objects.equals(a.getOid(), b.getOid())
+                            && Objects.equals(a.getRelation(), b.getRelation()));
+            if (oldRefMatch != null) {
+                mergeAssignmentPathMetadata(ref, oldRefMatch);
+            }
+        }
+    }
+
+    private void mergeAssignmentPathMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
+        List<PrismContainerValue<Containerable>> originalMetadataValues = originalRef.getValueMetadata().getValues();
+        if (originalMetadataValues.isEmpty()) {
+            return;
+        }
+
+        for (PrismContainerValue<Containerable> metadataValue : ref.getValueMetadata().getValues()) {
+            ValueMetadataType metadata = Objects.requireNonNull(metadataValue.getRealValue());
+            ProvenanceMetadataType provenance = metadata.getProvenance();
+            if (provenance == null) {
+                continue; // not assignment path metadata, we leave it as is
+            }
+
+            PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
+                    // LITERAL is important here not to ignore "operational" elements.
+                    .filter(m -> provenance.asPrismContainerValue()
+                            .equals(((ValueMetadataType) m.asContainerable()).getProvenance().asPrismContainerValue(),
+                                    EquivalenceStrategy.LITERAL))
+                    .findFirst()
+                    .orElse(null);
+            if (originalMetadataValue == null) {
+                continue; // no action needed
+            }
+            StorageMetadataType originalStorage = Objects.requireNonNull(
+                            (ValueMetadataType) (originalMetadataValue.getRealValue()))
+                    .getStorage();
+            if (originalStorage == null || originalStorage.getCreateTimestamp() == null) {
+                continue; // strange, but nothing to do about it
+            }
+
+            // This preserves the original assignment path creation time.
+            // Otherwise, each recompute would bump the time which is not what we want to show.
+            metadata.getStorage().setCreateTimestamp(originalStorage.getCreateTimestamp());
+        }
     }
 
     private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {

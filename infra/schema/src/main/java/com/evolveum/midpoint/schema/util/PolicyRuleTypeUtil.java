@@ -625,7 +625,8 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    public static void resolveConstraintReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
+    public static void resolveConstraintReferences(
+            List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
         LazyMapConstraintsResolver resolver =
                 new LazyMapConstraintsResolver(createConstraintsSupplier(rules), createConstraintsSupplier(otherRules));
         for (PolicyRuleType rule : rules) {

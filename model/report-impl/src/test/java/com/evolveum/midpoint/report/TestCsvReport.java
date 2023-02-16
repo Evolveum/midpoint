@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,20 +10,17 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -84,5 +81,47 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
 
     void assertNotificationMessage(TestResource<ReportType> reportTestResource) {
         assertNotificationMessage(reportTestResource.getObjectable(), "text/csv");
+    }
+
+    protected void testClassicExport(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
+            String lastLine, ReportParameterType parameters) throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        if (parameters != null) {
+            modifyObjectReplaceContainer(TaskType.class,
+                    TASK_EXPORT_CLASSIC.oid,
+                    ItemPath.create(TaskType.F_ACTIVITY,
+                            ActivityDefinitionType.F_WORK,
+                            WorkDefinitionsType.F_REPORT_EXPORT,
+                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM),
+                    task,
+                    result,
+                    parameters);
+        }
+
+        dummyTransport.clearMessages();
+
+        when();
+        runExportTaskClassic(reportResource, result);
+        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
+
+        then();
+        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
+                .assertSuccess()
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
+
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
+
+        assertNotificationMessage(reportResource);
+    }
+
+    protected void testClassicExport(TestResource<ReportType> reportResource,
+            int expectedRows, int expectedColumns, String lastLine)
+            throws Exception {
+        testClassicExport(reportResource, expectedRows, expectedColumns, lastLine, null);
     }
 }

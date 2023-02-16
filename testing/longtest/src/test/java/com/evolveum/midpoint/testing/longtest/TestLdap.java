@@ -169,7 +169,7 @@ public class TestLdap extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
-        displayValue("Photo in", MiscUtil.binaryToHex(photoIn));
+        displayValue("Photo in", MiscUtil.bytesToHex(photoIn));
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result, photoIn);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
@@ -205,7 +205,7 @@ public class TestLdap extends AbstractLongTest {
         PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
         byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 
-        displayValue("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
+        displayValue("Photo bytes out", MiscUtil.bytesToHex(photoBytesOut));
 
         assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
         assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));

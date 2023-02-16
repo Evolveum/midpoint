@@ -67,16 +67,23 @@ public class NotificationHook implements ChangeHook {
             @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         try {
+            if (context.isPreview() || context.isSimulation()) {
+                result.recordNotApplicable("preview/simulation mode");
+                return HookOperationMode.FOREGROUND;
+            }
             if (context.getState() != ModelState.FINAL) {
+                result.recordNotApplicable();
                 return HookOperationMode.FOREGROUND;
             }
             if (notificationManager.isDisabled()) {
                 LOGGER.trace("Notifications are temporarily disabled, exiting the hook.");
+                result.recordNotApplicable();
                 return HookOperationMode.FOREGROUND;
             }
             LOGGER.trace("Notification change hook called with model context:\n{}", context.debugDumpLazily());
             if (context.getFocusContext() == null) {
                 LOGGER.trace("Focus context is null, exiting the hook.");
+                result.recordNotApplicable();
                 return HookOperationMode.FOREGROUND;
             }
 
@@ -138,7 +145,8 @@ public class NotificationHook implements ChangeHook {
     }
 
     @Override
-    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
+    public void invokeOnException(
+            @NotNull ModelContext<?> context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // todo implement this
     }
 

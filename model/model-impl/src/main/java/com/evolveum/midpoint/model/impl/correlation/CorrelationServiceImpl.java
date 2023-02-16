@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -70,7 +72,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     private static final String OP_RESOLVE = CorrelationServiceImpl.class.getName() + ".resolve";
 
     @Autowired ModelBeans beans;
-    @Autowired CorrelatorFactoryRegistry correlatorFactoryRegistry;
+    @Autowired CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;
     @Autowired SystemObjectCache systemObjectCache;
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;

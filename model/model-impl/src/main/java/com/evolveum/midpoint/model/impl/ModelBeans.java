@@ -9,12 +9,7 @@ package com.evolveum.midpoint.model.impl;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.model.common.MarkManager;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
-
-import com.evolveum.midpoint.model.impl.simulation.SimulationResultManagerImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,11 +21,15 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
@@ -41,11 +40,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSe
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.simulation.SimulationResultManagerImpl;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
@@ -129,11 +127,10 @@ public class ModelBeans {
     @Autowired public PersonaProcessor personaProcessor;
     @Autowired public ChangeExecutor changeExecutor;
     @Autowired public Projector projector;
-    @Autowired public PolicyRuleEnforcer policyRuleEnforcer;
-    @Autowired public PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
+    @Autowired public PolicyRuleProcessor policyRuleProcessor;
     @Autowired public ClockworkHookHelper clockworkHookHelper;
     @Autowired public SecurityHelper securityHelper;
-    @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
+    @Autowired public CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
     @Autowired public CorrelationServiceImpl correlationServiceImpl;

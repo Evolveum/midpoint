@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCol
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -229,6 +230,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+    private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
         dummyAuditService = DummyAuditService.getInstance();
@@ -257,6 +259,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
+
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -5096,22 +5101,34 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return options != null ? options : executeOptions();
     }
 
-    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Collection<ObjectDelta<? extends ObjectType>> deltas = singleton(createAddAccountDelta(userOid, accountFile));
-        modelService.executeChanges(deltas, null, task, result);
+    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result)
+            throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
+            SecurityViolationException {
+        modelService.executeChanges(
+                List.of(createAddAccountDelta(userOid, accountFile)), null, task, result);
     }
 
-    @NotNull
-    protected ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
             throws SchemaException, IOException {
-        PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+        return createAddAccountDelta(userOid, account);
+    }
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
-        accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-        userDelta.addModification(accountDelta);
-        return userDelta;
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
+    }
+
+    protected @NotNull ObjectDelta<UserType> createDeleteAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .delete(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
     }
 
     protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -6792,6 +6809,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return roleOid + ":" + id;
     }
 
+    protected void switchAccessesMetadata(Boolean value, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
+                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
+    }
+
     public interface FunctionCall<X> {
         X execute() throws CommonException, IOException;
     }
@@ -6988,7 +7014,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     /** As {@link ProcedureCall} but has {@link TestSimulationResult} as a parameter. Currently for internal purposes. */
     public interface SimulatedProcedureCall {
-        void execute(TestSimulationResult simResult) throws CommonException;
+        void execute(TestSimulationResult simResult) throws CommonException, IOException;
     }
 
     /**
@@ -7009,7 +7035,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             TestSimulationResult testSimulationResult = new TestSimulationResult(
                     Objects.requireNonNull(task.getSimulationTransaction())
                             .getResultOid());
-            simulatedCall.execute(testSimulationResult);
+            try {
+                simulatedCall.execute(testSimulationResult);
+            } catch (IOException e) {
+                throw SystemException.unexpected(e);
+            }
             simulationResultHolder.setValue(testSimulationResult);
             return null;
         });
@@ -7018,7 +7048,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 "No simulation result after execution?");
     }
 
-    protected SimulationDefinitionType getDefaultSimulationDefinition() throws ConfigurationException {
+    protected @NotNull SimulationDefinitionType defaultSimulationDefinition() throws ConfigurationException {
         return simulationResultManager.defaultDefinition();
     }
 
@@ -7111,5 +7141,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)
+            throws SchemaException {
+        return TestSimulationResult.fromSimulationResultOid(
+                findSimulationResultRequired(result).getOid());
+    }
+
+    /**
+     * Returns the input number if accesses metadata are enabled, otherwise returns 0.
+     * Usable for audit record count assertions depending on the state of accesses metadata.
+     */
+    protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
+        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
     }
 }

@@ -2331,7 +2331,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private static String getRoleOid(String name) {
         String roleHexName = StringUtils.leftPad(
-                MiscUtil.binaryToHex(name.getBytes(StandardCharsets.UTF_8)), 24, "0");
+                MiscUtil.bytesToHex(name.getBytes(StandardCharsets.UTF_8)), 24, "0");
         return "99999999-" + roleHexName.substring(0, 4) + '-' + roleHexName.substring(4, 8)
                 + '-' + roleHexName.substring(8, 12) + '-' + roleHexName.substring(12, 24);
     }
@@ -2410,7 +2410,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getFocusPolicyRules(), EvaluatedPolicyRule::getName);
+        assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getObjectPolicyRules(), EvaluatedPolicyRule::getName);
     }
 
     private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,

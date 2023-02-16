@@ -191,8 +191,7 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(SimulationResultType.class, Arrays.asList(
                 ItemPath.create(SimulationResultType.F_START_TIMESTAMP),
                 ItemPath.create(SimulationResultType.F_END_TIMESTAMP),
-                ItemPath.create(SimulationResultType.F_ROOT_TASK_REF),
-                ItemPath.create(SimulationResultType.F_METRIC)
+                ItemPath.create(SimulationResultType.F_ROOT_TASK_REF)
         ));
 
         SEARCHABLE_OBJECTS.put(SimulationResultProcessedObjectType.class, Arrays.asList(

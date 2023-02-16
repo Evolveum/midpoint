@@ -800,7 +800,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-                formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                formatGuidToDashedNotation(MiscUtil.bytesToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
                 accountBarbossaIcfUid);
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
@@ -1998,7 +1998,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-                formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                formatGuidToDashedNotation(MiscUtil.bytesToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
                 accountBarbossaIcfUid);
 
         assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, USER_SUBMAN_PASSWORD);
@@ -2235,7 +2235,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertNotNull("No identifier in " + shadow, accountIcfUid);
 
         assertEquals("Wrong ICFS UID",
-                formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                formatGuidToDashedNotation(MiscUtil.bytesToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
                 accountIcfUid);
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");

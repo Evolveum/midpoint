@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021 Evolveum and contributors
+ * Copyright (C) 2016-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,9 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismContext;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,6 +27,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -283,8 +281,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         display("Herman (hermit)", user);
 
         XMLGregorianCalendar hermanHermitTs = getTimeSafely();
-        hermanHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 6);
-        assertRecordsFromInitial(hermanHermitTs, 12);
+        hermanHermitEid = assertObjectAuditRecords(
+                USER_HERMAN_OID, 6 + accessesMetadataAuditOverhead(1));
+        assertRecordsFromInitial(hermanHermitTs, 12 + accessesMetadataAuditOverhead(1));
     }
 
     @Test
@@ -310,8 +309,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar hermanCivilisedHermitTs = getTimeSafely();
         //noinspection unused
-        String hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
-        assertRecordsFromInitial(hermanCivilisedHermitTs, 14);
+        String hermanCivilisedHermitEid = assertObjectAuditRecords(
+                USER_HERMAN_OID, 8 + accessesMetadataAuditOverhead(1));
+        assertRecordsFromInitial(hermanCivilisedHermitTs, 14 + accessesMetadataAuditOverhead(1));
     }
 
     @Test
@@ -367,7 +367,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * This is supposed to get the objectToAdd directly from the create delta.
+     * This is supposed to get the objectToAdd directly from the created delta.
      */
     @Test
     public void test250ReconstructHermanCreated() throws Exception {
@@ -523,7 +523,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         // creating objects
         List<String> oids = new ArrayList<>(NUM_THREADS);
         for (int i = 0; i < NUM_THREADS; i++) {
-            UserType user = new UserType(prismContext);
+            UserType user = new UserType();
             user.setName(PolyStringType.fromOrig("user-" + i));
             addObject(user.asPrismObject());
             oids.add(user.getOid());
@@ -799,7 +799,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test410")
                 .description("single");
         addObject(user.asPrismObject());

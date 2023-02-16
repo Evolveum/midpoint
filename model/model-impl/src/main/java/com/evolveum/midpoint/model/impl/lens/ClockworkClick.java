@@ -205,10 +205,9 @@ public class ClockworkClick<F extends ObjectType> {
     }
 
     private void processInitialToPrimary(OperationResult result)
-            throws PolicyViolationException, SchemaException, ObjectNotFoundException {
+            throws PolicyViolationException, ConfigurationException {
         // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
-        beans.policyRuleEnforcer.execute(context, result);
-        beans.policyRuleSuspendTaskExecutor.execute(context, task, result);
+        beans.policyRuleProcessor.enforce(context, result);
 
         switchState(ModelState.PRIMARY);
     }

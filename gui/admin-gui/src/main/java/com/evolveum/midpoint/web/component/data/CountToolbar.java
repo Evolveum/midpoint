@@ -70,12 +70,12 @@ public class CountToolbar extends AbstractToolbar {
 
             @Override
             protected String load() {
-                return createCountString(component, pageable);
+                return createCountString(pageable);
             }
         };
     }
 
-    public static String createCountString(Component component, IPageable pageable) {
+    public static String createCountString(IPageable pageable) {
         long from = 0;
         long to = 0;
         long count = 0;

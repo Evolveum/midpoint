@@ -68,7 +68,7 @@ public class AssignmentModificationConstraintEvaluator
                 return null;
             }
             AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
-            if (!ctx.isDirect) {
+            if (!ctx.isDirect()) {
                 LOGGER.trace("Assignment is indirect => not triggering");
                 return null;
             }
@@ -172,12 +172,13 @@ public class AssignmentModificationConstraintEvaluator
         return false;
     }
 
-    private boolean operationMatches(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
+    private boolean operationMatches(
+            AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
         List<ChangeTypeType> operations = constraint.getOperation();
-        if (operations.isEmpty() ||
-                inPlus && operations.contains(ChangeTypeType.ADD) ||
-                inZero && operations.contains(ChangeTypeType.MODIFY) ||
-                inMinus && operations.contains(ChangeTypeType.DELETE)) {
+        if (operations.isEmpty()
+                || inPlus && operations.contains(ChangeTypeType.ADD)
+                || inZero && operations.contains(ChangeTypeType.MODIFY)
+                || inMinus && operations.contains(ChangeTypeType.DELETE)) {
             return true;
         } else {
             LOGGER.trace("Operation does not match. Configured operations: {}, real inPlus={}, inMinus={}, inZero={}.",
@@ -188,8 +189,9 @@ public class AssignmentModificationConstraintEvaluator
 
     // TODO discriminate between primary and secondary changes (perhaps make it configurable)
     // Primary changes are "approvable", secondary ones are not.
-    private <AH extends AssignmentHolderType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
-            AssignmentPolicyRuleEvaluationContext<AH> ctx) throws SchemaException {
+    private <AH extends AssignmentHolderType> boolean pathsMatch(
+            AssignmentModificationPolicyConstraintType constraint, AssignmentPolicyRuleEvaluationContext<AH> ctx)
+            throws SchemaException {
 
         boolean exactMatch = isTrue(constraint.isExactPathMatch());
 

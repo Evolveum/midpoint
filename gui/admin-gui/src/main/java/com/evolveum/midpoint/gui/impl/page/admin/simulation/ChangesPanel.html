@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card-header d-flex gap-2 align-items-center">
+        <h3 class="card-title flex-grow-1">
+            <i class="fa-solid fa-square-poll-vertical mr-1"></i>
+            <span><wicket:message key="ChangesPanel.title"/></span>
+        </h3>
+        <div wicket:id="toggle"/>
+    </div>
+    <div class="card-body">
+        <wicket:container wicket:id="changes">
+            <div wicket:id="change"/>
+        </wicket:container>
+    </div>
+</wicket:panel>
+</html>
