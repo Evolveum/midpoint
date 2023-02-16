@@ -2289,7 +2289,10 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
         }
 
-        ShadowKindType kind = shadow.getKind();
+        return createShadowIcon(shadow.getKind());
+    }
+
+    public static String createShadowIcon(@Nullable ShadowKindType kind) {
         if (kind == null) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
         }
@@ -3715,7 +3718,6 @@ public final class WebComponentUtil {
 
     public static ResourceObjectDefinition getResourceObjectDefinition(ConstructionType construction, PageBase pageBase) throws CommonException {
 
-        PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
             return null;
         }

@@ -47,7 +47,7 @@ import java.util.List;
         containerPath = "empty")
 public class ConstructionResourceStepPanel extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<RoleType>, AssignmentType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SelectTileWizardStepPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceStepPanel.class);
 
     public static final String PANEL_TYPE = "roleWizard-construction-resource";
 
