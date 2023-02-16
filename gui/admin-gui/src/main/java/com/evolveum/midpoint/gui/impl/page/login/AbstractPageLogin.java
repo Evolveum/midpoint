@@ -90,8 +90,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         add(panelTitle);
 
         Label panelDescription = new Label(ID_PANEL_DESCRIPTION, getLoginPanelDescriptionModel());
-        panelTitle.setOutputMarkupId(true);
-        panelTitle.add(new VisibleBehaviour(() -> getLoginPanelDescriptionModel().getObject() != null));
+        panelDescription.setOutputMarkupId(true);
+        panelDescription.add(new VisibleBehaviour(() -> getLoginPanelDescriptionModel().getObject() != null));
         add(panelDescription);
 
 
