@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,17 +10,16 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -64,6 +63,10 @@ public class TestTask extends TestObject<TaskType> {
 
     public static TestTask of(@NotNull TaskType task) {
         return of(task, DEFAULT_TIMEOUT);
+    }
+
+    public static TestTask file(@NotNull File dir, @NotNull String fileName, String oid) {
+        return new TestTask(dir, fileName, oid);
     }
 
     /**

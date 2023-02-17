@@ -48,6 +48,10 @@ public class TestReport extends TestObject<ReportType> {
         this.defaultParameterNames = defaultParameterNames;
     }
 
+    public static TestReport classPath(@NotNull String dir, @NotNull String name, String oid) {
+        return classPath(dir, name, oid, List.of());
+    }
+
     public static TestReport classPath(@NotNull String dir, @NotNull String name, String oid, List<String> defaultParameterNames) {
         return new TestReport(
                 new ClassPathBasedTestObjectSource(dir, name), oid, DEFAULT_TIMEOUT, defaultParameterNames);
