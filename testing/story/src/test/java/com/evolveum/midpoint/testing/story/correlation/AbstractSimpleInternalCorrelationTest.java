@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,28 +7,27 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.test.TestTask;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests internal correlation in the most basic case:
@@ -337,7 +336,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
      * Check that the case is updated when import is repeated.
      */
     @Test
-    public void test240ReimportingAccount() throws CommonException, IOException, PreconditionViolationException {
+    public void test240ReimportingAccount() throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -360,9 +359,8 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
                 .display()
                 .assertTargetRef(firstShadow.getOid(), ShadowType.COMPLEX_TYPE);
 
-        //noinspection unchecked
         PrismObject<ShadowType> embeddedFirstShadow =
-                (PrismObject<ShadowType>) firstCase.getTargetRef().asReferenceValue().getObject();
+                firstCase.getTargetRef().asReferenceValue().getObject();
         assertThat(embeddedFirstShadow).as("embedded shadow").isNotNull();
         assertShadow(embeddedFirstShadow, "first (embedded)")
                 .display()
@@ -392,9 +390,8 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
                 .display()
                 .assertTargetRef(secondShadow.getOid(), ShadowType.COMPLEX_TYPE); // most probably the same OID as the 1st one
 
-        //noinspection unchecked
         PrismObject<ShadowType> embeddedSecondShadow =
-                (PrismObject<ShadowType>) secondCase.getTargetRef().asReferenceValue().getObject();
+                secondCase.getTargetRef().asReferenceValue().getObject();
         assertThat(embeddedSecondShadow).as("embedded shadow").isNotNull();
         assertShadow(embeddedSecondShadow, "second (embedded)")
                 .display()

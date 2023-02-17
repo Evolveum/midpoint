@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -75,8 +75,7 @@ public class ObjectReferenceAsserter<O extends ObjectType, R> extends AbstractAs
     }
 
     public PrismObjectAsserter<O, ObjectReferenceAsserter<O, R>> object() {
-        //noinspection unchecked
-        return new PrismObjectAsserter<>((PrismObject<O>) refVal.getObject(), this, "object in " + desc());
+        return new PrismObjectAsserter<>(refVal.getObject(), this, "object in " + desc());
     }
 
     protected PrismObject<O> getResolvedTarget() throws ObjectNotFoundException, SchemaException {
@@ -105,8 +104,7 @@ public class ObjectReferenceAsserter<O extends ObjectType, R> extends AbstractAs
         if (targetType == null) {
             return defaultTargetTypeClass;
         }
-        //noinspection unchecked
-        return (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(targetType).getClassDefinition();
+        return ObjectTypes.getObjectTypeFromTypeQName(targetType).getClassDefinition();
     }
 
     protected String desc() {
