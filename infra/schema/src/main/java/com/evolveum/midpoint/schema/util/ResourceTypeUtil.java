@@ -62,7 +62,7 @@ public class ResourceTypeUtil {
         if (existingConnectorRef == null || existingConnectorRef.isEmpty()) {
             return null;
         }
-        return (PrismObject<ConnectorType>) existingConnectorRef.getValue().getObject();
+        return existingConnectorRef.getValue().getObject();
     }
 
     public static Element getResourceXsdSchema(ResourceType resource) {
