@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.component.IconComponent;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -17,7 +19,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineDto> {
@@ -65,7 +66,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         sivp.setRenderBodyOnly(true);
         oldValueCell.add(sivp);
 
-        ImagePanel oldValueImagePanel = new ImagePanel(ID_OLD_VALUE_IMAGE, Model.of(GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER),
+        IconComponent oldValueImagePanel = new IconComponent(ID_OLD_VALUE_IMAGE, Model.of(GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER),
                 createStringResource("SceneItemLinePanel.removedValue"));
         oldValueImagePanel.add(new VisibleBehaviour(
                 () -> {
@@ -115,8 +116,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         newValueCell.add(AttributeModifier.replace("align",
                 () -> !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaVisualization() ? "center" : null));
 
-        ImagePanel newValueImagePanel = new ImagePanel(ID_NEW_VALUE_IMAGE, newValueIconModel,
-                newValueTitleModel);
+        IconComponent newValueImagePanel = new IconComponent(ID_NEW_VALUE_IMAGE, newValueIconModel, newValueTitleModel);
         newValueImagePanel.add(new VisibleBehaviour(() -> {
             VisualizationItemValue val = getModelObject().getNewValue();
             return val != null && val.getSourceValue() != null;
