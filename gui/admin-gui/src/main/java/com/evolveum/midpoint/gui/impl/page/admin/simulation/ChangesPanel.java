@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.show.SimpleVisualizationPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -11,7 +13,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -59,7 +60,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
     private void initModels() {
         changesViewModel = Model.of(ChangesView.SIMPLE);
 
-        changesModel = new LoadableDetachableModel<>() {
+        changesModel = new LoadableModel<>(false) {
 
             @Override
             protected VisualizationDto load() {
@@ -68,7 +69,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
             }
         };
 
-        changesNewModel = new LoadableDetachableModel<>() {
+        changesNewModel = new LoadableModel<>() {
             @Override
             protected List<ObjectVisualization> load() {
                 ObjectDeltaType delta = getModelObject().get(0);  // todo improve
@@ -145,7 +146,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
         changes.add(new VisibleBehaviour(() -> changesViewModel.getObject() == ChangesView.SIMPLE));
         body.add(changes);
 
-        VisualizationPanel advanced = new VisualizationPanel(ID_ADVANCED, changesModel);
+        SimpleVisualizationPanel advanced = new SimpleVisualizationPanel(ID_ADVANCED, changesModel);
         advanced.add(new VisibleBehaviour(() -> changesViewModel.getObject() == ChangesView.ADVANCED && changesModel.getObject() != null));
         body.add(advanced);
     }
