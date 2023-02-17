@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.report;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,8 +17,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -34,15 +34,14 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
     }
 
     List<String> basicCheckOutputFile(PrismObject<TaskType> task, int expectedRows, int expectedColumns, String lastLine)
-            throws IOException, ParseException, SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws IOException, SchemaException, ObjectNotFoundException {
 
         if (expectedRows != DONT_COUNT_ROWS) {
             // +1 for the final line with the subscription appeal
             expectedRows += 1;
         }
 
-        List<String> lines = getLinesOfOutputFile(task);
+        List<String> lines = getLinesOfOutputFile(task, getTestOperationResult());
 
         if (expectedRows != DONT_COUNT_ROWS && lines.size() != expectedRows) {
             fail("Unexpected count of rows of csv report. Expected: " + expectedRows + ", Actual: " + lines.size());
@@ -78,12 +77,12 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
                 .type(FileFormatTypeType.CSV);
     }
 
-    void assertNotificationMessage(TestResource<ReportType> reportTestResource) {
+    void assertNotificationMessage(TestObject<ReportType> reportTestResource) {
         assertNotificationMessage(reportTestResource.getObjectable(), "text/csv");
     }
 
-    protected List<String> testClassicExport(
-            TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
+    void testClassicExport(
+            TestObject<ReportType> reportResource, int expectedRows, int expectedColumns,
             String lastLine, ReportParameterType parameters) throws Exception {
         given();
         Task task = getTestTask();
@@ -114,14 +113,12 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        var rows = basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
+        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
 
         assertNotificationMessage(reportResource);
-
-        return rows;
     }
 
-    protected void testClassicExport(TestResource<ReportType> reportResource,
+    void testClassicExport(TestObject<ReportType> reportResource,
             int expectedRows, int expectedColumns, String lastLine)
             throws Exception {
         testClassicExport(reportResource, expectedRows, expectedColumns, lastLine, null);

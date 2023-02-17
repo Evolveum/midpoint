@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * Currently supporting only plain tasks, i.e. not task trees.
  */
 @Experimental
-public class TestTask extends TestResource<TaskType> {
+public class TestTask extends TestObject<TaskType> {
 
     private static final long DEFAULT_TIMEOUT = 250_000;
 
@@ -39,13 +39,31 @@ public class TestTask extends TestResource<TaskType> {
     /** Temporary: this is how we access the necessary functionality. */
     private AbstractIntegrationTest test;
 
-    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid, long defaultTimeout) {
-        super(dir, fileName, oid);
+    private TestTask(TestObjectSource source, String oid, long defaultTimeout) {
+        super(source, oid);
         this.defaultTimeout = defaultTimeout;
     }
 
+    /**
+     * TODO change to static factory method
+     */
+    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid, long defaultTimeout) {
+        this(new FileBasedTestObjectSource(dir, fileName), oid, defaultTimeout);
+    }
+
+    /**
+     * TODO change to static factory method
+     */
     public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid) {
         this(dir, fileName, oid, DEFAULT_TIMEOUT);
+    }
+
+    public static TestTask of(@NotNull TaskType task, long defaultTimeout) {
+        return new TestTask(new InMemoryTestObjectSource(task), task.getOid(), defaultTimeout);
+    }
+
+    public static TestTask of(@NotNull TaskType task) {
+        return of(task, DEFAULT_TIMEOUT);
     }
 
     /**

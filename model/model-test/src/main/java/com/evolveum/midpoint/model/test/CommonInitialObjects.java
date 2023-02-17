@@ -8,11 +8,12 @@
 package com.evolveum.midpoint.model.test;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractTestResource;
-import com.evolveum.midpoint.test.ClassPathTestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestReport;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
@@ -30,82 +31,80 @@ public interface CommonInitialObjects {
     String INITIAL_OBJECTS = "initial-objects";
 
     String MARKS = INITIAL_OBJECTS + "/mark";
+    String REPORTS = INITIAL_OBJECTS + "/report";
 
     String ARCHETYPES = INITIAL_OBJECTS + "/archetype";
 
     String FUNCTION_LIBRARY = INITIAL_OBJECTS + "/function-library";
 
-    AbstractTestResource<ArchetypeType> STANDARD_FUNCTIONS = new ClassPathTestResource<>(
-            FUNCTION_LIBRARY, "005-standard-functions.xml",
-            SystemObjectsType.STANDARD_FUNCTIONS.value());
+    TestObject<ArchetypeType> STANDARD_FUNCTIONS = TestObject.classPath(
+            FUNCTION_LIBRARY, "005-standard-functions.xml", SystemObjectsType.STANDARD_FUNCTIONS.value());
 
-    AbstractTestResource<ArchetypeType> ARCHETYPE_EVENT_MARK = new ClassPathTestResource<>(
-            ARCHETYPES, "700-archetype-event-mark.xml",
-            SystemObjectsType.ARCHETYPE_EVENT_MARK.value());
+    TestObject<ArchetypeType> ARCHETYPE_EVENT_MARK = TestObject.classPath(
+            ARCHETYPES, "700-archetype-event-mark.xml", SystemObjectsType.ARCHETYPE_EVENT_MARK.value());
 
-    AbstractTestResource<ArchetypeType> ARCHETYPE_OBJECT_MARK = new ClassPathTestResource<>(
-            ARCHETYPES, "701-archetype-object-mark.xml",
-            SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+    TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
+            ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_ACTIVATED = new ClassPathTestResource<>(
-            MARKS, "710-mark-focus-activated.xml",
-            SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
+    TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
+            MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_DEACTIVATED = new ClassPathTestResource<>(
-            MARKS, "711-mark-focus-deactivated.xml",
-            SystemObjectsType.MARK_FOCUS_DEACTIVATED.value());
+    TestObject<MarkType> MARK_FOCUS_DEACTIVATED = TestObject.classPath(
+            MARKS, "711-mark-focus-deactivated.xml", SystemObjectsType.MARK_FOCUS_DEACTIVATED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_RENAMED = new ClassPathTestResource<>(
-            MARKS, "712-mark-focus-renamed.xml",
-            SystemObjectsType.MARK_FOCUS_RENAMED.value());
+    TestObject<MarkType> MARK_FOCUS_RENAMED = TestObject.classPath(
+            MARKS, "712-mark-focus-renamed.xml", SystemObjectsType.MARK_FOCUS_RENAMED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_ASSIGNMENT_CHANGED = new ClassPathTestResource<>(
-            MARKS, "713-mark-focus-assignment-changed.xml",
-            SystemObjectsType.MARK_FOCUS_ASSIGNMENT_CHANGED.value());
+    TestObject<MarkType> MARK_FOCUS_ASSIGNMENT_CHANGED = TestObject.classPath(
+            MARKS, "713-mark-focus-assignment-changed.xml", SystemObjectsType.MARK_FOCUS_ASSIGNMENT_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_ARCHETYPE_CHANGED = new ClassPathTestResource<>(
-            MARKS, "714-mark-focus-archetype-changed.xml",
-            SystemObjectsType.MARK_FOCUS_ARCHETYPE_CHANGED.value());
+    TestObject<MarkType> MARK_FOCUS_ARCHETYPE_CHANGED = TestObject.classPath(
+            MARKS, "714-mark-focus-archetype-changed.xml", SystemObjectsType.MARK_FOCUS_ARCHETYPE_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED = TestObject.classPath(
             MARKS, "715-mark-focus-parent-org-reference-changed.xml",
             SystemObjectsType.MARK_FOCUS_PARENT_ORG_REFERENCE_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED = TestObject.classPath(
             MARKS, "716-mark-focus-role-membership-changed.xml",
             SystemObjectsType.MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_ACTIVATED = new ClassPathTestResource<>(
-            MARKS, "730-mark-projection-activated.xml",
-            SystemObjectsType.MARK_PROJECTION_ACTIVATED.value());
+    TestObject<MarkType> MARK_PROJECTION_ACTIVATED = TestObject.classPath(
+            MARKS, "730-mark-projection-activated.xml", SystemObjectsType.MARK_PROJECTION_ACTIVATED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_DEACTIVATED = new ClassPathTestResource<>(
-            MARKS, "731-mark-projection-deactivated.xml",
-            SystemObjectsType.MARK_PROJECTION_DEACTIVATED.value());
+    TestObject<MarkType> MARK_PROJECTION_DEACTIVATED = TestObject.classPath(
+            MARKS, "731-mark-projection-deactivated.xml", SystemObjectsType.MARK_PROJECTION_DEACTIVATED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_RENAMED = new ClassPathTestResource<>(
-            MARKS, "732-mark-projection-renamed.xml",
-            SystemObjectsType.MARK_PROJECTION_RENAMED.value());
+    TestObject<MarkType> MARK_PROJECTION_RENAMED = TestObject.classPath(
+            MARKS, "732-mark-projection-renamed.xml", SystemObjectsType.MARK_PROJECTION_RENAMED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_IDENTIFIER_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_PROJECTION_IDENTIFIER_CHANGED = TestObject.classPath(
             MARKS, "733-mark-projection-identifier-changed.xml",
             SystemObjectsType.MARK_PROJECTION_IDENTIFIER_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_ENTITLEMENT_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_PROJECTION_ENTITLEMENT_CHANGED = TestObject.classPath(
             MARKS, "734-mark-projection-entitlement-changed.xml",
             SystemObjectsType.MARK_PROJECTION_ENTITLEMENT_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_PROJECTION_PASSWORD_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_PROJECTION_PASSWORD_CHANGED = TestObject.classPath(
             MARKS, "735-mark-projection-password-changed.xml",
             SystemObjectsType.MARK_PROJECTION_PASSWORD_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_SHADOW_CLASSIFICATION_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_SHADOW_CLASSIFICATION_CHANGED = TestObject.classPath(
             MARKS, "736-mark-shadow-classification-changed.xml",
             SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value());
 
-    AbstractTestResource<MarkType> MARK_SHADOW_CORRELATION_STATE_CHANGED = new ClassPathTestResource<>(
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_STATE_CHANGED = TestObject.classPath(
             MARKS, "737-mark-shadow-correlation-state-changed.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
+
+    String PARAM_SIMULATION_RESULT_OID = "simulationResultOid";
+
+    TestReport REPORT_SIMULATION_BASIC = TestReport.classPath(
+            REPORTS,
+            "170-report-simulation-basic.xml",
+            "89bd4f11-8add-4f52-97f9-286d76cea7c5",
+            List.of(PARAM_SIMULATION_RESULT_OID));
 
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)

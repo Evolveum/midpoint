@@ -117,6 +117,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         super.initSystem(initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
+        REPORT_SIMULATION_BASIC.init(this, initTask, initResult);
 
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
@@ -261,6 +262,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_BASIC.export()
+                .withParameterValues(simulationResult.getSimulationResultOid())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .display();
     }
 
     @Test

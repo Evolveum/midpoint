@@ -33,16 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  *
  * Manages the content (CSV file itself) and the resource definition object.
  *
- * Unlike other "test resource classes" ({@link TestResource}, {@link DummyTestResource})
- * this class tries to be active and to manage the things.
- *
  * Limitations:
  *
  * - data manipulation methods use fixed charset (system default)
+ * - there is no "class-path version" of this test object, only file-based one
  */
-public class CsvResource extends AnyResource {
+public class CsvTestResource extends AnyTestResource {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CsvResource.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CsvTestResource.class);
 
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/"
             + "com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
@@ -71,9 +69,11 @@ public class CsvResource extends AnyResource {
 
     /**
      * Creates the resource. The content is taken from the specified source file (`dataFileName` in `dir`).
+     *
+     * TODO change to static factory method
      */
-    public CsvResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName) {
-        super(dir, fileName, oid);
+    public CsvTestResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName) {
+        super(new FileBasedTestObjectSource(dir, fileName), oid);
         this.dir = dir;
         this.dataFileName = dataFileName;
         this.initialContent = null;
@@ -82,10 +82,12 @@ public class CsvResource extends AnyResource {
     /**
      * Creates the resource. The content is not taken from the data file but from provided string. If line separator
      * is not present at the end of the line, it is added automatically.
+     *
+     * TODO change to static factory method
      */
-    public CsvResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName,
+    public CsvTestResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName,
             @NotNull String initialContent) {
-        super(dir, fileName, oid);
+        super(new FileBasedTestObjectSource(dir, fileName), oid);
         this.dir = dir;
         this.dataFileName = dataFileName;
         this.initialContent = initialContent;

@@ -78,7 +78,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
 
-    private static final TestResource<UserType> USER_IMPORTER = new TestResource<>(
+    private static final TestObject<UserType> USER_IMPORTER = TestObject.file(
             TEST_DIR, "user-importer.xml", "00000000-1111-1111-1111-000000000002");
 
     private static final String ACCOUNT_OTIS_NAME = "otis";
@@ -98,33 +98,33 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final String USER_AUGUSTUS_NAME = "augustus";
 
-    private static class AccountTestResource extends TestResource<ShadowType> {
+    private static class TestAccount extends TestObject<ShadowType> {
         private final String name;
         @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String fullName;
 
-        private AccountTestResource(File dir, String fileName, String oid, String name, String fullName) {
-            super(dir, fileName, oid);
+        private TestAccount(File dir, String fileName, String oid, String name, String fullName) {
+            super(new FileBasedTestObjectSource(dir, fileName), oid);
             this.name = name;
             this.fullName = fullName;
         }
     }
 
-    private static final AccountTestResource ACCOUNT_AUGUSTUS = new AccountTestResource(TEST_DIR, "account-augustus-dummy.xml", "22220000-2200-0000-0000-444400004457", "augustus", "Augustus DeWaat");
-    private static final AccountTestResource ACCOUNT_TAUGUSTUS = new AccountTestResource(TEST_DIR, "account-taugustus-dummy.xml", "22220000-2200-0000-0000-444400004456", "Taugustus", "Augustus DeWaat");
-    private static final AccountTestResource ACCOUNT_KENNY = new AccountTestResource(TEST_DIR, "account-kenny-dummy.xml", "22220000-2200-0000-0000-444400004461", "kenny", "Kenny Falmouth");
+    private static final TestAccount ACCOUNT_AUGUSTUS = new TestAccount(TEST_DIR, "account-augustus-dummy.xml", "22220000-2200-0000-0000-444400004457", "augustus", "Augustus DeWaat");
+    private static final TestAccount ACCOUNT_TAUGUSTUS = new TestAccount(TEST_DIR, "account-taugustus-dummy.xml", "22220000-2200-0000-0000-444400004456", "Taugustus", "Augustus DeWaat");
+    private static final TestAccount ACCOUNT_KENNY = new TestAccount(TEST_DIR, "account-kenny-dummy.xml", "22220000-2200-0000-0000-444400004461", "kenny", "Kenny Falmouth");
 
     private static final String USER_PALIDO_NAME = "palido";
 
-    private static final AccountTestResource ACCOUNT_TPALIDO = new AccountTestResource(TEST_DIR, "account-tpalido-dummy.xml", "22220000-2200-0000-0000-444400004462", "Tpalido", "Palido Domingo");
-    private static final AccountTestResource ACCOUNT_LECHIMP = new AccountTestResource(TEST_DIR, "account-lechimp-dummy.xml", "22220000-2200-0000-0000-444400004463", "lechimp", "Captain LeChimp");
-    private static final AccountTestResource ACCOUNT_TLECHIMP = new AccountTestResource(TEST_DIR, "account-tlechimp-dummy.xml", "22220000-2200-0000-0000-444400004464", "Tlechimp", "Captain LeChimp");
-    private static final AccountTestResource ACCOUNT_ANDRE = new AccountTestResource(TEST_DIR, "account-andre-dummy.xml", "22220000-2200-0000-0000-444400004465", "andre", "King Andre");
-    private static final AccountTestResource ACCOUNT_TANDRE = new AccountTestResource(TEST_DIR, "account-tandre-dummy.xml", "22220000-2200-0000-0000-444400004466", "Tandre", "King Andre");
+    private static final TestAccount ACCOUNT_TPALIDO = new TestAccount(TEST_DIR, "account-tpalido-dummy.xml", "22220000-2200-0000-0000-444400004462", "Tpalido", "Palido Domingo");
+    private static final TestAccount ACCOUNT_LECHIMP = new TestAccount(TEST_DIR, "account-lechimp-dummy.xml", "22220000-2200-0000-0000-444400004463", "lechimp", "Captain LeChimp");
+    private static final TestAccount ACCOUNT_TLECHIMP = new TestAccount(TEST_DIR, "account-tlechimp-dummy.xml", "22220000-2200-0000-0000-444400004464", "Tlechimp", "Captain LeChimp");
+    private static final TestAccount ACCOUNT_ANDRE = new TestAccount(TEST_DIR, "account-andre-dummy.xml", "22220000-2200-0000-0000-444400004465", "andre", "King Andre");
+    private static final TestAccount ACCOUNT_TANDRE = new TestAccount(TEST_DIR, "account-tandre-dummy.xml", "22220000-2200-0000-0000-444400004466", "Tandre", "King Andre");
 
     private static final String USER_LAFOOT_NAME = "lafoot";
-    private static final AccountTestResource ACCOUNT_TLAFOOT = new AccountTestResource(TEST_DIR, "account-tlafoot-dummy.xml", "22220000-2200-0000-0000-444400004467", "Tlafoot", "Effete LaFoot");
-    private static final AccountTestResource ACCOUNT_CRUFF = new AccountTestResource(TEST_DIR, "account-cruff-dummy.xml", "22220000-2200-0000-0000-444400004468", "cruff", "Cruff");
+    private static final TestAccount ACCOUNT_TLAFOOT = new TestAccount(TEST_DIR, "account-tlafoot-dummy.xml", "22220000-2200-0000-0000-444400004467", "Tlafoot", "Effete LaFoot");
+    private static final TestAccount ACCOUNT_CRUFF = new TestAccount(TEST_DIR, "account-cruff-dummy.xml", "22220000-2200-0000-0000-444400004468", "cruff", "Cruff");
 
     private static final String ACCOUNT_HTM_NAME = "htm";
     private static final String ACCOUNT_HTM_FULL_NAME = "Horatio Torquemada Marley";
@@ -148,41 +148,41 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = RI_ACCOUNT_OBJECT_CLASS;
 
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_LIME = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_LIME = TestObject.file(
             TEST_DIR, "user-template-lime.xml", "3cf43520-241d-11e6-afa5-a377b674950d");
-    private static final TestResource<RoleType> ROLE_IMPORTER = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_IMPORTER = TestObject.file(
             TEST_DIR, "role-importer.xml", "00000000-1111-1111-1111-000000000004");
-    private static final TestResource<RoleType> ROLE_CORPSE = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_CORPSE = TestObject.file(
             TEST_DIR, "role-corpse.xml", "1c64c778-e7ac-11e5-b91a-9f44177e2359");
 
-    private static final TestResource<ValuePolicyType> PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE = new TestResource<>(
+    private static final TestObject<ValuePolicyType> PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE = TestObject.file(
             TEST_DIR, "password-policy-azure.xml", "81818181-76e0-59e2-8888-3d4f02d3fffd");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_SINGLE = new TestResource<>(
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_SINGLE = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-single.xml", "10000000-0000-0000-5656-565600000004");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_FILTER = new TestResource<>(
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_FILTER = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-filter.xml", "10000000-0000-0000-5656-565600000014");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_AZURE = new TestResource<>(
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_AZURE = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-azure.xml", "10000000-0000-0000-5656-56560000a204");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_LIME = new TestResource<>(
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_LIME = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
     private static final TestTask TASK_RECONCILE_DUMMY_GRAVEYARD = new TestTask(
             TEST_DIR, "task-reconcile-dummy-graveyard.xml", "c2665533-bae3-4d06-966c-8e8705bc37da", 20_000);
     private static final TestTask TASK_RECONCILE_DUMMY_REAPING_DRY_RUN = new TestTask(
             TEST_DIR, "task-reconcile-dummy-reaping-dry-run.xml", "2c51a65a-84bc-4496-a34f-5e3070131da9", 20_000);
-    private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY = new TestResource<>(
+    private static final TestObject<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY = TestObject.file(
             TEST_DIR, "task-import-dummy-lime-limited-legacy.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
-    private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = new TestResource<>(
+    private static final TestObject<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = TestObject.file(
             TEST_DIR, "task-import-dummy-lime-limited.xml", "db3b4438-67a8-4614-a320-382b4cbace41");
-    private static final TestResource<TaskType> TASK_DELETE_DUMMY_SHADOWS = new TestResource<>(
+    private static final TestObject<TaskType> TASK_DELETE_DUMMY_SHADOWS = TestObject.file(
             TEST_DIR, "task-delete-dummy-shadows.xml", "abaab842-18be-11e5-9416-001e8c717e5b");
-    private static final TestResource<TaskType> TASK_DELETE_DUMMY_ACCOUNTS = new TestResource<>(
+    private static final TestObject<TaskType> TASK_DELETE_DUMMY_ACCOUNTS = TestObject.file(
             TEST_DIR, "task-delete-dummy-accounts.xml", "ab28a334-2aca-11e5-afe7-001e8c717e5b");
 
     private static final String ATTR_EMPLOYEE_NUMBER = "employeeNumber";
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_EMPLOYEE = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_EMPLOYEE = TestObject.file(
             TEST_DIR, "archetype-employee.xml", "e3a9a6b9-17f6-4239-b935-6f88a655b9d7");
-    private static final TestResource<ArchetypeType> ARCHETYPE_OTHER = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_OTHER = TestObject.file(
             TEST_DIR, "archetype-other.xml", "0e887a44-4862-4e27-af06-0215f04ef36f");
     private static final DummyTestResource RESOURCE_DUMMY_ARCHETYPED = new DummyTestResource(
             TEST_DIR, "resource-dummy-archetyped.xml", "e0789d4f-8748-41e0-9911-6d0938287588", "archetyped",

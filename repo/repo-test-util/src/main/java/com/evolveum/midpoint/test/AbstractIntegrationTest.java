@@ -478,20 +478,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    public <T extends ObjectType> PrismObject<T> repoAdd(AbstractTestResource<T> resource, OperationResult result)
+    public <T extends ObjectType> PrismObject<T> repoAdd(TestObject<T> resource, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         return repoAdd(resource, null, result);
     }
 
     public <T extends ObjectType> PrismObject<T> repoAdd(
-            AbstractTestResource<T> resource, RepoAddOptions options, OperationResult result)
+            TestObject<T> resource, RepoAddOptions options, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         PrismObject<T> object = resource.getFresh();
         repoAddObject(object, "from " + resource, options, result);
         return object;
     }
 
-    protected Task taskAdd(AbstractTestResource<TaskType> resource, OperationResult parentResult)
+    protected Task taskAdd(TestObject<TaskType> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         PrismObject<TaskType> task = resource.getFresh();
         String oid = taskManager.addTask(task, parentResult);
@@ -726,7 +726,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, String connectorType, OperationResult result)
+            TestObject<ResourceType> testResource, String connectorType, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResource(testResource, connectorType, false, result);
     }
@@ -738,7 +738,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
+            TestObject<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         return addResource(testResource, List.of(connectorType), overwrite, result);
     }
@@ -752,7 +752,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
+            TestObject<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         logger.trace("addObjectFromFile: {}, connector types {}", testResource, connectorTypes);
         return addResourceFromObject(testResource.getFresh(), connectorTypes, overwrite, result);

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.FailableProcessor;
@@ -61,7 +61,7 @@ public class DummyResourceCollection {
     }
 
     private DummyResourceContoller initDummyResourceInternal(
-            String name, File resourceFile, AbstractTestResource<ResourceType> testResource, String resourceOid,
+            String name, File resourceFile, TestObject<ResourceType> testResource, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
         if (map.containsKey(name)) {

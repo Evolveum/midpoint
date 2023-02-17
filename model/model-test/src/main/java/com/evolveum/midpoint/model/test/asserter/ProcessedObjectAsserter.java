@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
-import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +60,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     }
 
     @SafeVarargs
-    public final ProcessedObjectAsserter<O, RA> assertEventMarks(AbstractTestResource<MarkType>... expected) {
+    public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
         assertEventMarks(expected, processedObject.getMatchingEventMarks());
         return this;
     }
