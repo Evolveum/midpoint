@@ -8,14 +8,15 @@ package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.pages.RedirectPage;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -44,28 +45,23 @@ import org.apache.wicket.model.LoadableDetachableModel;
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                         label = PageSelf.AUTH_SELF_ALL_LABEL,
                         description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
-                        label = "PageSelfCredentials.auth.credentials.label",
-                        description = "PageSelfCredentials.auth.credentials.description") })
-public class PageResetPassword extends PageBase {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL) })
+public class PageResetPassword extends AbstractPageLogin {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageResetPassword.class);
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CHANGE_PASSWORD_PANEL = "changePasswordPanel";
+    private static final String CHANGE_PASSWORD_BUTTON_STYLE = "btn btn-primary login-panel-control";
+    private static final String ID_BACK_BUTTON = "back";
 
     public PageResetPassword() {
         // TODO Auto-generated constructor stub
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -80,7 +76,7 @@ public class PageResetPassword extends PageBase {
         }) {
 
             @Override
-            protected boolean isCheckOldPassword() {
+            protected boolean shouldCheckOldPassword() {
                 return false;
             }
 
@@ -120,14 +116,29 @@ public class PageResetPassword extends PageBase {
                 target.add(getFeedbackPanel());
             }
 
+            @Override
+            protected boolean isPasswordLimitationPopupVisible() {
+                return true;
+            }
+
+            @Override
+            protected String getChangePasswordButtonStyle() {
+                return CHANGE_PASSWORD_BUTTON_STYLE;
+            }
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
-    }
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
-    @Override
-    protected boolean isSideMenuVisible() {
-        return false;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed();
+            }
+        };
+        backButton.setOutputMarkupId(true);
+        add(backButton);
+
     }
 
     @Override
@@ -136,7 +147,7 @@ public class PageResetPassword extends PageBase {
     }
 
     @Override
-    protected void createBreadcrumb() {
-        // we don't want breadcrumbs here
+    protected void confirmAuthentication() {
     }
+
 }

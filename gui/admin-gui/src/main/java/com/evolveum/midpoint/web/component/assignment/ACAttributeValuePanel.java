@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -107,7 +109,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-            panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression));
+            panel = new PasswordPropertyPanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {

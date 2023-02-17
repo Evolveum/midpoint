@@ -41,10 +41,6 @@
         <input type="hidden" wicket:id="user"/>
 
         <div class="com-md-12" wicket:id="insideForm">
-            <h4>
-                <wicket:message key="PageSecurityQuestions.questions"/>
-            </h4>
-            <hr>
             <div wicket:id="questions">
                 <label wicket:id="questionText"></label>
                 <div class="col-md-12" style="padding-right: 0px; padding-left: 0px; padding-bottom: 15px;">
@@ -52,11 +48,12 @@
                             wicket:message="placeholder:PageSecurityQuestions.answer" wicket:id="questionAnswer">
                 </div>
             </div>
-            <div class="pull-right">
-                <a class="btn btn-default" wicket:id="back2">
-                    <wicket:message key="PageBase.button.back"/>
+            <div>
+                <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
+                <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back2">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <wicket:message key="PageEmailNonce.backButtonLabel"/>
                 </a>
-                <input type="submit" class="btn btn-primary" wicket:message="value:PageBase.button.send"/>
             </div>
         </div>
     </form>

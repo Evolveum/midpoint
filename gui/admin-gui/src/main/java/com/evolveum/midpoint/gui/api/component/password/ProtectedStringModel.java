@@ -54,13 +54,6 @@ public class ProtectedStringModel implements IModel<String> {
 
     @Override
     public void setObject(String object) {
-        //todo get rid of this code
-//        if (clearPasswordInput) {
-//            clearPasswordInput = false;
-//            setPasswordInput = false;
-//            return;
-//        }
-//        setPasswordInput = true;
         if (object == null) {
             psModel.setObject(null);
         } else {

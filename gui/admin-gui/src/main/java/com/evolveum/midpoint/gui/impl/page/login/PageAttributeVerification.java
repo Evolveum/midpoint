@@ -254,4 +254,14 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         return attrValues.toString();
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageAttributeVerification.attributeVerificationLabel");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageAttributeVerification.description");
+    }
+
 }

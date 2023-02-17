@@ -283,5 +283,15 @@ public class PagePasswordHint extends PageAuthenticationBase {
         return "/midpoint/spring_security_login";
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PagePasswordHint.panelTitle");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PagePasswordHint.description");
+    }
+
 }
 

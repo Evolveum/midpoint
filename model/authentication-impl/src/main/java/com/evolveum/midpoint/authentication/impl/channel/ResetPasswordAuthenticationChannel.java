@@ -42,7 +42,7 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
             authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
         }
         AuthorizationType authorizationType = new AuthorizationType();
-        authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
+        authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
         Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
         newAuthorities.add(selfServiceCredentialsAuthz);
         authorities.addAll(newAuthorities);

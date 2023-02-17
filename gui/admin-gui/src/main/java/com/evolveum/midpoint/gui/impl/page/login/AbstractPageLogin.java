@@ -86,12 +86,12 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private void initLayout() {
         Label panelTitle = new Label(ID_PANEL_TITLE, getLoginPanelTitleModel());
         panelTitle.setOutputMarkupId(true);
-        panelTitle.add(new VisibleBehaviour(() -> getLoginPanelTitleModel().getObject() != null));
+        panelTitle.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelTitleModel().getObject())));
         add(panelTitle);
 
         Label panelDescription = new Label(ID_PANEL_DESCRIPTION, getLoginPanelDescriptionModel());
-        panelTitle.setOutputMarkupId(true);
-        panelTitle.add(new VisibleBehaviour(() -> getLoginPanelDescriptionModel().getObject() != null));
+        panelDescription.setOutputMarkupId(true);
+        panelDescription.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelDescriptionModel().getObject())));
         add(panelDescription);
 
 
@@ -203,6 +203,10 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }
+    }
+
+    protected void cancelPerformed() {
+        setResponsePage(getMidpointApplication().getHomePage());
     }
 
 }

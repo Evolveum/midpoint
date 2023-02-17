@@ -254,4 +254,14 @@ public class PageFocusIdentification extends PageAuthenticationBase {
         return attrValues.toString();
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageFocusIdentification.title");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageFocusIdentification.description");
+    }
+
 }
