@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -359,9 +359,8 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
                 .display()
                 .assertTargetRef(firstShadow.getOid(), ShadowType.COMPLEX_TYPE);
 
-        //noinspection unchecked
         PrismObject<ShadowType> embeddedFirstShadow =
-                (PrismObject<ShadowType>) firstCase.getTargetRef().asReferenceValue().getObject();
+                firstCase.getTargetRef().asReferenceValue().getObject();
         assertThat(embeddedFirstShadow).as("embedded shadow").isNotNull();
         assertShadow(embeddedFirstShadow, "first (embedded)")
                 .display()
@@ -391,9 +390,8 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
                 .display()
                 .assertTargetRef(secondShadow.getOid(), ShadowType.COMPLEX_TYPE); // most probably the same OID as the 1st one
 
-        //noinspection unchecked
         PrismObject<ShadowType> embeddedSecondShadow =
-                (PrismObject<ShadowType>) secondCase.getTargetRef().asReferenceValue().getObject();
+                secondCase.getTargetRef().asReferenceValue().getObject();
         assertThat(embeddedSecondShadow).as("embedded shadow").isNotNull();
         assertShadow(embeddedSecondShadow, "second (embedded)")
                 .display()
