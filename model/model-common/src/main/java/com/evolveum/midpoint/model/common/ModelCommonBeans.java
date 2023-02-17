@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
@@ -62,4 +63,5 @@ public class ModelCommonBeans {
     @Autowired public ModelInteractionService modelInteractionService;
     @Autowired public MarkManager markManager;
     @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired public LocalizationService localizationService;
 }

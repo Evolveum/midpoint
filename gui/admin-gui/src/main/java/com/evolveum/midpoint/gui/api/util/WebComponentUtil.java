@@ -28,11 +28,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-
-import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
@@ -95,6 +92,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -106,6 +105,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
@@ -116,6 +116,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
@@ -155,6 +156,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
@@ -178,8 +180,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -471,7 +471,7 @@ public final class WebComponentUtil {
         if (localizableMessage == null) {
             return null;
         }
-        return resolveLocalizableMessage(LocalizationUtil.toLocalizableMessage(localizableMessage), component);
+        return resolveLocalizableMessage(com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage(localizableMessage), component);
     }
 
     public static String resolveLocalizableMessage(LocalizableMessage localizableMessage, Component component) {
@@ -1169,32 +1169,28 @@ public final class WebComponentUtil {
                 : WebComponentUtil.getOrigStringFromPoly(name);
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyStringType value) {
-        return getTranslatedPolyString(PolyString.toPolyString(value));
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
-    public static String getTranslatedPolyString(PolyStringType value, ModelServiceLocator modelServiceLocator) {
-        return getTranslatedPolyString(PolyString.toPolyString(value), modelServiceLocator.getLocalizationService());
-    }
-
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyString value) {
-        MidPointApplication application = MidPointApplication.get();
-        return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String getTranslatedPolyString(PolyString value, LocalizationService localizationService) {
-        if (value == null) {
-            return "";
-        }
-        if (localizationService == null) {
-            localizationService = MidPointApplication.get().getLocalizationService();
-        }
-        String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
-        String translationKey = value.getTranslation() != null ? value.getTranslation().getKey() : null;
-        if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
-            return translatedValue;
-        }
-        return value.getOrig();
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(value);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
@@ -2289,7 +2285,10 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
         }
 
-        ShadowKindType kind = shadow.getKind();
+        return createShadowIcon(shadow.getKind());
+    }
+
+    public static String createShadowIcon(@Nullable ShadowKindType kind) {
         if (kind == null) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
         }
@@ -3228,11 +3227,12 @@ public final class WebComponentUtil {
         return values;
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String translateLabel(String lookupTableOid, LookupTableRowType row) {
-        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
-
-        String fallback = row.getLabel() != null ? row.getLabel().getOrig() : row.getKey();
-        return localizationService.translate(lookupTableOid + "." + row.getKey(), new String[0], getCurrentLocale(), fallback);
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLookupTableRowLabel(lookupTableOid, row);
     }
 
     public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
@@ -3719,7 +3719,6 @@ public final class WebComponentUtil {
 
     public static ResourceObjectDefinition getResourceObjectDefinition(ConstructionType construction, PageBase pageBase) throws CommonException {
 
-        PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
             return null;
         }
@@ -5606,15 +5605,15 @@ public final class WebComponentUtil {
         new Toast()
                 .success()
                 .title(PageBase.createStringResourceStatic(
-                        key,
-                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
+                                key,
+                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
                         .getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
                 .body(PageBase.createStringResourceStatic(
-                        key + ".text",
-                        translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
+                                key + ".text",
+                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
                         .getString())
                 .show(target);
     }
@@ -5623,17 +5622,12 @@ public final class WebComponentUtil {
         return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
     }
 
+    /**
+     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
+     */
+    @Deprecated
     public static String translateMessage(LocalizableMessage msg) {
-        if (msg == null) {
-            return null;
-        }
-
-        MidPointApplication application = MidPointApplication.get();
-        if (application == null) {
-            return msg.getFallbackMessage();
-        }
-
-        return application.getLocalizationService().translate(msg, getCurrentLocale());
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage(msg);
     }
 
     public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
@@ -5665,5 +5659,16 @@ public final class WebComponentUtil {
         }
 
         return column.getPath().getItemPath();
+    }
+
+    public static boolean isEnabledExperimentalFeatures() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal == null) {
+            return false;
+        }
+
+        CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+
+        return profile != null && BooleanUtils.isTrue(profile.isEnableExperimentalFeatures());
     }
 }

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
@@ -10,11 +11,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,20 +33,27 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     public MultiSelectTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId) {
-        super(id, tableId);
+        this(id, Model.of(ViewToggle.TILE), tableId);
+    }
+
+    public MultiSelectTileTablePanel(
+            String id,
+            IModel<ViewToggle> viewToggle,
+            UserProfileStorage.TableId tableId) {
+        super(id, viewToggle, tableId);
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
+    protected Fragment createHeaderFragment(String id) {
+        Fragment headerFragment =  super.createHeaderFragment(id);
 
-    private void initLayout(){
+        headerFragment.add(AttributeAppender.replace("class", ""));
+
+
         WebMarkupContainer selectedItemsContainer = new WebMarkupContainer(ID_SELECTED_ITEMS_CONTAINER);
         selectedItemsContainer.setOutputMarkupId(true);
         selectedItemsContainer.add(new VisibleBehaviour(() -> isSelectedItemsPanelVisible()));
-        add(selectedItemsContainer);
+        headerFragment.add(selectedItemsContainer);
 
         ListView<E> selectedContainer = new ListView<>(
                 ID_SELECTED_ITEM_CONTAINER,
@@ -65,6 +76,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         };
         selectedContainer.setOutputMarkupId(true);
         selectedItemsContainer.add(selectedContainer);
+        return headerFragment;
     }
 
     protected boolean isSelectedItemsPanelVisible() {
@@ -78,7 +90,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     }
 
     protected Component getSelectedItemPanel() {
-        return get(ID_SELECTED_ITEMS_CONTAINER);
+        return get(createComponentPath(ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
     }
 
     protected abstract void deselectItem(E entry);
@@ -101,12 +113,24 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
                 super.onClick(target);
                 getModelObject().getValue().setSelected(getModelObject().isSelected());
 
-                processSelectOrDeselectItem(getModelObject());
+                processSelectOrDeselectItem(getModelObject().getValue());
                 target.add(getSelectedItemPanel());
             }
         };
     }
 
-    protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<O>> tile) {
+    void onSelectTableRow(IModel<SelectableBean<O>> model, AjaxRequestTarget target) {
+        boolean oldState = model.getObject().isSelected();
+
+        model.getObject().setSelected(!oldState);
+        processSelectOrDeselectItem(model.getObject());
+        if (model.getObject().isSelected()) {
+            ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
+        }
+
+        refresh(target);
+    }
+
+    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
     }
 }

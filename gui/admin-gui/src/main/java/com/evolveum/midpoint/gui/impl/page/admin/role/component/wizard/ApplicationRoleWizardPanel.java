@@ -16,10 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.BasicConstructionStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionOutboundMappingsStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionResourceStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -125,7 +122,7 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
 
         steps.add(selectResource);
 
-        steps.add(new BasicConstructionStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
+        steps.add(new ConstructionResourceObjectTypeStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);

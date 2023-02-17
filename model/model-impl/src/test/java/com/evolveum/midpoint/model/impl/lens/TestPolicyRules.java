@@ -588,7 +588,7 @@ public class TestPolicyRules extends AbstractLensTest {
                 .asObjectDelta(USER_DRAKE_OID);
 
         RecordingProgressListener recordingListener = new RecordingProgressListener();
-        modelService.executeChanges(Collections.singletonList(delta), null, task, Collections.singleton(recordingListener), result);
+        modelService.executeChanges(List.of(delta), null, task, List.of(recordingListener), result);
 
         // THEN
         then();

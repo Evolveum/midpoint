@@ -69,10 +69,11 @@ public class SimpleReportReader implements AutoCloseable {
                 stream,
                 StandardCharsets.UTF_8,
                 CSVFormat.newFormat(',')
-                        .withQuote('"')
-                        .withEscape('\\')
-                        .withHeader()
-        );
+                        .builder()
+                        .setQuote('"')
+                        .setEscape('\\')
+                        .setHeader()
+                        .build());
         return new SimpleReportReader(parser, columns);
     }
 

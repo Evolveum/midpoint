@@ -69,9 +69,6 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
         return lastAsyncContext;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invoke(com.evolveum.midpoint.model.api.context.ModelContext, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
         assertTrue("Unexpected INITIAL state of the context in the hook", context.getState() != ModelState.INITIAL);
@@ -91,23 +88,10 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
     }
 
     @Override
-    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext<?> context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#postChange(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
-//    @Override
-//    public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
-//            OperationResult result) {
-//        // TODO Auto-generated method stub
-//
-//    }
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();

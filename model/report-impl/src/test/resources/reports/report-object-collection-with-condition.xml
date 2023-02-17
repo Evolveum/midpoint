@@ -13,12 +13,7 @@
         </collection>
         <condition>
             <script>
-                <code>
-                    if (object.getName().getOrig().equals("will")) {
-                        return true;
-                    }
-                    return false;
-                </code>
+                <code>object.name.orig == 'will'</code>
             </script>
         </condition>
     </objectCollection>

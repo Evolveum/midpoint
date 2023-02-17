@@ -95,6 +95,8 @@ class ProcessedObjectsWriter {
                 ProcessedObjectImpl<ShadowType> projectionRecord = createProcessedObject(projectionContext, result);
                 if (projectionRecord != null) {
                     projectionRecords.add(projectionRecord);
+                } else {
+                    LOGGER.trace("No processed object for {}", projectionContext);
                 }
             }
 

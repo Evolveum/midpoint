@@ -76,8 +76,11 @@ public enum OpType {
             "Focus policy rules ${m:getFocusPolicyRulesInfo}"),
 
     POLICY_RULE_EVALUATION(OperationKindType.OTHER, "Policy rule evaluation",
-            "com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule",
-            "Rule evaluation: ${m:getRuleInfo}"),
+            (a) -> true,
+            List.of(
+                    "com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule",
+                    "com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluator.evaluateRule"),
+            "Rule evaluation: ${m:getRuleInfo}"), // PolicyRuleEvaluationOpNode
 
     POLICY_CONSTRAINT_EVALUATION(OperationKindType.OTHER, "Policy constraint evaluation",
             "com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*ConstraintEvaluator.evaluate",

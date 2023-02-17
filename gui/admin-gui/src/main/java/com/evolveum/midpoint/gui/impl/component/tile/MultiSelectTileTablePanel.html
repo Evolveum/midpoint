@@ -9,28 +9,13 @@
 <wicket:panel>
     <wicket:enclosure child="tilesContainer">
         <div class="d-flex flex-column flex-grow-1">
-            <div wicket:id="tilesHeader"/>
-            <div class="card d-flex flex-column p-3 mb-0 mt-4" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
-                <span>
-                    <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
-                </span>
-                <div class="d-flex flex-wrap gap-2">
-                    <wicket:container wicket:id="selectedItemContainer">
-                        <div class="btn-sm btn-primary d-flex mr-2" style="cursor: auto;">
-                            <div class="text-break" wicket:id="selectedItem"/>
-                            <a wicket:id="deselectButton">
-                                <i class="fa fa-xmark ml-2 text-white"></i>
-                            </a>
-                        </div>
-                    </wicket:container>
-                </div>
-            </div>
-            <div class="row pt-3" wicket:id="tilesContainer">
+            <div wicket:id="header"/>
+            <div class="row pt-3 card-footer mx-0" wicket:id="tilesContainer">
                 <div wicket:id="tiles" style="min-height: 250px;">
                     <div wicket:id="tile"/>
                 </div>
             </div>
-            <div class="d-flex" wicket:id="footerContainer">
+            <div class="d-flex card-header" wicket:id="footerContainer">
                 <div class="d-flex">
                     <div wicket:id="buttonToolbar"/>
                 </div>
@@ -40,5 +25,33 @@
     </wicket:enclosure>
 
     <div wicket:id="table"/>
+
 </wicket:panel>
+
+<wicket:fragment wicket:id="headerFragment">
+    <div class="d-flex flex-column">
+        <div class="card-header d-flex">
+            <div class="mr-auto pr-4">
+                <div wicket:id="viewToggle"/>
+            </div>
+            <div class="ml-auto" wicket:id="panelHeader"/>
+        </div>
+        <div class="card-header d-flex flex-column" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+                <span>
+                    <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
+                </span>
+            <div class="d-flex flex-wrap gap-2">
+                <wicket:container wicket:id="selectedItemContainer">
+                    <div class="btn-sm btn-primary d-flex mr-2" style="cursor: auto;">
+                        <div class="text-break" wicket:id="selectedItem"/>
+                        <a wicket:id="deselectButton">
+                            <i class="fa fa-xmark ml-2 text-white"></i>
+                        </a>
+                    </div>
+                </wicket:container>
+            </div>
+        </div>
+    </div>
+</wicket:fragment>
+
 </html>

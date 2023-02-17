@@ -27,8 +27,5 @@
             </modification>
         </policyConstraints>
         <evaluationTarget>projection</evaluationTarget>
-        <focusSelector>
-            <type>FocusType</type>
-        </focusSelector>
     </policyRule>
 </mark>

@@ -92,7 +92,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
 
             if (projCtx.isHigherOrder()) {
                 // It may be just too early to load the projection
-                if (LensUtil.hasLowerOrderContext(context, projCtx) && context.getExecutionWave() < projCtx.getWave()) {
+                if (context.hasLowerOrderContext(projCtx) && context.getExecutionWave() < projCtx.getWave()) {
                     // We cannot reliably load the context now
                     result.addReturn(DEFAULT, "too early");
                     return;

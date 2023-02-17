@@ -25,7 +25,7 @@ public class ProcessedObjectsProvider extends SelectableBeanContainerDataProvide
     public static final String SORT_BY_NAME = "name";
 
     public ProcessedObjectsProvider(Component component, @NotNull IModel<Search<SimulationResultProcessedObjectType>> search) {
-        super(component, search, null, false);
+        super(component, search, null, true);
     }
 
     @Override

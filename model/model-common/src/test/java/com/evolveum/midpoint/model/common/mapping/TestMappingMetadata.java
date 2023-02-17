@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 
 import org.jetbrains.annotations.NotNull;
@@ -1194,12 +1195,12 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
+            public String dumpObjectPolicyRules(int indent, boolean alsoMessages) {
                 return null;
             }
 
             @Override
-            public Map<String, Collection<Containerable>> getHookPreviewResultsMap() {
+            public Map<String, Collection<? extends Containerable>> getHookPreviewResultsMap() {
                 return null;
             }
 
@@ -1251,6 +1252,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             @Override
             public ExpressionProfile getPrivilegedExpressionProfile() {
                 return null;
+            }
+
+            @Override
+            public @NotNull TaskExecutionMode getTaskExecutionMode() {
+                return TaskExecutionMode.PRODUCTION;
             }
         };
     }
