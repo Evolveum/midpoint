@@ -256,7 +256,12 @@ public class PageFocusIdentification extends PageAuthenticationBase {
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource("PageAttributeVerification.attributeVerificationLabel");
+        return createStringResource("PageFocusIdentification.title");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageFocusIdentification.description");
     }
 
 }

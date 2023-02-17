@@ -372,4 +372,15 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         error(getString(key));
         return "/midpoint/spring_security_login";
     }
+
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageSecurityQuestions.questions");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageSecurityQuestions.description");
+    }
+
 }

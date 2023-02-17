@@ -259,4 +259,9 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         return createStringResource("PageAttributeVerification.attributeVerificationLabel");
     }
 
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageAttributeVerification.description");
+    }
+
 }
