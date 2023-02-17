@@ -6,13 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusIdentificationToken;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,8 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HintAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 

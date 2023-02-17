@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -90,7 +91,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return AttributeVerificationToken.class.equals(authentication);
+        return FocusVerificationToken.class.equals(authentication);
     }
 
     @Override

@@ -145,6 +145,26 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     }
 
     @Override
+    public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+        PrismObject<FocusType> focus;
+        try {
+            focus = searchFocus(clazz, query, result);
+            if (focus == null) {
+                throw new ObjectNotFoundException("Couldn't find focus by query '" + query + "'", clazz, null);
+            }
+        } catch (ObjectNotFoundException ex) {
+            LOGGER.trace("Couldn't find user by defined query '{}', reason: {}.", query, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            LOGGER.warn("Error getting user by defined query '{}', reason: {}.", query, ex.getMessage(), ex);
+            throw new SystemException(ex.getMessage(), ex);
+        }
+
+        return getPrincipal(focus, null, result);
+    }
+
+    @Override
     public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(getUserByOid(oid, clazz, result).asPrismObject());
@@ -274,9 +294,14 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     private PrismObject<FocusType> findByUsername(String username, Class<? extends FocusType> clazz, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
-        LOGGER.trace("Looking for user, query:\n" + query.debugDump());
+
 
         //noinspection rawtypes,unchecked
+        return searchFocus(clazz, query, result);
+    }
+
+    private PrismObject<FocusType> searchFocus(Class<? extends FocusType> clazz, ObjectQuery query, OperationResult result) throws SchemaException {
+        LOGGER.trace("Looking for user, query:\n" + query.debugDump());
         List<PrismObject<FocusType>> list = (SearchResultList)
                 repositoryService.searchObjects(clazz, query, null, result);
         LOGGER.trace("Users found: {}.", list.size());

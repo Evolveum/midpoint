@@ -92,7 +92,7 @@ public class AuthSequenceUtil {
         }
         String[] partsOfLocalPath = AuthUtil.stripStartingSlashes(localePath).split("/");
 
-        if (isSpecificSequence(httpRequest)) {
+        if (isClusterSequence(httpRequest)) {
             return getSpecificSequence(httpRequest);
         }
 
@@ -220,7 +220,7 @@ public class AuthSequenceUtil {
         return null;
     }
 
-    public static boolean isSpecificSequence(HttpServletRequest httpRequest) {
+    public static boolean isClusterSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
         if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
@@ -285,7 +285,7 @@ public class AuthSequenceUtil {
             AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
 
-        if (isSpecificSequence(request)) {
+        if (isClusterSequence(request)) {
             return getSpecificModuleFilter(authRegistry, sequence.getChannel().getUrlSuffix(), request,
                     sharedObjects, authenticationModulesType, credentialPolicy);
         }
@@ -545,19 +545,19 @@ public class AuthSequenceUtil {
         });
     }
 
-    public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
-        if (authenticationsPolicy != null && authenticationsPolicy.getIgnoredLocalPath() != null
-                && !authenticationsPolicy.getIgnoredLocalPath().isEmpty()) {
-            List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
-            for (String ignoredPath : ignoredPaths) {
-                AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
-                if (matcher.matches(httpRequest)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
+//        if (authenticationsPolicy != null && authenticationsPolicy.getIgnoredLocalPath() != null
+//                && !authenticationsPolicy.getIgnoredLocalPath().isEmpty()) {
+//            List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
+//            for (String ignoredPath : ignoredPaths) {
+//                AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
+//                if (matcher.matches(httpRequest)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     public static boolean isBasePathForSequence(HttpServletRequest httpRequest, AuthenticationSequenceType sequence) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
@@ -573,7 +573,7 @@ public class AuthSequenceUtil {
 
     public static boolean isRecordSessionLessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
-            if (isSpecificSequence(httpRequest)) {
+            if (isClusterSequence(httpRequest)) {
                 return true;
             }
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());

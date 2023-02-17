@@ -6,11 +6,23 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-public class AttributeVerificationToken extends UsernamePasswordAuthenticationToken {
+@Deprecated
+public class AttributeVerificationToken extends AbstractAuthenticationToken {
 
     public AttributeVerificationToken(Object principal, Object credentials) {
-        super(principal, credentials);
+        super(null);
+    }
+
+    @Override
+    public Object getCredentials() {
+        return null;
+    }
+
+    @Override
+    public Object getPrincipal() {
+        return null;
     }
 }

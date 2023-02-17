@@ -68,6 +68,6 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
      * @param authnCtx
      * @return token with {@link com.evolveum.midpoint.security.api.MidPointPrincipal}
      */
-    PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, PreAuthenticationContext authnCtx);
+    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AC authnCtx);
 
 }

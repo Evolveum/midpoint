@@ -6,43 +6,29 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusIdentificationToken;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
 import java.util.Map;
 
-public class FocusIdentificationAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+public class FocusIdentificationAuthenticationFilter extends MidpointFocusVerificationFilter {
 
     private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/focusIdentification", "POST");
-    private static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
 
     public FocusIdentificationAuthenticationFilter() {
-        super();
+        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
     }
 
     public FocusIdentificationAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(authenticationManager);
+        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
     }
 
     public Authentication attemptAuthentication(
@@ -52,33 +38,11 @@ public class FocusIdentificationAuthenticationFilter extends UsernamePasswordAut
                     "Authentication method not supported: " + request.getMethod());
         }
 
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication == null || authentication.getPrincipal() == null) {
-//            return authentication;
-//        }
         Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
-        FocusIdentificationToken authRequest =
-                new FocusIdentificationToken(attributeValues);
+        FocusVerificationToken authRequest =
+                new FocusVerificationToken(attributeValues);
 
         return this.getAuthenticationManager().authenticate(authRequest);
-    }
-
-    protected Map<ItemPath, String> obtainAttributeValues(HttpServletRequest request) {
-        String attrValuesString = request.getParameter(SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY);
-        if (StringUtils.isEmpty(attrValuesString)) {
-            return null;
-        }
-
-        JSONArray attributeValuesArray = new JSONArray(attrValuesString);
-        Map<ItemPath, String> attributeValuesMap = new HashMap<>();
-        for (int i = 0; i < attributeValuesArray.length(); i++) {
-            JSONObject entry = attributeValuesArray.getJSONObject(i);
-
-            ItemPath path = ItemPath.create(entry.get(AuthConstants.ATTR_VERIFICATION_J_PATH));
-            String value = entry.getString(AuthConstants.ATTR_VERIFICATION_J_VALUE);
-            attributeValuesMap.put(path, value);
-        }
-        return attributeValuesMap;
     }
 
 }

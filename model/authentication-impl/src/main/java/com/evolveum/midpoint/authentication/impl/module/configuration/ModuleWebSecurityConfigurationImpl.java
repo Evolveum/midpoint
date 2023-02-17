@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 
 public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConfiguration {
 
-    private List<AuthenticationProvider> authenticationProviders = new ArrayList<AuthenticationProvider>();
+    private List<AuthenticationProvider> authenticationProviders = new ArrayList<>();
     private String sequenceSuffix;
     private String moduleIdentifier;
     private String defaultSuccessLogoutURL;

@@ -8,23 +8,16 @@ package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationEvaluatorImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusIdentificationToken;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.FocusIdentificationAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -72,9 +65,9 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
 
         try {
             Authentication token;
-            if (authentication instanceof FocusIdentificationToken) {
-                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getPrincipal();
-                PreAuthenticationContext ctx = new PreAuthenticationContext(attrValuesMap.get(ItemPath.create("name")), UserType.class, null);
+            if (authentication instanceof FocusVerificationToken) {
+                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
+                FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);
                 UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(),token.getCredentials());
                 pwdToken.setAuthenticated(false);
@@ -84,11 +77,6 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
-
-//            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-//            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-//                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-//            return token;
         } catch (AuthenticationException e) {
             LOGGER.info("Authentication failed for {}: {}", "TODO", e.getMessage());
             throw e;
@@ -106,7 +94,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return FocusIdentificationToken.class.equals(authentication);
+        return FocusVerificationToken.class.equals(authentication);
     }
 
 //    @Override

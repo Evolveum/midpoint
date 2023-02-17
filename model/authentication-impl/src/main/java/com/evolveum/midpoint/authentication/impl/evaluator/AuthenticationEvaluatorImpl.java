@@ -16,6 +16,10 @@ import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -108,7 +112,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(),
                 authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
 
         FocusType focusType = principal.getFocus();
@@ -144,7 +148,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), authnCtx.getPrincipalType(), false);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(), authnCtx.getPrincipalType(), false);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -218,7 +222,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throws AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, username, FocusType.class, true);
+        PreAuthenticationContext preAuthenticationContext = new PreAuthenticationContext(username, FocusType.class, null);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, preAuthenticationContext.createFocusQuery(), FocusType.class, true);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -251,9 +256,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, PreAuthenticationContext authnCtx) {
+    public <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AC authnCtx) {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(),
                 authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
 
         // Authorizations
@@ -273,45 +278,49 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @NotNull
-    protected MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, Class<? extends FocusType> clazz,
+    protected MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, ObjectQuery query, Class<? extends FocusType> clazz,
             boolean supportsActivationCheck) {
 
-        if (StringUtils.isBlank(enteredUsername)) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "no username");
+//        if (StringUtils.isBlank(query)) {
+//            recordAuthenticationFailure(query, connEnv, "no username");
+//            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+//        }
+
+        if (query == null) {
+            recordAuthenticationFailure(query.debugDump(), connEnv, "no username");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         MidPointPrincipal principal;
         try {
-            principal = focusProfileService.getPrincipal(enteredUsername, clazz);
+            principal = focusProfileService.getPrincipal(query, clazz);
         } catch (ObjectNotFoundException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "no focus");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "no focus");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         } catch (SchemaException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "schema error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (CommunicationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "communication error");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "communication error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ConfigurationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "configuration error");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "configuration error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (SecurityViolationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "security violation");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "security violation");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ExpressionEvaluationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "expression error");
+            recordAuthenticationFailure(query.debugDump(), connEnv, "expression error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         }
 
-
         if (principal == null) {
-            recordAuthenticationBehavior(enteredUsername, null, connEnv, "no focus", clazz, false);
+            recordAuthenticationBehavior(query.debugDump(), null, connEnv, "no focus", clazz, false);
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         if (supportsActivationCheck && !principal.isEnabled()) {
-            recordAuthenticationBehavior(enteredUsername, principal, connEnv, "focus disabled", clazz, false);
+            recordAuthenticationBehavior(query.debugDump(), principal, connEnv, "focus disabled", clazz, false);
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;
@@ -402,23 +411,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
             throw new AuthenticationServiceException("web.security.provider.unavailable", e);
         }
-    }
-
-    protected String getDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
-        String decryptedPassword;
-        if (protectedString.getEncryptedDataType() != null) {
-            try {
-                decryptedPassword = protector.decryptString(protectedString);
-            } catch (EncryptionException e) {
-                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
-                throw new AuthenticationServiceException("web.security.provider.unavailable", e);
-            }
-        } else {
-            LOGGER.warn("Authenticating user based on clear value. Please check objects, "
-                    + "this should not happen. Protected string should be encrypted.");
-            decryptedPassword = protectedString.getClearValue();
-        }
-        return decryptedPassword;
     }
 
     private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {

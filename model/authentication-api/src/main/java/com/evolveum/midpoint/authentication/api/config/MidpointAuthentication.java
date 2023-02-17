@@ -12,11 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -529,4 +532,17 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return authentication != null ? authentication.getState() : null;
     }
 
+    public PrismObject<SecurityPolicyType> resolveSecurityPolicy() throws SchemaException {
+        PrismObject<SecurityPolicyType> securityPolicy = null;
+        if (principal instanceof GuiProfiledPrincipal) {
+            GuiProfiledPrincipal guiProfiledPrincipal = (GuiProfiledPrincipal) principal;
+            securityPolicy = guiProfiledPrincipal.getApplicableSecurityPolicy() != null ? guiProfiledPrincipal.getApplicableSecurityPolicy().asPrismObject() : null;
+        }
+        return securityPolicy;
+    }
+
+    private boolean principalExists(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication != null && mpAuthentication.getPrincipal() != null
+                && mpAuthentication.getPrincipal() instanceof MidPointPrincipal;
+    }
 }

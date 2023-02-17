@@ -9,15 +9,14 @@ package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.util.Map;
 
-public class FocusIdentificationToken extends AbstractAuthenticationToken {
+public class FocusVerificationToken extends AbstractAuthenticationToken {
 
-    Map<ItemPath, String> attributes;
+    private Map<ItemPath, String> attributes;
 
-    public FocusIdentificationToken(Map<ItemPath, String> attributes) {
+    public FocusVerificationToken(Map<ItemPath, String> attributes) {
         super(null);
         this.attributes = attributes;
     }
@@ -29,6 +28,12 @@ public class FocusIdentificationToken extends AbstractAuthenticationToken {
 
     @Override
     public Map<ItemPath, String> getPrincipal() {
+        return null;
+    }
+
+
+    @Override
+    public Map<ItemPath, String> getDetails() {
         return attributes;
     }
 }
