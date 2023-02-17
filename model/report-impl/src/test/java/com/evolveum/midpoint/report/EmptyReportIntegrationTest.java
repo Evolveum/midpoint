@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,28 +7,27 @@
 package com.evolveum.midpoint.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -40,7 +39,8 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
     static final int DONT_COUNT_ROWS = -1;
 
-    static final File TEST_DIR_REPORTS = new File("src/test/resources/reports");
+    static final String DIR_REPORTS = "reports";
+    static final File TEST_DIR_REPORTS = new File("src/test/resources/" + DIR_REPORTS);
     static final File TEST_DIR_COMMON = new File("src/test/resources/common");
     private static final File EXPORT_DIR = new File("target/midpoint-home/export");
 
@@ -139,7 +139,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestObject<ObjectCollectionType> USER_JACK = TestObject.file(TEST_DIR_COMMON,
             "user-jack.xml", "c0c010c0-d34d-b33f-f00d-111111111111");
 
-    static final TestObject<TaskType> TASK_EXPORT_CLASSIC = TestObject.file(TEST_DIR_REPORTS,
+    static final TestTask TASK_EXPORT_CLASSIC = TestTask.file(TEST_DIR_REPORTS,
             "task-export.xml", "d3a13f2e-a8c0-4f8c-bbf9-e8996848bddf");
 
     private static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
@@ -212,23 +212,21 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         runExportTask(TASK_EXPORT_CLASSIC, reportResource, result);
     }
 
-    void runExportTask(TestObject<TaskType> taskResource, TestObject<ReportType> reportResource, OperationResult result)
+    void runExportTask(TestObject<TaskType> testTask, TestObject<ReportType> testResource, OperationResult result)
             throws CommonException {
         modifyObjectReplaceContainer(ReportType.class,
-                reportResource.oid,
+                testResource.oid,
                 ReportType.F_FILE_FORMAT,
                 getTestTask(),
                 result,
-                getFileFormatConfiguration()
-        );
-        changeTaskReport(reportResource,
+                getFileFormatConfiguration());
+        changeTaskReport(testResource,
                 ItemPath.create(TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
                         getWorkDefinitionType(),
-                        ClassicReportImportWorkDefinitionType.F_REPORT_REF
-                ),
-                taskResource);
-        rerunTask(taskResource.oid, result);
+                        ClassicReportImportWorkDefinitionType.F_REPORT_REF),
+                testTask);
+        rerunTask(testTask.oid, result);
     }
 
     protected ItemName getWorkDefinitionType() {
@@ -241,9 +239,9 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         displayDumpable("dummy transport", dummyTransport);
 
         String reportName = report.getName().getOrig();
-        assertSingleDummyTransportMessageContaining("reports", "Report: " + reportName);
+        assertSingleDummyTransportMessageContaining(DIR_REPORTS, "Report: " + reportName);
 
-        Message message = dummyTransport.getMessages("dummy:reports").get(0);
+        Message message = dummyTransport.getMessages("dummy:" + DIR_REPORTS).get(0);
         List<NotificationMessageAttachmentType> attachments = message.getAttachments();
         assertThat(attachments).as("notification message attachments").hasSize(1);
         NotificationMessageAttachmentType attachment = attachments.get(0);

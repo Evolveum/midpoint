@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -81,16 +82,28 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         assertNotificationMessage(reportTestResource.getObjectable(), "text/csv");
     }
 
-    void testClassicExport(
-            TestObject<ReportType> reportResource, int expectedRows, int expectedColumns,
+    protected void testClassicExport(TestObject<ReportType> testReport,
+            int expectedRows, int expectedColumns, String lastLine)
+            throws Exception {
+        testClassicExport(testReport, expectedRows, expectedColumns, lastLine, null);
+    }
+
+    protected void testClassicExport(
+            TestObject<ReportType> testReport, int expectedRows, int expectedColumns,
             String lastLine, ReportParameterType parameters) throws Exception {
+        testExport(TASK_EXPORT_CLASSIC, testReport, expectedRows, expectedColumns, lastLine, parameters);
+    }
+
+    protected void testExport(
+            TestTask testReportTask, TestObject<ReportType> testReport, int expectedRows,
+            int expectedColumns, String lastLine, ReportParameterType parameters) throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         if (parameters != null) {
             modifyObjectReplaceContainer(TaskType.class,
-                    TASK_EXPORT_CLASSIC.oid,
+                    testReportTask.oid,
                     ItemPath.create(TaskType.F_ACTIVITY,
                             ActivityDefinitionType.F_WORK,
                             WorkDefinitionsType.F_REPORT_EXPORT,
@@ -103,24 +116,18 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         dummyTransport.clearMessages();
 
         when();
-        runExportTaskClassic(reportResource, result);
-        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
+        runExportTask(testReportTask, testReport, result);
+        waitForTaskCloseOrSuspend(testReportTask.oid);
 
         then();
-        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
+        assertTask(testReportTask.oid, "after")
                 .assertSuccess()
                 .display()
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
-        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, testReportTask.oid);
         basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
 
-        assertNotificationMessage(reportResource);
-    }
-
-    void testClassicExport(TestObject<ReportType> reportResource,
-            int expectedRows, int expectedColumns, String lastLine)
-            throws Exception {
-        testClassicExport(reportResource, expectedRows, expectedColumns, lastLine, null);
+        assertNotificationMessage(testReport);
     }
 }

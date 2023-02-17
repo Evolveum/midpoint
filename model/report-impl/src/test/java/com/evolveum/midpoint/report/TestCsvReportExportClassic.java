@@ -12,8 +12,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
