@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.model.api.visualizer.Name;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 public class NameImpl implements Name {
 
@@ -16,6 +20,9 @@ public class NameImpl implements Name {
     private String id;
     private String description;
     private boolean namesAreResourceKeys;
+
+    private IconType simpleIcon;
+    private LocalizableMessage simpleDescription;
 
     public NameImpl(String simpleName) {
         this.simpleName = simpleName;
@@ -62,6 +69,24 @@ public class NameImpl implements Name {
     }
 
     @Override
+    public IconType getSimpleIcon() {
+        return simpleIcon;
+    }
+
+    public void setSimpleIcon(IconType simpleIcon) {
+        this.simpleIcon = simpleIcon;
+    }
+
+    @Override
+    public LocalizableMessage getSimpleDescription() {
+        return simpleDescription;
+    }
+
+    public void setSimpleDescription(LocalizableMessage simpleDescription) {
+        this.simpleDescription = simpleDescription;
+    }
+
+    @Override
     public String toString() {
         return toDebugDump();
     }
@@ -72,19 +97,18 @@ public class NameImpl implements Name {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
         NameImpl name = (NameImpl) o;
 
-        if (namesAreResourceKeys != name.namesAreResourceKeys) {
-            return false;
-        }
-        if (simpleName != null ? !simpleName.equals(name.simpleName) : name.simpleName != null) return false;
-        if (displayName != null ? !displayName.equals(name.displayName) : name.displayName != null) return false;
-        if (id != null ? !id.equals(name.id) : name.id != null) return false;
-        return !(description != null ? !description.equals(name.description) : name.description != null);
-
+        if (namesAreResourceKeys != name.namesAreResourceKeys) {return false;}
+        if (!Objects.equals(simpleName, name.simpleName)) {return false;}
+        if (!Objects.equals(displayName, name.displayName)) {return false;}
+        if (!Objects.equals(id, name.id)) {return false;}
+        if (!Objects.equals(description, name.description)) {return false;}
+        if (!Objects.equals(simpleIcon, name.simpleIcon)) {return false;}
+        return Objects.equals(simpleDescription, name.simpleDescription);
     }
 
     @Override
@@ -93,6 +117,9 @@ public class NameImpl implements Name {
         result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (namesAreResourceKeys ? 1 : 0);
+        result = 31 * result + (simpleIcon != null ? simpleIcon.hashCode() : 0);
+        result = 31 * result + (simpleDescription != null ? simpleDescription.hashCode() : 0);
         return result;
     }
 }

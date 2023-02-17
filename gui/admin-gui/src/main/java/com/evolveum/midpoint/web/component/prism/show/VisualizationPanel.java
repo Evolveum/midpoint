@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -34,15 +36,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
-    private static final String ID_BOX = "box";
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_OPTION_BUTTONS = "optionButtons";
     private static final String ID_HEADER_PANEL = "headerPanel";
-    private static final String ID_HEADER_DESCRIPTION = "description";
-    private static final String ID_HEADER_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
-    private static final String ID_HEADER_NAME_LABEL = "nameLabel";
-    private static final String ID_HEADER_NAME_LINK = "nameLink";
-    private static final String ID_HEADER_CHANGE_TYPE = "changeType";
-    private static final String ID_HEADER_OBJECT_TYPE = "objectType";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
+    private static final String ID_NAME_LABEL = "nameLabel";
+    private static final String ID_NAME_LINK = "nameLink";
+    private static final String ID_CHANGE_TYPE = "changeType";
+    private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_BODY = "body";
     private static final String ID_WARNING = "warning";
     private static final String ID_VISUALIZATION = "visualization";
@@ -77,35 +80,24 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "card card-outline-left"));
+
         final IModel<VisualizationDto> model = getModel();
 
-        WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-        box.add(AttributeModifier.append("class", () -> {
+        add(AttributeModifier.append("class", () -> {
             VisualizationDto dto = model.getObject();
 
             if (dto.getBoxClassOverride() != null) {
                 return dto.getBoxClassOverride();
             }
 
-            if (dto.getChangeType() == null) {
-                return null;
-            }
+            ChangeType change = dto.getChangeType();
 
-            switch (dto.getChangeType()) {
-                case ADD:
-                    return "card-outline-left-success";
-                case DELETE:
-                    return "card-outline-left-danger";
-                case MODIFY:
-                    return "card-outline-left-info";
-                default:
-                    return null;
-            }
+            return change != null ? VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(change) : null;
         }));
-        add(box);
 
         WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
-        box.add(headerPanel);
+        add(headerPanel);
 
         headerPanel.add(new VisualizationButtonPanel(ID_OPTION_BUTTONS, model) {
             @Override
@@ -114,13 +106,13 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             }
         });
 
-        Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
-        Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
+        Label headerChangeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
+        Label headerObjectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
 
         IModel<String> nameModel = () -> model.getObject().getName(VisualizationPanel.this);
 
-        Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
-        AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_HEADER_NAME_LINK, nameModel) {
+        Label headerNameLabel = new Label(ID_NAME_LABEL, nameModel);
+        AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_NAME_LINK, nameModel) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -131,8 +123,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 }
             }
         };
-        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, () -> model.getObject().getDescription(VisualizationPanel.this));
-        Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME, () -> {
+        Label headerDescription = new Label(ID_DESCRIPTION, () -> model.getObject().getDescription(VisualizationPanel.this));
+        Label headerWrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
             String key = visualization.getDisplayNameKey();
             Object[] parameters = visualization.getDisplayNameParameters();
@@ -186,7 +178,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             VisualizationDto dto = getModelObject();
             return !dto.isMinimized() && (!dto.getItems().isEmpty() || !dto.getPartialVisualizations().isEmpty());
         }));
-        box.add(body);
+        add(body);
 
         SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems);
         visualization.setRenderBodyOnly(true);

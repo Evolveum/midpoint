@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
@@ -74,6 +77,16 @@ public class WrapperVisualization implements Visualization {
             @Override
             public boolean namesAreResourceKeys() {
                 return false;
+            }
+
+            @Override
+            public IconType getSimpleIcon() {
+                return null;
+            }
+
+            @Override
+            public LocalizableMessage getSimpleDescription() {
+                return null;
             }
         };
     }

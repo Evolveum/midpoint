@@ -12,6 +12,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
@@ -24,15 +25,9 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class VisualizationDto implements Serializable {
-
-    public static final String F_CHANGE_TYPE = "changeType";
-    public static final String F_OBJECT_TYPE = "objectType";
-    public static final String F_DESCRIPTION = "description";
-    public static final String F_ITEMS = "items";
-    public static final String F_PARTIAL_VISUALIZATIONS = "partialVisualizations";
-    public static final String F_SORTED = "sorted";
 
     @NotNull private final Visualization visualization;
     private boolean minimized;
@@ -90,27 +85,31 @@ public class VisualizationDto implements Serializable {
     }
 
     public String getName(Component component) {
-        if (visualization.getName() != null) {
-            if (visualization.getName().getDisplayName() != null) {
-                String name = resolve(visualization.getName().getDisplayName(), component, visualization.getName().namesAreResourceKeys());
-                if (visualization.getSourceAbsPath() != null && visualization.getSourceAbsPath().size() > 1) {
-                    name = name + " (" + visualization.getSourceAbsPath().toString() + ")";
-                }
-                return name;
-            } else {
-                return resolve(visualization.getName().getSimpleName(), component, visualization.getName().namesAreResourceKeys());
-            }
-        } else {
-            return resolve("SceneDto.unnamed", component, true);
+        Name nameObject = visualization.getName();
+        if (nameObject == null) {
+            return resolve("SceneDto.unnamed", true);
         }
+
+        String displayName = nameObject.getDisplayName();
+        if (displayName == null) {
+            return resolve(nameObject.getSimpleName(), nameObject.namesAreResourceKeys());
+        }
+
+        String name = resolve(displayName, nameObject.namesAreResourceKeys());
+        ItemPath path = visualization.getSourceAbsPath();
+        if (path != null && path.size() > 1) {
+            name = name + " (" + path + ")";
+        }
+
+        return name;
     }
 
-    private String resolve(String name, Component component, boolean namesAreResourceKeys) {
-        if (namesAreResourceKeys) {
-            return PageBase.createStringResourceStatic(name).getString();
-        } else {
+    private String resolve(String name, boolean namesAreResourceKeys) {
+        if (!namesAreResourceKeys) {
             return name;
         }
+
+        return PageBase.createStringResourceStatic(name).getString();
     }
 
     public String getDescription(Component component) {
@@ -168,37 +167,20 @@ public class VisualizationDto implements Serializable {
         if (this == o) {return true;}
         if (o == null || getClass() != o.getClass()) {return false;}
 
-        VisualizationDto other = (VisualizationDto) o;
+        VisualizationDto that = (VisualizationDto) o;
 
-        if (visualization != null ? !visualization.equals(other.visualization) : other.visualization != null) {
-            return false;
-        }
-        if (boxClassOverride != null ? !boxClassOverride.equals(other.boxClassOverride) : other.boxClassOverride != null) {
-            return false;
-        }
-        if (items != null ? !items.equals(other.items) : other.items != null) {return false;}
-        return !(partialVisualizations != null ? !partialVisualizations.equals(other.partialVisualizations) : other.partialVisualizations != null);
-
+        if (!visualization.equals(that.visualization)) {return false;}
+        if (!Objects.equals(boxClassOverride, that.boxClassOverride)) {return false;}
+        if (items != null ? !items.equals(that.items) : that.items != null) {return false;}
+        return partialVisualizations != null ? partialVisualizations.equals(that.partialVisualizations) : that.partialVisualizations == null;
     }
 
     @Override
     public int hashCode() {
-        int result = visualization != null ? visualization.hashCode() : 0;
+        int result = visualization.hashCode();
         result = 31 * result + (boxClassOverride != null ? boxClassOverride.hashCode() : 0);
         result = 31 * result + (items != null ? items.hashCode() : 0);
         result = 31 * result + (partialVisualizations != null ? partialVisualizations.hashCode() : 0);
         return result;
-    }
-
-    public void applyFoldingFrom(@NotNull VisualizationDto source) {
-        minimized = source.minimized;
-        int partialDst = partialVisualizations.size();
-        int partialSrc = source.getPartialVisualizations().size();
-        if (partialDst != partialSrc) {
-            return;    // shouldn't occur
-        }
-        for (int i = 0; i < partialDst; i++) {
-            partialVisualizations.get(i).applyFoldingFrom(source.getPartialVisualizations().get(i));
-        }
     }
 }

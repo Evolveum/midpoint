@@ -8,23 +8,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="mb-0 card card-outline-left" wicket:id="box">
-        <div class="card-header" wicket:id="headerPanel">
-            <h3 class="card-title">
-                <span wicket:id="wrapperDisplayName"/>
-                <span wicket:id="changeType"/>
-                <span wicket:id="objectType"/>
-                <small>
-                    <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
-                </small>
-                <i class="fa fa-triangle-exclamation text-warning mr-1" wicket:id="warning" wicket:message="title:ScenePanel.warningMessage"></i>
-            </h3>
-            <div class="card-tools" wicket:id="optionButtons"/>
-        </div>
+    <div class="card-header" wicket:id="headerPanel">
+        <h3 class="card-title">
+            <span wicket:id="wrapperDisplayName"/>
+            <span wicket:id="changeType"/>
+            <span wicket:id="objectType"/>
+            <small>
+                <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
+            </small>
+            <i class="fa fa-triangle-exclamation text-warning mr-1" wicket:id="warning" wicket:message="title:ScenePanel.warningMessage"></i>
+        </h3>
+        <div class="card-tools" wicket:id="optionButtons"/>
+    </div>
 
-        <div wicket:id="body" class="card-body p-0">
-            <div wicket:id="visualization"/>
-        </div>
+    <div wicket:id="body" class="card-body p-0">
+        <div class="m-2" wicket:id="visualization"/>
     </div>
 </wicket:panel>
 </html>

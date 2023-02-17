@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.component.IconComponent;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -18,6 +16,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -90,13 +89,13 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
                 newValueIconModel = Model.of(GuiStyleConstants.CLASS_CIRCLE_FULL);
                 newValueTitleModel = createStringResource("SceneItemLinePanel.unchangedValue");
             } else {
-                newValueIconModel = Model.of("");
-                newValueTitleModel = Model.of("");
+                newValueIconModel = Model.of((String) null);
+                newValueTitleModel = Model.of((String) null);
             }
         } else {
             if (getModelObject().isDescriptive()) {
-                newValueIconModel = Model.of("");
-                newValueTitleModel = Model.of("");
+                newValueIconModel = Model.of((String) null);
+                newValueTitleModel = Model.of((String) null);
             } else {
                 newValueIconModel = !getModelObject().isDelta() && getModelObject().isDeltaVisualization() ?
                         Model.of(GuiStyleConstants.CLASS_CIRCLE_FULL) :
@@ -119,7 +118,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         IconComponent newValueImagePanel = new IconComponent(ID_NEW_VALUE_IMAGE, newValueIconModel, newValueTitleModel);
         newValueImagePanel.add(new VisibleBehaviour(() -> {
             VisualizationItemValue val = getModelObject().getNewValue();
-            return val != null && val.getSourceValue() != null;
+            return newValueIconModel.getObject() != null && val != null && val.getSourceValue() != null;
         }));
         newValueCell.add(newValueImagePanel);
 
