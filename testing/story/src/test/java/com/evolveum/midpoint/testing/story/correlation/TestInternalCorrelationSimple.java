@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 
 public class TestInternalCorrelationSimple extends AbstractSimpleInternalCorrelationTest {
 
     @Override
-    CsvResource getTargetResource() {
+    CsvTestResource getTargetResource() {
         return RESOURCE_TARGET;
     }
 }

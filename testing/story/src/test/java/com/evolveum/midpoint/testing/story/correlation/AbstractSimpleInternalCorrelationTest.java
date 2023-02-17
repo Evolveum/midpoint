@@ -22,8 +22,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.CsvTestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,16 +56,16 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "object-template-user.xml", "971bc001-be37-44c3-9c46-d33e761680c9");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "object-template-user.xml", "971bc001-be37-44c3-9c46-d33e761680c9");
 
-    private static final CsvResource RESOURCE_HR = new CsvResource(TEST_DIR, "resource-hr.xml",
+    private static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-hr.xml",
             "e09ffb8a-3f16-4b72-a61c-068f0039b876", "resource-hr.csv");
 
-    static final CsvResource RESOURCE_TARGET = new CsvResource(TEST_DIR, "resource-target.xml",
+    static final CsvTestResource RESOURCE_TARGET = new CsvTestResource(TEST_DIR, "resource-target.xml",
             "917e846f-39a5-423e-a63a-b00c3595da37", "resource-target.csv");
 
-    static final CsvResource RESOURCE_TARGET_SIMPLIFIED = new CsvResource(TEST_DIR, "resource-target-simplified.xml",
+    static final CsvTestResource RESOURCE_TARGET_SIMPLIFIED = new CsvTestResource(TEST_DIR, "resource-target-simplified.xml",
             "917e846f-39a5-423e-a63a-b00c3595da37", "resource-target.csv");
 
     private static final TestTask TASK_IMPORT_HR = new TestTask(TEST_DIR, "task-import-hr.xml",
@@ -79,7 +79,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
     private long firstTargetImportStart;
 
-    abstract CsvResource getTargetResource();
+    abstract CsvTestResource getTargetResource();
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

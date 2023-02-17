@@ -8,7 +8,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
-import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import org.testng.AssertJUnit;
@@ -157,7 +157,7 @@ public abstract class AbstractAsserter<RA> {
         return returnAsserter;
     }
 
-    protected void assertEventMarks(AbstractTestResource<MarkType>[] expectedTags, Collection<String> realTags) {
+    protected void assertEventMarks(TestObject<MarkType>[] expectedTags, Collection<String> realTags) {
         if (!getRepositoryService().supportsMarks()) {
             return;
         }

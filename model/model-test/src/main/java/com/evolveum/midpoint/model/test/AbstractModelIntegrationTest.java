@@ -384,9 +384,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // TODO reconcile with TestResource.importObject method (they use similar but distinct model APIs)
-    protected void importObject(TestResource<?> testResource, Task task, OperationResult result) throws IOException {
+    protected void importObject(TestObject<?> testObject, Task task, OperationResult result) throws IOException {
         OperationResult subresult = result.createSubresult("importObject");
-        try (InputStream stream = testResource.getInputStream()) {
+        try (InputStream stream = testObject.getInputStream()) {
             modelService.importObjectsFromStream(
                     stream, PrismContext.LANG_XML, MiscSchemaUtil.getDefaultImportOptions(), task, subresult);
         }
@@ -3895,7 +3895,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> PrismObject<T> addObject(AbstractTestResource<T> resource, Task task, OperationResult result)
+    protected <T extends ObjectType> PrismObject<T> addObject(TestObject<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
@@ -3908,7 +3908,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Returns the object as originally parsed, to avoid race conditions regarding last start timestamp.
-    protected PrismObject<TaskType> addTask(TestResource<TaskType> resource, OperationResult result)
+    protected PrismObject<TaskType> addTask(TestObject<TaskType> resource, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, IOException {
         PrismObject<TaskType> taskBefore = resource.getFresh();
         taskManager.addTask(taskBefore, result);
@@ -3938,7 +3938,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(
-            AbstractTestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+            TestObject<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = testResource.getFresh();
@@ -7168,7 +7168,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 SimulationResultAsserter.forResult(simResult, desc));
     }
 
-    @Override
     public <O extends ObjectType> PrismObject<O> getObject(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
@@ -7195,9 +7194,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * @see AbstractIntegrationTest#realRepoCreator()
      */
     private <O extends ObjectType> ObjectCreator.RealCreator<O> realModelCreator() {
-        return (o, result) -> {
-            addObject(o.asPrismObject(), getTestTask(), result);
-        };
+        return (o, result) -> addObject(o.asPrismObject(), getTestTask(), result);
     }
 
     protected <O extends ObjectType> ObjectCreatorBuilder<O> modelObjectCreatorFor(Class<O> type) {
@@ -7209,5 +7206,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         CsvAsserter<Void> asserter = new CsvAsserter<>(lines, null, message);
         initializeAsserter(asserter);
         return asserter;
+    }
+
+    @Override
+    public SimpleObjectResolver getResourceReloader() {
+        return createSimpleModelObjectResolver();
+    }
+
+    // temporary
+    protected File findReportOutputFile(PrismObject<TaskType> reportTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return ReportTestUtil.findOutputFile(reportTask, createSimpleModelObjectResolver(), result);
+    }
+
+    // temporary
+    protected List<String> getLinesOfOutputFile(PrismObject<TaskType> reportTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, IOException {
+        return ReportTestUtil.getLinesOfOutputFile(reportTask, createSimpleModelObjectResolver(), result);
     }
 }

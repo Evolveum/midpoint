@@ -64,8 +64,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AnyResource;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -95,14 +95,14 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private static final String RESOURCE_HR_OID = "a1864c6e-b154-4384-bc7f-0b0c92379c3f";
 
-    private static final CsvResource RESOURCE_HR_100 = createHrResource("resource-hr-100.xml");
-    private static final CsvResource RESOURCE_HR_110 = createHrResource("resource-hr-110.xml");
-    private static final CsvResource RESOURCE_HR_120 = createHrResource("resource-hr-120.xml");
-    private static final CsvResource RESOURCE_HR_130 = createHrResource("resource-hr-130.xml");
-    private static final CsvResource RESOURCE_HR_140 = createHrResource("resource-hr-140.xml");
-    private static final CsvResource RESOURCE_HR_150 = createHrResource("resource-hr-150.xml");
-    private static final CsvResource RESOURCE_HR_160 = createHrResource("resource-hr-160.xml");
-    private static final CsvResource RESOURCE_HR_170 = createHrResource("resource-hr-170.xml");
+    private static final CsvTestResource RESOURCE_HR_100 = createHrResource("resource-hr-100.xml");
+    private static final CsvTestResource RESOURCE_HR_110 = createHrResource("resource-hr-110.xml");
+    private static final CsvTestResource RESOURCE_HR_120 = createHrResource("resource-hr-120.xml");
+    private static final CsvTestResource RESOURCE_HR_130 = createHrResource("resource-hr-130.xml");
+    private static final CsvTestResource RESOURCE_HR_140 = createHrResource("resource-hr-140.xml");
+    private static final CsvTestResource RESOURCE_HR_150 = createHrResource("resource-hr-150.xml");
+    private static final CsvTestResource RESOURCE_HR_160 = createHrResource("resource-hr-160.xml");
+    private static final CsvTestResource RESOURCE_HR_170 = createHrResource("resource-hr-170.xml");
 
     private static final File INITIAL_LDIF_FILE = new File(TEST_DIR, "initial.ldif");
 
@@ -115,16 +115,16 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final TestResource<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
             new TestResource<>(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
 
-    private static final AnyResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
-    private static final AnyResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
-    private static final AnyResource RESOURCE_OPENDJ_220 = createOpenDjResource("resource-opendj-220.xml");
-    private static final AnyResource RESOURCE_OPENDJ_240 = createOpenDjResource("resource-opendj-240.xml");
-    private static final AnyResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
-    private static final AnyResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
-    private static final AnyResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
-    private static final AnyResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
-    private static final AnyResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
-    private AnyResource currentOpenDjResource = RESOURCE_OPENDJ_200;
+    private static final AnyTestResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_220 = createOpenDjResource("resource-opendj-220.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_240 = createOpenDjResource("resource-opendj-240.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
+    private static final AnyTestResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
+    private AnyTestResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
     private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
 
@@ -154,12 +154,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         skipIfNotNativeRepository();
     }
 
-    private static CsvResource createHrResource(String fileName) {
-        return new CsvResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
+    private static CsvTestResource createHrResource(String fileName) {
+        return new CsvTestResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
     }
 
-    private static AnyResource createOpenDjResource(String fileName) {
-        return new AnyResource(TEST_DIR, fileName, RESOURCE_OPENDJ_OID);
+    private static AnyTestResource createOpenDjResource(String fileName) {
+        return AnyTestResource.file(TEST_DIR, fileName, RESOURCE_OPENDJ_OID);
     }
 
     private static final ItemName ATTR_EMP_NO = new ItemName(NS_RI, "empNo");
@@ -1666,13 +1666,13 @@ public class TestFirstSteps extends AbstractStoryTest {
                 () -> "no user named " + userName);
     }
 
-    private void reimportAndTestHrResource(CsvResource resource, Task task, OperationResult result)
+    private void reimportAndTestHrResource(CsvTestResource resource, Task task, OperationResult result)
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_HR_OID, task, result);
         resource.initAndTest(this, task, result);
     }
 
-    private void reimportAndTestOpenDjResource(AnyResource resource, Task task, OperationResult result)
+    private void reimportAndTestOpenDjResource(AnyTestResource resource, Task task, OperationResult result)
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, task, result);
         resource.initAndTest(this, task, result);

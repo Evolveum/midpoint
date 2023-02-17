@@ -12,7 +12,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 @Experimental
-public interface DummyTestResourceInitializer {
+public interface DummyTestResourceInitializer extends ResourceTester {
 
     void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception;
 

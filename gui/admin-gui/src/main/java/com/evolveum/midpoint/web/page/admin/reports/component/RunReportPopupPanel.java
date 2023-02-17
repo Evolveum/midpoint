@@ -192,7 +192,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                     continue;
                 }
                 MutableItemDefinition def;
-                String namespaceUri = ReportConstants.NS_EXTENSION + "/" + AbstractReportWorkDefinitionType.F_REPORT_PARAM;
+                String namespaceUri = SchemaConstants.NS_REPORT_EXTENSION + "/" + AbstractReportWorkDefinitionType.F_REPORT_PARAM;
                 if (Referencable.class.isAssignableFrom(clazz)) {
                     def = getPrismContext().definitionFactory().createReferenceDefinition(
                             new QName(namespaceUri, parameter.getName()), type);

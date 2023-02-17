@@ -10,7 +10,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
@@ -104,7 +104,7 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
     }
 
     @SafeVarargs
-    public final ElementContextAsserter<C, O, RA> assertEventMarks(AbstractTestResource<MarkType>... expectedMarks) {
+    public final ElementContextAsserter<C, O, RA> assertEventMarks(TestObject<MarkType>... expectedMarks) {
         assertEventMarks(expectedMarks, elementContext.getMatchingEventMarks());
         return this;
     }

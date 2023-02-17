@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenc
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -46,7 +46,7 @@ public class AutoCompleteReferencePanelFactory
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName())
-                && ReportConstants.NS_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
+                && SchemaConstants.NS_REPORT_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
                 && wrapper.getParent() == null;
     }
 

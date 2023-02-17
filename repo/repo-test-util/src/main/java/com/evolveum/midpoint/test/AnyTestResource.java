@@ -22,15 +22,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Represents arbitrary {@link ResourceType} resource to be used in tests.
  *
- * TODO better name (but {@link TestResource} should be renamed first)
+ * TODO better name (but {@link TestResource} should be deleted/renamed first
  *
- * @see CsvResource
+ * @see CsvTestResource
  * @see DummyTestResource
  */
-public class AnyResource extends TestResource<ResourceType> {
+public class AnyTestResource extends TestObject<ResourceType> {
 
-    public AnyResource(@NotNull File dir, @NotNull String fileName, String oid) {
-        super(dir, fileName, oid);
+    AnyTestResource(TestObjectSource source, String oid) {
+        super(source, oid);
+    }
+
+    public static AnyTestResource file(@NotNull File dir, @NotNull String name, String oid) {
+        return new AnyTestResource(
+                new FileBasedTestObjectSource(dir, name),
+                oid);
     }
 
     /**
@@ -40,6 +46,6 @@ public class AnyResource extends TestResource<ResourceType> {
         importObject(task, result);
         assertSuccess(
                 tester.testResource(oid, task, result));
-        reload(tester, result);
+        reload(tester.getResourceReloader(), result);
     }
 }
