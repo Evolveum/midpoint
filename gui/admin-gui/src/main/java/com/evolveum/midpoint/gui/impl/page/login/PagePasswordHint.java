@@ -9,47 +9,27 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
@@ -71,66 +51,31 @@ public class PagePasswordHint extends PageAuthenticationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PagePasswordHint.class);
 
-    private static final String ID_STATIC_LAYOUT = "staticLayout";
-    private static final String ID_EMAIL = "email";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_HINT_PANEL = "hintPanel";
     private static final String ID_HINT_LABEL = "hintLabel";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_BACK_BUTTON_LABEL = "backButtonLabel";
-    private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
-    private static final String ID_CONTINUE_RESET_PASSWORD = "continueResetPassword";
     private static final String ID_PASSWORD_RESET_SUBMITED = "resetPasswordInfo";
 
-    private boolean submited;
-    private UserType user = null;
     private String hint = null;
 
     public PagePasswordHint() {
     }
 
-
     protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-//        form.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !submited;
-//            }
-//
-//        });
         add(form);
 
         initHintPanel(form);
 
         initButtons(form);
-
-        MultiLineLabel label = new MultiLineLabel(ID_PASSWORD_RESET_SUBMITED,
-                createStringResource("PageForgotPassword.form.submited.message"));
-        add(label);
-        label.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return submited;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return submited;
-            }
-
-        });
-
     }
 
     private void initHintPanel(MidpointForm<?> form) {
+        initHintValue();
+
         WebMarkupContainer hintPanel = new WebMarkupContainer(ID_HINT_PANEL);
         hintPanel.setOutputMarkupId(true);
         hintPanel.add(new VisibleBehaviour(this::isHintPresent));
@@ -141,11 +86,16 @@ public class PagePasswordHint extends PageAuthenticationBase {
 
             @Override
             protected String load() {
-                return createStringResource("PageEmailNonce.passwordHintLabel", getUserPasswordHint(searchUser())).getString();
+                return createStringResource("PageEmailNonce.passwordHintLabel", hint).getString();
             }
         });
         hintLabel.setOutputMarkupId(true);
         hintPanel.add(hintLabel);
+    }
+
+    private void initHintValue() {
+        UserType user = searchUser();
+        hint = getUserPasswordHint(user);
     }
 
     private boolean isHintPresent() {
@@ -157,24 +107,6 @@ public class PagePasswordHint extends PageAuthenticationBase {
     }
 
     private void initButtons(MidpointForm form) {
-//        AjaxSubmitButton continuePasswordResetButton = new AjaxSubmitButton(ID_CONTINUE_RESET_PASSWORD, createStringResource("PageEmailNonce.continuePasswordResetLabel")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target) {
-//                continuePasswordReset(target);
-//            }
-//
-//            @Override
-//            protected void onError(AjaxRequestTarget target) {
-//                target.add(getFeedbackPanel());
-//            }
-//
-//        };
-////        continuePasswordResetButton.add(new VisibleBehaviour(this::isHintPresent));
-//        form.add(continuePasswordResetButton);
-
         form.add(createBackButton(ID_BACK_BUTTON));
     }
 
@@ -212,21 +144,18 @@ public class PagePasswordHint extends PageAuthenticationBase {
         return user.getCredentials() != null && user.getCredentials().getPassword() != null ?
                 user.getCredentials().getPassword().getHint() : null;
     }
-    public PageBase getPageBase() {
-        return (PageBase) getPage();
-    }
 
     @Override
     protected boolean isDynamicFormVisible() {
         return super.isDynamicFormVisible() && !isHintPresent();
     }
 
-    private MidpointForm getMainForm() {
-        return (MidpointForm) get(ID_MAIN_FORM);
-    }
-
     protected DynamicFormPanel getDynamicForm(){
         return (DynamicFormPanel) getMainForm().get(createComponentPath(ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
+    }
+
+    private MidpointForm getMainForm() {
+        return (MidpointForm) get(ID_MAIN_FORM);
     }
 
     @Override
@@ -254,16 +183,6 @@ public class PagePasswordHint extends PageAuthenticationBase {
         }
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-//        if (AuthUtil.getPrincipalUser() != null) {
-//            MidPointApplication app = getMidpointApplication();
-//            throw new RestartResponseException(app.getHomePage());
-//        }
     }
 
     private String getUrlProcessingLogin() {
