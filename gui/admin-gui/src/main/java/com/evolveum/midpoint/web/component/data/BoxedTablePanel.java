@@ -310,7 +310,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             footerContainer.setOutputMarkupId(true);
             footerContainer.add(new VisibleBehaviour(() -> isPagingVisible()));
 
-            final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(PagingFooter.this, dataTable));
+            final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(dataTable));
             count.setOutputMarkupId(true);
             footerContainer.add(count);
 

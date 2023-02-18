@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
@@ -86,31 +84,21 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
     /**
-     * Policy rules assigned to the focus via directly or indirectly through this assignment.
-     * They may or may not be really applicable to the focus. This is not our responsibility.
+     * Policy rules assigned to the focus/projections directly or indirectly through this assignment.
+     * They may or may not be really applicable to the focus/projections. This is not our responsibility.
      * We only check that the rule was induced to the focus object.
      *
      * A typical focus-assigned policy rule is e.g. "forbid focus modifications".
      * Shadow-related rules can be present here as well.
      */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleImpl> objectPolicyRules = new ArrayList<>();
 
     /**
-     * TODO formulate the following more precisely:
-     *
-     * Policy rules assigned to the target of this assignment (typically e.g. "approve the assignment").
+     * Policy rules assigned to the target of this assignment, directly or indirectly.
+     * Typically e.g. "approve the creation or modification of the assignment".
      * They may or may not be really applicable during the current clockwork operation.
      */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = new ArrayList<>();
-
-    /**
-     * TODO formulate the following more precisely:
-     *
-     * Policy rules assigned to other targets provided by this assignment (e.g. induced or obtained by delegation).
-     * Usually, these rules do not cause direct action (e.g. in the case of approvals);
-     * however, there are situations in which they are used (e.g. for exclusion rules).
-     */
-    @NotNull private final Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = new ArrayList<>();
+    @NotNull private final List<EvaluatedPolicyRuleImpl> targetPolicyRules = new ArrayList<>();
 
     private String tenantOid;
 
@@ -415,43 +403,27 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @Override
     @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getFocusPolicyRules() {
-        return focusPolicyRules;
+    public Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+        return objectPolicyRules;
     }
 
-    void addFocusPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        focusPolicyRules.add(policyRule);
-    }
-
-    @Override
-    @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
-        return thisTargetPolicyRules;
-    }
-
-    public void addThisTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        thisTargetPolicyRules.add(policyRule);
-    }
-
-    @Override
-    @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
-        return otherTargetsPolicyRules;
-    }
-
-    public void addOtherTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        otherTargetsPolicyRules.add(policyRule);
+    void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        objectPolicyRules.add(policyRule);
     }
 
     @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getAllTargetsPolicyRules() {
-        return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
+        return Collections.unmodifiableList(targetPolicyRules);
+    }
+
+    public void addTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        targetPolicyRules.add(policyRule);
     }
 
     @Override
     public int getAllTargetsPolicyRulesCount() {
-        return thisTargetPolicyRules.size() + otherTargetsPolicyRules.size();
+        return targetPolicyRules.size();
     }
 
     @Override
@@ -547,14 +519,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
+        DebugUtil.debugDumpWithLabelLn(
+                sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent+1);
+        Collection<? extends EvaluatedPolicyRule> thisTargetRules = getThisTargetPolicyRules();
+        DebugUtil.debugDumpWithLabelLn(
+                sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent+1);
+        Collection<? extends EvaluatedPolicyRule> otherTargetsRules = getOtherTargetsPolicyRules();
+        DebugUtil.debugDumpWithLabelLn(
+                sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
         return sb.toString();
     }
 
-    private String ruleCountInfo(Collection<EvaluatedPolicyRuleImpl> rules) {
+    private String ruleCountInfo(Collection<? extends EvaluatedPolicyRule> rules) {
         return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
     }
 
@@ -578,7 +555,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; autz=" + authorizations
                 + "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
                 + "; " + focusMappings.size() + " focus mappings"
-                + "; " + focusPolicyRules.size() + " rules"
+                + "; " + objectPolicyRules.size() + " rules"
                 + "; refs=" + membershipRefVals.size() + "m, " + delegationRefVals.size() + "d, " + archetypeRefVals.size() + "a"
                 +")";
     }

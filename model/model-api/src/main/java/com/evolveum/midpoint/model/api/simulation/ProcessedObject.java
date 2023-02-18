@@ -71,6 +71,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     void resolveEventMarks(OperationResult result);
     boolean hasEventMark(@NotNull String eventMarkOid);
     boolean hasNoEventMarks();
+    @Nullable String getResourceOid();
 
     interface Factory {
         <O extends ObjectType> ProcessedObject<O> create(

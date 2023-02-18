@@ -7,6 +7,28 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -25,34 +47,13 @@ import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -77,8 +78,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
+    private static final String ID_MARKS_CONTAINER = "marksContainer";
     private static final String ID_MARKS = "marks";
     private static final String ID_MARK = "mark";
+    private static final String ID_METRICS_CONTAINER = "metricsContainer";
     private static final String ID_METRICS = "metrics";
     private static final String ID_METRIC = "metric";
 
@@ -220,11 +223,6 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
             @Override
-            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
-                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-            }
-
-            @Override
             protected IModel<String> createTitleModel() {
                 return PageSimulationResult.this.createTitleModel();
             }
@@ -232,6 +230,20 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 PageSimulationResult.this.onBackPerformed(target);
+            }
+
+            @Override
+            protected AjaxLink createNextButton(String id, IModel<String> nextTitle) {
+                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> "View results") {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        onViewAllPerformed();
+                    }
+                };
+                next.showTitleAsLabel(true);
+                next.add(AttributeAppender.append("class", "btn btn-primary"));
+
+                return next;
             }
         };
         add(navigation);
@@ -242,11 +254,40 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 detailsModel);
         add(details);
 
+        SimpleContainerPanel marksContainer = new SimpleContainerPanel(ID_MARKS_CONTAINER, createStringResource("PageSimulationResult.eventMarks")) {
+
+            @Override
+            protected Component createContent(String id) {
+                Component content = super.createContent(id);
+                content.add(AttributeModifier.replace("class", "row"));
+                return content;
+            }
+        };
+        add(marksContainer);
+
         ListView<DashboardWidgetType> marks = createWidgetList(ID_MARKS, ID_MARK, true);
-        add(marks);
+        marksContainer.add(marks);
+
+        SimpleContainerPanel metricsContainer = new SimpleContainerPanel(ID_METRICS_CONTAINER, createStringResource("PageSimulationResult.metrics")) {
+
+            @Override
+            protected Component createContent(String id) {
+                Component content = super.createContent(id);
+                content.add(AttributeModifier.replace("class", "row"));
+                return content;
+            }
+        };
+        add(metricsContainer);
 
         ListView<DashboardWidgetType> metrics = createWidgetList(ID_METRICS, ID_METRIC, false);
-        add(metrics);
+        metricsContainer.add(metrics);
+    }
+
+    private void onViewAllPerformed() {
+        PageParameters params = new PageParameters();
+        params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+
+        navigateToNext(PageSimulationResultObjects.class, params);
     }
 
     private ListView<DashboardWidgetType> createWidgetList(String id, String widgetId, boolean eventMarks) {

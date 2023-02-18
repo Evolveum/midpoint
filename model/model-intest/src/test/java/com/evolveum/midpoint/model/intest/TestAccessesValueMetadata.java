@@ -10,9 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -20,11 +20,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.ValueSelector;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -79,6 +77,11 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 initTask, initResult);
     }
 
+    /**
+     * Sysconfig is loaded only before the first test in the class.
+     * Some tests switch the toggle ON/OFF, but let's try to keep it ON at the end,
+     * so each test can be run both in sequence and/or separately.
+     */
     @Override
     protected File getSystemConfigurationFile() {
         return new File(COMMON_DIR, "system-configuration-enabled-accesses-metadata.xml");
@@ -217,49 +220,71 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    public void test900AccessesMetadataNotStoredWithoutSysconfigOption() throws Exception {
+    public void test900AccessesMetadataAreOnByDefault() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         given("sysconfig with accesses metadata option missing");
-        ObjectDelta<SystemConfigurationType> delta = prismContext.deltaFor(SystemConfigurationType.class)
-                .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace()
-                .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-        executeChanges(delta, null, task, result);
+        switchAccessesMetadata(null, task, result);
 
         when("new user with assignment is added");
         String userOid = addObject(newUserWithBusinessRole1(), task, result);
 
-        then("roleMembershipRefs have no value metadata for accesses");
-        assertNoRoleMembershipRefMetadata(userOid, businessRole1Oid, appRole1Oid, appService1Oid);
+        then("roleMembershipRefs has metadata filled in");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+        assertAssignmentPath(userAsserter, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
+
+        // Fixing the state to initial for this test class:
+        switchAccessesMetadata(true, task, result);
     }
 
     @Test
-    public void test910AccessesMetadataAreAddedAfterRecompute() throws Exception {
+    public void test905AccessesMetadataAreRemovedAfterDisableAndRecompute() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("sysconfig with accesses metadata option on");
+        switchAccessesMetadata(true, task, result);
+
+        and("added user has metadata");
+        String userOid = addObject(newUserWithBusinessRole1(), task, result);
+        assertUser(userOid, "initial").assertRoleMembershipRefs(3);
+
+        when("option is turned off and user is recomputed");
+        switchAccessesMetadata(false, task, result);
+        recomputeUser(userOid, task, result);
+
+        then("roleMembershipRefs have no value metadata for accesses");
+        assertNoRoleMembershipRefMetadata(userOid, businessRole1Oid, appRole1Oid, appService1Oid);
+
+        // Fixing the state to initial for this test class:
+        switchAccessesMetadata(true, task, result);
+    }
+
+    @Test
+    public void test910AccessesMetadataDisabledThenEnabledAndAddedAfterRecompute() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         given("sysconfig with accesses metadata option missing");
-        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
-                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace()
-                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
-                null, task, result);
+        switchAccessesMetadata(false, task, result);
 
         and("new user with assignment without accesses metadata");
         String userOid = addObject(newUserWithBusinessRole1(), task, result);
         assertNoRoleMembershipRefMetadata(userOid, businessRole1Oid, appRole1Oid, appService1Oid);
 
         when("accesses metadata is enabled in sysconfig");
-        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
-                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(true)
-                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
-                null, task, result);
+        switchAccessesMetadata(true, task, result);
 
         and("user is recomputed");
-        executeChanges(prismContext.deltaFor(UserType.class)
-                        .<UserType>asObjectDelta(userOid),
-                ModelExecuteOptions.create().reconcileFocus(),
-                task, result);
+        recomputeUser(userOid, task, result);
 
         then("roleMembershipRefs have now value metadata for accesses");
         UserAsserter<Void> userAsserter = assertUser(userOid, "after")
@@ -309,20 +334,32 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 .hasSize(expectedAssignmentPaths.length);
         // Now we check if any of the values match the expected value - for each expected value.
         for (ExpectedAssignmentPath expectedAssignmentPath : expectedAssignmentPaths) {
-            listAsserter.anySatisfy(m -> {
-                assertThat(m)
-                        .extracting(ValueMetadataType::getStorage)
-                        .extracting(StorageMetadataType::getCreateTimestamp)
-                        .extracting(MiscUtil::asMillis)
-                        .isNotNull()
-                        .matches(ts -> expectedAssignmentPath.storageCreateTimestampPredicate.test(ts));
-                assertThat(m)
-                        .extracting(ValueMetadataType::getProvenance)
-                        .extracting(ProvenanceMetadataType::getAssignmentPath)
-                        .extracting(ap -> ap.getSegment(), listAsserterFactory(AssignmentPathSegmentMetadataType.class))
-                        .extracting(s -> s.getTargetRef().getOid())
-                        .containsExactly(expectedAssignmentPath.targetRefOids);
-            });
+            listAsserter
+                    .withFailMessage("No value metadata for roleMembershipRef with target OID "
+                            + roleMembershipTargetOid + " match the expected assignment path "
+                            + Arrays.toString(expectedAssignmentPath.targetRefOids) + " (or its timestamp predicate).")
+                    .anySatisfy(m -> {
+                        assertThat(m)
+                                .extracting(ValueMetadataType::getStorage)
+                                .extracting(StorageMetadataType::getCreateTimestamp)
+                                .extracting(MiscUtil::asMillis)
+                                .isNotNull()
+                                .matches(ts -> expectedAssignmentPath.storageCreateTimestampPredicate.test(ts));
+                        assertThat(m)
+                                .extracting(ValueMetadataType::getProvenance)
+                                .extracting(ProvenanceMetadataType::getAssignmentPath)
+                                .extracting(ap -> ap.getSegment(), listAsserterFactory(AssignmentPathSegmentMetadataType.class))
+                                .extracting(s -> s.getTargetRef().getOid())
+                                .containsExactly(expectedAssignmentPath.targetRefOids);
+                    });
+        }
+
+        // We also want to check that each path has assignmentId in its first segment.
+        for (ValueMetadataType metadataValue : metadataValues) {
+            AssignmentPathMetadataType assignmentPath = metadataValue.getProvenance().getAssignmentPath();
+            assertThat(assignmentPath.getSegment().get(0).getAssignmentId())
+                    .withFailMessage(() -> "assignmentId must not be null in the first segment for path " + assignmentPath)
+                    .isNotNull();
         }
     }
 

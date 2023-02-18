@@ -12,8 +12,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -46,6 +48,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 /**
  * Tests with several inter-dependent resources.
@@ -124,6 +130,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_LAVENDER_NAME,
                 RESOURCE_DUMMY_LAVENDER_FILE, RESOURCE_DUMMY_LAVENDER_OID, initTask, initResult);
@@ -293,7 +301,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
     }
 
     /**
@@ -357,7 +365,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
     }
 
     /**
@@ -423,7 +431,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -452,7 +460,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -488,7 +496,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -562,7 +570,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // No value for ship ... no place to get it from
-            .assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            .assertNoAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -612,7 +620,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // No value for ship ... no place to get it from
-            .assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            .assertNoAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
     }
 
     /**
@@ -683,7 +691,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // No value for ship ... no place to get it from
-            .assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            .assertNoAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -751,7 +759,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertFullName("Cpt. Jack Sparrow")
             .assertEnabled()
             // No value for ship ... no place to get it from
-            .assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            .assertNoAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -816,7 +824,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // No value for ship ... no place to get it from
-            .assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            .assertNoAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -906,19 +914,109 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
+     * The "dummies" role assigns two dummy resources that are in a dependency. The value of
+     * {@link DummyResourceContoller#DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME} is propagated from one
      * resource through the user to the other resource. If dependency does not work then no value is propagated.
+     *
+     * We do the simulation first, then the real execution.
      */
     private void jackAssignRoleDummies() throws Exception {
         Task task = createTask("jackAssignRoleDummies");
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
-        // WHEN
+        if (isNativeRepository()) {
+            jackAssignRoleDummiesSimulated(task, result);
+        }
+        jackAssignRoleDummiesReal(task, result);
+    }
+
+    /**
+     * For the explanation of attribute/property assertions, see {@link #jackAssignRoleDummiesReal(Task, OperationResult)}.
+     */
+    private void jackAssignRoleDummiesSimulated(Task task, OperationResult result) throws Exception {
+        when();
+        var simulationResult = executeWithSimulationResult(
+                task, result,
+                () -> assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result));
+
+        then();
+        assertSuccess(result);
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED, MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED)
+                    .delta()
+                        .assertPolyStringModification(
+                                UserType.F_ORGANIZATIONAL_UNIT,
+                                null,
+                                "The crew of The Lost Souls") // see the "real" assertions
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME, "The Great Voodoo Master")
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                    .assertValue(
+                                            DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME,
+                                            "Jack Sparrow must be the best captain the Caribbean has ever seen")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, ACCOUNT_JACK_DUMMY_FULLNAME)
+                                    .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME, "The crew of The Lost Souls")
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    private void jackAssignRoleDummiesReal(Task task, OperationResult result) throws Exception {
         when();
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -936,15 +1034,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The Great Voodoo Master")
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The Great Voodoo Master")
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
             // after user's organizationUnit is set and it will have the same value as above.
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls")
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls")
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best captain the Caribbean has ever seen");
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
@@ -952,38 +1050,95 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertEnabled()
             // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
             // after user's organizationUnit is set and it will have the same value as above.
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
             .assertEnabled()
             // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
             // after user's organizationUnit is set and it will have the same value as above.
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+            .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
     }
 
     private void jackRename() throws Exception {
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        jackRename("jackie", "Jackie Sparrow", task, result);
-        jackRename(USER_JACK_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, task, result);
+        if (isNativeRepository()) {
+            jackRenameSimulated("jackie", "Jackie Sparrow", task, result);
+        }
+        jackRenameReal("jackie", "Jackie Sparrow", task, result);
+        jackRenameReal(USER_JACK_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, task, result);
     }
 
-    private void jackRename(String toName, String toFullName, Task task, OperationResult result)
+    @SuppressWarnings("SameParameterValue")
+    private void jackRenameSimulated(String toName, String toFullName, Task task, OperationResult result)
             throws Exception {
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_NAME,
-                PrismTestUtil.createPolyString(toName));
-        objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(toFullName));
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
-        // WHEN
-        when();
-        modelService.executeChanges(deltas, null, task, result);
+        when("simulated change to " + toName + "/" + toFullName + " is executed");
+        var simulationResult = executeWithSimulationResult(
+                List.of(createRenameDelta(toName, toFullName)), task, result);
 
-        // THEN
-        then();
+        then("result is OK");
+        assertSuccess(result);
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_RENAMED)
+                    .delta()
+                        .assertModifiedExclusive(
+                                UserType.F_NAME,
+                                UserType.F_FULL_NAME,
+                                UserType.F_METADATA)
+                        .assertPolyStringModification(UserType.F_NAME, "jack", toName)
+                        .assertPolyStringModification(UserType.F_FULL_NAME, "Jack Sparrow", toFullName)
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .delta()
+                        .assertModification(ICFS_NAME_PATH, "jack", toName)
+                        .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .delta()
+                        .assertModification(ICFS_NAME_PATH, "jack", toName)
+                        .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
+                        .assertModification(
+                                DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH,
+                                "Jack Sparrow must be the best captain the Caribbean has ever seen",
+                                toFullName +" must be the best captain the Caribbean has ever seen")
+                        // plus other changes not checked here
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .delta()
+                        .assertModification(ICFS_NAME_PATH, "jack", toName)
+                        .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .delta()
+                        .assertModification(ICFS_NAME_PATH, "jack", toName)
+                        .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    private void jackRenameReal(String toName, String toFullName, Task task, OperationResult result)
+            throws Exception {
+
+        when("real change to " + toName + "/" + toFullName + " is executed");
+        modelService.executeChanges(
+                List.of(createRenameDelta(toName, toFullName)), null, task, result);
+
+        then("result is OK");
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -995,7 +1150,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertDefaultDummyAccount(toName, toFullName, true);
         assertDefaultDummyAccountAttribute(toName, "title", "The Great Voodoo Master");
-        assertDefaultDummyAccountAttribute(toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
+        assertDefaultDummyAccountAttribute(toName, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
 
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
@@ -1004,34 +1159,75 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+                DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
         assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, toFullName +" must be the best captain the Caribbean has ever seen");
 
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, toName, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, toName, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+    }
+
+    private ObjectDelta<UserType> createRenameDelta(String toName, String toFullName) throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_NAME).replace(PolyString.fromOrig(toName))
+                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig(toFullName))
+                .asObjectDelta(USER_JACK_OID);
     }
 
     private void jackUnAssignRoleDummies() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        if (isNativeRepository()) {
+            jackUnAssignRoleDummiesSimulated(task, result);
+        }
+        jackUnAssignRoleDummiesReal(task, result);
+    }
+
+    private void jackUnAssignRoleDummiesSimulated(Task task, OperationResult result) throws Exception {
+        when("unassignment is executed in simulation mode");
+        var simulationResult = executeWithSimulationResult(
+                task, result,
+                () -> unassignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result));
+
+        then("result is OK");
+        assertSuccess(result);
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED, MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end();
+        // @formatter:on
+    }
+
+    private void jackUnAssignRoleDummiesReal(Task task, OperationResult result) throws Exception {
 
         List<String> linkOidsBefore = assertUserBefore(USER_JACK_OID)
                 .links()
                 .getOids();
 
-        // WHEN
         when();
         unassignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -1039,7 +1235,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assignments()
                 .assertNoRole()
                 .end()
-            .assertLiveLinks(0);
+            .assertLiveLinks(0)
+            .assertOrganizationalUnits("The crew of The Lost Souls");
 
         assertNoShadows(linkOidsBefore);
 
@@ -1047,12 +1244,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-
-        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
     }
 
     /**
-     * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
+     * The "dummies" role assigns two dummy resources that are in a dependency. The value of
+     * {@link DummyResourceContoller#DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME} is propagated from one
      * resource through the user to the other resource. If dependency does not work then no value is propagated.
      */
     private void jackAssignRoleDummiesError(
@@ -1089,13 +1285,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         if (expectAccount) {
             assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
             // This is actually pulled from the uncreated shadow
-            assertDummyAccountAttribute(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+            assertDummyAccountAttribute(
+                    dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME,
+                    DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
         } else {
             assertNoDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME);
         }
     }
 
-    private void clearJackOrganizationalUnit(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    private void clearJackOrganizationalUnit(Task task, OperationResult result) throws CommonException {
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
     }
 
@@ -1789,7 +1987,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, name, USER_WORLD_FULL_NAME, goliathEnabled);
 
         assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, name,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ou+" ("+name+") take throw ("+name+") hit");
+                DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ou+" ("+name+") take throw ("+name+") hit");
 
         assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString(ou+" ("+name+") take throw ("+name+") hit fall"));
 
@@ -1811,9 +2009,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        traced( () ->
-                modifyUserReplace(
-                        userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock")));
+        modifyUserReplace(
+                userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
 
         // THEN
         then();

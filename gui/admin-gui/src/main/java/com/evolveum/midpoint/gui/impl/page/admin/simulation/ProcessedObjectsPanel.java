@@ -7,26 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -37,10 +17,30 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -93,21 +93,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        return new RoundedIconColumn<>(null) {
-
-            @Override
-            protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
-                SimulationResultProcessedObjectType object = model.getObject().getValue();
-                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
-                if (obj == null || obj.asPrismObject() == null) {
-                    return new DisplayType()
-                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
-                }
-
-                return new DisplayType()
-                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
-            }
-        };
+        return SimulationsGuiUtil.createProcessedObjectIconColumn();
     }
 
     @Override
@@ -166,14 +152,14 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
-                        onObjectNameClicked(target, rowModel.getObject());
+                        onObjectNameClicked(rowModel.getObject());
                     }
                 });
             }
         };
     }
 
-    private void onObjectNameClicked(AjaxRequestTarget target, SelectableBean<SimulationResultProcessedObjectType> bean) {
+    private void onObjectNameClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
             return;
@@ -230,9 +216,24 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             return createStateColumn(displayModel);
         } else if (SimulationResultProcessedObjectType.F_TYPE.equivalent(path)) {
             return createTypeColumn(displayModel);
+        } else if (SimulationResultProcessedObjectType.F_DELTA.equivalent(path)) {
+            return createDeltaColumn(displayModel);
         }
 
         return super.createCustomExportableColumn(displayModel, customColumn, expression);
+    }
+
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn(IModel<String> displayModel) {
+        return new DeltaProgressBarColumn<>(createStringResource("ProcessedObjectsPanel.deltaColumn")) {
+
+            @Override
+            protected @NotNull IModel<ObjectDeltaType> createObjectDeltaModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return () -> {
+                    SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
+                    return object != null ? object.getDelta() : null;
+                };
+            }
+        };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {
@@ -241,17 +242,46 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
-                item.add(GuiSimulationsUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
+                item.add(SimulationsGuiUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue));
+        return new LambdaColumn<>(displayModel, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
     }
 
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public void refreshTable(AjaxRequestTarget target) {
+        super.refreshTable(target);
+
+        // Here we want to align what is search item for "event mark" (which oid) with page url.
+        // Url should be updated if selected mark oid has changed so that navigation works correctly
+        // between processed object list and details, same for bookmarking urls.
+
+        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        if (!(wrapper instanceof AvailableMarkSearchItemWrapper)) {
+            return;
+        }
+
+        AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
+        DisplayableValue<String> value = markWrapper.getValue();
+        String newMarkOid = value != null ? value.getValue() : null;
+        if (Objects.equals(getMarkOid(), newMarkOid)) {
+            return;
+        }
+
+        PageParameters params = getPage().getPageParameters();
+        params.remove(SimulationPage.PAGE_PARAMETER_MARK_OID);
+        if (newMarkOid != null) {
+            params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, newMarkOid);
+        }
+
+        throw new RestartResponseException(getPage());
     }
 }

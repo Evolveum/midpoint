@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -363,7 +363,8 @@ public class ReportServiceImpl implements ReportService {
 
         ExpressionType expression = subreport.getExpression();
         try {
-            Collection<? extends PrismValue> subreportParameter = evaluateScript(reportObject, expression, variables, "subreport parameter", task, result);
+            Collection<? extends PrismValue> subreportParameter = evaluateScript(reportObject, expression, variables,
+                    "subreport parameter '" + subreport.getName() + '\'', task, result);
             Class<?> subreportParameterClass;
             if (subreport.getType() != null) {
                 subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());

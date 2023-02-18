@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -86,7 +86,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
     private static final TestResource<UserType> USER_ALICE =
             new TestResource<>(TEST_DIR, "110-user-alice.xml", "7c8d1fcc-5033-4275-8396-b3ce02e218a9");
 
-    static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "21d4788c-15eb-40cc-8ac5-3cd379362ffe", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId,studyProgram");
 

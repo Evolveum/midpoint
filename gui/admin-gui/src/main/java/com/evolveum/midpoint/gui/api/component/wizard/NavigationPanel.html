@@ -13,10 +13,14 @@
     </a>
     <h3 class="mb-0" wicket:id="title"/>
     <div class="flex-grow-1" wicket:id="content"/>
-    <a class="btn btn-success" wicket:id="next">
-        <wicket:message key="NavigationPanel.next"/>
-        <span wicket:id="nextLabel"/>
-        <i class="fas fa-arrow-right ml-2"></i>
-    </a>
+    <a wicket:id="next"/>
+
+    <wicket:fragment wicket:id="nextFragment">
+        <a wicket:id="nextLink">
+            <wicket:message key="NavigationPanel.next"/>
+            <span wicket:id="nextLabel"/>
+            <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+    </wicket:fragment>
 </wicket:panel>
 </html>

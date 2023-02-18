@@ -7,13 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,31 +29,26 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.*;
 
 /**
  * Updates counters for policy rules, with the goal of determining if rules' thresholds have been reached.
  *
  * Currently supported only for object-level rules.
+ *
+ * Intentionally package-private.
  */
-@Component
-@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class)
-public class PolicyRuleCounterUpdater implements ProjectorProcessor {
+class PolicyRuleCounterUpdater<AH extends AssignmentHolderType> {
 
-    @ProcessorMethod
-    public <AH extends AssignmentHolderType> void updateCounters(LensContext<AH> context,
-            @SuppressWarnings("unused") XMLGregorianCalendar now,
-            Task task, OperationResult result)
+    @NotNull private final LensContext<AH> lensContext;
+    @NotNull private final Task task;
+
+    PolicyRuleCounterUpdater(@NotNull LensContext<AH> lensContext, @NotNull Task task) {
+        this.lensContext = lensContext;
+        this.task = task;
+    }
+
+    void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         ExecutionSupport executionSupport = task.getExecutionSupport();
@@ -62,12 +65,14 @@ public class PolicyRuleCounterUpdater implements ProjectorProcessor {
          * 2) All remaining rules are incremented - if they are triggered.
          *
          * All of this is needed because the rules are quite temporary; they are recreated on each projector run,
-         * currently even on each focus iteration (which is maybe unnecessary). We certainly do not want to increase
-         * the counters each time. But we need to have the current counter value in the rules even on further projector
-         * runs.
+         * currently even on each focus iteration. We certainly do not want to increase the counters each time.
+         * But we need to have the current counter value in the rules even on further projector runs.
          */
 
-        LensFocusContext<AH> focusContext = context.getFocusContextRequired();
+        LensFocusContext<AH> focusContext = lensContext.getFocusContext();
+        if (focusContext == null) {
+            return;
+        }
 
         List<EvaluatedPolicyRule> rulesToIncrement = new ArrayList<>();
         for (EvaluatedPolicyRuleImpl rule : focusContext.getObjectPolicyRules()) {

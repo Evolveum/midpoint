@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -28,6 +31,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
+import com.evolveum.midpoint.schema.util.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -112,6 +117,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         super.initSystem(initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
+        REPORT_SIMULATION_BASIC.init(this, initTask, initResult);
 
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
@@ -161,7 +167,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     /** Creates an account, but the resource is set to be failing. */
     @Test
-    public void test095ModifyUserAddAccountFailing() throws Exception {
+    public void test100ModifyUserAddAccountFailing() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -218,7 +224,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test099ModifyUserAddAccountSimulated() throws Exception {
+    public void test110ModifyUserAddAccountSimulated() throws Exception {
 
         skipIfNotNativeRepository();
 
@@ -230,10 +236,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when("account is added in the simulation mode");
         var simulationResult = executeWithSimulationResult(
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
                 task, result,
-                (simResult) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
+                () -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
 
         then("operation is successful");
         assertSuccess(result);
@@ -249,7 +253,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                     .assertEventMarks()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
-                    .assertEventMarks(CommonInitialObjects.MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
                 .end()
                 .assertSize(2);
 
@@ -258,10 +262,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_BASIC.export()
+                .withParameterValues(simulationResult.getSimulationResultOid())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .display();
     }
 
     @Test
-    public void test100ModifyUserAddAccount() throws Exception {
+    public void test120ModifyUserAddAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -292,14 +305,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
-        /*
-        TODO for new repo - why does it complain about raw when there is raw above?
-        java.lang.IllegalStateException: Raw value PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))
-         in item PP({.../resource/instance/10000000-0000-0000-0000-000000000004}location):[PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))]
-          (attributes/location in shadow:3a727816-70f7-4301-98ab-c1a0020d1ea2(jack))
-         */
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(
+                ShadowType.class, accountJackOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -344,7 +351,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test101GetAccount() throws Exception {
+    public void test130GetAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -406,7 +413,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test102GetAccountNoFetch() throws Exception {
+    public void test140GetAccountNoFetch() throws Exception {
 
         given();
         Task task = getTestTask();
@@ -435,7 +442,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * MID-6716
      */
     @Test
-    public void test103GetAccountRaw() throws Exception {
+    public void test150GetAccountRaw() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -480,7 +487,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test105SearchAccount() throws Exception {
+    public void test160SearchAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -512,7 +519,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test106SearchAccountWithoutResourceSchema() throws Exception {
+    public void test170SearchAccountWithoutResourceSchema() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -538,7 +545,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test107ModifyUserAddAccountAgainSimulated() throws Exception {
+    public void test180ModifyUserAddAccountAgainSimulated() throws Exception {
         skipIfNotNativeRepository();
 
         given();
@@ -550,10 +557,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         try {
             when("account is tried to be added (simulation mode)");
             executeWithSimulationResult(
-                    TaskExecutionMode.SIMULATED_PRODUCTION,
-                    defaultSimulationDefinition(),
                     task, result,
-                    (simResult) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
+                    () -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
 
             then();
             assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
@@ -579,7 +584,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test108ModifyUserAddAccountAgain() throws Exception {
+    public void test190ModifyUserAddAccountAgain() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -613,7 +618,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     /** Adding account again; this time without OID. */
     @Test
-    public void test109ModifyUserAddAccountAgain() throws Exception {
+    public void test200ModifyUserAddAccountAgain() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -653,7 +658,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test110GetUserResolveAccount() throws Exception {
+    public void test210GetUserResolveAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -689,7 +694,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test111GetUserResolveAccountResource() throws Exception {
+    public void test220GetUserResolveAccountResource() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -729,7 +734,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test112GetUserResolveAccountNoFetch() throws Exception {
+    public void test230GetUserResolveAccountNoFetch() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -769,7 +774,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test118ModifyUserDeleteAccountSimulated() throws Exception {
+    public void test240ModifyUserDeleteAccountSimulated() throws Exception {
         skipIfNotNativeRepository();
 
         Task task = getTestTask();
@@ -782,11 +787,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = createDeleteAccountDelta(USER_JACK_OID, account);
 
         when("account is added in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(userDelta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(userDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -817,7 +818,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test119ModifyUserDeleteAccount() throws Exception {
+    public void test250ModifyUserDeleteAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -881,7 +882,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test120AddAccount() throws Exception {
+    public void test260AddAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -942,12 +943,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);          // there's no password for that account
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0); // there's no password for that account
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 0);               // account has no owner
+        checkDummyTransportMessages("simpleUserNotifier", 0); // account has no owner
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
@@ -957,7 +958,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Linking existing account.
      */
     @Test
-    public void test121ModifyUserAddAccountRef() throws Exception {
+    public void test270ModifyUserAddAccountRef() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1020,8 +1021,54 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** Simulated deletion of the account while it is still linked. */
     @Test
-    public void test128ModifyUserDeleteAccountRef() throws Exception {
+    public void test280DeleteLinkedAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        objectsCounter.remember(result);
+
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+                .createDeleteDelta(ShadowType.class, accountJackOid);
+
+        when();
+        when("account is deleted in the simulation mode");
+        var simulationResult = executeWithSimulationResult(List.of(accountDelta), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("no resource access, steady resources");
+        assertShadowFetchOperations(1); // Because of the event mark policy rules
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(2);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test290ModifyUserDeleteAccountRef() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1089,8 +1136,51 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** Simulated deletion of an unlinked account. */
     @Test
-    public void test129DeleteAccount() throws Exception {
+    public void test300DeleteUnlinkedAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        objectsCounter.remember(result);
+
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+                .createDeleteDelta(ShadowType.class, accountJackOid);
+
+        when();
+        when("account is deleted in the simulation mode");
+        var simulationResult = executeWithSimulationResult(List.of(accountDelta), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("single resource access (because of sims), steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display() // No user, because the account was not linked
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(1);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test310DeleteUnlinkedAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1098,10 +1188,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, accountJackOid);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 
         when();
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(List.of(accountDelta), null, task, result);
 
         then();
         assertSuccess("executeChanges result", result);
@@ -1109,15 +1198,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
-        // Check accountRef
-        assertUserNoAccountRefs(userJack);
-
-        // Check is shadow is gone
-        assertNoShadow(accountJackOid);
-
-        // Check if dummy resource account is gone
-        assertNoDummyAccount("jack");
-
+        assertUserNoAccountRefs(userJack); // Check that linkRef is gone
+        assertNoShadow(accountJackOid); // Check is shadow is gone
+        assertNoDummyAccount("jack"); // Check if dummy resource account is gone
         assertDummyScriptsDelete();
 
         // Check audit
@@ -1145,19 +1228,68 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test130PreviewModifyUserJackAssignAccount() {
+    public void test320ModifyUserJackAssignAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        objectsCounter.remember(result);
+
+        ObjectDelta<UserType> delta =
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
+
+        when("account is assigned in the simulation mode");
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("no resource access, steady resources");
+        assertNoShadowFetchOperations();
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                .end()
+                .assertSize(2);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        assertUserNoAccountRefs(userJack); // No accountRef
+        assertNoDummyAccount("jack"); // No account in dummy resource
+    }
+
+    @Test
+    public void test330ModifyUserJackAssignAccountPreview() {
         given();
         try {
             Task task = getTestTask();
             OperationResult result = task.getResult();
             preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
-            deltas.add(accountAssignmentUserDelta);
+            ObjectDelta<UserType> delta =
+                    createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
 
             when();
-            modelInteractionService.previewChanges(deltas, executeOptions(), task, result);
+            modelInteractionService.previewChanges(List.of(delta), executeOptions(), task, result);
 
             then();
             result.computeStatus();
@@ -1191,7 +1323,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test131ModifyUserJackAssignAccount() throws Exception {
+    public void test340ModifyUserJackAssignAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1228,7 +1360,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
         // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        PrismObject<ShadowType> accountModel =
+                modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
         assertEnableTimestampShadow(accountModel, startTime, endTime);
 
@@ -1267,25 +1400,105 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     /**
      * Modify the account. Some of the changes should be reflected back to the user by inbound mapping.
+     *
+     * Simulation mode.
      */
     @Test
-    public void test132ModifyAccountJackDummy() throws Exception {
+    public void test350ModifyAccountJackDummySimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        when("account is modified in the simulation mode");
+        var simulationResult = executeWithSimulationResult(List.of(createJacksAccountModifyDelta()), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("single shadow fetch, steady resources");
+        assertShadowFetchOperations(1); // strong mapping, simulation mode
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        // @formatter:off
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks()
+                    .delta()
+                        .assertModifiedExclusive(
+                                UserType.F_METADATA,
+                                UserType.F_ORGANIZATIONAL_UNIT)
+                        .assertPolyStringModification(
+                                UserType.F_ORGANIZATIONAL_UNIT,
+                                null,
+                                "The crew of Queen Anne's Revenge")
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks()
+                    .delta()
+                        .assertModifiedExclusive(
+                                ShadowType.F_METADATA,
+                                DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH,
+                                DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH)
+                        .assertModification(
+                                DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH,
+                                "Jack Sparrow",
+                                "Cpt. Jack Sparrow")
+                        .assertModification(
+                                DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH,
+                                null,
+                                "Queen Anne's Revenge")
+                    .end()
+                .end()
+                .assertSize(2);
+        // @formatter:on
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+
+        and("No changes in the account");
+        PrismObject<ShadowType> accountModel =
+                modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
+        PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
+    }
+
+    private ObjectDelta<ShadowType> createJacksAccountModifyDelta() throws SchemaException, ConfigurationException {
+        return Resource.of(dummyResourceCtl.getResource())
+                .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                .item(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH)
+                .replace("Cpt. Jack Sparrow")
+                .item(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH)
+                .replace("Queen Anne's Revenge")
+                .asObjectDelta(accountJackOid);
+    }
+
+    /**
+     * Modify the account. Some of the changes should be reflected back to the user by inbound mapping.
+     */
+    @Test
+    public void test360ModifyAccountJackDummy() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountJackOid, dummyResourceCtl.getAttributeFullnamePath(), "Cpt. Jack Sparrow");
-        accountDelta.addModificationReplaceProperty(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
-
         when();
-        executeChanges(accountDelta, null, task, result);
+        executeChanges(createJacksAccountModifyDelta(), null, task, result);
 
         then();
         assertSuccess(result);
-        // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+
+        assertShadowFetchOperations(1); // There is strong mapping. Complete account is fetched.
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1305,13 +1518,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check account
         // All the changes should be reflected to the account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        PrismObject<ShadowType> accountModel =
+                modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Cpt. Jack Sparrow");
         PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
 
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+        assertDummyAccountAttribute(
+                null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
                 "Queen Anne's Revenge");
 
         assertDummyScriptsModify(userJack);
@@ -1354,7 +1569,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * MID-3080
      */
     @Test
-    public void test135ModifyUserJackAssignAccountAgain() throws Exception {
+    public void test370ModifyUserJackAssignAccountAgain() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1414,7 +1629,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test136JackRecomputeNoChange() throws Exception {
+    public void test380JackRecomputeNoChange() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1439,17 +1654,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Account OID changed", accountJackOid, accountJackOidAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        PrismObject<ShadowType> accountShadow =
+                repositoryService.getObject(ShadowType.class, accountJackOid, createRawCollection(), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        PrismObject<ShadowType> accountModel =
+                modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Cpt. Jack Sparrow");
 
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Cpt. Jack Sparrow", true);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+        assertDummyAccountAttribute(
+                null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
                 "Queen Anne's Revenge");
 
         // Check audit
@@ -1472,7 +1689,47 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test139ModifyUserJackUnassignAccount() throws Exception {
+    public void test390ModifyUserJackUnassignAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        when();
+        var simulationResult = executeWithSimulationResult(
+                List.of(createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false)),
+                task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("single shadow read, steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test400ModifyUserJackUnassignAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1532,7 +1789,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Assignment enforcement is set to POSITIVE for this test. The account should be added.
      */
     @Test
-    public void test141ModifyUserJackAssignAccountPositiveEnforcement() throws Exception {
+    public void test410ModifyUserJackAssignAccountPositiveEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1614,7 +1871,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Assignment enforcement is set to POSITIVE for this test. The account should remain as it is.
      */
     @Test
-    public void test148ModifyUserJackUnassignAccountPositiveEnforcement() throws Exception {
+    public void test420ModifyUserJackUnassignAccountPositiveEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1705,7 +1962,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Now we will explicitly delete the account.
      */
     @Test
-    public void test149ModifyUserJackDeleteAccount() throws Exception {
+    public void test430ModifyUserJackDeleteAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1775,7 +2032,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Assignment enforcement is set to RELATTIVE for this test. The account should be added.
      */
     @Test
-    public void test151ModifyUserJackAssignAccountRelativeEnforcement() throws Exception {
+    public void test440ModifyUserJackAssignAccountRelativeEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1850,7 +2107,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Assignment enforcement is set to RELATIVE for this test. The account should be gone.
      */
     @Test
-    public void test158ModifyUserJackUnassignAccountRelativeEnforcement() throws Exception {
+    public void test450ModifyUserJackUnassignAccountRelativeEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1911,7 +2168,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Assignment enforcement is set to NONE for this test.
      */
     @Test
-    public void test161ModifyUserJackAssignAccountNoneEnforcement() throws Exception {
+    public void test460ModifyUserJackAssignAccountNoneEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1971,7 +2228,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test163ModifyUserJackAddAccountNoneEnforcement() throws Exception {
+    public void test470ModifyUserJackAddAccountNoneEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2050,7 +2307,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test164ModifyUserJackUnassignAccountNoneEnforcement() throws Exception {
+    public void test480ModifyUserJackUnassignAccountNoneEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2114,7 +2371,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test169ModifyUserJackDeleteAccountNoneEnforcement() throws Exception {
+    public void test490ModifyUserJackDeleteAccountNoneEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2179,7 +2436,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test180ModifyUserAddAccountFullEnforcement() throws Exception {
+    public void test500ModifyUserAddAccountFullEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2237,7 +2494,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test182ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
+    public void test510ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2311,7 +2568,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Now we will explicitly delete the account.
      */
     @Test
-    public void test189ModifyUserJackUnassignAndDeleteAccount() throws Exception {
+    public void test520ModifyUserJackUnassignAndDeleteAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2367,7 +2624,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * other should be overridden (e.g. fullname) as the mapping is strong.
      */
     @Test
-    public void test190ModifyUserJackAssignAccountAndModify() throws Exception {
+    public void test530ModifyUserJackAssignAccountAndModify() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2454,7 +2711,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * We also check the metadata.channel migration for both the object and the assignment (MID-6547).
      */
     @Test
-    public void test191ModifyUserJackModifyAssignment() throws Exception {
+    public void test540ModifyUserJackModifyAssignment() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2577,7 +2834,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test192ModifyUserJack() throws Exception {
+    public void test550ModifyUserJack() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2645,7 +2902,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test193ModifyUserJackLocationEmpty() throws Exception {
+    public void test560ModifyUserJackLocationEmpty() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2709,7 +2966,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test194ModifyUserJackLocationNull() throws Exception {
+    public void test570ModifyUserJackLocationNull() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2740,7 +2997,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test195ModifyUserJackLocationSea() throws Exception {
+    public void test580ModifyUserJackLocationSea() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2802,19 +3059,50 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** The simulated raw execution is forbidden. */
     @Test
-    public void test198ModifyUserJackRaw() throws Exception {
+    public void test590ModifyUserJackRawSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
-                PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(objectDelta);
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME)
+                .replace(PolyString.fromOrig("Marvelous Captain Jack Sparrow"))
+                .asObjectDelta(USER_JACK_OID);
 
         when();
-        modelService.executeChanges(deltas, executeOptions().raw(), task, result);
+        try {
+            executeWithSimulationResult(
+                    List.of(delta),
+                    executeOptions().raw(),
+                    TaskExecutionMode.SIMULATED_PRODUCTION,
+                    defaultSimulationDefinition(),
+                    task, result);
+            fail("unexpected success");
+        } catch (UnsupportedOperationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("Raw operation execution is not supported");
+        }
+    }
+
+    @Test
+    public void test600ModifyUserJackRaw() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME)
+                .replace(PolyString.fromOrig("Marvelous Captain Jack Sparrow"))
+                .asObjectDelta(USER_JACK_OID);
+
+        when();
+        modelService.executeChanges(List.of(delta), executeOptions().raw(), task, result);
 
         then();
         result.computeStatus();
@@ -2855,18 +3143,58 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test199DeleteUserJack() throws Exception {
+    public void test610DeleteUserJackSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        ObjectDelta<UserType> delta =
+                prismContext.deltaFactory().object().createDeleteDelta(UserType.class, USER_JACK_OID);
+
+        when();
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("single shadow fetch, steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(MARK_FOCUS_DEACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find()
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test620DeleteUserJack() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class, USER_JACK_OID
-        );
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        ObjectDelta<UserType> delta =
+                prismContext.deltaFactory().object().createDeleteDelta(UserType.class, USER_JACK_OID);
 
         when();
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(List.of(delta), null, task, result);
 
         then();
         result.computeStatus();
@@ -2916,7 +3244,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test200AddUserBlackbeardWithAccount() throws Exception {
+    public void test630AddUserBlackbeardWithAccount() throws Exception {
         given();
         Task task = getTestTask();
         // Use custom channel to trigger a special outbound mapping
@@ -2999,7 +3327,50 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test210AddUserMorganWithAssignment() throws Exception {
+    public void test640AddUserMorganWithAssignmentSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        ObjectDelta<UserType> delta =
+                DeltaFactory.Object.createAddDelta(
+                        PrismTestUtil.parseObject(
+                                new File(TEST_DIR, "user-morgan-assignment-dummy.xml")));
+
+        when();
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("no shadow fetch, steady resources");
+        assertNoShadowFetchOperations();
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
+                    .assertEventMarks(MARK_FOCUS_ACTIVATED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test645AddUserMorganWithAssignment() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3076,7 +3447,48 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test212RenameUserMorgan() throws Exception {
+    public void test650RenameUserMorganSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        objectsCounter.remember(result);
+
+        when();
+        var simulationResult = executeWithSimulationResult(
+                task, result,
+                () -> modifyUserReplace(
+                        USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry")));
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("one shadow fetch, steady resources");
+        assertShadowFetchOperations(1);
+        assertSteadyResources();
+
+        and("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_FOCUS_RENAMED)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                .end()
+                .assertSize(2);
+
+        and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
+        objectsCounter.assertNoNewObjects(result);
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+        dummyAuditService.assertNoRecord();
+        dummyTransport.assertNoMessages();
+    }
+
+    @Test
+    public void test655RenameUserMorgan() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3165,7 +3577,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * This basically tests for correct auditing.
      */
     @Test
-    public void test240AddUserCharlesRaw() throws Exception {
+    public void test660AddUserCharlesRaw() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3207,7 +3619,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * This basically tests for correct auditing.
      */
     @Test
-    public void test241DeleteUserCharlesRaw() throws Exception {
+    public void test670DeleteUserCharlesRaw() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3244,7 +3656,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test300AddUserJackWithAssignmentBlue() throws Exception {
+    public void test680AddUserJackWithAssignmentBlue() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3311,7 +3723,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * modify account blue directly + request reconcile. check old value in delta.
      */
     @Test
-    public void test302ModifyAccountJackDummyBlue() throws Exception {
+    public void test690ModifyAccountJackDummyBlue() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3385,7 +3797,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test // MID-5516
-    public void test400RemoveExtensionProtectedStringValue() throws Exception {
+    public void test700RemoveExtensionProtectedStringValue() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3421,7 +3833,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test // MID-6592
-    public void test410RecomputeRole() throws Exception {
+    public void test710RecomputeRole() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3450,7 +3862,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * See MID-8361.
      */
     @Test
-    public void test420DanglingLiveLinkRefCleanup() throws Exception {
+    public void test720DanglingLiveLinkRefCleanup() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
@@ -3477,7 +3889,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * See MID-8361.
      */
     @Test
-    public void test430DanglingDeadLinkRefCleanup() throws Exception {
+    public void test730DanglingDeadLinkRefCleanup() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
@@ -3507,8 +3919,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      *
      * This test is in this class because I've found no suitable test class in model-impl module.
      */
-    @Test()
-    public void test500MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
+    @Test
+    public void test740MismatchedDefinitionLookupInTransformedSchema() throws CommonException {
         given("obtaining ResourceType definition via model-api");
         Task task = getTestTask();
         OperationResult result = task.getResult();

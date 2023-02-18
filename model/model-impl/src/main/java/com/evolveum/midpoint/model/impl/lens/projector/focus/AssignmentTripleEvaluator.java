@@ -76,7 +76,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private final LifecycleStateModelType focusStateModel;
 
-    private final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
+    @NotNull private final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
 
     private ContainerDelta<AssignmentType> currentAssignmentDelta;
 
@@ -106,7 +106,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         computeCurrentAssignmentDelta();
     }
 
-    DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
+    @NotNull DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException,
             CommunicationException {
 

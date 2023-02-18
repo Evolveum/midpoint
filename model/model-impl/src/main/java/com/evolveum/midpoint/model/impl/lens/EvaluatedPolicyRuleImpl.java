@@ -70,16 +70,20 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      *
      * For global policy rules, assignmentPath is the path to the target object that matched global policy rule.
      *
+     * See also {@link #targetType}.
+     *
      * It can null for artificially-created policy rules e.g. in task validity cases. To be reviewed.
      */
     @Nullable private final AssignmentPath assignmentPath;
-    @Nullable private final ObjectType directOwner;
 
     /**
      * Evaluated assignment that brought this policy rule to the focus or target.
      * May be missing for artificially-crafted policy rules (to be reviewed!)
      */
     private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
+
+    /** See {@link EvaluatedPolicyRule#getTargetType()}. */
+    @NotNull private final TargetType targetType;
 
     /** Tries to uniquely identify the policy rule. Used e.g. for threshold counters. */
     @NotNull private final String ruleId;
@@ -95,12 +99,21 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             @NotNull PolicyRuleType policyRuleBean,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
-            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+            @NotNull TargetType targetType) {
+        this(policyRuleBean, ruleId, assignmentPath, null, targetType);
+    }
+
+    public EvaluatedPolicyRuleImpl(
+            @NotNull PolicyRuleType policyRuleBean,
+            @NotNull String ruleId,
+            @Nullable AssignmentPath assignmentPath,
+            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            @NotNull TargetType targetType) {
         this.policyRuleBean = policyRuleBean;
         this.ruleId = ruleId;
         this.assignmentPath = assignmentPath;
         this.evaluatedAssignment = evaluatedAssignment;
-        this.directOwner = computeDirectOwner();
+        this.targetType = targetType;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -109,15 +122,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
                 CloneUtil.clone(policyRuleBean),
                 ruleId,
                 CloneUtil.clone(assignmentPath),
-                evaluatedAssignment);
-    }
-
-    private ObjectType computeDirectOwner() {
-        if (assignmentPath == null) {
-            return null;
-        }
-        List<ObjectType> roots = assignmentPath.getFirstOrderChain();
-        return roots.isEmpty() ? null : roots.get(roots.size()-1);
+                evaluatedAssignment,
+                targetType);
     }
 
     @Override
@@ -138,12 +144,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
     public EvaluatedAssignmentImpl<?> getEvaluatedAssignment() {
         return evaluatedAssignment;
-    }
-
-    @Nullable
-    @Override
-    public ObjectType getDirectOwner() {
-        return directOwner;
     }
 
     @Override
@@ -312,7 +312,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         sb.append('\n');
         debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
-        debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
         debugDumpWithLabel(sb, "rootObjects", assignmentPath != null ? String.valueOf(assignmentPath.getFirstOrderChain()) : null, indent + 1);
         return sb.toString();
     }
@@ -327,13 +326,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return java.util.Objects.equals(policyRuleBean, that.policyRuleBean) &&
                 Objects.equals(assignmentPath, that.assignmentPath) &&
                 Objects.equals(triggers, that.triggers) &&
-                Objects.equals(policyExceptions, that.policyExceptions) &&
-                Objects.equals(directOwner, that.directOwner);
+                Objects.equals(policyExceptions, that.policyExceptions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(policyRuleBean, assignmentPath, triggers, policyExceptions, directOwner);
+        return Objects.hash(policyRuleBean, assignmentPath, triggers, policyExceptions);
     }
 
     @Override
@@ -396,9 +394,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         if (isFull && assignmentPath != null) {
             bean.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
         }
-        if (isFull && directOwner != null) {
-            bean.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
-            bean.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
+        if (isFull) {
+            ObjectType directOwner = computeDirectOwner();
+            if (directOwner != null) {
+                bean.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
+                bean.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
+            }
         }
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (triggerSelector != null && !triggerSelector.test(trigger)) {
@@ -417,6 +418,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         } else {
             ruleBeans.add(bean);
         }
+    }
+
+    private ObjectType computeDirectOwner() {
+        if (assignmentPath == null) {
+            return null;
+        }
+        List<ObjectType> roots = assignmentPath.getFirstOrderChain();
+        return roots.isEmpty() ? null : roots.get(roots.size()-1);
     }
 
     @NotNull
@@ -454,7 +463,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
     }
 
-    private PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
+    private static PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
         if (assignment != null) {
             PrismContainerDefinition<?> definition = assignment.asPrismContainerValue().getDefinition();
             if (definition != null) {
@@ -537,6 +546,44 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public void setCount(int value) {
         count = value;
+    }
+
+    @Override
+    public boolean isOverThreshold() throws ConfigurationException {
+        // TODO: better implementation that takes high water mark into account
+        PolicyThresholdType thresholdSettings = getPolicyThreshold();
+        WaterMarkType lowWaterMark = thresholdSettings != null ? thresholdSettings.getLowWaterMark() : null;
+        if (lowWaterMark == null) {
+            LOGGER.trace("No low water mark defined.");
+            return true;
+        }
+        Integer lowWaterCount = lowWaterMark.getCount();
+        if (lowWaterCount == null) {
+            throw new ConfigurationException("No count in low water mark in a policy rule");
+        }
+        return count >= lowWaterCount;
+    }
+
+    @Override
+    public boolean hasSituationConstraint() {
+        return hasSituationConstraint(getPolicyConstraints());
+    }
+
+    private boolean hasSituationConstraint(Collection<PolicyConstraintsType> constraints) {
+        return constraints.stream().anyMatch(this::hasSituationConstraint);
+    }
+
+    private boolean hasSituationConstraint(PolicyConstraintsType constraints) {
+        return constraints != null &&
+                (!constraints.getSituation().isEmpty() ||
+                        hasSituationConstraint(constraints.getAnd()) ||
+                        hasSituationConstraint(constraints.getOr()) ||
+                        hasSituationConstraint(constraints.getNot()));
+    }
+
+    @Override
+    public @NotNull EvaluatedPolicyRule.TargetType getTargetType() {
+        return targetType;
     }
 
     @NotNull Collection<String> getTriggeredEventMarks() {

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.testing.story.correlation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,13 +40,13 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
     private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
             new TestResource<>(TEST_DIR, "object-template-user.xml", "bf275746-f2ce-4ae3-9e91-0c40e26422b7");
 
-    private static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    private static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "773991ae-4853-4e88-9cfc-b10bec750f3b", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId");
-    private static final CsvResource RESOURCE_HR = new CsvResource(TEST_DIR, "resource-hr.xml",
+    private static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-hr.xml",
             "084dfbfa-c465-421b-a2ac-2ab3afbf20ff", "resource-hr.csv",
             "HR_ID,FIRSTN,LASTN,DOB,NATIDENT");
-    private static final CsvResource RESOURCE_EXTERNAL = new CsvResource(TEST_DIR, "resource-external.xml",
+    private static final CsvTestResource RESOURCE_EXTERNAL = new CsvTestResource(TEST_DIR, "resource-external.xml",
             "106c248c-ce69-4274-845f-7fb391e1545a", "resource-external.csv",
             "EXT_ID,FIRSTN,LASTN,DOB,NATIDENT"); // schema similar to HR
 

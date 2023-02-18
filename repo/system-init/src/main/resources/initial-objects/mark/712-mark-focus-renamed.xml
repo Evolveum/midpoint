@@ -21,8 +21,5 @@
                 <item>name</item>
             </modification>
         </policyConstraints>
-        <focusSelector>
-            <type>FocusType</type>
-        </focusSelector>
     </policyRule>
 </mark>

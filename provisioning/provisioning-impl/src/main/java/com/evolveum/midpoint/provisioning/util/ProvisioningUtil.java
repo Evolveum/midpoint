@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -447,29 +446,6 @@ public class ProvisioningUtil {
             LOGGER.warn("{}", m);
             //throw new IllegalStateException(m);        // use only for testing
         }
-    }
-
-    public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
-        return modifications.stream()
-                .filter(ProvisioningUtil::isResourceModification)
-                .collect(Collectors.toList());
-    }
-
-    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
-        QName firstPathName = modification.getPath().firstName();
-        return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
-    }
-
-    public static boolean isAttributeModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
-    }
-
-    public static boolean isNonAttributeResourceModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
-                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
-                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
-                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     public static Duration getGracePeriod(ProvisioningContext ctx) {

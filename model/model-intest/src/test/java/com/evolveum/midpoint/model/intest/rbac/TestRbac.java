@@ -439,6 +439,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -474,6 +475,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -588,6 +590,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -623,6 +626,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -698,6 +702,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -734,6 +739,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
+        //noinspection unchecked
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
@@ -858,7 +864,7 @@ public class TestRbac extends AbstractRbacTest {
         testJackUnassignRolePirateRelationNoPrivs(RELATION_COMPLICATED_QNAME);
     }
 
-    public void testJackAssignRolePirateRelationNoPrivs(QName relation) throws Exception {
+    private void testJackAssignRolePirateRelationNoPrivs(QName relation) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -899,7 +905,7 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
-    public void testJackUnassignRolePirateRelationNoPrivs(QName relation) throws Exception {
+    private void testJackUnassignRolePirateRelationNoPrivs(QName relation) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4083,13 +4089,12 @@ public class TestRbac extends AbstractRbacTest {
                             .getValue();
             extensionContainerValue.createProperty(EXT_SEA)
                     .setRealValue("Caribbean");
-            traced( () ->
             executeChanges(
                     prismContext.deltaFor(RoleType.class)
                             .item(RoleType.F_EXTENSION)
                             .add(extensionContainerValue.clone())
                             .asObjectDelta(ROLE_IMMUTABLE_SEA_GLOBAL.oid),
-                    null, task, result));
+                    null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4508,7 +4513,7 @@ public class TestRbac extends AbstractRbacTest {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("modified")
                 .asObjectDelta(USER_FAILING_SCRIPT.oid);
-        traced(() -> executeChanges(delta, null, task, result));
+        executeChanges(delta, null, task, result);
 
         // THEN
         then();
@@ -4530,7 +4535,7 @@ public class TestRbac extends AbstractRbacTest {
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test920")
                 .beginAssignment()
                     .targetRef(ROLE_ADDING_RECOMPUTE_TRIGGER.oid, RoleType.COMPLEX_TYPE)
@@ -4561,7 +4566,7 @@ public class TestRbac extends AbstractRbacTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(PrismContext.get())
+        UserType user = new UserType()
                 .name("test930")
                 .beginAssignment()
                     .targetRef(ROLE_NON_UNASSIGNABLE.oid, RoleType.COMPLEX_TYPE)

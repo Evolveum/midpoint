@@ -11,10 +11,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 public class ReportConstants {
 
-    public static final String NS_EXTENSION = SchemaConstants.NS_REPORT + "/extension-3";
-
-    public static final ItemName REPORT_PARAMS_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportParam");
-    public static final ItemName REPORT_OUTPUT_OID_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportOutputOid");
-    public static final ItemName REPORT_DATA_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportDataParam");
+    public static final ItemName REPORT_PARAMS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportParam");
+    public static final ItemName REPORT_OUTPUT_OID_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportOutputOid");
+    public static final ItemName REPORT_DATA_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportDataParam");
 
 }

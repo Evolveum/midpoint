@@ -13,8 +13,27 @@
     <div class="row">
         <div class="col-3">
             <div wicket:id="details"/>
+            <wicket:enclosure child="relatedObjects">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fa-sharp fa-solid fa-bookmark mr-1"></i>
+                            <wicket:message key="PageSimulationResultObject.relatedObjects"/>
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table" wicket:id="relatedObjects"/>
+                    </div>
+                    <div class="card-footer d-flex align-items-center" wicket:id="footer">
+                        <div class="flex-grow-1" wicket:id="count"/>
+                        <div wicket:id="paging"/>
+                    </div>
+                </div>
+            </wicket:enclosure>
         </div>
-        <div class="col-9 row">
+        <div class="col-9">
+            <div wicket:id="changesNew"/>
+
             <div wicket:id="changes"/>
         </div>
     </div>

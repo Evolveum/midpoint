@@ -4,16 +4,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
 import java.util.*;
 
 @PanelType(name = "roleWizard-access-application-role")
@@ -79,9 +76,9 @@ public class AccessApplicationRoleStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<RoleType>> tile) {
-        RoleType applicationRole = tile.getValue().getValue();
-        if (tile.isSelected()) {
+    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value) {
+        RoleType applicationRole = value.getValue();
+        if (value.isSelected()) {
             selectedItems.getObject().add(
                     new AbstractMap.SimpleEntry(
                             applicationRole.getOid(),
@@ -120,7 +117,7 @@ public class AccessApplicationRoleStepPanel
         return PANEL_TYPE;
     }
 
-    protected void performSelectedTiles() {
+    protected void performSelectedObjects() {
         List<AbstractMap.SimpleEntry<String, String>> selectedNewItems = new ArrayList<>(selectedItems.getObject());
 
         ItemPath containerPath = getPathForValueContainer();

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="ee0e28ae-2827-4a69-bd5b-35b478cc2f5f">
+    <name>Basic simulation report</name>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+            <filter>
+                <q:inOid>
+                    <c:expression>
+                        <c:script>
+                            <c:code>simulationResultOid</c:code>
+                        </c:script>
+                    </c:expression>
+                    <q:considerOwner>true</q:considerOwner>
+                </q:inOid>
+            </filter>
+        </collection>
+        <view>
+            <column>
+                <name>id</name>
+                <export>
+                    <expression>
+                        <script>
+                            <code>input.id</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <!-- Nicer way of providing the identifier -->
+            <column>
+                <name>id2</name>
+                <path>#</path>
+            </column>
+            <column>
+                <name>oid</name>
+                <path>oid</path>
+            </column>
+            <column>
+                <name>name</name>
+                <path>name</path>
+            </column>
+            <column>
+                <name>type</name>
+                <path>type</path>
+            </column>
+            <column>
+                <name>state</name>
+                <path>state</path>
+            </column>
+            <column>
+                <name>markRefs123</name>
+                <path>eventMarkRef</path>
+            </column>
+            <type>c:SimulationResultProcessedObjectType</type>
+        </view>
+    </objectCollection>
+</report>

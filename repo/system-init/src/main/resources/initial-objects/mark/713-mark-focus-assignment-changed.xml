@@ -22,7 +22,7 @@
             </modification>
         </policyConstraints>
         <focusSelector>
-            <type>FocusType</type>
+            <type>AssignmentHolderType</type>
         </focusSelector>
     </policyRule>
 </mark>

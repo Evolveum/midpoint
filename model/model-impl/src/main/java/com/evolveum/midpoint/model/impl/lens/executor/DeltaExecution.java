@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -75,6 +75,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
  * 2. Authorizes the execution
  * 3. Applies metadata
  * 4. Calls appropriate component (provisioning, task manager, repository)
+ * 5. Executes simulated deltas right on `objectCurrent` in {@link LensElementContext}.
  *
  * @param <O> type of the lens context
  * @param <E> type of the element context (whose delta is being executed)
@@ -106,7 +107,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private final ResourceType resource;
 
     @NotNull private final Task task;
-    private final ModelBeans b;
+    private final ModelBeans b = ModelBeans.get();
 
     /**
      * Estimate of the object after modification. Or null if the object was deleted.
@@ -129,17 +130,25 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
      */
     private boolean deleted;
 
-    DeltaExecution(@NotNull LensContext<O> context, @NotNull LensElementContext<E> elementContext, ObjectDelta<E> delta,
-            ConflictResolutionType conflictResolution, @NotNull Task task, @NotNull ModelBeans modelBeans) {
+    /** The same object as is put into {@link LensElementContext#lastChangeExecutionResult} */
+    private final ChangeExecutionResult<E> changeExecutionResult;
 
-        this.context = context;
+    DeltaExecution(
+            @NotNull LensElementContext<E> elementContext,
+            ObjectDelta<E> delta,
+            ConflictResolutionType conflictResolution,
+            @NotNull Task task,
+            @NotNull ChangeExecutionResult<E> changeExecutionResult) {
+
+        //noinspection unchecked
+        this.context = (LensContext<O>) elementContext.getLensContext();
         this.elementContext = elementContext;
         this.delta = java.util.Objects.requireNonNull(delta, "null delta");
         this.conflictResolution = conflictResolution;
         this.resource = elementContext instanceof LensProjectionContext ?
                 ((LensProjectionContext) elementContext).getResource() : null;
         this.task = task;
-        this.b = modelBeans;
+        this.changeExecutionResult = changeExecutionResult;
     }
 
     //region Main
@@ -183,12 +192,11 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             result.computeStatusIfUnknown();
 
             LensObjectDeltaOperation<E> objectDeltaOp = addToExecutedDeltas(result);
+
+            changeExecutionResult.setExecutedOperation(objectDeltaOp);
             addTrace(objectDeltaOp, result);
 
             logDeltaExecutionEnd(result);
-
-            // To be safe, we set this flag even in the case of exception.
-            elementContext.setAnyDeltasExecutedFlag();
         }
     }
     //endregion Main
@@ -259,10 +267,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             // nothing found, let us apply our delta
             return delta;
         }
-        if (lastRelated.getExecutionResult().isSuccess() &&
-                lastRelated.containsDelta(delta, EquivalenceStrategy.IGNORE_METADATA)) {
-            // case 1 - exact match found with SUCCESS result,
-            // let's skip the processing of our delta
+        OperationResult lastRelatedResult = lastRelated.getExecutionResult();
+        if (lastRelatedResult != null &&
+                lastRelatedResult.isSuccess() &&
+                lastRelated.containsDelta(delta, EquivalenceStrategy.DATA)) {
+            // Case 1 - exact match found with SUCCESS result, let's skip the processing of our delta.
+            // Equivalence strategy DATA is used to consider the metadata as well.
             return null;
         }
         if (!delta.isAdd()) {
@@ -295,7 +305,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private ObjectDeltaOperation<E> findLastRelatedDelta(List<? extends ObjectDeltaOperation<E>> executedDeltas) {
         for (int i = executedDeltas.size() - 1; i >= 0; i--) {
             ObjectDeltaOperation<E> currentOdo = executedDeltas.get(i);
-            if (currentOdo.getExecutionResult().isFatalError()) {
+            OperationResult currentOdoResult = currentOdo.getExecutionResult();
+            if (currentOdoResult != null && currentOdoResult.isFatalError()) {
                 continue;
             }
             ObjectDelta<E> currentDelta = currentOdo.getObjectDelta();
@@ -469,7 +480,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             task.recordObjectActionExecuted(
                     objectToAdd, objectToAdd.getCompileTimeClass(), null, ChangeType.ADD, context.getChannel(), t);
             if (objectBeanToAdd instanceof ShadowType) {
-                handleProvisioningError(resource, t, task, result);
+                handleProvisioningError(resource, t, result);
                 ((LensProjectionContext) elementContext).setBroken();
                 objectAfterModification = null;
             }
@@ -505,13 +516,13 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return oid;
     }
 
-    private String executeSimulatedAddition(PrismObject<E> objectToAdd) {
-        String explicitOid = objectToAdd.getOid();
-        if (explicitOid != null) {
-            return explicitOid;
-        } else {
-            return UUID.randomUUID().toString();
+    private String executeSimulatedAddition(PrismObject<E> objectToAdd) throws SchemaException {
+        if (objectToAdd.getOid() == null) {
+            objectToAdd.setOid(
+                    UUID.randomUUID().toString());
         }
+        elementContext.simulateDeltaExecution(objectToAdd.createAddDelta());
+        return objectToAdd.getOid();
     }
 
     private String addProvisioningObject(PrismObject<E> object, OperationResult result)
@@ -589,6 +600,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             deltaForExecution = processChangeApplicationMode(result);
             if (task.isExecutionFullyPersistent()) {
                 executeRealModification(objectClass, result);
+            } else {
+                elementContext.simulateDeltaExecution(deltaForExecution);
             }
             task.recordObjectActionExecuted(
                     baseObject, objectClass, delta.getOid(), ChangeType.MODIFY, context.getChannel(), null);
@@ -744,6 +757,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
             if (task.isExecutionFullyPersistent()) {
                 executeRealDeletion(objectTypeClass, oid, result);
+            } else {
+                elementContext.simulateDeltaExecution(delta);
+                objectAfterModification = null;
             }
             deleted = true;
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
@@ -751,7 +767,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), t);
 
             if (ShadowType.class.isAssignableFrom(objectTypeClass)) {
-                handleProvisioningError(resource, t, task, result);
+                handleProvisioningError(resource, t, result);
                 objectAfterModification = elementContext.getObjectCurrent(); // TODO ok?
             }
 
@@ -989,7 +1005,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return new LensOwnerResolver<>(context, b.modelObjectResolver, task, result);
     }
 
-    private void handleProvisioningError(ResourceType resource, Throwable t, Task task, OperationResult result)
+    private void handleProvisioningError(ResourceType resource, Throwable t, OperationResult result)
             throws ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
@@ -1001,7 +1017,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         }
     }
 
-    public PrismObject<E> getObjectAfterModification() {
+    PrismObject<E> getObjectAfterModification() {
         return objectAfterModification;
     }
 
