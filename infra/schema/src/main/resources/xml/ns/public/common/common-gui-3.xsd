@@ -2975,7 +2975,6 @@
                     </xsd:element>
                     <!-- TODO: viliam remove and find a way to make it backward compatible -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element ref="tns:widgets" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3025,130 +3024,6 @@
     </xsd:complexType>
 
     <xsd:element name="widget" type="tns:WidgetType"/>
-
-    <xsd:simpleType name="ContainerWidgetDirectionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="row">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ROW"/>
-                    </xsd:appinfo>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="column">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="COLUMN"/>
-                    </xsd:appinfo>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="WidgetsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO: viliam
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:widget" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-        <xsd:attribute name="list" type="xsd:boolean"/>
-    </xsd:complexType>
-
-    <xsd:element name="widgets" type="tns:WidgetsType" />
-
-    <xsd:complexType name="ContainerWidgetType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO: viliam
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WidgetType">
-                <xsd:sequence>
-                    <xsd:element name="direction" type="tns:ContainerWidgetDirectionType" default="row"/>
-                    <xsd:element ref="tns:widgets" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:element name="containerWidget" type="tns:ContainerWidgetType" substitutionGroup="tns:widget">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:heterogeneousListItem/>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:complexType name="SimulationMetricWidgetDataType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType"/>
-            <xsd:element name="collectionRef" type="tns:CollectionRefSpecificationType"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="SimulationMetricWidgetType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO: viliam
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.7</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WidgetType">
-                <xsd:sequence>
-                    <xsd:element name="data" type="tns:SimulationMetricWidgetDataType"/>
-                    <xsd:element name="components" type="xsd:string"/> <!-- TODO: viliam -->
-                    <xsd:element name="variation" type="xsd:string"/> <!-- TODO: viliam -->
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:element name="simulationMetricWidget" type="tns:SimulationMetricWidgetType" substitutionGroup="tns:widget">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:heterogeneousListItem/>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
 
     <xsd:complexType name="DashboardWidgetType">
         <xsd:annotation>
