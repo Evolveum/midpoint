@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -128,9 +130,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
             String key = visualization.getDisplayNameKey();
             Object[] parameters = visualization.getDisplayNameParameters();
-            return new StringResourceModel(key, this).setModel(null)
-                    .setDefaultValue(key)
-                    .setParameters(parameters).getObject();
+            return LocalizationUtil.translate(key, parameters);
         });
 
         headerPanel.add(headerChangeType);

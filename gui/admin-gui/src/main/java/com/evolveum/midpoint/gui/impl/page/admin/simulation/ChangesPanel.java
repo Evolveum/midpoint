@@ -72,7 +72,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
             @Override
             protected VisualizationDto load() {
                 Visualization visualization = visualizationModel.getObject();
-                
+
                 return SimulationsGuiUtil.createVisualizationDto(visualization);
             }
         };
@@ -86,7 +86,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
                     return Collections.emptyList();
                 }
 
-                return Collections.singletonList(new ObjectVisualization());
+                return Collections.singletonList(new ObjectVisualization(visualization));
             }
         };
     }
