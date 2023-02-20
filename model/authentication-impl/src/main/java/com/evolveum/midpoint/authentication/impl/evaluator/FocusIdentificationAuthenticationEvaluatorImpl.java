@@ -81,8 +81,4 @@ public class FocusIdentificationAuthenticationEvaluatorImpl extends Authenticati
         return true;
     }
 
-    @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, PreAuthenticationContext authnCtx) {
-        return super.authenticateUserPreAuthenticated(connEnv, authnCtx);
-    }
 }

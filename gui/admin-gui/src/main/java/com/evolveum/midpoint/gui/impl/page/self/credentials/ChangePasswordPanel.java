@@ -174,7 +174,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
 
-        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL, Model.of(), Model.of(), false);
+        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL, Model.of(), Model.of(newPasswordValue), false);
         hint.setOutputMarkupId(true);
         hint.add(new EnableBehaviour(() -> !savedPassword));
         add(hint);

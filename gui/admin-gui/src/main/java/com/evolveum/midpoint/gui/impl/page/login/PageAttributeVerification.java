@@ -6,6 +6,30 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.HiddenField;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -13,7 +37,9 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -24,31 +50,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.HashMap;
-import java.util.List;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/attributeVerification", matchUrlForSecurity = "/attributeVerification")
@@ -62,13 +64,11 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
-    private static final String ID_SUBMIT_BUTTON = "submit";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_CSRF_FIELD = "csrfField";
 
-    LoadableDetachableModel<List<ItemPathType>> attributesPathModel;
+    private LoadableModel<List<VerificationAttributeDto>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
-    private final HashMap<ItemPathType, String> attributeValuesMap = new HashMap<>();
     IModel<String> attrValuesModel;
 
     public PageAttributeVerification() {
@@ -84,11 +84,11 @@ public class PageAttributeVerification extends PageAuthenticationBase {
                 return principal != null ? (UserType) principal.getFocus() : null;
             }
         };
-        attributesPathModel = new LoadableDetachableModel<List<ItemPathType>>() {
+        attributesPathModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<ItemPathType> load() {
+            protected List<VerificationAttributeDto> load() {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 if (!(authentication instanceof MidpointAuthentication)) {
                     getSession().error(getString("No midPoint authentication is found"));
@@ -110,7 +110,10 @@ public class PageAttributeVerification extends PageAuthenticationBase {
                     getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
                     throw new RestartResponseException(PageError.class);
                 }
-                return module.getPath();
+                List<ItemPathType> moduleAttributes = module.getPath();
+                return moduleAttributes.stream()
+                        .map(attr -> new VerificationAttributeDto(attr))
+                        .collect(Collectors.toList());
             }
         };
     }
@@ -155,24 +158,21 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     }
 
     private void initAttributesLayout(MidpointForm<?> form) {
-        ListView<ItemPathType> attributesPanel = new ListView<ItemPathType>(ID_ATTRIBUTES, attributesPathModel) {
+        ListView<VerificationAttributeDto> attributesPanel = new ListView<>(ID_ATTRIBUTES, attributesPathModel) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<ItemPathType> item) {
+            protected void populateItem(ListItem<VerificationAttributeDto> item) {
                 Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
                 item.add(attributeNameLabel);
 
-                RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
+                RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, new PropertyModel<>(item.getModel(), VerificationAttributeDto.F_VALUE));
                 attributeValue.setOutputMarkupId(true);
-                attributeValue.add(new OnChangeAjaxBehavior() {
-                    private static final long serialVersionUID = 1L;
-
+                attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        updateAttributeValue(item.getModelObject(), attributeValue.getValue());
-                        updateAttributeValuesModel();
+                        attrValuesModel.setObject(generateAttributeValuesString());
                         target.add(getVerifiedField());
                     }
                 });
@@ -183,7 +183,11 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         form.add(attributesPanel);
     }
 
-    private String resolveAttributeLabel(ItemPathType path) {
+    private String resolveAttributeLabel(VerificationAttributeDto attribute) {
+        if (attribute == null) {
+            return "";
+        }
+        ItemPathType path = attribute.getItemPath();
         if (path == null) {
             return "";
         }
@@ -191,20 +195,8 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         return WebComponentUtil.getItemDefinitionDisplayName(def);
     }
 
-    private void updateAttributeValue(ItemPathType path, String value) {
-        if (attributeValuesMap.containsKey(path)) {
-            attributeValuesMap.replace(path, value);
-        } else {
-            attributeValuesMap.put(path, value);
-        }
-    }
-
     private void initButtons(MidpointForm form) {
         form.add(createBackButton(ID_BACK_BUTTON));
-    }
-
-    private void updateAttributeValuesModel() {
-        attrValuesModel.setObject(generateAttributeValuesString());
     }
 
     private Component getVerifiedField() {
@@ -242,9 +234,9 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
     private String generateAttributeValuesString() {
         JSONArray attrValues = new JSONArray();
-        attributeValuesMap.entrySet().forEach(entry -> {
+        attributesPathModel.getObject().forEach(entry -> {
             JSONObject json  = new JSONObject();
-            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getKey());
+            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
             json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, entry.getValue());
             attrValues.put(json);
         });

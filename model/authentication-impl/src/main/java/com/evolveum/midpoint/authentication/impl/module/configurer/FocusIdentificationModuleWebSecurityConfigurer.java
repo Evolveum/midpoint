@@ -17,8 +17,12 @@ import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationS
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
 public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
     public FocusIdentificationModuleWebSecurityConfigurer(C configuration) {
@@ -28,8 +32,10 @@ public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormM
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+        FocusIdentificationAuthenticationFilter identificationFilter = new FocusIdentificationAuthenticationFilter();
+
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointAttributeConfigurer<>(new FocusIdentificationAuthenticationFilter()))
+        getOrApply(http, new MidpointAttributeConfigurer<>(identificationFilter))
                 .loginPage("/focusIdentification")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
@@ -43,5 +49,7 @@ public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormM
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
+
+        http.addFilterAfter(identificationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

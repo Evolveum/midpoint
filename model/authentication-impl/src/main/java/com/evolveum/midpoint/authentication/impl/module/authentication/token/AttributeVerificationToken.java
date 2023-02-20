@@ -6,14 +6,24 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-@Deprecated
+import java.util.Map;
+
 public class AttributeVerificationToken extends AbstractAuthenticationToken {
 
-    public AttributeVerificationToken(Object principal, Object credentials) {
+    private MidPointPrincipal principal;
+    private Map<ItemPath, String> attributeValues;
+
+
+    public AttributeVerificationToken(MidPointPrincipal principal, Map<ItemPath, String> attributeValues) {
         super(null);
+        this.principal = principal;
+        this.attributeValues = attributeValues;
     }
 
     @Override
@@ -23,6 +33,11 @@ public class AttributeVerificationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return null;
+        return principal;
+    }
+
+    @Override
+    public Object getDetails() {
+        return attributeValues;
     }
 }

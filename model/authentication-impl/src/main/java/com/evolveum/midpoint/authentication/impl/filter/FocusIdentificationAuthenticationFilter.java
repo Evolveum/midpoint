@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.filter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -31,18 +32,8 @@ public class FocusIdentificationAuthenticationFilter extends MidpointFocusVerifi
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
     }
 
-    public Authentication attemptAuthentication(
-            HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        if (!request.getMethod().equals("POST")) {
-            throw new AuthenticationServiceException(
-                    "Authentication method not supported: " + request.getMethod());
-        }
-
-        Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
-        FocusVerificationToken authRequest =
-                new FocusVerificationToken(attributeValues);
-
-        return this.getAuthenticationManager().authenticate(authRequest);
+    protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {
+        return new FocusVerificationToken(attributeValues);
     }
 
 }

@@ -38,13 +38,7 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
-        ItemName itemName = item.getModelObject() != null ? item.getModelObject().getParent().getItemName() : null;
-        Component panel;
-        if (PasswordType.F_HINT.equivalent(itemName)) {
-            panel = new PasswordHintPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()), getPasswordModel(item.getModelObject()),
-                    getModelObject() != null && getModelObject().isReadOnly());
-        } else {
-            panel = new PasswordPropertyPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
+        Component panel = new PasswordPropertyPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null,
                     getPrismObjectParentIfExist()) {
@@ -59,7 +53,7 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
                 }
 
             };
-        }
+//        }
         panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
@@ -84,25 +78,4 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
         return prismObject;
     }
 
-    private LoadableModel<ProtectedStringType> getPasswordModel(PrismPropertyValueWrapper<ProtectedStringType> hintValueWrapper) {
-        return new LoadableModel<ProtectedStringType>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ProtectedStringType load() {
-                if (hintValueWrapper == null) {
-                    return null;
-                }
-                PrismContainerValueWrapper<PasswordType> passwordContainer = hintValueWrapper.getParentContainerValue(PasswordType.class);
-                try {
-                    PrismPropertyWrapper<ProtectedStringType> passwordWrapper = passwordContainer.findProperty(PasswordType.F_VALUE);
-                    return passwordWrapper != null ? passwordWrapper.getValue().getRealValue() : null;
-                } catch (SchemaException e) {
-                    //nothing to do here
-                }
-                return null;
-            }
-        };
-    }
 }

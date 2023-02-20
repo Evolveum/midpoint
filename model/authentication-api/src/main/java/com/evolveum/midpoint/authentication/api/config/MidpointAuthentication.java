@@ -9,19 +9,6 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -29,6 +16,17 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * wrapper for all authentication modules, basic authentication token
@@ -532,17 +530,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return authentication != null ? authentication.getState() : null;
     }
 
-    public PrismObject<SecurityPolicyType> resolveSecurityPolicy() throws SchemaException {
-        PrismObject<SecurityPolicyType> securityPolicy = null;
+    public SecurityPolicyType resolveSecurityPolicy() throws SchemaException {
+        SecurityPolicyType securityPolicy = null;
         if (principal instanceof GuiProfiledPrincipal) {
             GuiProfiledPrincipal guiProfiledPrincipal = (GuiProfiledPrincipal) principal;
-            securityPolicy = guiProfiledPrincipal.getApplicableSecurityPolicy() != null ? guiProfiledPrincipal.getApplicableSecurityPolicy().asPrismObject() : null;
+            securityPolicy = guiProfiledPrincipal.getApplicableSecurityPolicy();
         }
         return securityPolicy;
     }
 
-    private boolean principalExists(MidpointAuthentication mpAuthentication) {
-        return mpAuthentication != null && mpAuthentication.getPrincipal() != null
-                && mpAuthentication.getPrincipal() instanceof MidPointPrincipal;
-    }
 }

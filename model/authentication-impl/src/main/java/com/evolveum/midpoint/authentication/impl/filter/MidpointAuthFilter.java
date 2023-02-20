@@ -171,7 +171,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private void executeAuthenticationFilter(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest, ServletResponse response,
             FilterChain chain) throws ServletException, IOException {
-        int indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);;
+        int indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
         boolean restartNeeded = needCreateNewAuthenticationToken(mpAuthentication, indexOfProcessingModule, httpRequest);
         if (restartNeeded) {
             indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest);
@@ -352,8 +352,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private PrismObject<SecurityPolicyType> resolveSecurityPolicy(MidpointAuthentication mpAuthentication) throws SchemaException {
-        PrismObject<SecurityPolicyType> securityPolicyType = mpAuthentication == null ? null : mpAuthentication.resolveSecurityPolicy();
-        return securityPolicyType == null ? getGlobalSecurityPolicy() : securityPolicyType;
+        SecurityPolicyType securityPolicyType = mpAuthentication == null ? null : mpAuthentication.resolveSecurityPolicy();
+        return securityPolicyType == null ? getGlobalSecurityPolicy() : securityPolicyType.asPrismObject();
     }
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {

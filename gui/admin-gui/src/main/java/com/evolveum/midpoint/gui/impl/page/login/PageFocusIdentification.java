@@ -35,6 +35,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -48,8 +49,10 @@ import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/focusIdentification", matchUrlForSecurity = "/focusIdentification")
@@ -69,7 +72,6 @@ public class PageFocusIdentification extends PageAuthenticationBase {
 
     LoadableModel<List<ItemPathType>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
-    private final HashMap<ItemPathType, String> attributeValuesMap = new HashMap<>();
     IModel<String> attrValuesModel;
 
     public PageFocusIdentification() {
@@ -84,7 +86,7 @@ public class PageFocusIdentification extends PageAuthenticationBase {
                 return new UserType();
             }
         };
-        attributesPathModel = new LoadableModel<List<ItemPathType>>(false) {
+        attributesPathModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -139,7 +141,7 @@ public class PageFocusIdentification extends PageAuthenticationBase {
     @Override
     protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
+        form.add(AttributeModifier.replace("action", this::getUrlProcessingLogin));
         add(form);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
@@ -152,62 +154,52 @@ public class PageFocusIdentification extends PageAuthenticationBase {
         initAttributesLayout(form);
 
         initButtons(form);
+
+
     }
 
     private void initAttributesLayout(MidpointForm<?> form) {
-        ListView<ItemPathType> attributesPanel = new ListView<ItemPathType>(ID_ATTRIBUTES, attributesPathModel) {
 
-            private static final long serialVersionUID = 1L;
+        Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(attributesPathModel));
+        form.add(attributeNameLabel);
 
+        RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
+        attributeValue.setOutputMarkupId(true);
+        attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void populateItem(ListItem<ItemPathType> item) {
-                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
-                item.add(attributeNameLabel);
-
-                RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
-                attributeValue.setOutputMarkupId(true);
-                attributeValue.add(new OnChangeAjaxBehavior() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        updateAttributeValue(item.getModelObject(), attributeValue.getValue());
-                        updateAttributeValuesModel();
-                        target.add(getVerifiedField());
-                    }
-                });
-                item.add(attributeValue);
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                attrValuesModel.setObject(generateAttributeValuesString());
+                ajaxRequestTarget.add(getHiddenField());
             }
-        };
-        attributesPanel.setOutputMarkupId(true);
-        form.add(attributesPanel);
+        });
+        form.add(attributeValue);
+//        form.add(attributeValue);
     }
 
-    private String resolveAttributeLabel(ItemPathType path) {
+    private String resolveAttributeLabel(IModel<List<ItemPathType>> path) {
         if (path == null) {
             return "";
         }
-        ItemDefinition<?> def = userModel.getObject().asPrismObject().getDefinition().findItemDefinition(path.getItemPath());
-        return WebComponentUtil.getItemDefinitionDisplayName(def);
+        List<ItemPathType> itemPaths = path.getObject();
+        return itemPaths.stream()
+                .map(p -> translateAttribute(p))
+                .collect(Collectors.joining(" or "));
     }
 
-    private void updateAttributeValue(ItemPathType path, String value) {
-        if (attributeValuesMap.containsKey(path)) {
-            attributeValuesMap.replace(path, value);
-        } else {
-            attributeValuesMap.put(path, value);
-        }
+    private String translateAttribute(ItemPathType itemPath) {
+        ItemDefinition<?> def = userModel.getObject().asPrismObject().getDefinition().findItemDefinition(itemPath.getItemPath());
+        return WebComponentUtil.getItemDefinitionDisplayName(def);
     }
 
     private void initButtons(MidpointForm form) {
         form.add(createBackButton(ID_BACK_BUTTON));
     }
 
-    private void updateAttributeValuesModel() {
-        attrValuesModel.setObject(generateAttributeValuesString());
+    private Component getVerifiedField() {
+        return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUE);
     }
 
-    private Component getVerifiedField() {
+    private Component getHiddenField() {
         return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUES);
     }
 
@@ -224,6 +216,7 @@ public class PageFocusIdentification extends PageAuthenticationBase {
     }
 
     private String getUrlProcessingLogin() {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
@@ -242,10 +235,10 @@ public class PageFocusIdentification extends PageAuthenticationBase {
 
     private String generateAttributeValuesString() {
         JSONArray attrValues = new JSONArray();
-        attributeValuesMap.entrySet().forEach(entry -> {
+        attributesPathModel.getObject().forEach(entry -> {
             JSONObject json  = new JSONObject();
-            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getKey());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, entry.getValue());
+            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.toString());
+            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, getVerifiedField().getDefaultModelObjectAsString());
             attrValues.put(json);
         });
         if (attrValues.length() == 0) {

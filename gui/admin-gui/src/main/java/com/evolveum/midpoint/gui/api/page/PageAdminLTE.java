@@ -841,7 +841,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         result = scriptResult;
 
-        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        OpResult opResult = OpResult.getOpResult((PageAdminLTE) getPage(), result);
         opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:

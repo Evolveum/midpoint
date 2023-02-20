@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -83,7 +84,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     private static final String ID_BACK_2_BUTTON = "back2";
 
     private IModel<String> answerModel;
-    private LoadableDetachableModel<List<SecurityQuestionDto>> questionsModel;
+    private LoadableModel<List<SecurityQuestionDto>> questionsModel;
     private LoadableDetachableModel<UserType> userModel;
 
     public PageSecurityQuestions() {
@@ -91,7 +92,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     @Override
     protected void initModels() {
-        answerModel = Model.of();
+        answerModel = () -> generateAnswer();
         userModel = new LoadableDetachableModel<>() {
             @Override
             protected UserType load() {
@@ -99,7 +100,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
                 return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
             }
         };
-        questionsModel = new LoadableDetachableModel<List<SecurityQuestionDto>>() {
+        questionsModel = new LoadableModel<List<SecurityQuestionDto>>(false) {
             @Override
             protected List<SecurityQuestionDto> load() {
                 return createUsersSecurityQuestionsList();
@@ -166,8 +167,6 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        String answer = generateAnswer();
-                        answerModel.setObject(answer);
                         target.add(getHiddenAnswer());
                     }
                 });

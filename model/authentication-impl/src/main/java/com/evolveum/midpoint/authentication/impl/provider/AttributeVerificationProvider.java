@@ -58,7 +58,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
         try {
             Authentication token;
             if (authentication instanceof AttributeVerificationToken) {
-                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getCredentials();
+                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
                 AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
                         focusType, attrValuesMap, requireAssignment);
                 if (channel != null) {
@@ -91,7 +91,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return FocusVerificationToken.class.equals(authentication);
+        return AttributeVerificationToken.class.equals(authentication);
     }
 
     @Override

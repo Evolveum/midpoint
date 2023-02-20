@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -13,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 public class AttributeVerificationAuthenticationFilter extends MidpointFocusVerificationFilter {
 
@@ -23,6 +30,11 @@ public class AttributeVerificationAuthenticationFilter extends MidpointFocusVeri
 
     protected AttributeVerificationAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+    }
+
+    @Override
+    protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {
+        return new AttributeVerificationToken(SecurityUtil.getPrincipalSilent(), attributeValues);
     }
 
     @Override

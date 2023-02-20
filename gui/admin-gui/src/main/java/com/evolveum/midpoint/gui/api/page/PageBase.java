@@ -247,7 +247,7 @@ public abstract class PageBase extends PageAdminLTE {
                 target.add(PageBase.this);
             }
         };
-        mode.add(new VisibleBehaviour(() -> WebModelServiceUtils.isEnableExperimentalFeature(this)));
+        mode.add(new VisibleBehaviour(() ->  AuthUtil.getPrincipalUser() != null && WebModelServiceUtils.isEnableExperimentalFeature(this)));
         container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);

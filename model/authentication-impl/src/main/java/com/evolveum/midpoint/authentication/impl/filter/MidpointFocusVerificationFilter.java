@@ -17,6 +17,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -47,10 +48,14 @@ public abstract class MidpointFocusVerificationFilter extends AbstractAuthentica
         validateRequest(request);
 
         Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
-        FocusVerificationToken authRequest = new FocusVerificationToken(attributeValues);
+        AbstractAuthenticationToken authRequest = createAuthenticationToken(attributeValues);
 
         return this.getAuthenticationManager().authenticate(authRequest);
     }
+
+    protected abstract AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues);
+
+
 
     protected void validateRequest(HttpServletRequest request) {
         if (!request.getMethod().equals("POST")) {

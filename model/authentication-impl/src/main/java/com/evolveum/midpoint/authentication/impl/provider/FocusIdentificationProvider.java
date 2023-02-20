@@ -67,6 +67,10 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
             Authentication token;
             if (authentication instanceof FocusVerificationToken) {
                 Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
+                if (attrValuesMap == null || attrValuesMap.isEmpty()) {
+                    LOGGER.error("Unsupported authentication {}", authentication);
+                    throw new AuthenticationServiceException("web.security.provider.unavailable");
+                }
                 FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);
                 UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(),token.getCredentials());

@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.model.IModel;
@@ -86,7 +88,7 @@ public class OpResult implements Serializable, Visitable {
         this.alreadyShown = alreadyShown;
     }
 
-    public static OpResult getOpResult(PageBase page, OperationResult result) {
+    public static OpResult getOpResult(PageAdminLTE page, OperationResult result) {
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -155,12 +157,12 @@ public class OpResult implements Serializable, Visitable {
         return opResult;
     }
 
-    private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
+    private static IModel<String> createXmlModel(OperationResult result, PageAdminLTE page) {
         try {
             OperationResultType resultType = result.createOperationResultType();
             return () -> {
                 try {
-                    return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
+                    return PrismContext.get().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
                 } catch (SchemaException e) {
                     throw new TunnelException(e);
                 }

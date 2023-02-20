@@ -6,20 +6,17 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author skublik
@@ -48,9 +45,9 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
             .item(entry.getKey()).eq(entry.getValue()).buildFilter();
             filters.add(objectFilter);
         }
+        OrFilter orFilter = PrismContext.get().queryFactory().createOr(filters);
 
         ObjectQuery query = PrismContext.get().queryFor(getPrincipalType()).build();
-        OrFilter orFilter = new OrFilterImpl(filters);
         query.addFilter(orFilter);
         return query;
     }
