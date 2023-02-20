@@ -100,7 +100,7 @@ public class ReportUtils {
         }
     }
 
-    public static String prettyPrintReferencesForReport(@NotNull List<ObjectReferenceType> references, boolean showType) {
+    public static String prettyPrintReferencesForReport(@NotNull List<? extends Referencable> references, boolean showType) {
         return references.stream()
                 .map(ref -> prettyPrintForReport(ref, showType))
                 .collect(Collectors.joining(", "));
@@ -232,11 +232,11 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    public static String prettyPrintForReport(ObjectReferenceType prv) {
+    public static String prettyPrintForReport(Referencable prv) {
         return prettyPrintForReport(prv, true);
     }
 
-    public static String prettyPrintForReport(ObjectReferenceType prv, boolean showType) {
+    public static String prettyPrintForReport(Referencable prv, boolean showType) {
         if (prv == null) {
             return "";
         }
@@ -273,10 +273,10 @@ public class ReportUtils {
         return StringUtils.isEmpty(name) ? object.getOid() : name;
     }
 
-    public static String prettyPrintUsersForReport(List<ObjectReferenceType> userRefList) {
+    public static String prettyPrintUsersForReport(List<? extends Referencable> userRefList) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (ObjectReferenceType userRef : userRefList) {
+        for (Referencable userRef : userRefList) {
             if (first) {
                 first = false;
             } else {
@@ -579,7 +579,7 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    public static String getBusinessDisplayName(ObjectReferenceType ort) {
+    public static String getBusinessDisplayName(Referencable ort) {
         return ort.getDescription();
     }
 

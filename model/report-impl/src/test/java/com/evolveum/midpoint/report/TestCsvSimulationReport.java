@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.report;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORT_SIMULATION_BASIC;
+
 import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -17,8 +19,9 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -26,10 +29,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
     private static final int EXISTING_USERS = 10;
 
-    private static final int COLUMNS = 7;
-
-    private static final TestResource<ReportType> REPORT_SIMULATION_BASIC = new TestResource<>(
-            TEST_DIR_REPORTS, "report-simulation-basic.xml", "ee0e28ae-2827-4a69-bd5b-35b478cc2f5f");
+    private static final int COLUMNS = 6;
 
     private List<UserType> existingUsers;
 
@@ -53,8 +53,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withNamePattern("existing-%04d")
                 .execute(initResult);
 
-        repoAdd(TASK_EXPORT_CLASSIC, initResult);
-        repoAdd(REPORT_SIMULATION_BASIC, initResult);
+        REPORT_SIMULATION_BASIC.init(this, initTask, initResult);
     }
 
     @Test
@@ -76,27 +75,26 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertProcessedObjects(simulationResult, "after")
                 .assertSize(users);
 
-        ReportParameterType parameters = getParameters(
-                "simulationResultOid", String.class, simulationResult.getSimulationResultOid());
-        var rows = testClassicExport(REPORT_SIMULATION_BASIC, users + 1, COLUMNS, null, parameters);
+        var lines = REPORT_SIMULATION_BASIC.export()
+                .withParameterValues(simulationResult.getSimulationResultOid())
+                .execute(result);
 
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
-        assertCsv(rows, "after")
-                .removeStandardFooter()
+        assertCsv(lines, "after")
                 .parse()
                 .display()
-                .row(0)
-                .assertValue(2, "new-0000")
-                .assertValue(4, "Added")
-                .assertValue(5, "UserType")
-                .assertValues(6, "Focus activated")
+                .assertRecords(users)
+                .assertColumns(COLUMNS)
+                .record(0)
+                .assertValue(1, "new-0000")
+                .assertValue(3, "Added")
+                .assertValue(4, "UserType")
+                .assertValues(5, "Focus activated")
                 .end();
     }
 
     @Test
     public void test110DisableAndRenameUsers() throws Exception {
-        int users = 10;
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -121,27 +119,30 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertProcessedObjects(simulationResult, "after")
                 .assertSize(EXISTING_USERS);
 
-        ReportParameterType parameters = getParameters(
-                "simulationResultOid", String.class, simulationResult.getSimulationResultOid());
-        var rows = testClassicExport(REPORT_SIMULATION_BASIC, users + 1, COLUMNS, null, parameters);
+        when("report is exported");
+        var lines = REPORT_SIMULATION_BASIC.export()
+                .withParameterValues(simulationResult.getSimulationResultOid())
+                .execute(result);
 
+        then("CSV is OK");
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
-        assertCsv(rows, "after")
-                .removeStandardFooter()
+        assertCsv(lines, "after")
                 .parse()
                 .display()
-                .row(0)
-                .assertValue(2, "existing-0000-renamed")
-                .assertValue(3, existingUsers.get(0).getOid())
-                .assertValue(4, "Modified")
-                .assertValue(5, "UserType")
-                .assertValues(6, "Focus renamed", "Focus deactivated")
+                .assertRecords(EXISTING_USERS)
+                .assertColumns(COLUMNS)
+                .record(0)
+                .assertValue(1, "existing-0000-renamed")
+                .assertValue(2, existingUsers.get(0).getOid())
+                .assertValue(3, "Modified")
+                .assertValue(4, "UserType")
+                .assertValues(5, "Focus renamed", "Focus deactivated")
                 .end()
-                .row(1)
-                .assertValue(2, "existing-0001-renamed")
-                .assertValue(3, existingUsers.get(1).getOid())
-                .assertValue(4, "Modified")
-                .assertValue(5, "UserType")
-                .assertValues(6, "Focus renamed");
+                .record(1)
+                .assertValue(1, "existing-0001-renamed")
+                .assertValue(2, existingUsers.get(1).getOid())
+                .assertValue(3, "Modified")
+                .assertValue(4, "UserType")
+                .assertValues(5, "Focus renamed");
     }
 }

@@ -7,23 +7,26 @@
 
 package com.evolveum.midpoint.model.api.visualizer;
 
+import java.io.Serializable;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.List;
 
 public interface Visualization extends Serializable, DebugDumpable {
 
     Name getName();
+
     ChangeType getChangeType();
 
     @NotNull List<? extends Visualization> getPartialVisualizations();
+
     @NotNull List<? extends VisualizationItem> getItems();
 
     boolean isOperational();

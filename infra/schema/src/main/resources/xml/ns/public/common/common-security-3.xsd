@@ -1902,7 +1902,10 @@
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defined authentication sequence, which will be use for reset credential.
+                        Defines authentication sequence, which will be use for reset credential.
+                        Since 4.7: it's better to specify sequence identifier here instead of sequence name
+                        as name attribute becomes deprecated in some objects which are used for
+                        authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>

@@ -333,6 +333,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSecurityQuestionsForm(), modules.getSecurityQuestionsForm());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getAttributeVerification(), modules.getAttributeVerification());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHint(), modules.getHint());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getFocusIdentification(), modules.getFocusIdentification());
     }
 
     private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProcess) {

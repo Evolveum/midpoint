@@ -82,6 +82,12 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-api</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -191,6 +197,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

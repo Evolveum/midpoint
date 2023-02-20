@@ -6,8 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -15,7 +15,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -37,5 +37,33 @@
             </simpleReportNotifier>
         </handler>
     </notificationConfiguration>
+
+    <internals>
+        <caching>
+            <profile>
+                <!--
+                Profile caching role objects (any abstract role subtype) for tasks that are expected
+                to repeatedly ask for (likely) a small subset of the roles/orgs/etc.
+                See task: task-export-role-caching.xml
+                -->
+                <name>task-role-cache</name>
+                <!-- not enabled by default -->
+                <globalRepoObjectCache>
+                    <append>true</append>
+                    <timeToLive>60</timeToLive>
+                    <maxSize>1000</maxSize> <!-- sanity limit -->
+                    <statistics>
+                        <classification>perCacheAndObjectType</classification>
+                    </statistics>
+                    <objectTypeSettings>
+                        <objectType>ArchetypeType</objectType> <!-- normally in default as well, that's OK -->
+                        <objectType>OrgType</objectType>
+                        <objectType>RoleType</objectType>
+                        <objectType>ServiceType</objectType>
+                    </objectTypeSettings>
+                </globalRepoObjectCache>
+            </profile>
+        </caching>
+    </internals>
 
 </systemConfiguration>

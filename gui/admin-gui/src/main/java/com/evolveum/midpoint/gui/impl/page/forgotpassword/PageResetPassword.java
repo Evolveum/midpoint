@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
 import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,6 +33,7 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 @PageDescriptor(
@@ -148,6 +147,16 @@ public class PageResetPassword extends AbstractPageLogin {
 
     @Override
     protected void confirmAuthentication() {
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageResetPassword.title");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageResetPassword.description");
     }
 
 }

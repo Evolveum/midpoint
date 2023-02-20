@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.ReportTestUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -152,7 +154,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         deleteObject(UserType.class, USER_WILL.oid);
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        File outputFile = findOutputFile(reportTask);
+        File outputFile = findReportOutputFile(reportTask, result);
 
         ReportDataType reportData = new ReportDataType();
         PolyStringType name = new PolyStringType(getTestNameShort());
