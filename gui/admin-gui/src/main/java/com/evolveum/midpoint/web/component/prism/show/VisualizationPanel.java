@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -16,11 +14,11 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
@@ -83,11 +81,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private void initLayout() {
         add(AttributeAppender.append("class", "card card-outline-left"));
-
-        final IModel<VisualizationDto> model = getModel();
-
         add(AttributeModifier.append("class", () -> {
-            VisualizationDto dto = model.getObject();
+            VisualizationDto dto = getModelObject();
 
             if (dto.getBoxClassOverride() != null) {
                 return dto.getBoxClassOverride();
@@ -98,7 +93,24 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             return change != null ? VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(change) : null;
         }));
 
-        WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
+        final VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
+        final VisibleBehaviour visibleIfWrapper = new VisibleBehaviour(() -> getModelObject().isWrapper());
+        final VisibleBehaviour visibleIfExistingObjectAndAuthorized = new VisibleBehaviour(() -> {
+            if (getModelObject().isWrapper()) {
+                return false;
+            }
+            return isExistingViewableObject() && isAutorized();
+        });
+        final VisibleBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleBehaviour(() -> {
+            if (getModelObject().isWrapper()) {
+                return false;
+            }
+            return !isExistingViewableObject() || !isAutorized();
+        });
+
+        final IModel<VisualizationDto> model = getModel();
+
+        final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
         add(headerPanel);
 
         headerPanel.add(new VisualizationButtonPanel(ID_OPTION_BUTTONS, model) {
@@ -108,13 +120,24 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             }
         });
 
-        Label headerChangeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
-        Label headerObjectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
+        final Label headerChangeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
+        headerChangeType.add(createHeaderOnClickBehaviour(model));
+        headerChangeType.add(visibleIfNotWrapper);
+        headerPanel.add(headerChangeType);
+
+        final Label headerObjectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
+        headerObjectType.add(createHeaderOnClickBehaviour(model));
+        headerObjectType.add(visibleIfNotWrapper);
+        headerPanel.add(headerObjectType);
 
         IModel<String> nameModel = () -> model.getObject().getName(VisualizationPanel.this);
 
-        Label headerNameLabel = new Label(ID_NAME_LABEL, nameModel);
-        AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_NAME_LINK, nameModel) {
+        final Label headerNameLabel = new Label(ID_NAME_LABEL, nameModel);
+        headerNameLabel.add(createHeaderOnClickBehaviour(model));
+        headerNameLabel.add(visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized);
+        headerPanel.add(headerNameLabel);
+
+        final AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_NAME_LINK, nameModel) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -125,62 +148,37 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 }
             }
         };
-        Label headerDescription = new Label(ID_DESCRIPTION, () -> model.getObject().getDescription(VisualizationPanel.this));
-        Label headerWrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
+        headerNameLink.add(visibleIfExistingObjectAndAuthorized);
+        headerPanel.add(headerNameLink);
+
+        final Label headerDescription = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
+        headerDescription.add(createHeaderOnClickBehaviour(model));
+        headerDescription.add(visibleIfNotWrapper);
+        headerPanel.add(headerDescription);
+
+        final Label headerWrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
             String key = visualization.getDisplayNameKey();
             Object[] parameters = visualization.getDisplayNameParameters();
             return LocalizationUtil.translate(key, parameters);
         });
-
-        headerPanel.add(headerChangeType);
-        headerPanel.add(headerObjectType);
-        headerPanel.add(headerNameLabel);
-        headerPanel.add(headerNameLink);
-        headerPanel.add(headerDescription);
+        headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
+        headerWrapperDisplayName.add(visibleIfWrapper);
         headerPanel.add(headerWrapperDisplayName);
 
-        Label warning = new Label(ID_WARNING);
+        final Label warning = new Label(ID_WARNING);
         warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
         warning.add(new TooltipBehavior());
         headerPanel.add(warning);
 
-        headerChangeType.add(createHeaderOnClickBehaviour(model));
-        headerObjectType.add(createHeaderOnClickBehaviour(model));
-        headerNameLabel.add(createHeaderOnClickBehaviour(model));
-        headerDescription.add(createHeaderOnClickBehaviour(model));
-        headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
-
-        VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
-        VisibleBehaviour visibleIfWrapper = new VisibleBehaviour(() -> getModelObject().isWrapper());
-        VisibleBehaviour visibleIfExistingObjectAndAuthorized = new VisibleBehaviour(() -> {
-            if (getModelObject().isWrapper()) {
-                return false;
-            }
-            return isExistingViewableObject() && isAutorized();
-        });
-        VisibleBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleBehaviour(() -> {
-            if (getModelObject().isWrapper()) {
-                return false;
-            }
-            return !isExistingViewableObject() || !isAutorized();
-        });
-
-        headerChangeType.add(visibleIfNotWrapper);
-        headerObjectType.add(visibleIfNotWrapper);
-        headerNameLabel.add(visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized);
-        headerNameLink.add(visibleIfExistingObjectAndAuthorized);
-        headerDescription.add(visibleIfNotWrapper);
-        headerWrapperDisplayName.add(visibleIfWrapper);
-
-        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+        final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
             VisualizationDto dto = getModelObject();
             return !dto.isMinimized() && (!dto.getItems().isEmpty() || !dto.getPartialVisualizations().isEmpty());
         }));
         add(body);
 
-        SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems);
+        final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems);
         visualization.setRenderBodyOnly(true);
         body.add(visualization);
     }

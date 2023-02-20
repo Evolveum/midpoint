@@ -8,31 +8,31 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 /**
  * @author lazyman
  */
-public class VisualizationButtonPanel extends Panel {
+public class VisualizationButtonPanel extends BasePanel<VisualizationDto> {
 
     private static final long serialVersionUID = 1L;
 
     public static final String ID_MINIMIZE = "minimize";
 
     public VisualizationButtonPanel(String id, IModel<VisualizationDto> model) {
-        super(id);
+        super(id, model);
 
-        initLayout(model);
+        initLayout();
     }
 
-    private void initLayout(final IModel<VisualizationDto> model) {
+    private void initLayout() {
         AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
-                () -> model.getObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
-                () -> model.getObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
+                () -> getModelObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
+                () -> getModelObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
