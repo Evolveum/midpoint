@@ -56,7 +56,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
     }
 
     private void initModels() {
-        changesViewModel = Model.of(ChangesView.SIMPLE);
+        changesViewModel = Model.of(ChangesView.ADVANCED);
 
         IModel<Visualization> visualizationModel = new LoadableModel<>(false) {
 

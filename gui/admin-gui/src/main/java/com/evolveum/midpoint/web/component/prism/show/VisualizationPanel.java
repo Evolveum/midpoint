@@ -10,7 +10,9 @@ package com.evolveum.midpoint.web.component.prism.show;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -29,8 +31,9 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -70,15 +73,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initLayout();
     }
 
-    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<VisualizationDto> model) {
-        return new AjaxEventBehavior("click") {
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, model);
-            }
-        };
-    }
-
     private void initLayout() {
         add(AttributeAppender.append("class", "card card-outline-left"));
         add(AttributeModifier.append("class", () -> {
@@ -95,23 +89,71 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
         final VisibleBehaviour visibleIfWrapper = new VisibleBehaviour(() -> getModelObject().isWrapper());
-        final VisibleBehaviour visibleIfExistingObjectAndAuthorized = new VisibleBehaviour(() -> {
-            if (getModelObject().isWrapper()) {
-                return false;
-            }
-            return isExistingViewableObject() && isAutorized();
-        });
-        final VisibleBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleBehaviour(() -> {
-            if (getModelObject().isWrapper()) {
-                return false;
-            }
-            return !isExistingViewableObject() || !isAutorized();
-        });
 
         final IModel<VisualizationDto> model = getModel();
 
         final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
+        headerPanel.add(new AjaxEventBehavior("click") {
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                headerOnClickPerformed(target, model);
+            }
+        });
         add(headerPanel);
+
+        final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
+            WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
+            String key = visualization.getDisplayNameKey();
+            Object[] parameters = visualization.getDisplayNameParameters();
+            return LocalizationUtil.translate(key, parameters);
+        });
+        wrapperDisplayName.add(visibleIfWrapper);
+        headerPanel.add(wrapperDisplayName);
+
+        final Label changeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
+        changeType.add(visibleIfNotWrapper);
+        headerPanel.add(changeType);
+
+        final Label objectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
+        objectType.add(visibleIfNotWrapper);
+        headerPanel.add(objectType);
+
+        final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName(this)) {
+
+            @Override
+            protected void disableLink(ComponentTag tag) {
+                super.disableLink(tag);
+
+                tag.setName("span");
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+                attributes.setPreventDefault(true);
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                PrismContainerValue<?> value = VisualizationPanel.this.getModelObject().getVisualization().getSourceValue();
+                if (value != null && value.getParent() instanceof PrismObject) {
+                    PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
+                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
+                }
+            }
+        };
+        nameLink.add(new VisibleEnableBehaviour(() -> !getModelObject().isWrapper(), () -> isExistingViewableObject() && isAutorized()));
+        headerPanel.add(nameLink);
+
+        final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
+        description.add(visibleIfNotWrapper);
+        headerPanel.add(description);
+
+        final Label warning = new Label(ID_WARNING);
+        warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
+        warning.add(new TooltipBehavior());
+        headerPanel.add(warning);
 
         headerPanel.add(new VisualizationButtonPanel(ID_OPTION_BUTTONS, model) {
             @Override
@@ -119,57 +161,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 headerOnClickPerformed(target, model);
             }
         });
-
-        final Label headerChangeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
-        headerChangeType.add(createHeaderOnClickBehaviour(model));
-        headerChangeType.add(visibleIfNotWrapper);
-        headerPanel.add(headerChangeType);
-
-        final Label headerObjectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
-        headerObjectType.add(createHeaderOnClickBehaviour(model));
-        headerObjectType.add(visibleIfNotWrapper);
-        headerPanel.add(headerObjectType);
-
-        IModel<String> nameModel = () -> model.getObject().getName(VisualizationPanel.this);
-
-        final Label headerNameLabel = new Label(ID_NAME_LABEL, nameModel);
-        headerNameLabel.add(createHeaderOnClickBehaviour(model));
-        headerNameLabel.add(visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized);
-        headerPanel.add(headerNameLabel);
-
-        final AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_NAME_LINK, nameModel) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PrismContainerValue<?> value = getModelObject().getVisualization().getSourceValue();
-                if (value != null && value.getParent() instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
-                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
-                }
-            }
-        };
-        headerNameLink.add(visibleIfExistingObjectAndAuthorized);
-        headerPanel.add(headerNameLink);
-
-        final Label headerDescription = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
-        headerDescription.add(createHeaderOnClickBehaviour(model));
-        headerDescription.add(visibleIfNotWrapper);
-        headerPanel.add(headerDescription);
-
-        final Label headerWrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
-            WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
-            String key = visualization.getDisplayNameKey();
-            Object[] parameters = visualization.getDisplayNameParameters();
-            return LocalizationUtil.translate(key, parameters);
-        });
-        headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
-        headerWrapperDisplayName.add(visibleIfWrapper);
-        headerPanel.add(headerWrapperDisplayName);
-
-        final Label warning = new Label(ID_WARNING);
-        warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
-        warning.add(new TooltipBehavior());
-        headerPanel.add(warning);
 
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
@@ -186,11 +177,15 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     protected boolean isExistingViewableObject() {
         final Visualization visualization = getModelObject().getVisualization();
         final PrismContainerValue<?> value = visualization.getSourceValue();
-        return value != null &&
-                value.getParent() instanceof PrismObject &&
-                WebComponentUtil.hasDetailsPage((PrismObject) value.getParent()) &&
-                ((PrismObject) value.getParent()).getOid() != null &&
-                (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
+
+        if (value == null || !(value.getParent() instanceof PrismObject)) {
+            return false;
+        }
+
+        PrismObject obj = (PrismObject) value.getParent();
+
+        return WebComponentUtil.hasDetailsPage(obj) &&
+                obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
     }
 
     public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
