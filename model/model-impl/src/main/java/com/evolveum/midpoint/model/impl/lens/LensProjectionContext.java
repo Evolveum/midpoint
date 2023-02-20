@@ -50,7 +50,7 @@ import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ShadowMarkManager;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -1903,8 +1903,23 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ItemChangeApplicationModeConfiguration.of(getCompositeObjectDefinition());
     }
 
-    public boolean isMarkedReadOnly() {
-        var policy = ShadowMarkManager.get().computeEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), new OperationResult("markReadOnly"));
+
+    private ObjectOperationPolicyType operationPolicy(OperationResult result) {
+        return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
+    }
+
+    public boolean isMarkedReadOnly(OperationResult result) {
+        var policy = operationPolicy(result);
         return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
+    }
+
+    public boolean isInboundSyncDisabled(OperationResult result) {
+        var policy = operationPolicy(result);
+        return !policy.getSynchronize().getInbound().isEnabled();
+    }
+
+    public boolean isOutboundSyncDisabled(OperationResult result) {
+        var policy = operationPolicy(result);
+        return !policy.getSynchronize().getInbound().isEnabled();
     }
 }

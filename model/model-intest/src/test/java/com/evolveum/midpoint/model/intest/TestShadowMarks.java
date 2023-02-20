@@ -146,6 +146,15 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
         userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userOrig.findItem(PATH_PERSONAL_NUMBER), userAfter.findItem(PATH_PERSONAL_NUMBER));
+
+        recomputeUser(userAfter.getOid());
+        userAfter = searchObjectByName(UserType.class, "brown");
+        assertEquals(userOrig.findItem(PATH_PERSONAL_NUMBER), userAfter.findItem(PATH_PERSONAL_NUMBER));
+
+        reconcileUser(userAfter.getOid(), getTestTask(), result);
+        userAfter = searchObjectByName(UserType.class, "brown");
+        assertEquals(userOrig.findItem(PATH_PERSONAL_NUMBER), userAfter.findItem(PATH_PERSONAL_NUMBER));
+
     }
 
     @Test
@@ -169,18 +178,35 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         PrismObject<UserType> userOrig = searchObjectByName(UserType.class, "reddy");
         ObjectReferenceType shadow1Ref = userOrig.asObjectable().getLinkRef().get(0);
 
-        // Mark shadow do read-only
+
         var renamed = PolyString.fromOrig("Browny");
         var modifyResult = createOperationResult();
         modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult, renamed);
         assertSuccess(modifyResult);
 
         assertEquals(account1.getAttributeValue(ATTR_GIVEN_NAME), "Browny");
+
+        // when(description);
+        // Mark shadow do read-only
         markShadow(shadow1Ref.getOid(), markReadOnlyOid, task, result);
 
         renamed = new PolyString("Karly");
         modifyObjectReplaceProperty(UserType.class, userOrig.getOid(), UserType.F_GIVEN_NAME, task, modifyResult, renamed);
         assertEquals(account1.getAttributeValue(ATTR_GIVEN_NAME), "Browny");
+
+        // Changes from resource should be imported (inbound enabled)
+        account1.replaceAttributeValue(ATTR_GIVEN_NAME, "Renamed");
+        importAccountsRequest()
+            .withResourceOid(RESOURCE_SINGLE.oid)
+            .withNameValue("reddy")
+            .withTracing()
+            .execute(result);
+
+        PrismObject<UserType> userAfterImport = searchObjectByName(UserType.class, "reddy");
+        assertEquals(userAfterImport.asObjectable().getGivenName().getOrig(), "Renamed");
+
+        // We should be able to remove shadow mark
+
     }
 
     private void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {

@@ -39,7 +39,7 @@ import com.google.common.base.Objects;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.*;
 
 @Component
-public class ShadowMarkManager {
+public class ObjectOperationPolicyHelper {
 
     private abstract class Impl {
 
@@ -59,7 +59,7 @@ public class ShadowMarkManager {
 
     private static final String MARK_PROTECTED_SHADOW_OID = SystemObjectsType.MARK_PROTECTED_SHADOW.value();
 
-    private static ShadowMarkManager instance = null;
+    private static ObjectOperationPolicyHelper instance = null;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private PrismContext prismContext;
@@ -98,14 +98,26 @@ public class ShadowMarkManager {
         }
     }
 
-    public static ShadowMarkManager get() {
+    public static ObjectOperationPolicyHelper get() {
         return instance;
     }
 
-    public ObjectOperationPolicyType computeEffectivePolicy(ObjectType shadow, OperationResult result) {
-        Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);
-        return behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
+    public ObjectOperationPolicyType getEffectivePolicy(ObjectType shadow, OperationResult result) {
+        var policy = shadow.getEffectiveOperationPolicy();
+        if (policy != null) {
+            return policy;
+        }
+        return computeEffectivePolicy(shadow, result);
+    }
 
+    public ObjectOperationPolicyType computeEffectivePolicy(ObjectType shadow, OperationResult parentResult) {
+        var result = parentResult.createMinorSubresult("computeEffectivePolicy");
+        try {
+            Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);
+            return behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
+        } finally {
+            result.computeStatus();
+        }
     }
 
     public void updateEffectiveMarksAndPolicies(Collection<ResourceObjectPattern> protectedAccountPatterns,

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.repo.common.ShadowMarkManager;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -199,7 +199,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
         // provisioning is skipped, so we need to ensure policy is computed.
         if (policy == null) {
-            policy = ShadowMarkManager.get().computeEffectivePolicy(shadowedResourceObject, new OperationResult("markedSkipSynchronization"));
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, new OperationResult("markedSkipSynchronization"));
         }
         return !policy.getSynchronize().getInbound().isEnabled();
     }

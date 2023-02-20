@@ -41,7 +41,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
-import com.evolveum.midpoint.repo.common.ShadowMarkManager;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -339,7 +339,7 @@ public class ProvisioningUtil {
         if (shadow.getEffectiveOperationPolicy() != null) {
             return shadow.getEffectiveOperationPolicy();
         }
-        ShadowMarkManager.get().updateEffectiveMarksAndPolicies(
+        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
                 protectedAccountPatterns, shadow, result);
         return shadow.getEffectiveOperationPolicy();
     }
@@ -348,7 +348,7 @@ public class ProvisioningUtil {
             ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
-        ShadowMarkManager.get().updateEffectiveMarksAndPolicies(
+        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
                 ctx.getProtectedAccountPatterns(factory, result), shadow, result);
     }
 
