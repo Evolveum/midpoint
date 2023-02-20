@@ -8,47 +8,28 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
- * A file-based {@link AbstractTestResource}.
+ * A file-based {@link TestObject}.
  *
- * TODO better name? There is a confusion with midPoint {@link ResourceType} objects here.
- *  `TestObject`, `TestFile`, or something else ?
+ * DEPRECATED. Use {@link TestObject#file(File, String, String)} instead.
  */
-@Experimental
-public class TestResource<T extends ObjectType> extends AbstractTestResource<T> {
-
-    @NotNull private final File file;
+@Deprecated
+public class TestResource<T extends ObjectType> extends TestObject<T> {
 
     public TestResource(@NotNull File dir, @NotNull String fileName) {
         this(dir, fileName, null);
     }
 
     public TestResource(@NotNull File dir, @NotNull String fileName, String oid) {
-        super(oid);
-        this.file = new File(dir, fileName);
+        super(new FileBasedTestObjectSource(dir, fileName), oid);
     }
 
     public @NotNull File getFile() {
-        return file;
-    }
-
-    @Override
-    public @NotNull InputStream getInputStream() throws IOException {
-        return new FileInputStream(file);
-    }
-
-    @Override
-    public @NotNull String getDescription() {
-        return file + " (" + oid + ")";
+        return ((FileBasedTestObjectSource) source).getFile();
     }
 }

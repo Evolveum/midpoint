@@ -422,9 +422,10 @@ public class AssignmentsUtil {
 
     public static AssignmentEditorDtoType getType(AssignmentType assignment) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
-        if (targetRef.asReferenceValue().getObject() != null) {
+        PrismObject<? extends ObjectType> object = targetRef.asReferenceValue().getObject();
+        if (object != null) {
             // object assignment
-            return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
+            return AssignmentEditorDtoType.getType(object.getCompileTimeClass());
         } else if (assignment.getTargetRef() != null) {
             return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
         }

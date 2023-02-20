@@ -13,11 +13,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestReport;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,8 +26,11 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
 
     private static final int USERS = 50;
 
-    static final TestResource<ReportType> REPORT_INDIRECT_ASSIGNMENTS = new TestResource<>(TEST_DIR_REPORTS,
+    static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.classPath(DIR_REPORTS,
             "report-indirect-assignments.xml", "7f1695f2-d826-4d78-a046-b8249b79d2b5");
+
+    static final TestTask TASK_EXPORT_CLASSIC_ROLE_CACHING = new TestTask(TEST_DIR_REPORTS,
+            "task-export-role-caching.xml", "0ff414b6-76c6-4d38-95e8-d2d34c7a11cb");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -38,10 +40,10 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         }
         super.initSystem(initTask, initResult);
 
-        repoAdd(TASK_EXPORT_CLASSIC, initResult);
-
+        repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult);
         repoAdd(REPORT_INDIRECT_ASSIGNMENTS, initResult);
 
+        // adding role chain: businessRole -> appRole -> appService
         String appServiceOid = addObject(new ServiceType().name("appService").asPrismObject(), initTask, initResult);
         String appRoleOid = addObject(new RoleType().name("appRole")
                 .inducement(new AssignmentType().targetRef(appServiceOid, ServiceType.COMPLEX_TYPE))
@@ -77,53 +79,9 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
     @Test
     public void test100RunReport() throws Exception {
         skipIfNotNativeRepository();
+
         // 50 * 3 (normal) + 50 // 3 (direct assignments) + 3 (without metadata) + jack + header
         // (subscription footer is considered automatically later, do not count it here)
-        runTest(REPORT_INDIRECT_ASSIGNMENTS, 171, 7, null);
-    }
-
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
-            String lastLine, ReportParameterType parameters) throws Exception {
-        given();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        if (parameters != null) {
-            modifyObjectReplaceContainer(TaskType.class,
-                    TASK_EXPORT_CLASSIC.oid,
-                    ItemPath.create(TaskType.F_ACTIVITY,
-                            ActivityDefinitionType.F_WORK,
-                            WorkDefinitionsType.F_REPORT_EXPORT,
-                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM),
-                    task,
-                    result,
-                    parameters);
-        }
-
-        dummyTransport.clearMessages();
-
-        runExportTaskClassic(reportResource, result);
-
-        when();
-
-        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
-
-        then();
-
-        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
-                .assertSuccess()
-                .display()
-                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
-
-        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
-
-        assertNotificationMessage(reportResource);
-    }
-
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, String lastLine)
-            throws Exception {
-        runTest(reportResource, expectedRows, expectedColumns, lastLine, null);
+        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 171, 7, null, null);
     }
 }

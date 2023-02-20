@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -212,10 +211,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Nullable private String triggeringResourceOid;
 
     /**
-     * At this level, isFresh == false means that deeper recomputation has to be
-     * carried out.
+     * At this level, isFresh == false means that deeper recomputation has to be carried out.
+     *
+     * @see ElementState#fresh
      */
     private transient boolean isFresh = false;
+
     private boolean isRequestAuthorized = false;
 
     /**
@@ -322,6 +323,48 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                     context.isDoReconciliationForAllProjections()); // TODO this should be somehow automatic
             return new GetOrCreateProjectionContextResult(newCtx, true);
         }
+    }
+
+    /**
+     * Returns contexts that have equivalent key with the reference context. Ordered by "order" in the key.
+     */
+    List<LensProjectionContext> findRelatedContexts(LensProjectionContext refProjCtx) {
+        Comparator<LensProjectionContext> orderComparator = (ctx1, ctx2) -> {
+            int order1 = ctx1.getKey().getOrder();
+            int order2 = ctx2.getKey().getOrder();
+            return Integer.compare(order1, order2);
+        };
+        return projectionContexts.stream()
+                .filter(aProjCtx -> refProjCtx.getKey().equivalent(aProjCtx.getKey()))
+                .sorted(orderComparator)
+                .collect(Collectors.toList());
+    }
+
+    public boolean hasLowerOrderContext(LensProjectionContext refProjCtx) {
+        ProjectionContextKey refKey = refProjCtx.getKey();
+        for (LensProjectionContext aProjCtx : projectionContexts) {
+            ProjectionContextKey aKey = aProjCtx.getKey();
+            if (refKey.equivalent(aKey) && (refKey.getOrder() > aKey.getOrder())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public LensProjectionContext findLowerOrderContext(LensProjectionContext refProjCtx) {
+        int minOrder = -1;
+        LensProjectionContext foundCtx = null;
+        ProjectionContextKey refKey = refProjCtx.getKey();
+        for (LensProjectionContext aProjCtx : projectionContexts) {
+            ProjectionContextKey aKey = aProjCtx.getKey();
+            if (refKey.equivalent(aKey) && aKey.getOrder() < refKey.getOrder()) {
+                if (minOrder < 0 || aKey.getOrder() < minOrder) {
+                    minOrder = aKey.getOrder();
+                    foundCtx = aProjCtx;
+                }
+            }
+        }
+        return foundCtx;
     }
 
     public ProvisioningService getProvisioningService() {
@@ -635,79 +678,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             return;
         }
         LOGGER.debug("Rotting context because of {}", reason);
-        setFresh(false);
         if (focusContext != null) {
             focusContext.rot();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.rot();
-        }
-    }
-
-    /**
-     * Force recompute for the next execution wave. Recompute only those contexts that were changed.
-     * This is more intelligent than rot()
-     */
-    private void rotAfterExecution() throws SchemaException, ConfigurationException {
-        if (!taskExecutionMode.isFullyPersistent()) {
-            LOGGER.trace("Not rotting the context because we are not in persistent execution mode");
-            return;
-        }
-        Holder<Boolean> rotHolder = new Holder<>(false);
-        rotProjectionContextsIfNeeded(rotHolder);
-        rotFocusContextIfNeeded(rotHolder);
-        if (rotHolder.getValue()) {
-            setFresh(false);
-        }
-    }
-
-    private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException, ConfigurationException {
-        for (LensProjectionContext projectionContext : projectionContexts) {
-            if (projectionContext.getWave() != executionWave) {
-                LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
-            } else {
-                // TODO we should decide according to the real delta that has been executed
-                ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
-                if (isShadowDeltaSignificant(execDelta)) {
-                    LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
-                    projectionContext.rot();
-                    rotHolder.setValue(true);
-                    // Propagate to higher-order projections
-                    for (LensProjectionContext relCtx : LensUtil.findRelatedContexts(this, projectionContext)) {
-                        relCtx.rot();
-                    }
-                } else {
-                    LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
-                }
-            }
-        }
-    }
-
-    private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
-        if (delta == null || delta.isEmpty()) {
-            return false;
-        }
-        if (delta.isAdd() || delta.isDelete()) {
-            return true;
-        } else {
-            Collection<? extends ItemDelta<?, ?>> attrDeltas = delta.findItemDeltasSubPath(ShadowType.F_ATTRIBUTES);
-            return !attrDeltas.isEmpty();
-        }
-    }
-
-    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder) {
-        if (focusContext != null) {
-            if (focusContext.getAnyDeltasExecutedFlag()) {
-                LOGGER.debug("Context rot: focus context rotten because there were some deltas executed");
-                rotHolder.setValue(true);
-            }
-            if (rotHolder.getValue()) {
-                // It is OK to refresh focus all the time there was any change. This is cheap.
-                focusContext.rot();
-                // This would be nice but break some tests ... TODO check it
-//                focusContext.setObjectCurrent(null);
-//                focusContext.setObjectNew(null);
-            }
         }
     }
 
@@ -1289,8 +1264,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent);
             sb.append("trigger: ").append(trigger);
-            if (trigger instanceof EvaluatedExclusionTrigger
-                    && ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 1);
                 sb.append("conflict: ");
@@ -1832,12 +1806,43 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext != null && focusContext.isOfType(type);
     }
 
-    void updateAfterExecution() throws SchemaException, ConfigurationException {
-        rotAfterExecution();
-        if (focusContext != null) {
-            focusContext.updateAfterExecution();
+    /**
+     * Updates the context after the (real or simulated) execution.
+     *
+     * 1. Selected contexts are marked as rotten (not fresh). This is to force their reload for the next execution wave.
+     * We try to do this only for those that were really changed. This is more intelligent than {@link #rot(String)}.
+     *
+     * 2. Deltas are updated (e.g. secondary ones cleared) - currently for focus only.
+     */
+    void updateAfterExecution() {
+        LOGGER.trace("Starting context update after execution");
+
+        // 1. Context rot
+        if (isFullyPersistentExecution()) {
+            rotAfterExecution();
+        } else {
+            LOGGER.trace("Not rotting contexts because the mode is not 'full execution'");
         }
-        // nothing like this for projections (yet)
+
+        // 2. Treating the deltas. This is intentionally NOT done for projections, as the current clients
+        // rely on seeing the secondary deltas.
+        if (focusContext != null) {
+            focusContext.updateDeltasAfterExecution();
+        }
+
+        LOGGER.trace("Finished context update after execution");
+    }
+
+    private void rotAfterExecution() {
+        boolean projectionRotten = false;
+        for (LensProjectionContext projectionContext : projectionContexts) {
+            if (projectionContext.rotAfterExecution()) {
+                projectionRotten = true;
+            }
+        }
+        if (focusContext != null) {
+            focusContext.rotAfterExecution(projectionRotten);
+        }
     }
 
     public boolean primaryFocusItemDeltaExists(ItemPath path) {
@@ -1959,11 +1964,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 "Trying to %s but the clockwork has already started: %s in %s", operation, elementContext, this);
     }
 
-    void clearAnyDeltasExecutedFlag() {
+    void clearLastChangeExecutionResult() {
         if (focusContext != null) {
-            focusContext.clearAnyDeltasExecutedFlag();
+            focusContext.clearLastChangeExecutionResult();
         }
-        projectionContexts.forEach(LensElementContext::clearAnyDeltasExecutedFlag);
+        projectionContexts.forEach(
+                LensElementContext::clearLastChangeExecutionResult);
     }
 
     public boolean isDiscoveryChannel() {
@@ -2005,13 +2011,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return internals.getShadowMetadataRecording();
     }
 
-    public enum ExportType {
-        MINIMAL, REDUCED, OPERATIONAL, TRACE
+    private boolean isFullyPersistentExecution() {
+        return taskExecutionMode.isFullyPersistent();
     }
 
-    /** Returns true if the current task should see the production configuration, false if it should see development config. */
-    boolean isProductionConfigurationTask() {
-        return taskExecutionMode.isProductionConfiguration();
+    boolean isProjectionRecomputationRequested() {
+        return projectionContexts.stream().anyMatch(LensProjectionContext::isProjectionRecomputationRequested);
+    }
+
+    public enum ExportType {
+        MINIMAL, REDUCED, OPERATIONAL, TRACE
     }
 
     // FIXME temporary solution

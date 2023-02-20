@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AnyResource;
+import com.evolveum.midpoint.test.AnyTestResource;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -48,7 +48,7 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
     private static final TestResource<FunctionLibraryType> LIB_GROUPER = new TestResource<>(TEST_DIR, "function-library-grouper.xml", "2eef4181-25fa-420f-909d-846a36ca90f3");
 
-    static final AnyResource RESOURCE_LDAP = new AnyResource(TEST_DIR, "resource-ldap.xml", "0a37121f-d515-4a23-9b6d-554c5ef61272");
+    static final AnyTestResource RESOURCE_LDAP = AnyTestResource.file(TEST_DIR, "resource-ldap.xml", "0a37121f-d515-4a23-9b6d-554c5ef61272");
 
     private static final String GROUPER_DUMMY_RESOURCE_ID = "grouper";
     static final DummyTestResource RESOURCE_GROUPER = new DummyTestResource(TEST_DIR, "resource-grouper.xml", "1eff65de-5bb6-483d-9edf-8cc2c2ee0233", GROUPER_DUMMY_RESOURCE_ID);

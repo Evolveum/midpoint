@@ -6,8 +6,16 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanData
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -38,7 +46,14 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
     public SingleSelectTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId) {
-        super(id, Model.of(ViewToggle.TILE), tableId);
+        this(id, Model.of(ViewToggle.TILE), tableId);
+    }
+
+    public SingleSelectTileTablePanel(
+            String id,
+            IModel<ViewToggle> viewToggle,
+            UserProfileStorage.TableId tableId) {
+        super(id, viewToggle, tableId);
     }
 
     @Override
@@ -166,5 +181,58 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
 
     protected ContainerPanelConfigurationType getContainerConfiguration() {
         return null;
+    }
+
+    @Override
+    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<SelectableBean<O>, String> provider, UserProfileStorage.TableId tableId) {
+        BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<>(idTable, provider, createColumns(), tableId) {
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                return SingleSelectTileTablePanel.this.createTableButtonToolbar(id);
+            }
+
+            @Override
+            protected Component createHeader(String headerId) {
+                return createHeaderFragment(headerId);
+            }
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
+
+            @Override
+            protected Item customizeNewRowItem(Item<SelectableBean<O>> item, IModel<SelectableBean<O>> model) {
+                SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject());
+
+                item.add(AttributeModifier.append("class", () ->
+                        model.getObject().isSelected() ? "cursor-pointer table-primary" : "cursor-pointer"));
+                item.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        onSelectTableRow(model, target);
+                    }
+                });
+                return item;
+            }
+        };
+        table.setShowAsCard(false);
+        return table;
+    }
+
+    protected void customizeNewRowItem(SelectableBean<O> value) {
+    }
+
+    void onSelectTableRow(IModel<SelectableBean<O>> model, AjaxRequestTarget target) {
+        boolean oldState = model.getObject().isSelected();
+        ((SelectableBeanDataProvider) getProvider()).clearSelectedObjects();
+
+        model.getObject().setSelected(!oldState);
+        if (model.getObject().isSelected()) {
+            ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
+        }
+
+        refresh(target);
     }
 }

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -7,6 +7,9 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
@@ -41,6 +44,7 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
         MultiSelectTileTablePanel<SI, O> tilesTable =
                 new MultiSelectTileTablePanel<>(
                         ID_TABLE,
+                        getDefaultViewToggle(),
                         UserProfileStorage.TableId.PANEL_ACCESS_WIZARD_STEP) {
 
                     @Override
@@ -64,8 +68,8 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
-                    protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<O>> tile) {
-                        MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(tile);
+                    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
+                        MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(value);
                     }
 
                     @Override
@@ -106,20 +110,44 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
+                    protected void customizeNewRowItem(SelectableBean<O> value) {
+                        MultiSelectTileWizardStepPanel.this.customizeTile(value, null);
+                    }
+
+                    @Override
                     public void refresh(AjaxRequestTarget target) {
                         super.refresh(target);
                         target.add(this);
+                    }
+
+                    @Override
+                    protected boolean isTogglePanelVisible() {
+                        return MultiSelectTileWizardStepPanel.this.isTogglePanelVisible();
+                    }
+
+                    @Override
+                    protected List<IColumn<SelectableBean<O>, String>> createColumns() {
+                        return MultiSelectTileWizardStepPanel.this.createColumns();
+                    }
+
+                    @Override
+                    protected WebMarkupContainer createTableButtonToolbar(String id) {
+                        return MultiSelectTileWizardStepPanel.this.createTableButtonToolbar(id);
                     }
                 };
         tilesTable.setOutputMarkupId(true);
         add(tilesTable);
     }
 
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        return new WebMarkupContainer(id);
+    }
+
     protected SearchContext getAdditionalSearchContext() {
         return new SearchContext();
     }
 
-    protected void processSelectOrDeselectItem(TemplateTile<SelectableBean<O>> tile) {
+    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
 
     }
 

@@ -242,7 +242,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         // Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
 
-        LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(context, projCtx);
+        LensProjectionContext lowerOrderContext = context.findLowerOrderContext(projCtx);
 
         SynchronizationPolicyDecision decision;
         if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {

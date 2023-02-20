@@ -117,6 +117,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         super.initSystem(initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
+        REPORT_SIMULATION_BASIC.init(this, initTask, initResult);
 
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
@@ -235,10 +236,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when("account is added in the simulation mode");
         var simulationResult = executeWithSimulationResult(
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
                 task, result,
-                (simResult) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
+                () -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
 
         then("operation is successful");
         assertSuccess(result);
@@ -263,6 +262,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_BASIC.export()
+                .withParameterValues(simulationResult.getSimulationResultOid())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .display();
     }
 
     @Test
@@ -549,10 +557,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         try {
             when("account is tried to be added (simulation mode)");
             executeWithSimulationResult(
-                    TaskExecutionMode.SIMULATED_PRODUCTION,
-                    defaultSimulationDefinition(),
                     task, result,
-                    (simResult) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
+                    () -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result));
 
             then();
             assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
@@ -781,11 +787,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = createDeleteAccountDelta(USER_JACK_OID, account);
 
         when("account is added in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(userDelta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(userDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -1036,11 +1038,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when();
         when("account is deleted in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(accountDelta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(accountDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -1155,11 +1153,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when();
         when("account is deleted in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(accountDelta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(accountDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -1248,11 +1242,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
 
         when("account is assigned in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(delta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -1424,11 +1414,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         objectsCounter.remember(result);
 
         when("account is modified in the simulation mode");
-        var simulationResult = executeWithSimulationResult(
-                List.of(createJacksAccountModifyDelta()),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(createJacksAccountModifyDelta()), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -1715,8 +1701,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         when();
         var simulationResult = executeWithSimulationResult(
                 List.of(createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false)),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
                 task, result);
 
         then("operation is successful");
@@ -3172,11 +3156,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 prismContext.deltaFactory().object().createDeleteDelta(UserType.class, USER_JACK_OID);
 
         when();
-        var simulationResult = executeWithSimulationResult(
-                List.of(delta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -3362,11 +3342,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                                 new File(TEST_DIR, "user-morgan-assignment-dummy.xml")));
 
         when();
-        var simulationResult = executeWithSimulationResult(
-                List.of(delta),
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
-                task, result);
+        var simulationResult = executeWithSimulationResult(List.of(delta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
@@ -3482,10 +3458,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when();
         var simulationResult = executeWithSimulationResult(
-                TaskExecutionMode.SIMULATED_PRODUCTION,
-                defaultSimulationDefinition(),
                 task, result,
-                (sr) -> modifyUserReplace(
+                () -> modifyUserReplace(
                         USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry")));
 
         then("operation is successful");

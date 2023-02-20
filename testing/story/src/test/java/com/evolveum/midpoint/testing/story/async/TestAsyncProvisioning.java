@@ -11,9 +11,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentW
 import java.io.File;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.test.AnyResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,9 +23,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Complex testing of asynchronous provisioning and updating.
@@ -41,12 +42,17 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final AnyResource RESOURCE_ASYNC_OUTBOUND = new AnyResource(TEST_DIR, "resource-async-outbound.xml", "f64a3dc5-3b5e-4bf9-9f46-ed01992984ef");
-    private static final AnyResource RESOURCE_ASYNC_INBOUND = new AnyResource(TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
+    private static final AnyTestResource RESOURCE_ASYNC_OUTBOUND = AnyTestResource.file(
+            TEST_DIR, "resource-async-outbound.xml", "f64a3dc5-3b5e-4bf9-9f46-ed01992984ef");
+    private static final AnyTestResource RESOURCE_ASYNC_INBOUND = AnyTestResource.file(
+            TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
 
-    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "2041e429-8ca9-4f80-a38f-1e3359627e39");
-    private static final TestResource<TaskType> TASK_ASYNC_UPDATE_MULTI = new TestResource<>(TEST_DIR, "task-async-update-multi.xml", "c1f5a293-9fc9-4ab4-b497-de8605ee7dc6");
-    private static final TestResource<TaskType> TASK_RECOMPUTE_MULTI = new TestResource<>(TEST_DIR, "task-recompute-multi.xml", "8b21b493-c85e-4a77-800f-a9063d1cfe8c");
+    private static final TestTask TASK_ASYNC_UPDATE = new TestTask(
+            TEST_DIR, "task-async-update.xml", "2041e429-8ca9-4f80-a38f-1e3359627e39");
+    private static final TestTask TASK_ASYNC_UPDATE_MULTI = new TestTask(
+            TEST_DIR, "task-async-update-multi.xml", "c1f5a293-9fc9-4ab4-b497-de8605ee7dc6");
+    private static final TestTask TASK_RECOMPUTE_MULTI = new TestTask(
+            TEST_DIR, "task-recompute-multi.xml", "8b21b493-c85e-4a77-800f-a9063d1cfe8c");
 
     private EmbeddedActiveMQ embeddedBroker;
 

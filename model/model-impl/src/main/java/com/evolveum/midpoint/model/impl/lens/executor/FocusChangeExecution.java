@@ -7,12 +7,22 @@
 
 package com.evolveum.midpoint.model.impl.lens.executor;
 
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_FOCUS;
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -32,18 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
-import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_FOCUS;
-import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 /**
  * Executes changes in the focus context.
  *
@@ -54,15 +52,12 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * 5. Manages conflict resolution
  * 6. Reports progress
  */
-public class FocusChangeExecution<O extends ObjectType> {
+public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExecution<O, O> {
 
     /** For the time being we keep the parent logger name. */
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
 
-    @NotNull private final LensContext<O> context;
     @NotNull private final LensFocusContext<O> focusContext;
-    @NotNull private final Task task;
-    @NotNull private final ModelBeans b;
 
     /**
      * Delta to be executed. It is gradually updated.
@@ -75,12 +70,9 @@ public class FocusChangeExecution<O extends ObjectType> {
     private static final ThreadLocal<Set<ChangeExecutionListener>> CHANGE_EXECUTION_LISTENERS_TL =
             ThreadLocal.withInitial(HashSet::new);
 
-    public FocusChangeExecution(@NotNull LensContext<O> context, @NotNull LensFocusContext<O> focusContext,
-            @NotNull Task task, @NotNull ModelBeans modelBeans) {
-        this.context = context;
+    public FocusChangeExecution(@NotNull LensFocusContext<O> focusContext, @NotNull Task task) {
+        super(focusContext, task);
         this.focusContext = focusContext;
-        this.task = task;
-        this.b = modelBeans;
     }
 
     public void execute(OperationResult parentResult) throws SchemaException,
@@ -276,7 +268,7 @@ public class FocusChangeExecution<O extends ObjectType> {
             ConflictDetectedException {
         ConflictResolutionType conflictResolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
         DeltaExecution<O, O> deltaExecution =
-                new DeltaExecution<>(context, focusContext, focusDelta, conflictResolution, task, b);
+                new DeltaExecution<>(focusContext, focusDelta, conflictResolution, task, changeExecutionResult);
         deltaExecution.execute(result);
         if (focusDelta.isAdd() && focusDelta.getOid() != null) {
             b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),

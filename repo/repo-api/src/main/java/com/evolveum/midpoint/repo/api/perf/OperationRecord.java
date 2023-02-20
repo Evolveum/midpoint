@@ -21,7 +21,7 @@ public class OperationRecord {
     private long handle;
     private int attempts;
     private long startTime;
-    private long totalTime;
+    private long totalTime; // in ms
     private long wastedTime;
 
     public OperationRecord(String kind, Class<?> objectType, long handle) {

@@ -67,6 +67,7 @@ public class Clockwork {
     private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 
     private static final String OP_RUN = Clockwork.class.getName() + ".run";
+    private static final String OP_WRITE_SIMULATION_DATA = Clockwork.class.getName() + ".writeSimulationData";
 
     @Autowired private Projector projector;
     @Autowired private ProvisioningService provisioningService;
@@ -177,10 +178,18 @@ public class Clockwork {
         }
     }
 
-    private void writeFullSimulationData(LensContext<?> context, Task task, OperationResult result) {
+    private void writeFullSimulationData(LensContext<?> context, Task task, OperationResult parentResult) {
         SimulationTransaction transactionContext = task.getSimulationTransaction();
         if (!task.isExecutionFullyPersistent() && transactionContext != null) {
-            transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
+            OperationResult result = parentResult.createMinorSubresult(OP_WRITE_SIMULATION_DATA);
+            try {
+                transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
+            }
         }
     }
 

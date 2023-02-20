@@ -15,18 +15,17 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -60,17 +59,15 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
             return !hasValidReferenceValue(object);
         });
 
-        IModel<DisplayType> displayModel = (IModel) () -> {
-            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-            String cssClass = ObjectTypeGuiDescriptor.ERROR_ICON;
-            String title = null;
-            if (guiDescriptor != null) {
-                cssClass = guiDescriptor.getBlackIcon();
-                title = createStringResource(guiDescriptor.getLocalizationKey()).getObject();
-            }
-            return GuiDisplayTypeUtil.createDisplayType(cssClass, "", title);
-        };
-        final ImagePanel icon = new ImagePanel(ID_ICON, displayModel);
+        final IconComponent icon = new IconComponent(ID_ICON,
+                () -> {
+                    ObjectTypeGuiDescriptor descriptor = getObjectTypeDescriptor();
+                    return descriptor != null ? descriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                },
+                () -> {
+                    ObjectTypeGuiDescriptor descriptor = getObjectTypeDescriptor();
+                    return descriptor != null ? LocalizationUtil.translate(descriptor.getLocalizationKey()) : null;
+                });
         icon.add(visibleIfReference);
         add(icon);
 
@@ -78,13 +75,13 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         label.add(visibleIfNotReference);
         add(label);
 
-        final AjaxLinkPanel link = new AjaxLinkPanel(ID_LINK, new LabelModel()) {
+        final AjaxButton link = new AjaxButton(ID_LINK, new LabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
+                if (!(VisualizationItemValuePanel.this.getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
                     return;
                 }
-                PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
+                PrismReferenceValue refValue = (PrismReferenceValue) VisualizationItemValuePanel.this.getModelObject().getSourceValue();
                 if (refValue == null) {
                     return;
                 }

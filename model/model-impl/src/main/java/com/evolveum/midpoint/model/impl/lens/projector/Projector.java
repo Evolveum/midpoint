@@ -174,6 +174,8 @@ public class Projector {
                 medic.partialExecute(Components.LOAD, contextLoader, contextLoader::load,
                         partialProcessingOptions::getLoad,
                         Projector.class, context, activityDescription, now, task, result);
+            } else {
+                LOGGER.trace("Not loading the context, as 'fromStart' is false");
             }
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());

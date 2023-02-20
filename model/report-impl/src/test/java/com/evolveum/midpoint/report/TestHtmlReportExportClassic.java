@@ -19,14 +19,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
  */
-
 public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
     private static final int USERS = 50;
@@ -148,7 +147,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
                 .display();
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        File outputFile = findOutputFile(reportTask);
+        File outputFile = findReportOutputFile(reportTask, result);
         displayValue("Found report file", outputFile);
         if (StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeDataType)) {
             assertThat(outputFile).withFailMessage("Output file for " + reportTask + " exists").isNull();
@@ -274,7 +273,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         return config;
     }
 
-    private void runTest(TestResource<ReportType> reportResource) throws Exception {
+    private void runTest(TestObject<ReportType> reportResource) throws Exception {
         given();
 
         Task task = getTestTask();
@@ -296,7 +295,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         assertNotificationMessage(reportResource.getObjectable(), "text/html");
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
-        List<String> lines = getLinesOfOutputFile(reportTask);
+        List<String> lines = getLinesOfOutputFile(reportTask, result);
 
         if (lines.size() < 10) {
             fail("Html report too short (" + lines.size() + " lines)");

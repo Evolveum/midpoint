@@ -21,18 +21,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * Representation of Dummy Resource in tests.
  */
 @Experimental
-public class DummyTestResource extends TestResource<ResourceType> {
+public class DummyTestResource extends AnyTestResource {
 
     public final String name;
     public final FailableProcessor<DummyResourceContoller> controllerInitLambda;
     public DummyResourceContoller controller;
 
+    /**
+     * TODO change to static factory method
+     */
     public DummyTestResource(File dir, String fileName, String oid, String name) {
         this(dir, fileName, oid, name, null);
     }
 
+    /**
+     * TODO change to static factory method
+     */
     public DummyTestResource(File dir, String fileName, String oid, String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
-        super(dir, fileName, oid);
+        super(new FileBasedTestObjectSource(dir, fileName), oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
     }

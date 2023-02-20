@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -17,11 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class VisualizationImpl implements Visualization, DebugDumpable {
 
@@ -176,11 +177,11 @@ public class VisualizationImpl implements Visualization, DebugDumpable {
         }
         for (VisualizationItemImpl dataItem : items) {
             sb.append("\n");
-            sb.append(dataItem.debugDump(indent+1));
+            sb.append(dataItem.debugDump(indent + 1));
         }
         for (VisualizationImpl dataContext : partialVisualizations) {
             sb.append("\n");
-            sb.append(dataContext.debugDump(indent+1));
+            sb.append(dataContext.debugDump(indent + 1));
         }
         return sb.toString();
     }
@@ -243,7 +244,9 @@ public class VisualizationImpl implements Visualization, DebugDumpable {
         if (broken != other.broken) {return false;}
         if (!Objects.equals(name, other.name)) {return false;}
         if (changeType != other.changeType) {return false;}
-        if (partialVisualizations != null ? !partialVisualizations.equals(other.partialVisualizations) : other.partialVisualizations != null) {return false;}
+        if (partialVisualizations != null ? !partialVisualizations.equals(other.partialVisualizations) : other.partialVisualizations != null) {
+            return false;
+        }
         if (items != null ? !items.equals(other.items) : other.items != null) {return false;}
         if (!Objects.equals(sourceRelPath, other.sourceRelPath)) {return false;}
         if (!Objects.equals(sourceAbsPath, other.sourceAbsPath)) {return false;}

@@ -16,10 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -33,26 +37,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
-import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -89,7 +86,11 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
     private static final String ID_RELATED_OBJECTS = "relatedObjects";
+    private static final String ID_CHANGES_NEW = "changesNew";
     private static final String ID_CHANGES = "changes";
+    private static final String ID_PAGING = "paging";
+    private static final String ID_FOOTER = "footer";
+    private static final String ID_COUNT = "count";
 
     private IModel<SimulationResultType> resultModel;
 
@@ -155,7 +156,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> items = new ArrayList<>();
 
-                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> GuiSimulationsUtil.getProcessedObjectType(objectModel)));
+                items.add(new DetailsTableItem(createStringResource("PageSimulationResultObject.type"), () -> SimulationsGuiUtil.getProcessedObjectType(objectModel)));
 
                 IModel<String> resourceCoordinatesModel = new LoadableDetachableModel<>() {
 
@@ -215,7 +216,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return GuiSimulationsUtil.createProcessedObjectStateLabel(id, objectModel);
+                        return SimulationsGuiUtil.createProcessedObjectStateLabel(id, objectModel);
                     }
                 });
 
@@ -277,32 +278,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected VisualizationDto load() {
                 ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
-                if (objectDelta == null) {
-                    return null;
-                }
-
-                Visualization visualization;
-                try {
-                    ObjectDelta delta = DeltaConvertor.createObjectDelta(objectModel.getObject().getDelta());
-
-                    Task task = getPageTask();
-                    OperationResult result = task.getResult();
-
-                    visualization = getModelInteractionService().visualizeDelta(delta, task, result);
-                } catch (SchemaException | ExpressionEvaluationException e) {
-                    LOGGER.debug("Couldn't convert and visualize delta", e);
-
-                    throw new SystemException(e);
-                }
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Creating dto for deltas:\n{}", DebugUtil.debugDump(visualization));
-                }
-
-                final WrapperVisualization wrapper =
-                        new WrapperVisualization(Arrays.asList(visualization), "PagePreviewChanges.primaryChangesOne", 1);
-
-                return new VisualizationDto(wrapper);
+                return SimulationsGuiUtil.createDeltaVisualization(objectDelta, PageSimulationResultObject.this);
             }
         };
     }
@@ -337,7 +313,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
-        RelatedObjectsProvider provider = new RelatedObjectsProvider(this, searchModel) {
+        CombinedRelatedObjectsProvider provider = new CombinedRelatedObjectsProvider(this, searchModel, objectModel) {
 
             @Override
             protected @NotNull String getSimulationResultOid() {
@@ -353,9 +329,35 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
         DataTable<SelectableBean<SimulationResultProcessedObjectType>, String> relatedObjects =
-                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 20);
-        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 0));
+                new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 10) {
+
+                    @Override
+                    protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
+                        Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
+                        item.add(AttributeAppender.append("class", "align-middle"));
+
+                        return item;
+                    }
+
+                };
+        relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 1));
         add(relatedObjects);
+
+        final WebMarkupContainer footer = new WebMarkupContainer(ID_FOOTER);
+        footer.add(new VisibleBehaviour(() -> relatedObjects.getPageCount() > 1));
+        add(footer);
+
+        final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(relatedObjects));
+        footer.add(count);
+
+        final NavigatorPanel paging = new NavigatorPanel(ID_PAGING, relatedObjects, true) {
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
+        };
+        footer.add(paging);
 
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 () -> "fa-solid fa-circle-question",
@@ -363,14 +365,18 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()));
+        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
+        add(changesNew);
+
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null));
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && !WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changes);
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
-        columns.add(GuiSimulationsUtil.createProcessedObjectIconColumn());
+        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn());
         columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
@@ -390,7 +396,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 };
             }
         });
-        columns.add(new LambdaColumn<>(null, row -> GuiSimulationsUtil.getProcessedObjectType(row::getValue)));
+        columns.add(new LambdaColumn<>(null, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue)));
 
         return columns;
     }

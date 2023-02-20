@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation.todo;
+package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
 import java.io.Serializable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -28,9 +29,10 @@ public class CardOutlineLeftPanel<T extends Serializable> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String FRAGMENT_ID_HEADER = "header";
+    private static final String FRAGMENT_ID_BODY_HEADER = "bodyHeader";
 
     private static final String ID_HEADER = "header";
+    private static final String ID_BODY_HEADER = "bodyHeader";
     private static final String ID_TITLE = "title";
     private static final String ID_BADGE = "badge";
 
@@ -46,10 +48,21 @@ public class CardOutlineLeftPanel<T extends Serializable> extends BasePanel<T> {
 
         Component header = createHeader(ID_HEADER);
         add(header);
+
+        Component bodyHeader = createBodyHeader(ID_BODY_HEADER);
+        add(bodyHeader);
     }
 
     protected Component createHeader(String id) {
-        Fragment fragment = new Fragment(id, FRAGMENT_ID_HEADER, this);
+        WebMarkupContainer header = new WebMarkupContainer(id);
+        header.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+
+        return header;
+    }
+
+    protected Component createBodyHeader(String id) {
+        Fragment fragment = new Fragment(id, FRAGMENT_ID_BODY_HEADER, this);
+        fragment.add(AttributeAppender.append("class", "d-flex gap-2 align-items-center border-bottom border-gray pb-3 mb-3"));
         fragment.add(new Label(ID_TITLE, createTitleModel()));
 
         IModel<Badge> badgeModel = createBadgeModel();

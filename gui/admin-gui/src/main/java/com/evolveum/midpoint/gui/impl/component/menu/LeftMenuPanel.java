@@ -487,7 +487,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createAuditItems() {
-        return createMainMenuItem("PageAuditLogViewer.menuName", GuiStyleConstants.CLASS_TODO_FIXME_NOT_YET_DEFINED, PageAuditLogViewer.class);
+        return createMainMenuItem("PageAuditLogViewer.menuName", GuiStyleConstants.CLASS_AUDIT, PageAuditLogViewer.class);
     }
 
     private MainMenuItem createSimulationItems() {

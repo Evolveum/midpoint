@@ -7,25 +7,21 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 /**
- * @author mserbak
  * @author lazyman
  */
 public class VisualizationButtonPanel extends Panel {
+
     private static final long serialVersionUID = 1L;
 
-    public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
-    public static final String ID_ICON = "icon";
+    public static final String ID_MINIMIZE = "minimize";
 
     public VisualizationButtonPanel(String id, IModel<VisualizationDto> model) {
         super(id);
@@ -34,8 +30,9 @@ public class VisualizationButtonPanel extends Panel {
     }
 
     private void initLayout(final IModel<VisualizationDto> model) {
-        AjaxLink<String> minimize = new AjaxLink<String>(ID_MINIMIZE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+        AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
+                () -> model.getObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
+                () -> model.getObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -43,35 +40,6 @@ public class VisualizationButtonPanel extends Panel {
             }
         };
         add(minimize);
-
-        Label icon = new Label(ID_ICON);
-        icon.add(AttributeModifier.append("class", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                VisualizationDto dto = model.getObject();
-                if (dto.isMinimized()) {
-                    return GuiStyleConstants.CLASS_ICON_EXPAND;
-                }
-
-                return GuiStyleConstants.CLASS_ICON_COLLAPSE;
-            }
-        }));
-        minimize.add(icon);
-
-        icon.add(new AttributeAppender("title", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                VisualizationDto dto = model.getObject();
-                if (dto.isMinimized()) {
-                    return getString("prismOptionButtonPanel.maximize");
-                }
-                return getString("prismOptionButtonPanel.minimize");
-            }
-        }, ""));
     }
 
     public void minimizeOnClick(AjaxRequestTarget target) {

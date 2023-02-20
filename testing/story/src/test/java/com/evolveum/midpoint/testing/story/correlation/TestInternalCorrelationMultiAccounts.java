@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -72,7 +72,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
     private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
             new TestResource<>(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "474c95ce-59f0-4104-8a64-f3d0406234f0");
 
-    private static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    private static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "afb142f9-2218-491a-8b99-ce5713ca424d", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId,studyProgram");
 
