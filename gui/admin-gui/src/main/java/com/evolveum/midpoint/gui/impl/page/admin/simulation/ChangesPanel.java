@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.prism.show.SimpleVisualizationPanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -22,9 +20,9 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.CardObjectVisualizationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualizationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationFactory;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.web.component.prism.show.SimpleVisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -60,33 +58,35 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
     private void initModels() {
         changesViewModel = Model.of(ChangesView.SIMPLE);
 
+        IModel<Visualization> visualizationModel = new LoadableModel<>(false) {
+
+            @Override
+            protected Visualization load() {
+                ObjectDeltaType objectDelta = getModelObject().get(0);
+                return SimulationsGuiUtil.createVisualization(objectDelta, getPageBase());
+            }
+        };
+
         changesModel = new LoadableModel<>(false) {
 
             @Override
             protected VisualizationDto load() {
-                ObjectDeltaType objectDelta = getModelObject().get(0);  // todo improve
-                return SimulationsGuiUtil.createDeltaVisualization(objectDelta, getPageBase());
+                Visualization visualization = visualizationModel.getObject();
+                
+                return SimulationsGuiUtil.createVisualizationDto(visualization);
             }
         };
 
         changesNewModel = new LoadableModel<>() {
+
             @Override
             protected List<ObjectVisualization> load() {
-                ObjectDeltaType delta = getModelObject().get(0);  // todo improve
-                if (delta == null) {
+                Visualization visualization = visualizationModel.getObject();
+                if (visualization == null) {
                     return Collections.emptyList();
                 }
 
-                try {
-                    ObjectVisualization visualization = VisualizationFactory.createObjectVisualization(delta);
-
-                    return Collections.singletonList(visualization);
-                } catch (Exception ex) {
-                    // todo handle exception
-                    ex.printStackTrace();
-                }
-
-                return Collections.emptyList();
+                return Collections.singletonList(new ObjectVisualization());
             }
         };
     }

@@ -278,7 +278,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected VisualizationDto load() {
                 ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
-                return SimulationsGuiUtil.createDeltaVisualization(objectDelta, PageSimulationResultObject.this);
+                return SimulationsGuiUtil.createVisualizationDto(objectDelta, PageSimulationResultObject.this);
             }
         };
     }
