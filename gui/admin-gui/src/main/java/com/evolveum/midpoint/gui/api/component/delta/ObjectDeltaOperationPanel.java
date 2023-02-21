@@ -115,7 +115,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             }
 
         };
-        VisualizationPanel deltaPanel = new VisualizationPanel(ID_DELTA_PANEL, deltaModel, true) {
+        VisualizationPanel deltaPanel = new VisualizationPanel(ID_DELTA_PANEL, deltaModel, true, true) {
             @Override
             public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
                 super.headerOnClickPerformed(target, model);

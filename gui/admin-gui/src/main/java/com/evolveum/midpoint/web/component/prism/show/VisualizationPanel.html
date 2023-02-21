@@ -10,15 +10,25 @@
 <wicket:panel>
     <div class="card-header" wicket:id="headerPanel">
         <h3 class="card-title">
-            <span wicket:id="wrapperDisplayName"/>
-            <span wicket:id="changeType"/>
-            <span wicket:id="objectType"/>
-            <small>
-                <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
-            </small>
+            <wicket:enclosure child="simpleDescription">
+                <i wicket:id="simpleIcon"/>
+                <span wicket:id="simpleDescription"/>
+            </wicket:enclosure>
+            <wicket:container wicket:id="fullDescription">
+                <span wicket:id="wrapperDisplayName"/>
+                <span wicket:id="changeType"/>
+                <span wicket:id="objectType"/>
+                <small>
+                    <a wicket:id="nameLink"/> <span wicket:id="description"/>
+                </small>
+            </wicket:container>
             <i class="fa fa-triangle-exclamation text-warning mr-1" wicket:id="warning" wicket:message="title:ScenePanel.warningMessage"></i>
         </h3>
-        <div class="card-tools" wicket:id="optionButtons"/>
+        <wicket:enclosure child="minimize">
+            <div class="card-tools">
+                <a class="btn btn-tool" wicket:id="minimize"/>
+            </div>
+        </wicket:enclosure>
     </div>
 
     <div wicket:id="body" class="card-body p-0">

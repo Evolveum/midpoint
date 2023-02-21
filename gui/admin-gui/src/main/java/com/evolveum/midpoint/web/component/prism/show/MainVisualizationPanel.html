@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure>
+        <div class="card card-outline-left card-outline-left-info">
+            <div class="card-header">
+                <h3 class="card-title" >
+                    <wicket:message key="MainVisualizationPanel.itemsTitle"/>
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                <table wicket:id="itemsTable"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+
+    <wicket:container wicket:id="partialVisualizations">
+        <div class="mt-3 mb-0" wicket:id="partialVisualization"/>
+    </wicket:container>
+
+    <div class="show-empty-button" wicket:id="showOperationalItemsLink"/>
+</wicket:panel>
+</html>

@@ -14,10 +14,12 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -49,15 +51,17 @@ public class Visualizer {
     public static final String CLASS_DOT = Visualizer.class.getName() + ".";
 
     @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
     private PrismContext prismContext;
-
     @Autowired
     private ModelService modelService;
-
     @Autowired
     private Resolver resolver;
 
     private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
+
+    private static final List<VisualizationDescriptionHandler> DESCRIPTION_HANDLERS = new ArrayList<>();
 
     static {
         DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
@@ -72,6 +76,12 @@ public class Visualizer {
                 ShadowType.F_RESOURCE_REF,
                 ShadowType.F_KIND,
                 ShadowType.F_INTENT));
+    }
+
+    @PostConstruct
+    public void init() {
+        Map<String, VisualizationDescriptionHandler> beans = applicationContext.getBeansOfType(VisualizationDescriptionHandler.class);
+        DESCRIPTION_HANDLERS.addAll(beans.values());
     }
 
     public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -102,28 +112,9 @@ public class Visualizer {
         visualization.setSourceValue(object.getValue());
         visualization.setSourceDelta(null);
         visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
-        return visualization;
-    }
 
-    @SuppressWarnings("unused")
-    private VisualizationImpl visualize(PrismContainerValue<?> containerValue, VisualizationImpl owner, VisualizationContext context, Task task, OperationResult result) {
-        VisualizationImpl visualization = new VisualizationImpl(owner);
-        visualization.setChangeType(null);
-        NameImpl name = new NameImpl("id " + containerValue.getId());        // TODO
-        name.setNamesAreResourceKeys(false);
-        visualization.setName(name);
-        visualization.setSourceRelPath(EMPTY_PATH);
-        visualization.setSourceAbsPath(EMPTY_PATH);
-        if (containerValue.getComplexTypeDefinition() != null) {
-            // TEMPORARY!!!
-            PrismContainerDefinition<?> pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(containerValue.getComplexTypeDefinition().getTypeName());
-            visualization.setSourceDefinition(pcd);
-        } else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
-            visualization.setSourceDefinition(containerValue.getParent().getDefinition());
-        }
-        visualization.setSourceValue(containerValue);
-        visualization.setSourceDelta(null);
-        visualizeItems(visualization, containerValue.getItems(), false, context, task, result);
+        evaluateDescriptionHandlers(visualization, task, result);
+
         return visualization;
     }
 
@@ -298,6 +289,9 @@ public class Visualizer {
         } else {
             throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
         }
+
+        evaluateDescriptionHandlers(visualization, task, result);
+
         return visualization;
     }
 
@@ -380,6 +374,9 @@ public class Visualizer {
                         si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
                         visualization.addPartialVisualization(si);
+
+                        evaluateDescriptionHandlers(si, task, result);
+
                         currentVisualization = si;
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
@@ -517,6 +514,16 @@ public class Visualizer {
         visualizeItems(visualization, value.getItems(), true, context, task, result);
 
         parentVisualization.addPartialVisualization(visualization);
+
+        evaluateDescriptionHandlers(visualization, task, result);
+    }
+
+    private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
+        for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
+            if (handler.match(visualization)) {
+                handler.apply(visualization, task, result);
+            }
+        }
     }
 
     private VisualizationImpl createContainerVisualization(ChangeType changeType, ItemPath containerPath, VisualizationImpl parentVisualization) {

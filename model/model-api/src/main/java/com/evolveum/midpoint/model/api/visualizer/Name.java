@@ -25,7 +25,7 @@ public interface Name extends Serializable {
     String getDescription();
     boolean namesAreResourceKeys();
 
-    IconType getSimpleIcon();
+    String getSimpleIcon();
 
     LocalizableMessage getSimpleDescription();
 }

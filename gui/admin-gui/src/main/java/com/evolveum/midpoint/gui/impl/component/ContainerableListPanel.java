@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,14 +9,6 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +21,10 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -38,10 +33,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -64,13 +62,15 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.data.*;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -80,6 +80,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -169,7 +170,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return new LoadableDetachableModel<>() {
 
             @Override
-            public Search load() {
+            public Search<C> load() {
                 return loadSearchModel();
             }
         };
@@ -186,8 +187,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return search;
     }
 
-    private Search loadSearch(PageStorage storage) {
-        Search search = null;
+    private <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
+        Search<T> search = null;
         if (storage != null) {
             search = storage.getSearch();
         }
@@ -279,9 +280,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
                 }
-                return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
 
             @Override
@@ -577,7 +578,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
     }
 
-
     private String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
         String sortProperty = customColumn.getSortProperty();
         if (sortProperty != null) {
@@ -787,7 +787,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
         return false;
     }
-
 
     protected String getStorageKey() {
         if (isCollectionViewPanelForCompiledView()) {
@@ -1145,12 +1144,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 && getObjectCollectionView().getPaging().getOrderBy() != null) {
             PagingType paging = getObjectCollectionView().getPaging();
             boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
-            ItemPath orderBy = paging.getOrderBy().getItemPath();
-            ItemName name = orderBy.lastName();
-            if (name == null) {
+            String orderPathString = getPrismContext().itemPathSerializer()
+                    .serializeStandalone(paging.getOrderBy().getItemPath());
+            if (orderPathString == null || orderPathString.length() == 0) {
                 return;
             }
-            ((SortableDataProvider) provider).setSort(new SortParam(name.getLocalPart(), ascending));
+            //noinspection unchecked
+            ((SortableDataProvider<PO, String>) provider).setSort(new SortParam<>(orderPathString, ascending));
         }
     }
 

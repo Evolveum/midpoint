@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -365,7 +366,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
-        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()));
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
         changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changesNew);
 

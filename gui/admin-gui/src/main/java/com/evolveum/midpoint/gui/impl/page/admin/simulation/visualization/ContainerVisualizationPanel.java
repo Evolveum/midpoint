@@ -16,7 +16,12 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationItemsPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -25,6 +30,7 @@ public class ContainerVisualizationPanel extends CardOutlineLeftPanel<ContainerV
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_ITEMS = "items";
     private static final String FRAGMENT_ID_HEADER = "header";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
@@ -40,6 +46,10 @@ public class ContainerVisualizationPanel extends CardOutlineLeftPanel<ContainerV
 
     private void initLayout() {
         add(AttributeAppender.append("class", () -> VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(getModelObject().getChangeType())));
+
+        VisualizationItemsPanel items = new VisualizationItemsPanel(ID_ITEMS, () -> new VisualizationDto(getModelObject().getVisualization()));
+        items.add(new VisibleBehaviour(() -> expanded.getObject()));
+        add(items);
     }
 
     @Override
@@ -57,7 +67,13 @@ public class ContainerVisualizationPanel extends CardOutlineLeftPanel<ContainerV
         fragment.add(icon);
 
         // todo make sure to handle escaping inside model
-        Label title = new Label(ID_TITLE, () -> "<b>Basic information</b> was modified");// todo fix createTitleModel()));
+        Label title = new Label(ID_TITLE, () -> {
+            Name name = getModelObject().getVisualization().getName();
+            if (name == null || name.getSimpleDescription() == null) {
+                return name.getDisplayName();
+            }
+            return LocalizationUtil.translateMessage(getModelObject().getVisualization().getName().getSimpleDescription());
+        });// todo fix createTitleModel()));
         title.setEscapeModelStrings(false);
         fragment.add(title);
 
