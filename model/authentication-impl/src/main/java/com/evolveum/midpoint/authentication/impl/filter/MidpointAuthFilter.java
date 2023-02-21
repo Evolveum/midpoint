@@ -185,14 +185,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication == null) {
             return;
         }
-        if (mpAuthentication.wrongConfiguredSufficientModuleExists()) {
-            clearAuthentication(httpRequest);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("web.security.flexAuth.wrong.auth.modules.config");
-            }
-            AuthenticationException exception = new AuthenticationServiceException("web.security.flexAuth.wrong.auth.modules.config");
-            AuthSequenceUtil.saveException(httpRequest, exception);
-        }
         if (mpAuthentication.authenticationShouldBeAborted()) {
             clearAuthentication(httpRequest);
         }

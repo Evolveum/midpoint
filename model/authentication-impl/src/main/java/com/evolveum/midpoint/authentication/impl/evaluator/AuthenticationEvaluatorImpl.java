@@ -128,10 +128,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         } else {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication instanceof MidpointAuthentication && !((MidpointAuthentication) authentication).canContinueAfterCredentialsCheckFail()) {
-                throw new BadCredentialsException("web.security.provider.invalid.credentials");
-            }
+            throw new BadCredentialsException("web.security.provider.invalid.credentials");
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
