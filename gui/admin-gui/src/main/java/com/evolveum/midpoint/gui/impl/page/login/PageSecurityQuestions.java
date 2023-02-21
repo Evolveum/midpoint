@@ -92,7 +92,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     @Override
     protected void initModels() {
-        answerModel = () -> generateAnswer();
+        answerModel = Model.of();
         userModel = new LoadableDetachableModel<>() {
             @Override
             protected UserType load() {
@@ -167,6 +167,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
+                        answerModel.setObject(generateAnswer());
                         target.add(getHiddenAnswer());
                     }
                 });
@@ -176,20 +177,22 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         questionsView.setOutputMarkupId(true);
         questionsContainer.add(questionsView);
 
-        AjaxButton back = new AjaxButton(ID_BACK_2_BUTTON) {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                userModel.detach();
-                questionsModel.setObject(new ArrayList<SecurityQuestionDto>());
-                getHiddenUsername().getModel().setObject(null);
-                getHiddenAnswer().getModel().setObject(null);
-                target.add(getMainForm());
-            }
-        };
-        questionsContainer.add(back);
+        questionsContainer.add(createBackButton(ID_BACK_2_BUTTON));
+//        AjaxButton back = new AjaxButton(ID_BACK_2_BUTTON) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                userModel.detach();
+//                questionsModel.setObject(new ArrayList<SecurityQuestionDto>());
+//                getHiddenUsername().getModel().setObject(null);
+//                getHiddenAnswer().getModel().setObject(null);
+//                target.add(getMainForm());
+//            }
+//        };
+//        questionsContainer.add(back);
     }
 
     private String generateAnswer() {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.HintAuthenticationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -66,7 +67,7 @@ public class HintAuthenticationProvider extends MidPointAbstractAuthenticationPr
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.equals(authentication);
+        return HintAuthenticationToken.class.equals(authentication);
     }
 
 //    @Override

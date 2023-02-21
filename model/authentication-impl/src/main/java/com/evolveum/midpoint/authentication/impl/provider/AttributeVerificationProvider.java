@@ -58,7 +58,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
         try {
             Authentication token;
             if (authentication instanceof AttributeVerificationToken) {
-                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
+                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getCredentials();
                 AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
                         focusType, attrValuesMap, requireAssignment);
                 if (channel != null) {

@@ -53,15 +53,8 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
-//        if (!(authentication.getPrincipal() instanceof MidPointPrincipal)) {
-//            return authentication;
-//        }
-//        authentication.getPrincipal()
-//        String enteredUsername = ((MidPointPrincipal) authentication.getPrincipal()).getUsername();
-//        LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
-//        return new UsernamePasswordAuthenticationToken("administrator", "5ecr3t");
 
         try {
             Authentication token;

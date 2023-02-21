@@ -28,7 +28,7 @@ public class AttributeVerificationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getCredentials() {
-        return null;
+        return attributeValues;
     }
 
     @Override
@@ -36,8 +36,4 @@ public class AttributeVerificationToken extends AbstractAuthenticationToken {
         return principal;
     }
 
-    @Override
-    public Object getDetails() {
-        return attributeValues;
-    }
 }

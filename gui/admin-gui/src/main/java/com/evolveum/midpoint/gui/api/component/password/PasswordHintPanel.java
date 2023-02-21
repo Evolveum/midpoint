@@ -19,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
@@ -29,6 +30,8 @@ import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class PasswordHintPanel extends InputPanel {
@@ -58,6 +61,15 @@ public class PasswordHintPanel extends InputPanel {
         hint.add(new EnableBehaviour(() -> !isReadonly));
         hint.add(new PasswordHintValidator(passwordModel));
         add(hint);
+    }
+
+    public List<FeedbackMessage> collectHintFeedbackMessages() {
+        List<FeedbackMessage> feedbackMessages = new ArrayList<>();
+        FormComponent hintInput = getBaseFormComponent();
+        if (hintInput.getFeedbackMessages() != null && hintInput.getFeedbackMessages().hasMessage(0)) {
+            feedbackMessages.addAll(hintInput.getFeedbackMessages().messages(null));
+        }
+        return feedbackMessages;
     }
 
     public FormComponent getBaseFormComponent() {

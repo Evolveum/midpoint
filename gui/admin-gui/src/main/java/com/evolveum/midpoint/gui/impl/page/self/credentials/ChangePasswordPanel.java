@@ -136,10 +136,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
-//            @Override
-//            protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
-//                return null;//getModelObject().getFocusPolicy();
-//            }
 
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
@@ -187,6 +183,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             public void onError(AjaxRequestTarget target) {
                 List<FeedbackMessage> feedbackMessages = passwordPanel.collectPasswordFieldsFeedbackMessages();
+                feedbackMessages.addAll(hint.collectHintFeedbackMessages());
                 if (CollectionUtils.isNotEmpty(feedbackMessages)) {
                     StringBuilder sb = new StringBuilder();
                     feedbackMessages.forEach(m -> sb.append(m.getMessage()).append("\n"));

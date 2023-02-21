@@ -6,6 +6,14 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.HintAuthenticationToken;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,55 +25,36 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
-public class HintAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+public class HintAuthenticationFilter extends MidpointFocusVerificationFilter {
 
     private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/hint", "POST");
     private static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
 
     public HintAuthenticationFilter() {
-        super();
+        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
     }
 
     public HintAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(authenticationManager);
+        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
     }
 
-    public Authentication attemptAuthentication(
-            HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        if (!request.getMethod().equals("POST")) {
+    @Override
+    protected void validateRequest(HttpServletRequest request) {
+        super.validateRequest(request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser(authentication);
+        if (principal == null) {
             throw new AuthenticationServiceException(
                     "Authentication method not supported: " + request.getMethod());
         }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
-            return authentication;
-        }
-
-//        Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
-        UsernamePasswordAuthenticationToken authRequest =
-                new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());
-
-        return this.getAuthenticationManager().authenticate(authRequest);
     }
 
-//    protected Map<ItemPath, String> obtainAttributeValues(HttpServletRequest request) {
-//        String attrValuesString = request.getParameter(SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY);
-//        if (StringUtils.isEmpty(attrValuesString)) {
-//            return null;
-//        }
-//
-//        JSONArray attributeValuesArray = new JSONArray(attrValuesString);
-//        Map<ItemPath, String> attributeValuesMap = new HashMap<>();
-//        for (int i = 0; i < attributeValuesArray.length(); i++) {
-//            JSONObject entry = attributeValuesArray.getJSONObject(i);
-//
-//            ItemPath path = ItemPath.create(entry.get(AuthConstants.ATTR_VERIFICATION_J_PATH));
-//            String value = entry.getString(AuthConstants.ATTR_VERIFICATION_J_VALUE);
-//            attributeValuesMap.put(path, value);
-//        }
-//        return attributeValuesMap;
-//    }
+    @Override
+    protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return new HintAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());
+    }
 
 }

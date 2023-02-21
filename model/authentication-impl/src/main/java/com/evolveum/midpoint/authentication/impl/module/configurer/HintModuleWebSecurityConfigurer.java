@@ -10,6 +10,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.AttributeVerificationAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.HintAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointAttributeConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationF
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
@@ -27,8 +29,9 @@ public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurit
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+        HintAuthenticationFilter hintFilter = new HintAuthenticationFilter();
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointFormLoginConfigurer<>(new HintAuthenticationFilter()))
+        getOrApply(http, new MidpointAttributeConfigurer<>(hintFilter))
                 .loginPage("/hint")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
@@ -42,5 +45,6 @@ public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurit
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
+        http.addFilterBefore(hintFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

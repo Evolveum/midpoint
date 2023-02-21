@@ -235,9 +235,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, int indexOfActualProcessingModule, HttpServletRequest httpRequest) {
-        if (mpAuthentication != null && mpAuthentication.getPrincipal() instanceof MidPointPrincipal && ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus() != null) {
-            return false;
-        }
         return AuthSequenceUtil.isClusterSequence(httpRequest)
                 || needRestartAuthFlow(indexOfActualProcessingModule, mpAuthentication);
     }
@@ -366,7 +363,20 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {
         // if index == -1 indicate restart authentication flow
-        return mpAuthentication == null || !mpAuthentication.isMerged() || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        return !isIdentifiedFocus(mpAuthentication) || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX; // || mpAuthentication == null || !mpAuthentication.isMerged();
+    }
+
+    private boolean isIdentifiedFocus(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication == null) {
+            return false;
+        }
+
+        Object principal = mpAuthentication.getPrincipal();
+        if (!(principal instanceof MidPointPrincipal)) {
+            return false;
+        }
+
+        return ((MidPointPrincipal) principal).getFocus() != null;
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {

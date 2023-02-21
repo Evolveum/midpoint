@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.markup.html.pages.RedirectPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -106,9 +107,8 @@ public class PageResetPassword extends AbstractPageLogin {
                     }
 
                     showResult(result);
-                    target.add(getFeedbackPanel());
                     AuthUtil.clearMidpointAuthentication();
-                    setResponsePage(getMidpointApplication().getHomePage());
+                    setResponsePage(new RedirectPage("/"));
                 } else if (showFeedback) {
                     showResult(result);
                 }

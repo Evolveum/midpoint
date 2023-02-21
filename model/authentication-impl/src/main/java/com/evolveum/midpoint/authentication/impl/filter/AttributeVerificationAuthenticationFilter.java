@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -40,8 +42,10 @@ public class AttributeVerificationAuthenticationFilter extends MidpointFocusVeri
     @Override
     protected void validateRequest(HttpServletRequest request) {
         super.validateRequest(request);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser(authentication);
+        if (principal == null) {
             throw new AuthenticationServiceException(
                     "Authentication method not supported: " + request.getMethod());
         }
