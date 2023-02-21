@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -17,7 +19,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.ChangesPanel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
@@ -140,8 +141,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initLayout() {
-        add(new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel));
-        add(new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel));
+//        add(new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel));
+//        add(new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel));
 
         add(new ChangesPanel("primary", null, primaryDeltasModel) {
 

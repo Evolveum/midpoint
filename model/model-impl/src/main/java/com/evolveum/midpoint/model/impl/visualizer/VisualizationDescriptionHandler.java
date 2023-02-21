@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.visualizer;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -16,5 +18,5 @@ public interface VisualizationDescriptionHandler {
 
     boolean match(VisualizationImpl visualization);
 
-    void apply(VisualizationImpl visualization);
+    void apply(VisualizationImpl visualization, Task task, OperationResult result);
 }

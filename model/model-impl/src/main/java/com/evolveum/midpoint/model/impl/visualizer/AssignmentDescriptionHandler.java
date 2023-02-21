@@ -9,22 +9,26 @@ package com.evolveum.midpoint.model.impl.visualizer;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 
+import javax.xml.namespace.QName;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import javax.xml.namespace.QName;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Component
 public class AssignmentDescriptionHandler implements VisualizationDescriptionHandler {
 
     @Override
@@ -38,7 +42,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     }
 
     @Override
-    public void apply(VisualizationImpl visualization) {
+    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
         PrismContainerValue value = visualization.getSourceValue();
         ChangeType changeType = visualization.getChangeType();
 
@@ -52,7 +56,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
         visualization.getName().setSimpleDescription(
-                new SingleLocalizableMessage("Visualization.assignment", new Object[] {
+                new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
                         new SingleLocalizableMessage("ObjectTypes." + ot.name()),
                         targetRef.getTargetName() != null ? targetRef.getTargetName() : targetRef.getOid(),
                         changeType == ADD ? "assigned" : "unassigned"

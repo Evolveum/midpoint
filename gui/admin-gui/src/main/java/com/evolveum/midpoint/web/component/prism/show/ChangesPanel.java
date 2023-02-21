@@ -1,4 +1,11 @@
-package com.evolveum.midpoint.gui.impl.page.admin.simulation;
+/*
+ * Copyright (c) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.web.component.prism.show;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +22,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
-import com.evolveum.midpoint.web.component.prism.show.MainVisualizationPanel;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
-import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class ChangesPanel extends BasePanel<Void> {
@@ -108,12 +112,7 @@ public class ChangesPanel extends BasePanel<Void> {
         body.setOutputMarkupId(true);
         add(body);
 
-        Component visualization;
-//        if (changesModel.getObject().getVisualization() instanceof WrapperVisualization) {
-            visualization = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
-//        } else {
-//            visualization = new VisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
-//        }
+        Component visualization = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
         body.add(visualization);
     }
 
