@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.jetbrains.annotations.NotNull;
@@ -92,9 +94,15 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
             }
         });
         parametersPanel.add(relation);
+
+        parametersPanel.add(new VisibleBehaviour(() -> isVisibleParameterPanel()));
     }
 
-    private QName getDefaultRelation() {
+    protected boolean isVisibleParameterPanel() {
+        return true;
+    }
+
+    protected QName getDefaultRelation() {
         QName relation = getRelationValueFromSearch();
         if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
             QName defRelation = WebComponentUtil.getDefaultRelation();

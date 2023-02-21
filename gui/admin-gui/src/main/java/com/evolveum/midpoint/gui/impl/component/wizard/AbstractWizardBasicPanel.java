@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
@@ -122,6 +121,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         feedbackContainer.setOutputMarkupId(true);
         feedbackContainer.setOutputMarkupPlaceholderTag(true);
         add(feedbackContainer);
+        feedbackContainer.add(AttributeAppender.append("class", getCssForWidthOfFeedbackPanel()));
 
         FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
         feedbackList.setOutputMarkupId(true);
@@ -164,6 +164,10 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         saveButton.add(new VisibleBehaviour(() -> isSubmitButtonVisible()));
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-12";
     }
 
     protected boolean isSubmitButtonVisible() {

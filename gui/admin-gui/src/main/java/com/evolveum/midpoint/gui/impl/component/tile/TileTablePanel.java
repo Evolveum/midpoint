@@ -14,7 +14,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -45,6 +44,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final long serialVersionUID = 1L;
 
     static final String ID_TILES_CONTAINER = "tilesContainer";
+    static final String ID_TILES_FRAGMENT = "tilesFragment";
     private static final String ID_TILES = "tiles";
 
     private static final String ID_HEADER_FRAGMENT = "headerFragment";
@@ -99,35 +99,18 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
         add(createHeaderFragment(ID_HEADER));
 
-        WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
-        tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
-        add(tilesContainer);
-
         ISortableDataProvider<O, String> provider = createProvider();
-        PageableListView<T, O> tiles = new PageableListView<>(ID_TILES, provider, tableId) {
-
-            @Override
-            protected void populateItem(ListItem<T> item) {
-                item.add(AttributeAppender.append("class", () -> getTileCssClasses()));
-
-                Component tile = createTile(ID_TILE, item.getModel());
-                item.add(tile);
-            }
-
-            @Override
-            protected T createItem(O object) {
-                return createTileObject(object);
-            }
-        };
+        WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
+        tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         tilesContainer.setOutputMarkupId(true);
-        tilesContainer.add(tiles);
+        add(tilesContainer);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.setOutputMarkupId(true);
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
         add(footerContainer);
 
-        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, tiles, true) {
+        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
             @Override
             protected String getPaginationCssClass() {
@@ -142,6 +125,33 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    protected WebMarkupContainer createTilesContainer(String idTilesContainer, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+        Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
+
+        PageableListView tiles = createTilesPanel(provider);
+        tilesFragment.add(tiles);
+
+        return tilesFragment;
+    }
+
+    protected PageableListView createTilesPanel(ISortableDataProvider<O, String> provider) {
+        return new PageableListView<T, O>(ID_TILES, provider, tableId) {
+
+            @Override
+            protected void populateItem(ListItem<T> item) {
+                item.add(AttributeAppender.append("class", () -> getTileCssClasses()));
+
+                Component tile = createTile(ID_TILE, item.getModel());
+                item.add(tile);
+            }
+
+            @Override
+            protected T createItem(O object) {
+                return createTileObject(object);
+            }
+        };
     }
 
     protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
@@ -220,13 +230,17 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     public IModel<List<T>> getTilesModel() {
-        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        PageableListView view = getTiles();
         return view.getModel();
     }
 
     public ISortableDataProvider<O, String> getProvider() {
-        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        PageableListView view = getTiles();
         return view.getProvider();
+    }
+
+    private PageableListView getTiles(){
+        return (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 
     protected String getTileCssClasses() {

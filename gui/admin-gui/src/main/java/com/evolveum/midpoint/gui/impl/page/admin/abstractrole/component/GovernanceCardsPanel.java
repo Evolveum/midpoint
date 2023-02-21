@@ -10,11 +10,14 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,19 +38,27 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,6 +67,9 @@ import java.util.stream.Collectors;
 public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractRoleMemberPanel<AR> {
 
     private static final String ID_TITLE = "title";
+    private static final String ID_TILES_FRAGMENT = "tilesFragment";
+    private static final String ID_RELATIONS = "relations";
+    private static final String ID_RELATION = "relation";
 
     private IModel<Search> searchModel;
 
@@ -146,15 +160,71 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         getTableId(getType())) {
 
                     @Override
+                    protected Fragment createTilesContainer(String idTilesContainer, ISortableDataProvider<SelectableBean<FocusType>, String> provider, UserProfileStorage.TableId tableId) {
+                        Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, GovernanceCardsPanel.this);
+
+                        PageableListView tiles = createTilesPanel(provider);
+                        tilesFragment.add(tiles);
+
+                        ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
+                            @Override
+                            protected void populateItem(ListItem<QName> item) {
+                                RelationDefinitionType definition = WebComponentUtil.getRelationDefinition(item.getModelObject());
+                                DisplayType display = definition.getDisplay();
+
+                                String icon = GuiDisplayTypeUtil.getIconCssClass(display);
+                                PolyStringType label = GuiDisplayTypeUtil.getLabel(display);
+
+                                String title;
+                                if (label == null) {
+                                    title = item.getModelObject().getLocalPart();
+                                } else {
+                                    title = LocalizationUtil.translatePolyString(label);
+                                }
+
+                                Tile<QName> tile = new Tile<>(icon, title);
+                                tile.setValue(item.getModelObject());
+
+                                TilePanel tilePanel = new TilePanel<>(ID_RELATION, Model.of(tile)) {
+
+                                    @Override
+                                    protected void onInitialize() {
+                                        super.onInitialize();
+                                        add(AttributeAppender.append(
+                                                "class",
+                                                "card catalog-tile-panel d-flex flex-column "
+                                                        + "align-items-center bordered p-3 h-100 mb-0 selectable"));
+                                    }
+
+                                    @Override
+                                    protected void onClick(AjaxRequestTarget target) {
+                                        assignMembersPerformed(target, getModelObject().getValue());
+                                    }
+                                };
+
+
+                                item.add(tilePanel);
+                                item.add(AttributeAppender.append("class", getTileCssClasses()));
+                            }
+                        };
+                        tilesFragment.add(relations);
+
+                        tilesFragment.add(createRefreshBehaviour(getObjectCollectionView()));
+
+                        return tilesFragment;
+                    }
+
+                    @Override
                     protected WebMarkupContainer createTilesButtonToolbar(String id) {
                         RepeatingView repView = new RepeatingView(id);
-                        AjaxIconButton assignButton = createAssignButton(repView.newChildId());
-                        assignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
-                        assignButton.showTitleAsLabel(true);
-                        repView.add(assignButton);
+//                        AjaxIconButton assignButton = createAssignButton(repView.newChildId());
+//                        assignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
+//                        assignButton.showTitleAsLabel(true);
+//                        repView.add(assignButton);
 
                         AjaxIconButton unassignButton = createUnassignButton(repView.newChildId());
-                        unassignButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
+//                        unassignButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
+                        unassignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
                         unassignButton.showTitleAsLabel(true);
                         repView.add(unassignButton);
 
@@ -175,6 +245,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         menu.add(new VisibleBehaviour(() -> !menu.getModel().getObject().getMenuItems().isEmpty()));
                         menu.add(AttributeAppender.replace("class", "ml-2"));
                         repView.add(menu);
+
+                        repView.add(createRefreshButton(repView.newChildId()));
+                        repView.add(createPlayPauseButton(repView.newChildId()));
 
                         return repView;
                     }
@@ -384,7 +457,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     @Override
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-        waitWhileTaskFinish(task, target);
+        showMessageWithoutLinkForTask(task, target);
     }
 
     @Override
