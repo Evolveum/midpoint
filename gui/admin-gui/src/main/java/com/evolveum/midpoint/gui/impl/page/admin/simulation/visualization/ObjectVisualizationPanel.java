@@ -13,6 +13,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -21,7 +22,7 @@ public class ObjectVisualizationPanel extends BasePanel<ObjectVisualization> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_DEFAULT_CONTAINER = "defaultContainer";
+    private static final String ID_ITEMS = "items";
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
 
@@ -39,19 +40,18 @@ public class ObjectVisualizationPanel extends BasePanel<ObjectVisualization> {
 
             @Override
             protected ContainerVisualization load() {
-                ContainerVisualization visualization = new ContainerVisualization();
-                visualization.setChangeType(getModelObject().getChangeType());
-
-                return visualization;
+                // todo not very good
+                return new ContainerVisualization(getModelObject().getVisualization());
             }
         };
     }
 
     private void initLayout() {
-        ContainerVisualizationPanel defaultContainer = new ContainerVisualizationPanel(ID_DEFAULT_CONTAINER, defaultContainerModel);
+        ContainerVisualizationPanel defaultContainer = new ContainerVisualizationPanel(ID_ITEMS, defaultContainerModel);
+        defaultContainer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(defaultContainer);
 
-        ListView<ContainerVisualization> containers = new ListView<>(ID_CONTAINERS) {
+        ListView<ContainerVisualization> containers = new ListView<>(ID_CONTAINERS, () -> getModelObject().getContainers()) {
 
             @Override
             protected void populateItem(ListItem<ContainerVisualization> item) {

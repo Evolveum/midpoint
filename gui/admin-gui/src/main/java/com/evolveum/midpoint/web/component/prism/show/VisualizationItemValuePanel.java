@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -88,7 +90,6 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                 ObjectReferenceType ort = new ObjectReferenceType();
                 ort.setupReferenceValue(refValue);
                 WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
-
             }
         };
         link.add(visibleIfReference);

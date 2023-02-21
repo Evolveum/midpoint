@@ -14,8 +14,15 @@
         <wicket:child/>
     </div>
 
+    <wicket:fragment wicket:id="header">
+        <h3 class="card-title" wicket:id="title"/>
+    </wicket:fragment>
+
     <wicket:fragment wicket:id="bodyHeader">
-        <h5 class="mb-0" wicket:id="title"/>
+        <h3 class="card-title">
+            <i wicket:id="icon"/>
+            <span wicket:id="title"/>
+        </h3>
         <span wicket:id="badge"/>
     </wicket:fragment>
 </wicket:panel>

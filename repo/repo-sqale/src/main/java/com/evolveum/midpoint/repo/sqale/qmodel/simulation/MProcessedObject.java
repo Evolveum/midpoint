@@ -23,4 +23,6 @@ public class MProcessedObject extends MContainer {
 
     public String transactionId;
 
+    public Long focusRecordId;
+
 }
