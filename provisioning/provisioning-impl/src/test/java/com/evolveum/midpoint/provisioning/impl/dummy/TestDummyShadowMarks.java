@@ -46,10 +46,9 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractTestResource;
-import com.evolveum.midpoint.test.ClassPathTestResource;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -75,21 +74,16 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
     private static final String GROUP_CORSAIRS_NAME = "corsairs";
 
-    private static final AbstractTestResource<ArchetypeType> ARCHETYPE_SHADOW_MARK= new ClassPathTestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_MARK= TestObject.classPath(
             "initial-objects/archetype", "702-archetype-shadow-mark.xml",
             SystemObjectsType.ARCHETYPE_SHADOW_MARK.value());
 
-    private static final AbstractTestResource<MarkType> TAG_PROTECTED_SHADOW = new ClassPathTestResource<>(
+    private static final TestObject<MarkType> TAG_PROTECTED_SHADOW = TestObject.classPath(
             "initial-objects/mark", "750-mark-protected-shadow.xml",
             SystemObjectsType.MARK_PROTECTED_SHADOW.value());
 
-    private String drakeAccountOid;
 
     String piratesIcfUid;
-    private String blackbeardIcfUid;
-    private String drakeIcfUid;
-    private String corsairsIcfUid;
-    private String corsairsShadowOid;
 
     protected String getMurrayRepoIcfName() {
         return ACCOUNT_MURRAY_USERNAME;

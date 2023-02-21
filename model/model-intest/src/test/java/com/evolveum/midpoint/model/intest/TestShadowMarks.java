@@ -24,12 +24,16 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -71,6 +75,8 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
     private String markReadOnlyOid;
 
+    private Object markPolicyNoOutbound;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -90,6 +96,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
                                 .inbound(new OperationPolicyConfigurationType().enabled(false))
                                 )
                         ),  initTask, initResult);
+        // Read-only is base for do-not touch
         markReadOnlyOid = addObject(new MarkType()
                 .name("Read Only")
                 .assignment(
@@ -100,6 +107,24 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
                         .modify(new OperationPolicyConfigurationType().enabled(false))
                         .delete(new OperationPolicyConfigurationType().enabled(false))
                         ),  initTask, initResult);
+
+        markPolicyNoOutbound = addObject(new MarkType()
+                .name("No Outbound when name administrator")
+                .assignment(
+                        new AssignmentType()
+                        .targetRef(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value(), MarkType.COMPLEX_TYPE))
+                .policyRule(new GlobalPolicyRuleType()
+                        .focusSelector(new ObjectSelectorType().type(ShadowType.COMPLEX_TYPE))
+                        .policyConstraints(new PolicyConstraintsType())
+                        .evaluationTarget(PolicyRuleEvaluationTargetType.PROJECTION)
+                 )
+                .objectOperationPolicy(new ObjectOperationPolicyType()
+                        .synchronize(new SynchronizeOperationPolicyConfigurationType()
+                                .outbound(new OperationPolicyConfigurationType().enabled(false))
+                                )
+                        ), initTask, initResult);
+
+
 
     }
 
@@ -207,6 +232,24 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
         // We should be able to remove shadow mark
 
+    }
+
+    @Test
+    void test300importUserWithBrokenMapping() throws Exception {
+        var result = createOperationResult();
+        var task = createTask();
+        DummyAccount account1 = RESOURCE_SINGLE.controller.addAccount("broken");
+        account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
+        account1.addAttributeValue(ATTR_FAMILY_NAME, "Reddy");
+        account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "Broken");
+
+        importAccountsRequest()
+            .withResourceOid(RESOURCE_SINGLE.oid)
+            .withNameValue("broken")
+            .withAssertSuccess(false)
+            .execute(result);
+
+        assertNotNull(result);
     }
 
     private void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {

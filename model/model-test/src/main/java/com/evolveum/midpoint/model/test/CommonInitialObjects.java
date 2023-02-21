@@ -98,8 +98,8 @@ public interface CommonInitialObjects {
             MARKS, "737-mark-shadow-correlation-state-changed.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
 
-    
-    AbstractTestResource<MarkType> MARK_PROTECTED_SHADOW = new ClassPathTestResource<>(
+
+    TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
             MARKS, "750-mark-protected-shadow.xml",
             SystemObjectsType.MARK_PROTECTED_SHADOW.value());
 
