@@ -17,6 +17,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.ChangesPanel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
@@ -141,6 +142,29 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     private void initLayout() {
         add(new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel));
         add(new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel));
+
+        add(new ChangesPanel("primary", null, primaryDeltasModel) {
+
+            @Override
+            protected IModel<String> createTitle() {
+                return () -> {
+                    WrapperVisualization wrapper = (WrapperVisualization) primaryDeltasModel.getObject().getVisualization();
+
+                    return getString(wrapper.getDisplayNameKey(), wrapper.getDisplayNameParameters());
+                };
+            }
+        });
+        add(new ChangesPanel("secondary", null, secondaryDeltasModel) {
+
+            @Override
+            protected IModel<String> createTitle() {
+                return () -> {
+                    WrapperVisualization wrapper = (WrapperVisualization) secondaryDeltasModel.getObject().getVisualization();
+
+                    return getString(wrapper.getDisplayNameKey(), wrapper.getDisplayNameParameters());
+                };
+            }
+        });
 
         WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
         policyViolationsContainer.add(new VisibleBehaviour(() -> !violationsEmpty()));

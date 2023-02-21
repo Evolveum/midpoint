@@ -7,6 +7,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -18,9 +19,10 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.web.component.prism.show.MainVisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
+public class ChangesPanel extends BasePanel<Void> {
 
     public enum ChangesView {
 
@@ -30,6 +32,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_TITLE = "title";
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_BODY = "body";
     private static final String ID_VISUALIZATION = "visualization";
@@ -38,37 +41,37 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
 
     private IModel<VisualizationDto> changesModel;
 
-    public ChangesPanel(String id, IModel<List<ObjectDeltaType>> model) {
-        super(id, model);
+    public ChangesPanel(String id, IModel<List<ObjectDeltaType>> deltaModel, IModel<VisualizationDto> visualizationModel) {
+        super(id);
 
-        initModels();
+        initModels(deltaModel, visualizationModel);
         initLayout();
     }
 
-    private void initModels() {
+    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<VisualizationDto> visualizationModel) {
         changesViewModel = Model.of(ChangesView.SIMPLE);
 
-        IModel<Visualization> visualizationModel = new LoadableModel<>(false) {
-
-            @Override
-            protected Visualization load() {
-                ObjectDeltaType objectDelta = getModelObject().get(0);
-                return SimulationsGuiUtil.createVisualization(objectDelta, getPageBase());
-            }
-        };
-
-        changesModel = new LoadableModel<>(false) {
+        changesModel = visualizationModel != null ? visualizationModel : new LoadableModel<>(false) {
 
             @Override
             protected VisualizationDto load() {
-                Visualization visualization = visualizationModel.getObject();
+                ObjectDeltaType objectDelta = deltaModel.getObject().get(0);
+                Visualization visualization = SimulationsGuiUtil.createVisualization(objectDelta, getPageBase());
+
                 return new VisualizationDto(visualization);
             }
         };
     }
 
+    protected IModel<String> createTitle() {
+        return createStringResource("ChangesPanel.title");
+    }
+
     private void initLayout() {
         add(AttributeAppender.append("class", "card"));
+
+        Label title = new Label(ID_TITLE, createTitle());
+        add(title);
 
         IModel<List<Toggle<ChangesView>>> toggleModel = new LoadableModel<>(false) {
 
@@ -105,8 +108,13 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
         body.setOutputMarkupId(true);
         add(body);
 
-        MainVisualizationPanel advanced = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
-        body.add(advanced);
+        Component visualization;
+//        if (changesModel.getObject().getVisualization() instanceof WrapperVisualization) {
+            visualization = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
+//        } else {
+//            visualization = new VisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
+//        }
+        body.add(visualization);
     }
 
     private void onChangesViewClicked(AjaxRequestTarget target, Toggle<ChangesView> toggle) {

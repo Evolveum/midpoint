@@ -10,12 +10,25 @@
 <wicket:panel>
     <div class="row" style="padding-bottom: 20px">
         <div class="col-md-6">
+            <div wicket:id="primary"/>
+        </div>
+        <div class="col-md-6">
+            <div wicket:id="secondary"/>
+        </div>
+    </div>
+
+    <hr class="my-5"/>
+
+    <div class="row" style="padding-bottom: 20px">
+        <div class="col-md-6">
             <div wicket:id="primaryDeltas"/>
         </div>
         <div class="col-md-6">
             <div wicket:id="secondaryDeltas"/>
         </div>
     </div>
+
+
     <div class="row" wicket:id="policyViolationsContainer">
         <div class="col-md-12">
             <div class="card card-danger">

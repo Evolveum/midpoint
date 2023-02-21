@@ -77,6 +77,7 @@ public class Visualizer {
 
         List<VisualizationDescriptionHandler> handlers = new ArrayList<>();
         handlers.add(new AssignmentDescriptionHandler());
+        handlers.add(new ShadowDescriptionHandler());
 
         DESCRIPTION_HANDLERS = Collections.unmodifiableList(handlers);
     }
@@ -109,28 +110,9 @@ public class Visualizer {
         visualization.setSourceValue(object.getValue());
         visualization.setSourceDelta(null);
         visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
-        return visualization;
-    }
 
-    @SuppressWarnings("unused")
-    private VisualizationImpl visualize(PrismContainerValue<?> containerValue, VisualizationImpl owner, VisualizationContext context, Task task, OperationResult result) {
-        VisualizationImpl visualization = new VisualizationImpl(owner);
-        visualization.setChangeType(null);
-        NameImpl name = new NameImpl("id " + containerValue.getId());        // TODO
-        name.setNamesAreResourceKeys(false);
-        visualization.setName(name);
-        visualization.setSourceRelPath(EMPTY_PATH);
-        visualization.setSourceAbsPath(EMPTY_PATH);
-        if (containerValue.getComplexTypeDefinition() != null) {
-            // TEMPORARY!!!
-            PrismContainerDefinition<?> pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(containerValue.getComplexTypeDefinition().getTypeName());
-            visualization.setSourceDefinition(pcd);
-        } else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
-            visualization.setSourceDefinition(containerValue.getParent().getDefinition());
-        }
-        visualization.setSourceValue(containerValue);
-        visualization.setSourceDelta(null);
-        visualizeItems(visualization, containerValue.getItems(), false, context, task, result);
+        evaluateDescriptionHandlers(visualization);
+
         return visualization;
     }
 
@@ -387,6 +369,9 @@ public class Visualizer {
                         si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
                         visualization.addPartialVisualization(si);
+
+                        evaluateDescriptionHandlers(si);
+
                         currentVisualization = si;
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
@@ -523,13 +508,17 @@ public class Visualizer {
         visualization.setSourceValue(value);
         visualizeItems(visualization, value.getItems(), true, context, task, result);
 
+        parentVisualization.addPartialVisualization(visualization);
+
+        evaluateDescriptionHandlers(visualization);
+    }
+
+    private void evaluateDescriptionHandlers(VisualizationImpl visualization) {
         for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
             if (handler.match(visualization)) {
                 handler.apply(visualization);
             }
         }
-
-        parentVisualization.addPartialVisualization(visualization);
     }
 
     private VisualizationImpl createContainerVisualization(ChangeType changeType, ItemPath containerPath, VisualizationImpl parentVisualization) {
