@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
@@ -141,8 +140,13 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initLayout() {
-//        add(new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel));
-//        add(new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel));
+        VisualizationPanel primaryDeltas = new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel);
+        primaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        add(primaryDeltas);
+
+        VisualizationPanel secondaryDeltas = new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel);
+        secondaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        add(secondaryDeltas);
 
         add(new ChangesPanel("primary", null, primaryDeltasModel) {
 

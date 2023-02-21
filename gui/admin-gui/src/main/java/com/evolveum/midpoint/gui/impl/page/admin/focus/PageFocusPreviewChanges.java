@@ -11,10 +11,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -57,6 +59,7 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
     private static final String ID_TABBED_PANEL = "tabbedPanel";
     private static final String ID_CONTINUE_EDITING = "continueEditing";
     private static final String ID_SAVE = "save";
+    private static final String ID_SIMPLE_PANEL = "simplePanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageFocusPreviewChanges.class);
 
@@ -85,9 +88,19 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
         add(mainForm);
 
         List<ITab> tabs = createTabs();
-        TabbedPanel<ITab> previewChangesTabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, this, tabs, null);
-        previewChangesTabbedPanel.setOutputMarkupId(true);
-        mainForm.add(previewChangesTabbedPanel);
+        TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, this, tabs, null);
+        tabbedPanel.add(new VisibleBehaviour(() -> tabs.size() > 1));
+        tabbedPanel.setOutputMarkupId(true);
+        mainForm.add(tabbedPanel);
+
+        Component simplePanel;
+        if (tabs.size() == 1) {
+            simplePanel = tabs.get(0).getPanel(ID_SIMPLE_PANEL);
+        } else {
+            simplePanel = new Label(ID_SIMPLE_PANEL);
+        }
+        simplePanel.add(new VisibleBehaviour(() -> tabs.size() == 1));
+        mainForm.add(simplePanel);
 
         initButtons(mainForm);
     }
