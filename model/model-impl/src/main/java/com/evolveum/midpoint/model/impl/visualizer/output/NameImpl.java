@@ -21,7 +21,7 @@ public class NameImpl implements Name {
     private String description;
     private boolean namesAreResourceKeys;
 
-    private IconType simpleIcon;
+    private String simpleIcon;
     private LocalizableMessage simpleDescription;
 
     public NameImpl(String simpleName) {
@@ -69,11 +69,11 @@ public class NameImpl implements Name {
     }
 
     @Override
-    public IconType getSimpleIcon() {
+    public String getSimpleIcon() {
         return simpleIcon;
     }
 
-    public void setSimpleIcon(IconType simpleIcon) {
+    public void setSimpleIcon(String simpleIcon) {
         this.simpleIcon = simpleIcon;
     }
 

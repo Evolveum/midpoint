@@ -16,9 +16,12 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -31,7 +34,9 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -41,7 +46,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_OPTION_BUTTONS = "optionButtons";
+    public static final String ID_MINIMIZE = "minimize";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
@@ -56,6 +61,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible = false;
 
+    private IModel<String> simpleDescriptionModel;
+
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false);
     }
@@ -69,11 +76,40 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        setOutputMarkupId(true);
+
+        initModels();
         initLayout();
+
+        if (simpleDescriptionModel.getObject() != null) {
+            getModelObject().setMinimized(true);
+        }
+    }
+
+    private void initModels() {
+        simpleDescriptionModel = () -> {
+            Visualization visualization = getModelObject().getVisualization();
+            if (visualization == null || visualization.getName() == null) {
+                return null;
+            }
+
+            LocalizableMessage msg = visualization.getName().getSimpleDescription();
+            String translated = msg != null ? LocalizationUtil.translateMessage(msg) : null;
+            if (translated == null) {
+                return null;
+            }
+
+            // only allow <b>XXX</b> to be unescaped to allow some form of highlighting
+            translated = Strings.escapeMarkup(translated).toString();
+            translated = translated.replaceAll("&lt;b&gt;", "<b>");
+            translated = translated.replaceAll("&lt;/b&gt;", "</b>");
+
+            return translated;
+        };
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+
         add(AttributeAppender.append("class", "card card-outline-left"));
         add(AttributeModifier.append("class", () -> {
             VisualizationDto dto = getModelObject();
@@ -101,6 +137,26 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         });
         add(headerPanel);
 
+        IModel<String> simpleIconModel = () -> {
+            Visualization visualization = getModelObject().getVisualization();
+            if (visualization == null || visualization.getName() == null) {
+                return null;
+            }
+            return visualization.getName().getSimpleIcon();
+        };
+        IconComponent simpleIcon = new IconComponent("simpleIcon", simpleIconModel);
+        simpleIcon.add(new VisibleBehaviour(() -> simpleIconModel.getObject() != null));
+        headerPanel.add(simpleIcon);
+
+        final Label simpleDescription = new Label("simpleDescription", simpleDescriptionModel);
+        simpleDescription.setEscapeModelStrings(false);
+        simpleDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() != null));
+        headerPanel.add(simpleDescription);
+
+        WebMarkupContainer fullDescription = new WebMarkupContainer("fullDescription");
+        fullDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() == null));
+        headerPanel.add(fullDescription);
+
         final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
             String key = visualization.getDisplayNameKey();
@@ -108,15 +164,15 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             return LocalizationUtil.translate(key, parameters);
         });
         wrapperDisplayName.add(visibleIfWrapper);
-        headerPanel.add(wrapperDisplayName);
+        fullDescription.add(wrapperDisplayName);
 
         final Label changeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
         changeType.add(visibleIfNotWrapper);
-        headerPanel.add(changeType);
+        fullDescription.add(changeType);
 
         final Label objectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
         objectType.add(visibleIfNotWrapper);
-        headerPanel.add(objectType);
+        fullDescription.add(objectType);
 
         final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName(this)) {
 
@@ -144,23 +200,28 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             }
         };
         nameLink.add(new VisibleEnableBehaviour(() -> !getModelObject().isWrapper(), () -> isExistingViewableObject() && isAutorized()));
-        headerPanel.add(nameLink);
+        fullDescription.add(nameLink);
 
         final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
         description.add(visibleIfNotWrapper);
-        headerPanel.add(description);
+        fullDescription.add(description);
 
         final Label warning = new Label(ID_WARNING);
         warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
         warning.add(new TooltipBehavior());
         headerPanel.add(warning);
 
-        headerPanel.add(new VisualizationButtonPanel(ID_OPTION_BUTTONS, model) {
+        final AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
+                () -> getModelObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
+                () -> getModelObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
+
             @Override
-            public void minimizeOnClick(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, model);
+            public void onClick(AjaxRequestTarget target) {
+                headerOnClickPerformed(target, VisualizationPanel.this.getModel());
             }
-        });
+        };
+        minimize.add(new VisibleBehaviour(() -> !getModelObject().getVisualization().isEmpty()));
+        headerPanel.add(minimize);
 
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {

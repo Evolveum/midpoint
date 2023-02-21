@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,6 +59,8 @@ public class Visualizer {
 
     private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
 
+    private static final List<VisualizationDescriptionHandler> DESCRIPTION_HANDLERS;
+
     static {
         DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
                 AssignmentType.F_TARGET_REF,
@@ -73,6 +74,11 @@ public class Visualizer {
                 ShadowType.F_RESOURCE_REF,
                 ShadowType.F_KIND,
                 ShadowType.F_INTENT));
+
+        List<VisualizationDescriptionHandler> handlers = new ArrayList<>();
+        handlers.add(new AssignmentDescriptionHandler());
+
+        DESCRIPTION_HANDLERS = Collections.unmodifiableList(handlers);
     }
 
     public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -515,17 +521,13 @@ public class Visualizer {
             }
         }
         visualization.setSourceValue(value);
-        if (AssignmentHolderType.F_ASSIGNMENT.equivalent(value.getPath())) {
-            AssignmentType a = (AssignmentType) value.asContainerable();
-            ObjectReferenceType targetRef = a.getTargetRef();
-            visualization.getName().setSimpleDescription(
-                    new SingleLocalizableMessage("Visualization.assignment", new Object[] {
-                            targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE,
-                            targetRef.getTargetName() != null ? targetRef.getTargetName() : targetRef.getOid(),
-                            changeType == ADD ? "added" : "deleted"
-                    }, (String) null));
-        }
         visualizeItems(visualization, value.getItems(), true, context, task, result);
+
+        for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
+            if (handler.match(visualization)) {
+                handler.apply(visualization);
+            }
+        }
 
         parentVisualization.addPartialVisualization(visualization);
     }
