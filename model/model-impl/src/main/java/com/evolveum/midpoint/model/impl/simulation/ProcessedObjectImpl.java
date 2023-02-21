@@ -196,18 +196,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             throws CommonException {
 
         Class<O> type = elementContext.getObjectTypeClass();
-        boolean isFocus = elementContext instanceof LensFocusContext<?>;
-        @Nullable O stateBefore;
-        if (isFocus) {
-            // Focus is computed iteratively, so "current" represents some intermediate state.
-            // We are sure that "old" is OK for focus.
-            stateBefore = asObjectable(elementContext.getObjectOld());
-        } else {
-            // Projections are never computed iteratively (except for already-exists exceptions, that cannot occur during
-            // simulations). Moreover, if full shadow is loaded during processing, it is put into "current", not into "old".
-            // Hence it's best to take "current" for projections.
-            stateBefore = asObjectable(elementContext.getObjectCurrent());
-        }
+        @Nullable O stateBefore = asObjectable(elementContext.getStateBeforeSimulatedOperation());
         @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
         @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
         @Nullable ObjectDelta<O> delta = singleDelta != null ? singleDelta : elementContext.getSummaryExecutedDelta();
@@ -234,7 +223,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         ParsedMetricValues.fromEventMarks(
                                 elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()) :
                         new ParsedMetricValues(Map.of()), // Ignoring metrics in single-delta mode
-                isFocus,
+                elementContext instanceof LensFocusContext<?>,
                 null, // provided later
                 stateBefore,
                 stateAfter,
@@ -371,7 +360,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return Referencable.getOid(structuralArchetypeRef);
     }
 
-    public String getResourceOid() {
+    public @Nullable String getResourceOid() {
         return shadowDiscriminator != null ?
                 Referencable.getOid(shadowDiscriminator.getResourceRef()) : null;
     }

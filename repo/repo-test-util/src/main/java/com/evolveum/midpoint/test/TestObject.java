@@ -7,17 +7,21 @@
 
 package com.evolveum.midpoint.test;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.UUID;
 
 import com.evolveum.axiom.concepts.Lazy;
 
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.commons.io.input.ReaderInputStream;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,13 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Representation of any prism object-based resource (file, class path resource, ...) in tests.
- *
- * TODO better name
- *
- * TODO decouple placement (file/CP resource) from the function (task, resource, ...)
+ * Representation of any prism object-based test "resource" (file, class path resource, ...) in tests.
  */
-public abstract class AbstractTestResource<T extends ObjectType> {
+public class TestObject<T extends ObjectType> {
+
+    public final TestObjectSource source;
 
     public final String oid;
 
@@ -52,8 +54,25 @@ public abstract class AbstractTestResource<T extends ObjectType> {
      */
     @NotNull private final Lazy<PrismObject<T>> object = Lazy.from(originalSupplier);
 
-    AbstractTestResource(String oid) {
+    protected TestObject(TestObjectSource source, String oid) {
+        this.source = source;
         this.oid = oid;
+    }
+
+    public static <T extends ObjectType> TestObject<T> classPath(@NotNull String dir, @NotNull String name, String oid) {
+        return new TestObject<>(
+                new ClassPathBasedTestObjectSource(dir, name),
+                oid);
+    }
+
+    public static <T extends ObjectType> TestObject<T> file(@NotNull File dir, @NotNull String name) {
+        return file(dir, name, null);
+    }
+
+    public static <T extends ObjectType> TestObject<T> file(@NotNull File dir, @NotNull String name, String oid) {
+        return new TestObject<>(
+                new FileBasedTestObjectSource(dir, name),
+                oid);
     }
 
     public @NotNull PrismObject<T> parse() {
@@ -150,6 +169,7 @@ public abstract class AbstractTestResource<T extends ObjectType> {
     public void importAndReload(Task task, OperationResult result) throws CommonException {
         importAndReload(RepoSimpleObjectResolver.get(), task, result);
     }
+
     /**
      * Imports the object (using appropriate importer e.g. model importer) and reloads it - to have all the metadata.
      *
@@ -163,16 +183,101 @@ public abstract class AbstractTestResource<T extends ObjectType> {
         reload(resolver, result);
     }
 
-    public static void getAll(TestResource<?>... resources) {
+    public static void getAll(TestObject<?>... resources) {
         Arrays.asList(resources).forEach(r -> r.get());
     }
 
-    public abstract @NotNull InputStream getInputStream() throws IOException;
+    public @NotNull InputStream getInputStream() throws IOException {
+        return source.getInputStream();
+    }
 
     @Override
     public String toString() {
         return object.isUnwrapped() ? String.valueOf(object.get()) : getDescription();
     }
 
-    public abstract @NotNull String getDescription();
+    public @NotNull String getDescription() {
+        return source + " (" + oid + ")";
+    }
+
+    public interface TestObjectSource {
+        @NotNull InputStream getInputStream() throws IOException;
+    }
+
+    public static class ClassPathBasedTestObjectSource implements TestObjectSource {
+
+        @NotNull private final String name;
+
+        ClassPathBasedTestObjectSource(@NotNull String dir, @NotNull String name) {
+            this.name = dir + "/" + name;
+        }
+
+        @Override
+        public @NotNull InputStream getInputStream() throws IOException {
+            return MiscUtil.requireNonNull(
+                    getClass().getClassLoader().getResourceAsStream(name),
+                    () -> new IllegalStateException("No resource '" + name + "' was found"));
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    public static class FileBasedTestObjectSource implements TestObjectSource {
+
+        @NotNull private final File file;
+
+        public FileBasedTestObjectSource(@NotNull File dir, @NotNull String fileName) {
+            this.file = new File(dir, fileName);
+        }
+
+        public @NotNull File getFile() {
+            return file;
+        }
+
+        @Override
+        public @NotNull InputStream getInputStream() throws IOException {
+            return new FileInputStream(file);
+        }
+
+        @Override
+        public String toString() {
+            return file.toString();
+        }
+    }
+
+    @Experimental
+    public static class InMemoryTestObjectSource implements TestObjectSource {
+
+        @NotNull private final String description;
+        @NotNull private final String string;
+
+        InMemoryTestObjectSource(@NotNull ObjectType object) {
+            if (object.getOid() == null) {
+                // Some objects do need OIDs, for example when reloading a task.
+                // As a temporary workaround, let us provide one here if there's none.
+                // TODO reconsider this
+                object.setOid(UUID.randomUUID().toString());
+            }
+            this.description = object.toString();
+            try {
+                this.string = PrismContext.get().xmlSerializer().serialize(object.asPrismObject());
+            } catch (SchemaException e) {
+                throw SystemException.unexpected(e, "when serializing test object " + description);
+            }
+        }
+
+        @Override
+        public @NotNull InputStream getInputStream() throws IOException {
+            return new ReaderInputStream(
+                    new StringReader(string), StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+    }
 }

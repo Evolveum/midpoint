@@ -33,6 +33,8 @@ public class StolenContainerValueIdGenerator {
 
     private long maxUsedId = 0; // tracks max CID (set to duplicate CID if found)
 
+    private int generated;
+
     public <S extends ObjectType> StolenContainerValueIdGenerator(@NotNull PrismObject<S> object) {
         this.object = object;
     }
@@ -201,6 +203,7 @@ public class StolenContainerValueIdGenerator {
     private void assignMissingContainerIds() {
         for (PrismContainerValue<?> val : pcvsWithoutId) {
             val.setId(nextId());
+            generated++;
         }
         pcvsWithoutId.clear();
     }
@@ -208,6 +211,10 @@ public class StolenContainerValueIdGenerator {
     public long nextId() {
         maxUsedId++;
         return maxUsedId;
+    }
+
+    public int getGenerated() {
+        return generated;
     }
 
     public long lastUsedId() {

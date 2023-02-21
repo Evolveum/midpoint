@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.getResourceModifications;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getResourceModifications;
 import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 

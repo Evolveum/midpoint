@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,9 +44,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Converts record ({@link Containerable}) to a semi-formatted row
- * ({@link ExportedReportDataRow} - basically, a string representation)
- * according to individual columns specifications.
+ * Converts record ({@link Containerable}, {@link Referencable} or later POJO) to a semi-formatted row
+ * ({@link ExportedReportDataRow} - basically, a string representation) according to individual columns specifications.
  *
  * Responsibilities:
  *
@@ -141,6 +142,9 @@ class ColumnDataConverter<C> {
      * @return List of values of the item found. (Or empty list of nothing was found.)
      */
     private @NotNull List<? extends PrismValue> resolvePath(ItemPath itemPath) {
+        if (itemPath.equivalent(PrismConstants.T_ID)) {
+            return getIdentifier();
+        }
         Item<?, ?> currentItem = null;
         Iterator<?> iterator = itemPath.getSegments().iterator();
         while (iterator.hasNext()) {
@@ -177,6 +181,26 @@ class ColumnDataConverter<C> {
             }
         }
         return currentItem != null ? currentItem.getValues() : List.of();
+    }
+
+    @Experimental
+    private List<? extends PrismValue> getIdentifier() {
+        if (record instanceof Objectable) {
+            return toPropertyValues(((Objectable) record).getOid());
+        } else if (record instanceof Containerable) {
+            return toPropertyValues(((Containerable) record).asPrismContainerValue().getId());
+        } else {
+            return List.of();
+        }
+    }
+
+    private List<? extends PrismValue> toPropertyValues(Object realValue) {
+        if (realValue == null) {
+            return List.of();
+        } else {
+            return List.of(
+                    PrismContext.get().itemFactory().createPropertyValue(realValue));
+        }
     }
 
     private List<String> prettyPrintValues(Collection<? extends PrismValue> values) {

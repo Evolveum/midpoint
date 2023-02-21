@@ -20,7 +20,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,13 +48,13 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
             new TestResource<>(TEST_DIR, "archetype-person.xml", "4aa8d6fb-07f7-469a-8059-9d4f54c6e500");
 
-    public static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
+    public static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "83de4034-775a-4ead-829b-a4041620d4c2", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId");
-    public static final CsvResource RESOURCE_HR = new CsvResource(TEST_DIR, "resource-hr.xml",
+    public static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-hr.xml",
             "180b27fe-3529-4e0d-985e-a59f09ffd1cc", "resource-hr.csv",
             "HR_ID,FIRSTN,LASTN,DOB,NATIDENT");
-    public static final CsvResource RESOURCE_EXTERNAL = new CsvResource(TEST_DIR, "resource-external.xml",
+    public static final CsvTestResource RESOURCE_EXTERNAL = new CsvTestResource(TEST_DIR, "resource-external.xml",
             "284faaa3-5959-4825-b779-7b9b957230d3", "resource-external.csv",
             "EXT_ID,FIRSTN,LASTN,DOB,NATIDENT"); // schema similar to HR
 

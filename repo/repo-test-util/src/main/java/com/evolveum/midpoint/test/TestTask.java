@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,17 +10,16 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * Currently supporting only plain tasks, i.e. not task trees.
  */
 @Experimental
-public class TestTask extends TestResource<TaskType> {
+public class TestTask extends TestObject<TaskType> {
 
     private static final long DEFAULT_TIMEOUT = 250_000;
 
@@ -39,13 +38,35 @@ public class TestTask extends TestResource<TaskType> {
     /** Temporary: this is how we access the necessary functionality. */
     private AbstractIntegrationTest test;
 
-    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid, long defaultTimeout) {
-        super(dir, fileName, oid);
+    private TestTask(TestObjectSource source, String oid, long defaultTimeout) {
+        super(source, oid);
         this.defaultTimeout = defaultTimeout;
     }
 
+    /**
+     * TODO change to static factory method
+     */
+    public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid, long defaultTimeout) {
+        this(new FileBasedTestObjectSource(dir, fileName), oid, defaultTimeout);
+    }
+
+    /**
+     * TODO change to static factory method
+     */
     public TestTask(@NotNull File dir, @NotNull String fileName, @NotNull String oid) {
         this(dir, fileName, oid, DEFAULT_TIMEOUT);
+    }
+
+    public static TestTask of(@NotNull TaskType task, long defaultTimeout) {
+        return new TestTask(new InMemoryTestObjectSource(task), task.getOid(), defaultTimeout);
+    }
+
+    public static TestTask of(@NotNull TaskType task) {
+        return of(task, DEFAULT_TIMEOUT);
+    }
+
+    public static TestTask file(@NotNull File dir, @NotNull String fileName, String oid) {
+        return new TestTask(dir, fileName, oid);
     }
 
     /**

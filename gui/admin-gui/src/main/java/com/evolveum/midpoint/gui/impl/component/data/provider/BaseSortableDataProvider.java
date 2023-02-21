@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,10 +10,6 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInte
 
 import java.io.Serializable;
 import java.util.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -26,11 +22,12 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -40,7 +37,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 
 /**
@@ -230,11 +229,12 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
         if (sortParam != null && sortParam.getProperty() != null) {
             OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-            return Collections.singletonList(
+            return List.of(
                     getPrismContext().queryFactory().createOrdering(
-                            ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
+                            getPrismContext().itemPathParser().asItemPath(sortParam.getProperty()),
+                            order));
         } else {
-            return Collections.emptyList();
+            return List.of();
         }
     }
 
@@ -329,12 +329,18 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             CachedSize that = (CachedSize) o;
 
-            if (size != that.size) { return false; }
+            if (size != that.size) {
+                return false;
+            }
             return timestamp == that.timestamp;
         }
 
@@ -370,10 +376,4 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     public boolean isUseCache() {
         return useCache;
     }
-
-//    @Override
-//    public void detach() {
-//        super.detach();
-////        availableData = new ArrayList<>();
-//    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author semancik
  */
-public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowType,R> {
+public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowType, R> {
 
     public ShadowReferenceAsserter(PrismReferenceValue refVal) {
         super(refVal, ShadowType.class);
@@ -48,7 +48,8 @@ public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowTy
     }
 
     public ShadowAsserter<ShadowReferenceAsserter<R>> shadow() {
-        ShadowAsserter<ShadowReferenceAsserter<R>> asserter = new ShadowAsserter<>((PrismObject<ShadowType>)getRefVal().getObject(), this, "shadow in reference "+desc());
+        ShadowAsserter<ShadowReferenceAsserter<R>> asserter =
+                new ShadowAsserter<>(getRefVal().getObject(), this, "shadow in reference " + desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -56,14 +57,13 @@ public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowTy
     @Override
     public ShadowAsserter<ObjectReferenceAsserter<ShadowType, R>> target()
             throws ObjectNotFoundException, SchemaException {
-        return new ShadowAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
+        return new ShadowAsserter<>(getResolvedTarget(), this, "object resolved from " + desc());
     }
 
     @Override
     public ShadowAsserter<ObjectReferenceAsserter<ShadowType, R>> resolveTarget()
             throws ObjectNotFoundException, SchemaException {
         PrismObject<ShadowType> object = resolveTargetObject();
-        return new ShadowAsserter<>(object, this, "object resolved from "+desc());
+        return new ShadowAsserter<>(object, this, "object resolved from " + desc());
     }
-
 }

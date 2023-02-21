@@ -15,6 +15,7 @@
             <class name="com.evolveum.midpoint.report.TestCsvReportImportClassic"/>
             <class name="com.evolveum.midpoint.report.TestCsvReportMultiNode"/>
             <class name="com.evolveum.midpoint.report.TestCsvReportAllAssignments"/>
+            <class name="com.evolveum.midpoint.report.TestCsvSimulationReport"/>
         </classes>
     </test>
 </suite>

@@ -93,7 +93,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+            protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
                 if (orderingSuplier == null) {
                     return super.createObjectOrderings(sortParam);
                 }

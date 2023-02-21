@@ -8,14 +8,18 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <td style="vertical-align:middle" wicket:id="nameContainer"><span wicket:id="name"/></td>
-    <td wicket:id="oldValueContainer" style="overflow-wrap: break-word; word-wrap: break-word;">
-        <span wicket:id="oldValueImage"/>
-        <div wicket:id="oldValue"/>
+    <td class="align-middle" wicket:id="nameContainer"><span wicket:id="name"/></td>
+    <td class="text-break" wicket:id="oldValueContainer">
+        <div class="d-flex align-items-center gap-1">
+            <i wicket:id="oldValueImage"/>
+            <div wicket:id="oldValue"/>
+        </div>
     </td>
-    <td wicket:id="newValueContainer" style="overflow-wrap: break-word; word-wrap: break-word;">
-        <span wicket:id="newValueImage"/>
-        <div wicket:id="newValue"/>
+    <td class="text-break" wicket:id="newValueContainer">
+        <div class="d-flex align-items-center gap-1">
+            <i wicket:id="newValueImage"/>
+            <div wicket:id="newValue"/>
+        </div>
     </td>
 </wicket:panel>
 </html>

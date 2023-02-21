@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -380,22 +380,22 @@ public class ExpressionUtil {
         } else if (value instanceof PrismPropertyValue<?>) {
             return ((PrismPropertyValue<?>) value).getValue();
         } else if (value instanceof PrismReferenceValue) {
-            if (((PrismReferenceValue) value).getDefinition() != null) {
-                return ((PrismReferenceValue) value).asReferencable();
-            }
+            return ((PrismReferenceValue) value).asReferencable();
         } else {
             // Should we throw an exception here?
         }
         return value;
     }
 
-    private static TypedValue<?> resolveReference(TypedValue referenceTypedValue, String variableName,
+    private static TypedValue<?> resolveReference(TypedValue<?> referenceTypedValue, String variableName,
             ObjectResolver objectResolver, String contextDescription, ObjectVariableModeType objectVariableMode,
             Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         TypedValue<?> resolvedTypedValue;
-        ObjectReferenceType reference = ((ObjectReferenceType) referenceTypedValue.getValue()).clone();
+        ObjectReferenceType originalReference = (ObjectReferenceType) referenceTypedValue.getValue();
+        Itemable originalParent = originalReference.asReferenceValue().getParent();
+        ObjectReferenceType reference = originalReference.clone();
         OperationResult subResult = new OperationResult("Resolve reference"); // TODO proper op result handling (for tracing)
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -423,6 +423,9 @@ public class ExpressionUtil {
             if (resolvedTypedValue != null && resolvedTypedValue.getValue() instanceof PrismObject) {
                 PrismReferenceValue value = reference.asReferenceValue();
                 value.setObject((PrismObject<?>) resolvedTypedValue.getValue());
+                // This may be a bit fishy, but this only preserves parent for ref variable mode.
+                // It's a waste to forget the parent (if available) and it can save some ref resolutions in the script.
+                value.setParent(originalParent);
                 return new TypedValue<>(value, value.getDefinition());
             } else {
                 return referenceTypedValue;

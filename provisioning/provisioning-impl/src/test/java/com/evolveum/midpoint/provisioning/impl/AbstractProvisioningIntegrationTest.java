@@ -15,10 +15,12 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.util.FailableProcessor;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -308,7 +310,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     /** This method is limited to single-connector resources. TODO fix the hack "file vs testResource". */
     private DummyResourceContoller initDummyResourceInternal(
-            String name, File resourceFile, TestResource<ResourceType> testResource, String resourceOid,
+            String name, File resourceFile, TestObject<ResourceType> testResource, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda, OperationResult result) throws Exception {
         DummyResourceContoller controller = DummyResourceContoller.create(name);
         if (controllerInitLambda != null) {
@@ -344,5 +346,20 @@ public abstract class AbstractProvisioningIntegrationTest
         initDummyResource(resource, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        return provisioningService.testResource(oid, task, result);
+    }
+
+    /**
+     * Returns repository-level resolver; but - in the future - we might use the {@link ProvisioningService} itself to reload
+     * the resource objects in order to process them via {@link ResourceManager}.
+     */
+    @Override
+    public SimpleObjectResolver getResourceReloader() {
+        return RepoSimpleObjectResolver.get();
     }
 }

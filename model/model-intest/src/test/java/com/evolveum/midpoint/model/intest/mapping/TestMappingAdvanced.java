@@ -201,7 +201,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        traced(() -> assignAccountToUser(USER_MAGNUS.oid, RESOURCE_DUMMY_RANGES_DIRECT.oid, "default", task, result));
+        assignAccountToUser(USER_MAGNUS.oid, RESOURCE_DUMMY_RANGES_DIRECT.oid, "default", task, result);
 
         then();
         assertSuccess(task);
@@ -243,7 +243,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         validGroup.addMember(MAGNUS);
 
         when();
-        traced(() -> recomputeUser(USER_MAGNUS.oid, task, result));
+        recomputeUser(USER_MAGNUS.oid, task, result);
 
         then();
         assertSuccess(task);
@@ -317,7 +317,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        traced(() -> assignRole(USER_VLADIMIR.oid, ROLE_RANGES.oid, task, result));
+        assignRole(USER_VLADIMIR.oid, ROLE_RANGES.oid, task, result);
 
         then();
         assertSuccess(task);
@@ -359,7 +359,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         validGroup.addMember(VLADIMIR);
 
         when();
-        traced(() -> recomputeUser(USER_VLADIMIR.oid, task, result));
+        recomputeUser(USER_VLADIMIR.oid, task, result);
 
         then();
         assertSuccess(task);

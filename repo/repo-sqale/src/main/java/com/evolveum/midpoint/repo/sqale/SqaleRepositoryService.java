@@ -991,7 +991,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private static final ItemPath OID_PATH = ItemPath.create(PrismConstants.T_ID);
+    private static final ItemPath OID_PATH = PrismConstants.T_ID;
 
     private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
             Class<T> type,

@@ -243,8 +243,9 @@ CREATE TABLE m_simulation_result_processed_object (
     objectBefore BYTEA,
     objectAfter BYTEA,
     transactionId TEXT,
+    focusRecordId BIGINT,
 
-   PRIMARY KEY (ownerOid, cid)
+    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
 
 CREATE TABLE m_simulation_result_processed_object_default PARTITION OF m_simulation_result_processed_object DEFAULT;

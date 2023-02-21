@@ -13,12 +13,7 @@
         </collection>
         <condition>
             <script>
-                <code>
-                    if (object.getTargetRef().getOid().equals("c0c010c0-d34d-b33f-f00d-111111111122")) {
-                    return true;
-                    }
-                    return false;
-                </code>
+                <code>object.targetRef.oid == 'c0c010c0-d34d-b33f-f00d-111111111122'</code>
             </script>
         </condition>
     </objectCollection>

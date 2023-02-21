@@ -6,27 +6,23 @@
  */
 package com.evolveum.midpoint.report;
 
+import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.createParameters;
+
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -159,7 +155,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test118ObjectCollectionWithParamReport() throws Exception {
-        ReportParameterType parameters = getParameters("givenName", String.class, "Will");
+        ReportParameterType parameters = createParameters("givenName", "Will");
         testClassicExport(REPORT_OBJECT_COLLECTION_WITH_PARAM, 2, 2, null, parameters);
     }
 
@@ -226,26 +222,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         executeChanges(delta, ModelExecuteOptions.create(), task, result);
 
-        ReportParameterType parameters = getParameters("targetName", String.class, name);
+        ReportParameterType parameters = createParameters("targetName", name);
 
         testClassicExport(REPORT_SUBREPORT_AUDIT, 5, 4, null, parameters);
-    }
-
-    private ReportParameterType getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
-        ReportParameterType reportParam = new ReportParameterType();
-        PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
-
-        QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
-                new QName(ReportConstants.NS_EXTENSION, name), typeName);
-        def.setDynamic(true);
-        def.setRuntimeSchema(true);
-        def.toMutable().setMaxOccurs(1);
-
-        PrismProperty<Object> prop = def.instantiate();
-        prop.addRealValue(realValue);
-        reportParamValue.add(prop);
-
-        return reportParam;
     }
 }

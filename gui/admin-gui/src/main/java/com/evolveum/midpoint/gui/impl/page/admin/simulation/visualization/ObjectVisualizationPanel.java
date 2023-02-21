@@ -7,35 +7,29 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ObjectVisualizationPanel extends CardOutlineLeftPanel<ObjectVisualization> {
+public class ObjectVisualizationPanel extends BasePanel<ObjectVisualization> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_DEFAULT_CONTAINER = "defaultContainer";
+    private static final String ID_ITEMS = "items";
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
-
-    private boolean headless;
 
     private IModel<ContainerVisualization> defaultContainerModel;
 
     public ObjectVisualizationPanel(String id, IModel<ObjectVisualization> model) {
-        this(id, model, false);
-    }
-
-    public ObjectVisualizationPanel(String id, IModel<ObjectVisualization> model, boolean headless) {
         super(id, model);
-
-        this.headless = headless;
 
         initModels();
         initLayout();
@@ -46,21 +40,18 @@ public class ObjectVisualizationPanel extends CardOutlineLeftPanel<ObjectVisuali
 
             @Override
             protected ContainerVisualization load() {
-                ContainerVisualization visualization = new ContainerVisualization();
-                visualization.setChangeType(getModelObject().getChangeType());
-
-                return visualization;
+                // todo not very good
+                return new ContainerVisualization(getModelObject().getVisualization());
             }
         };
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", () -> VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(getModelObject().getChangeType())));
-
-        ContainerVisualizationPanel defaultContainer = new ContainerVisualizationPanel(ID_DEFAULT_CONTAINER, defaultContainerModel);
+        ContainerVisualizationPanel defaultContainer = new ContainerVisualizationPanel(ID_ITEMS, defaultContainerModel);
+        defaultContainer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(defaultContainer);
 
-        ListView<ContainerVisualization> containers = new ListView<>(ID_CONTAINERS) {
+        ListView<ContainerVisualization> containers = new ListView<>(ID_CONTAINERS, () -> getModelObject().getContainers()) {
 
             @Override
             protected void populateItem(ListItem<ContainerVisualization> item) {

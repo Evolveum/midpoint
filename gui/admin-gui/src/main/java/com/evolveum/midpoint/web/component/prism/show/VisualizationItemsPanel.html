@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <tr>
+        <th style="min-width: 100px; !important">
+            <wicket:message key="ScenePanel.item"/>
+            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-tool"></button>
+        </th>
+        <th wicket:id="oldValueLabel">
+            <wicket:message key="ScenePanel.oldValue"/>
+        </th>
+        <th wicket:id="newValueLabel">
+            <wicket:message key="ScenePanel.newValue"/>
+        </th>
+        <th wicket:id="valueLabel">
+            <wicket:message key="ScenePanel.value"/>
+        </th>
+    </tr>
+    <wicket:container wicket:id="items">
+        <span wicket:id="item"/>
+    </wicket:container>
+</wicket:panel>
+</html>

@@ -7,41 +7,44 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.util.LocalizableMessage;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ObjectVisualization implements Visualization {
+public class ObjectVisualization implements Serializable {
 
-    private LocalizableMessage name;
+    private Visualization visualization;
 
-    private LocalizableMessage description;
+    private List<ContainerVisualization> containers = new ArrayList<>();
 
-    private ChangeType changeType;
+    public ObjectVisualization(@NotNull Visualization visualization) {
+        this.visualization = visualization;
 
-    public LocalizableMessage getName() {
-        return name;
+        for (Visualization partial : visualization.getPartialVisualizations()) {
+            if (partial.getName().getSimpleDescription() != null) {
+                containers.add(new ContainerVisualization(partial));
+            }
+        }
     }
 
-    public void setName(LocalizableMessage name) {
-        this.name = name;
+    public List<ContainerVisualization> getContainers() {
+        return containers;
     }
 
-    public LocalizableMessage getDescription() {
-        return description;
-    }
-
-    public void setDescription(LocalizableMessage description) {
-        this.description = description;
+    public Visualization getVisualization() {
+        return visualization;
     }
 
     public ChangeType getChangeType() {
-        return changeType;
-    }
-
-    public void setChangeType(ChangeType changeType) {
-        this.changeType = changeType;
+        return visualization.getChangeType();
     }
 }

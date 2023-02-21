@@ -14,27 +14,25 @@ import static com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil.findIte
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Represents execution of a change on given projection.
@@ -49,15 +47,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * The delta execution is delegated to {@link DeltaExecution}.
  */
-public class ProjectionChangeExecution<O extends ObjectType> {
+public class ProjectionChangeExecution<O extends ObjectType> extends ElementChangeExecution<O, ShadowType> {
 
     /** For the time being we keep the parent logger name. */
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
 
-    @NotNull private final LensContext<O> context;
     @NotNull private final LensProjectionContext projCtx;
-    @NotNull private final Task task;
-    @NotNull private final ModelBeans b;
 
     /**
      * Delta to be executed. It is gradually updated as needed.
@@ -67,14 +62,9 @@ public class ProjectionChangeExecution<O extends ObjectType> {
     /** What is the current state of the shadow. */
     private ShadowLivenessState shadowLivenessState;
 
-    private boolean restartRequested;
-
-    public ProjectionChangeExecution(@NotNull LensContext<O> context, @NotNull LensProjectionContext projCtx, @NotNull Task task,
-            @NotNull ModelBeans modelBeans) {
-        this.context = context;
+    public ProjectionChangeExecution(@NotNull LensProjectionContext projCtx, @NotNull Task task) {
+        super(projCtx, task);
         this.projCtx = projCtx;
-        this.task = task;
-        this.b = modelBeans;
     }
 
     public void execute(OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -130,12 +120,13 @@ public class ProjectionChangeExecution<O extends ObjectType> {
 
             if (!skipDeltaExecution) {
                 DeltaExecution<O, ShadowType> deltaExecution =
-                        new DeltaExecution<>(context, projCtx, projectionDelta, null, task, b);
+                        new DeltaExecution<>(projCtx, projectionDelta, null, task, changeExecutionResult);
                 try {
                     deltaExecution.execute(result);
                 } catch (ConflictDetectedException e) {
-                    throw new SystemException("Unexpected conflict exception (these should be present on focus objects only): "
-                            + e.getMessage(), e);
+                    throw new SystemException(
+                            "Unexpected conflict exception (these should be present on focus objects only): " + e.getMessage(),
+                            e);
                 }
                 shadowLivenessState = deltaExecution.getShadowLivenessState();
                 if (projCtx.isAdd() && deltaExecution.getObjectAfterModification() != null) {
@@ -186,7 +177,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             // if it is fatal, it will be set later
             // but we need to set some result
             result.recordSuccess();
-            restartRequested = true;
+            changeExecutionResult.setProjectionRecomputationRequested();
             completed = false;
             LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart",
                     projCtx.toHumanReadableString());
@@ -204,8 +195,8 @@ public class ProjectionChangeExecution<O extends ObjectType> {
 
         } finally {
             result.computeStatusIfUnknown(); // just to be sure the result is closed
-            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    projCtx.getKey(), result));
+            context.reportProgress(
+                    new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), result));
 
             LOGGER.trace("Setting completed flag for {} to {}", projCtx.toHumanReadableString(), completed);
             projCtx.setCompleted(completed);
@@ -215,7 +206,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
     private boolean deletingHigherOrderContextWithLowerAlreadyDeleted() {
         if (ObjectDelta.isDelete(projectionDelta) && projCtx.isHigherOrder()) {
             // HACK ... for higher-order context check if this was already deleted
-            LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(context, projCtx);
+            LensProjectionContext lowerOrderContext = context.findLowerOrderContext(projCtx);
             return lowerOrderContext != null && lowerOrderContext.isDelete();
         } else {
             return false;
@@ -275,10 +266,6 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         }
 
         return true;
-    }
-
-    public boolean isRestartRequested() {
-        return restartRequested;
     }
 
     private boolean isRepeatedAlreadyExistsException() {

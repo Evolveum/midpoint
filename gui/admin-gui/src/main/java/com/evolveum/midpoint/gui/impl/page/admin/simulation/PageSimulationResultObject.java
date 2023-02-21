@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -34,20 +37,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationFactory;
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -57,7 +50,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
-import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -105,8 +97,6 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private IModel<SimulationResultProcessedObjectType> objectModel;
 
     private IModel<List<DetailsTableItem>> detailsModel;
-
-    private IModel<List<ObjectVisualization>> changesNewModel;
 
     private IModel<VisualizationDto> changesModel;
 
@@ -288,53 +278,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected VisualizationDto load() {
                 ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
-                if (objectDelta == null) {
-                    return null;
-                }
-
-                Visualization visualization;
-                try {
-                    ObjectDelta delta = DeltaConvertor.createObjectDelta(objectModel.getObject().getDelta());
-
-                    Task task = getPageTask();
-                    OperationResult result = task.getResult();
-
-                    visualization = getModelInteractionService().visualizeDelta(delta, task, result);
-                } catch (SchemaException | ExpressionEvaluationException e) {
-                    LOGGER.debug("Couldn't convert and visualize delta", e);
-
-                    throw new SystemException(e);
-                }
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Creating dto for deltas:\n{}", DebugUtil.debugDump(visualization));
-                }
-
-                final WrapperVisualization wrapper =
-                        new WrapperVisualization(Arrays.asList(visualization), "PageSimulationResultObject.changes");
-
-                return new VisualizationDto(wrapper);
-            }
-        };
-
-        changesNewModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<ObjectVisualization> load() {
-                ObjectDeltaType delta = objectModel.getObject().getDelta();
-                if (delta == null) {
-                    return Collections.emptyList();
-                }
-
-                try {
-                    ObjectVisualization visualization = VisualizationFactory.createObjectVisualization(delta);
-
-                    return Collections.singletonList(visualization);
-                } catch (Exception ex) {
-                    // todo handle exception
-                    ex.printStackTrace();
-                }
-
-                return Collections.emptyList();
+                return SimulationsGuiUtil.createVisualizationDto(objectDelta, PageSimulationResultObject.this);
             }
         };
     }
@@ -421,12 +365,12 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
-        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, changesNewModel);
-        changesNew.add(new VisibleBehaviour(() -> changesNewModel.getObject().size() > 0 && WebComponentUtil.isEnabledExperimentalFeatures()));
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()));
+        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changesNew);
 
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null)); // todo add && !WebComponentUtil.isEnabledExperimentalFeatures()
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && !WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changes);
     }
 

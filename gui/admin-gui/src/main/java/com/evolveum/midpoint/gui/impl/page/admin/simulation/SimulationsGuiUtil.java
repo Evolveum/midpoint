@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.Arrays;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
@@ -16,17 +17,34 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class SimulationsGuiUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SimulationsGuiUtil.class);
 
     public static Label createProcessedObjectStateLabel(String id, IModel<SimulationResultProcessedObjectType> model) {
         Label label = new Label(id, () -> {
@@ -89,5 +107,48 @@ public class SimulationsGuiUtil {
                         .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
             }
         };
+    }
+
+    public static Visualization createVisualization(ObjectDeltaType objectDelta, PageBase page) {
+        if (objectDelta == null) {
+            return null;
+        }
+
+        try {
+            ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDelta);
+
+            Task task = page.getPageTask();
+            OperationResult result = task.getResult();
+
+            return page.getModelInteractionService().visualizeDelta(delta, task, result);
+        } catch (SchemaException | ExpressionEvaluationException e) {
+            LOGGER.debug("Couldn't convert and visualize delta", e);
+
+            throw new SystemException(e);
+        }
+    }
+
+    public static VisualizationDto createVisualizationDto(ObjectDeltaType objectDelta, PageBase page) {
+        if (objectDelta == null) {
+            return null;
+        }
+
+        Visualization visualization = createVisualization(objectDelta, page);
+        return createVisualizationDto(visualization);
+    }
+
+    public static VisualizationDto createVisualizationDto(Visualization visualization) {
+        if (visualization == null) {
+            return null;
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Creating dto for deltas:\n{}", DebugUtil.debugDump(visualization));
+        }
+
+        final WrapperVisualization wrapper =
+                new WrapperVisualization(Arrays.asList(visualization), "PageSimulationResultObject.changes");
+
+        return new VisualizationDto(wrapper);
     }
 }

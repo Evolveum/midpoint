@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -514,6 +515,16 @@ public class Visualizer {
             }
         }
         visualization.setSourceValue(value);
+        if (AssignmentHolderType.F_ASSIGNMENT.equivalent(value.getPath())) {
+            AssignmentType a = (AssignmentType) value.asContainerable();
+            ObjectReferenceType targetRef = a.getTargetRef();
+            visualization.getName().setSimpleDescription(
+                    new SingleLocalizableMessage("Visualization.assignment", new Object[] {
+                            targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE,
+                            targetRef.getTargetName() != null ? targetRef.getTargetName() : targetRef.getOid(),
+                            changeType == ADD ? "added" : "deleted"
+                    }, (String) null));
+        }
         visualizeItems(visualization, value.getItems(), true, context, task, result);
 
         parentVisualization.addPartialVisualization(visualization);

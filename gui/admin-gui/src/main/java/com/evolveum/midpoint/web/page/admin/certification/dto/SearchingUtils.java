@@ -73,10 +73,10 @@ public class SearchingUtils {
         List<ObjectOrdering> rv = new ArrayList<>();
         rv.add(prismContext.queryFactory().createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
         // additional criteria are used to avoid random shuffling if first criteria is too vague)
-        rv.add(prismContext.queryFactory().createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));     // campaign OID
-        rv.add(prismContext.queryFactory().createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));            // case ID
+        rv.add(prismContext.queryFactory().createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); // campaign OID
+        rv.add(prismContext.queryFactory().createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); // case ID
         if (isWorkItem) {
-            rv.add(prismContext.queryFactory().createOrdering(ItemName.fromQName(PrismConstants.T_ID), OrderDirection.ASCENDING));            // work item ID
+            rv.add(prismContext.queryFactory().createOrdering(PrismConstants.T_ID, OrderDirection.ASCENDING)); // work item ID
         }
         return rv;
     }

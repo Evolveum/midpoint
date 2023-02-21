@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.CsvResource;
+import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,7 +38,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "machineintelligence");
 
-    private static final CsvResource RESOURCE_HR = new CsvResource(TEST_DIR, "resource-csv-HR.xml", "10000000-0000-0000-0000-000000000001", "HR.csv");
+    private static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-csv-HR.xml", "10000000-0000-0000-0000-000000000001", "HR.csv");
 
     private static final File SHADOW_RUR_FILE = new File(TEST_DIR, "shadow-rur.xml");
     private static final String SHADOW_RUR_OID = "77777700-0000-0000-0000-111111111111";

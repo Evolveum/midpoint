@@ -86,12 +86,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
 
     /**
-     * Were there any deltas executed during the last call to {@link ChangeExecutor}?
-     *
-     * Used to determine whether the context should be rotten.
-     * (But currently only for focus context. Projections are treated in the original way.)
+     * Result of the last call to {@link ChangeExecutor} related to this element.
      */
-     private transient boolean anyDeltasExecuted;
+    transient ChangeExecutionResult<O> lastChangeExecutionResult;
 
     /**
      * Current iteration when computing values for the object.
@@ -205,6 +202,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public PrismObject<O> getObjectOld() {
         return state.getOldObject();
     }
+
+    /** The best estimate how the object looked like before the simulated operation. (Tricky for projections.) */
+    public abstract PrismObject<O> getStateBeforeSimulatedOperation();
 
     @Override
     public PrismObject<O> getObjectCurrent() {
@@ -612,16 +612,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return false;
     }
 
-    void clearAnyDeltasExecutedFlag() {
-        anyDeltasExecuted = false;
+    void clearLastChangeExecutionResult() {
+        lastChangeExecutionResult = null;
     }
 
-    public void setAnyDeltasExecutedFlag() {
-        anyDeltasExecuted = true;
+    public ChangeExecutionResult<O> setupLastChangeExecutionResult() {
+        stateCheck(
+                lastChangeExecutionResult == null,
+                "Last change execution result is already set in %s", this);
+        lastChangeExecutionResult = new ChangeExecutionResult<>();
+        return lastChangeExecutionResult;
     }
 
-    boolean getAnyDeltasExecutedFlag() {
-        return anyDeltasExecuted;
+    /** Updates the state to reflect that a delta was "executed" in simulation mode. */
+    public void simulateDeltaExecution(@NotNull ObjectDelta<O> delta) throws SchemaException {
+        state.simulateDeltaExecution(delta);
     }
     //endregion
 
@@ -636,6 +641,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public void rot() {
         setFresh(false);
+        lensContext.setFresh(false);
     }
 
     /**
@@ -651,6 +657,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     /**
      * Cleans up the contexts by removing some of the working state.
+     *
+     * TODO describe more precisely, see also {@link #rot()}, {@link LensFocusContext#updateDeltasAfterExecution()},
+     *  and {@link LensContext#updateAfterExecution()}
      */
     public abstract void cleanup();
     //endregion
