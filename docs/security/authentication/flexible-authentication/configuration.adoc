@@ -714,6 +714,24 @@ RegistrationId is 'aliasForPath', when is provided, or 'alias', when is provided
 
 Generation of metadata works only if your sequence use only saml2 authentication module or saml2 authentication module is first in chain of your sequence. When you want use chain and saml2 module won't be first authentication module. We recommend create sequence only with saml module, generate metadata and in next step add other modules.
 
+If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the SAML endpoints (in the SP Metadata and in the SAMLRequest) to reflect the right URLs (see below)
+
+.Example of public URL configuration
+[source,xml]
+----
+<systemConfiguration>
+	.
+    .
+    .
+    <infrastructure>
+        <publicHttpUrlPattern>https://public.url.local/midpoint</publicHttpUrlPattern>
+    </infrastructure>
+    .
+    .
+    .
+</systemConfiguration>
+----
+
 ===== Migration Saml2 authentication module from 4.3
 Dependency for support of `saml2` authentication module was changed to https://github.com/spring-projects/spring-security/tree/main/saml2/saml2-service-provider[Spring Security saml2-service-provider].
 
@@ -954,6 +972,24 @@ Required attribute is only 'issuerUri', because midPoint get configuration for a
         ...
     </authentication>
 </securityPolicy>
+----
+
+If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the OIDC Redirect URI to point to a valid public URL (see below)
+
+.Example of public URL configuration
+[source,xml]
+----
+<systemConfiguration>
+	.
+    .
+    .
+    <infrastructure>
+        <publicHttpUrlPattern>https://public.url.local/midpoint</publicHttpUrlPattern>
+    </infrastructure>
+    .
+    .
+    .
+</systemConfiguration>
 ----
 
 ===== Configuration for REST
