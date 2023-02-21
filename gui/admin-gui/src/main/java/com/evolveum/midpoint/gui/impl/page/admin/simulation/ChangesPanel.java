@@ -1,15 +1,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -17,13 +14,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.CardObjectVisualizationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualization;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.ObjectVisualizationPanel;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
-import com.evolveum.midpoint.web.component.prism.show.SimpleVisualizationPanel;
+import com.evolveum.midpoint.web.component.prism.show.MainVisualizationPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
@@ -38,13 +32,9 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
 
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_BODY = "body";
-    private static final String ID_CHANGES = "changes";
-    private static final String ID_CHANGE = "change";
-    private static final String ID_ADVANCED = "advanced";
+    private static final String ID_VISUALIZATION = "visualization";
 
     private IModel<ChangesView> changesViewModel;
-
-    private IModel<List<ObjectVisualization>> changesNewModel;
 
     private IModel<VisualizationDto> changesModel;
 
@@ -56,7 +46,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
     }
 
     private void initModels() {
-        changesViewModel = Model.of(ChangesView.ADVANCED);
+        changesViewModel = Model.of(ChangesView.SIMPLE);
 
         IModel<Visualization> visualizationModel = new LoadableModel<>(false) {
 
@@ -72,21 +62,7 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
             @Override
             protected VisualizationDto load() {
                 Visualization visualization = visualizationModel.getObject();
-
-                return SimulationsGuiUtil.createVisualizationDto(visualization);
-            }
-        };
-
-        changesNewModel = new LoadableModel<>() {
-
-            @Override
-            protected List<ObjectVisualization> load() {
-                Visualization visualization = visualizationModel.getObject();
-                if (visualization == null) {
-                    return Collections.emptyList();
-                }
-
-                return Collections.singletonList(new ObjectVisualization(visualization));
+                return new VisualizationDto(visualization);
             }
         };
     }
@@ -129,31 +105,39 @@ public class ChangesPanel extends BasePanel<List<ObjectDeltaType>> {
         body.setOutputMarkupId(true);
         add(body);
 
-        ListView<ObjectVisualization> changes = new ListView<>(ID_CHANGES, changesNewModel) {
-
-            @Override
-            protected void populateItem(ListItem<ObjectVisualization> item) {
-                Component change;
-                if (changesNewModel.getObject().size() > 1) {
-                    change = new CardObjectVisualizationPanel(ID_CHANGE, item.getModel());
-                } else {
-                    change = new ObjectVisualizationPanel(ID_CHANGE, item.getModel());
-                }
-
-                item.add(change);
-            }
-        };
-        changes.add(new VisibleBehaviour(() -> changesViewModel.getObject() == ChangesView.SIMPLE));
-        body.add(changes);
-
-        SimpleVisualizationPanel advanced = new SimpleVisualizationPanel(ID_ADVANCED, changesModel);
-        advanced.add(new VisibleBehaviour(() -> changesViewModel.getObject() == ChangesView.ADVANCED && changesModel.getObject() != null));
+        MainVisualizationPanel advanced = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
         body.add(advanced);
     }
 
     private void onChangesViewClicked(AjaxRequestTarget target, Toggle<ChangesView> toggle) {
         changesViewModel.setObject(toggle.getValue());
 
+        Component newOne = null;
+        switch (changesViewModel.getObject()) {
+            case SIMPLE:
+                newOne = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
+                break;
+            case ADVANCED:
+                expandVisualization(changesModel.getObject());
+                newOne = new VisualizationPanel(ID_VISUALIZATION, changesModel, false, true);
+        }
+
+        Component existing = get(createComponentPath(ID_BODY, ID_VISUALIZATION));
+        existing.replaceWith(newOne);
+
         target.add(get(ID_BODY));
+    }
+
+    private void expandVisualization(VisualizationDto dto) {
+        dto.setMinimized(false);
+
+        List<VisualizationDto> partials = dto.getPartialVisualizations();
+        if (partials == null) {
+            return;
+        }
+
+        for (VisualizationDto partial : partials) {
+            expandVisualization(partial);
+        }
     }
 }

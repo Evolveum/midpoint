@@ -12,11 +12,15 @@ import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -26,7 +30,11 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     @Override
     public boolean match(VisualizationImpl visualization) {
         PrismContainerValue value = visualization.getSourceValue();
-        return value != null && AssignmentHolderType.F_ASSIGNMENT.equivalent(value.getPath());
+        if (value == null || value.getPath() == null) {
+            return false;
+        }
+
+        return AssignmentHolderType.F_ASSIGNMENT.equivalent(value.getPath().namedSegmentsOnly());
     }
 
     @Override
@@ -36,9 +44,16 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
         AssignmentType a = (AssignmentType) value.asContainerable();
         ObjectReferenceType targetRef = a.getTargetRef();
+        if (targetRef == null) {
+            return;
+        }
+
+        QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
+        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+
         visualization.getName().setSimpleDescription(
                 new SingleLocalizableMessage("Visualization.assignment", new Object[] {
-                        targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE,
+                        new SingleLocalizableMessage("ObjectTypes." + ot.name()),
                         targetRef.getTargetName() != null ? targetRef.getTargetName() : targetRef.getOid(),
                         changeType == ADD ? "assigned" : "unassigned"
                 }, (String) null));

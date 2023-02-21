@@ -58,18 +58,21 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private static final String ID_WARNING = "warning";
     private static final String ID_VISUALIZATION = "visualization";
 
+    private final boolean advanced;
+
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible = false;
 
     private IModel<String> simpleDescriptionModel;
 
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
-        this(id, model, false);
+        this(id, model, false, true);
     }
 
-    public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems) {
+    public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems, boolean advanced) {
         super(id, model);
 
+        this.advanced = advanced;
         this.showOperationalItems = showOperationalItems;
     }
 
@@ -80,7 +83,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initModels();
         initLayout();
 
-        if (simpleDescriptionModel.getObject() != null) {
+        if (!advanced && simpleDescriptionModel.getObject() != null) {
             getModelObject().setMinimized(true);
         }
     }
@@ -216,6 +219,13 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 () -> getModelObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
 
             @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+                attributes.setPreventDefault(true);
+            }
+
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 headerOnClickPerformed(target, VisualizationPanel.this.getModel());
             }
@@ -230,7 +240,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         }));
         add(body);
 
-        final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems);
+        final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
         visualization.setRenderBodyOnly(true);
         body.add(visualization);
     }
