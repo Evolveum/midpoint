@@ -29,7 +29,8 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
             ColumnMetadata.named("nameNorm").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata STATE =
             ColumnMetadata.named("state").ofType(Types.OTHER);
-
+    public static final ColumnMetadata FOCUS_RECORD_ID =
+            ColumnMetadata.named("focusRecordId").ofType(Types.NUMERIC);
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata OBJECT_BEFORE =
@@ -74,5 +75,7 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
     public BooleanExpression isOwnedBy(MSimulationResult ownerRow) {
         return ownerOid.eq(ownerRow.oid);
     }
+
+    public final NumberPath<Long> focusRecordId = createLong("focusRecordId", FOCUS_RECORD_ID);
 
 }

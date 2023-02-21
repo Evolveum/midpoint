@@ -109,23 +109,37 @@ public class SimulationsGuiUtil {
         };
     }
 
-    public static VisualizationDto createDeltaVisualization(ObjectDeltaType objectDelta, PageBase page) {
+    public static Visualization createVisualization(ObjectDeltaType objectDelta, PageBase page) {
         if (objectDelta == null) {
             return null;
         }
 
-        Visualization visualization;
         try {
             ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDelta);
 
             Task task = page.getPageTask();
             OperationResult result = task.getResult();
 
-            visualization = page.getModelInteractionService().visualizeDelta(delta, task, result);
+            return page.getModelInteractionService().visualizeDelta(delta, task, result);
         } catch (SchemaException | ExpressionEvaluationException e) {
             LOGGER.debug("Couldn't convert and visualize delta", e);
 
             throw new SystemException(e);
+        }
+    }
+
+    public static VisualizationDto createVisualizationDto(ObjectDeltaType objectDelta, PageBase page) {
+        if (objectDelta == null) {
+            return null;
+        }
+
+        Visualization visualization = createVisualization(objectDelta, page);
+        return createVisualizationDto(visualization);
+    }
+
+    public static VisualizationDto createVisualizationDto(Visualization visualization) {
+        if (visualization == null) {
+            return null;
         }
 
         if (LOGGER.isTraceEnabled()) {

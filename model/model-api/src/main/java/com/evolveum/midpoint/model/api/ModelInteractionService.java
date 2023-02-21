@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager.SimulatedFunctionCall;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +21,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager.SimulatedFunctionCall;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -73,7 +73,6 @@ public interface ModelInteractionService {
     String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
     String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
     String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
-    String GET_EDIT_SHADOW_DEFINITION = CLASS_NAME_WITH_DOT + "getEditShadowDefinition";
     String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
     String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
     String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
@@ -111,7 +110,9 @@ public interface ModelInteractionService {
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException;
+    <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, ExpressionEvaluationException;
 
     /**
      * <p>
@@ -182,8 +183,6 @@ public interface ModelInteractionService {
      * Note: this method returns only the list of authorization actions that are known to the IDM Model component and the components
      * below. It does <b>not</b> return a GUI-specific authorization actions.
      * </p>
-     *
-     * @return
      */
     Collection<? extends DisplayableValue<String>> getActionUrls();
 
@@ -193,7 +192,11 @@ public interface ModelInteractionService {
      * @param assignmentHolder Object of the operation. The object (usually user) to whom the roles should be assigned.
      * @param assignmentOrder order=0 means assignment, order>0 means inducement
      */
-    <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> assignmentHolder, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+    <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(
+            PrismObject<H> assignmentHolder, Class<R> targetType, int assignmentOrder,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * Returns filter for lookup of donors of power of attorney. The donors are the users that have granted
@@ -212,7 +215,11 @@ public interface ModelInteractionService {
      * @param parentResult operation result
      * @return original filter with AND clause limiting the search.
      */
-    <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <T extends ObjectType> ObjectFilter getDonorFilter(
+            Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * TODO
@@ -222,7 +229,11 @@ public interface ModelInteractionService {
      * will be ignored. This is a good way to avoid interference of "self" when checking for
      * authorizations such as ability to display role members.
      */
-    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <T extends ObjectType, O extends ObjectType> boolean canSearch(
+            Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial,
+            ObjectQuery query, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
@@ -231,11 +242,19 @@ public interface ModelInteractionService {
      * @param object object of the operation (user)
      * @param target target of the operation (role, org, service that is being assigned)
      */
-    <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
+            PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <F extends FocusType> SecurityPolicyType getSecurityPolicy(
+            PrismObject<F> focus, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-    SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;
+    SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;
 
     /**
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
@@ -497,7 +516,7 @@ public interface ModelInteractionService {
             ExpressionEvaluationException, ObjectNotFoundException;
 
     @Experimental
-    @NotNull <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
+    @NotNull CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
     /**
@@ -537,7 +556,7 @@ public interface ModelInteractionService {
     }
 
     @Experimental
-    List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+    List<? extends Serializable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
