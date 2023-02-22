@@ -261,8 +261,12 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILES_CONTAINER), get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING)));
+            target.add(get(ID_TILES_CONTAINER), getTilesNavigation());
         }
+    }
+
+    protected NavigatorPanel getTilesNavigation() {
+        return (NavigatorPanel) get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING));
     }
 
     protected IModel<Search> createSearchModel() {

@@ -22,12 +22,28 @@
         </div>
     </form>
     <wicket:fragment wicket:id="tilesFragment">
+
+        <wicket:enclosure child="newMemberTile">
+            <div style="min-height: 250px;" class="col-xs-5i col-sm-5i col-md-5i col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3">
+                <div class="card catalog-tile-panel d-flex flex-column bg-white align-items-center bordered p-3 h-100 mb-0 selectable active" wicket:id="newMemberTile">
+                    <div class="d-flex flex-column m-auto">
+                        <i class="fa fa-plus fa-3x mx-auto text-primary"/>
+                        <span class="pt-3 text-primary"><wicket:message key="TreeTablePanel.menu.addMembers"/></span>
+                    </div>
+                </div>
+            </div>
+        </wicket:enclosure>
+
         <div wicket:id="tiles" style="min-height: 250px;">
             <div wicket:id="tile"/>
         </div>
-        <div wicket:id="relations" style="min-height: 250px;">
-            <div wicket:id="relation"/>
+
+        <div wicket:id="relationsContainer" class="row p-0 col-12">
+            <div wicket:id="relations" style="min-height: 250px;">
+                <div wicket:id="relation"/>
+            </div>
         </div>
+
     </wicket:fragment>
 </wicket:panel>
 </body>

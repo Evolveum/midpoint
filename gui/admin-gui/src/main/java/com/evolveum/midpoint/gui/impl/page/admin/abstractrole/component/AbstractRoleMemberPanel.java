@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -80,10 +82,6 @@ import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -494,7 +492,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                assignMembersPerformed(target, null);
+                AbstractRoleMemberPanel.this.getPageBase().showMainPopup(
+                        createAssignPopup(target, null),
+                        target);
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
@@ -502,7 +502,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return assignButton;
     }
 
-    protected void assignMembersPerformed(AjaxRequestTarget target, QName stableRelation) {
+    protected Popupable createAssignPopup(AjaxRequestTarget target, QName stableRelation) {
         ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
                 getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel(false)) {
             private static final long serialVersionUID = 1L;
@@ -535,7 +535,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
         };
         browser.setOutputMarkupId(true);
-        AbstractRoleMemberPanel.this.getPageBase().showMainPopup(browser, target);
+        return browser;
     }
 
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
@@ -562,7 +562,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
-        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
+        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UNASSIGN),
                 createStringResource("TreeTablePanel.menu.removeMembers")) {
 
             private static final long serialVersionUID = 1L;

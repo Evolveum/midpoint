@@ -163,7 +163,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     private void addOrReplaceTabPanels(Form form, AssignmentObjectRelation relationSpec) {
         tabs = createAssignmentTabs(relationSpec);
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
+        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel(ID_TABS_PANEL, tabs);
         tabPanel.add(new VisibleBehaviour(() -> !isCompositedButtonsPanelVisible));
         tabPanel.setOutputMarkupId(true);
         form.addOrReplace(tabPanel);

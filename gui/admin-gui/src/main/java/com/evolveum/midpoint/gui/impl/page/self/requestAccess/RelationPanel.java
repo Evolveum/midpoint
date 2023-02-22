@@ -42,22 +42,16 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
 
     public static final String STEP_ID = "relation";
 
-    private static final String DEFAULT_RELATION_ICON = "fa-solid fa-user";
-
-    private static final String ID_LIST_CONTAINER = "listContainer";
-    private static final String ID_LIST = "list";
-    private static final String ID_TILE = "tile";
+    private static final String ID_PANEL = "panel";
 
     private PageBase page;
 
-    private LoadableModel<List<Tile<QName>>> relations;
 
     public RelationPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 
         this.page = page;
 
-        initModels();
         initLayout();
     }
 
@@ -67,7 +61,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private boolean canSkipStep() {
-        List<Tile<QName>> list = relations.getObject();
+        List<Tile<QName>> list = getPanel().getRelations();
         if (list.size() != 1) {
             return false;
         }
@@ -80,7 +74,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     protected void onInitialize() {
         super.onInitialize();
 
-        relations.reset();
+        getPanel().resetModel();
     }
 
     @Override
@@ -110,27 +104,8 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         return () -> !canSkipStep();
     }
 
-    private void initModels() {
-        relations = new LoadableModel<>(false) {
-
-            @Override
-            protected List<Tile<QName>> load() {
-                RequestAccess ra = getModelObject();
-
-                List<Tile<QName>> tiles = new ArrayList<>();
-
-                List<QName> availableRelations = ra.getAvailableRelations(page);
-                for (QName name : availableRelations) {
-                    Tile<QName> tile = createTileForRelation(name);
-                    tile.setSelected(name.equals(ra.getDefaultRelation()));
-                    tile.setValue(name);
-
-                    tiles.add(tile);
-                }
-
-                return tiles;
-            }
-        };
+    private ChooseRelationPanel getPanel() {
+        return (ChooseRelationPanel) get(ID_PANEL);
     }
 
     @Override
@@ -149,90 +124,24 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private void initLayout() {
-        WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
-        listContainer.setOutputMarkupId(true);
-        add(listContainer);
-
-        ListView<Tile<QName>> list = new ListView<>(ID_LIST, relations) {
-
+        ChooseRelationPanel panel = new ChooseRelationPanel(
+                ID_PANEL,
+                () -> {
+                    RequestAccess ra = getModelObject();
+                    return ra.getAvailableRelations(page);
+                }) {
             @Override
-            protected void populateItem(ListItem<Tile<QName>> item) {
-                TilePanel tp = new TilePanel(ID_TILE, item.getModel()) {
-
-                    @Override
-                    protected void onClick(AjaxRequestTarget target) {
-                        Tile<QName> tile = item.getModelObject();
-                        boolean wasSelected = tile.isSelected();
-
-                        relations.getObject().forEach(t -> t.setSelected(false));
-                        tile.setSelected(!wasSelected);
-
-                        target.add(getWizard().getPanel());
-                    }
-                };
-                item.add(tp);
+            protected void onTileClick(AjaxRequestTarget target) {
+                target.add(getWizard().getPanel());
             }
         };
-        listContainer.add(list);
-    }
-
-    private String getDefaultRelationIcon(QName name) {
-        if (SchemaConstants.ORG_DEFAULT.equals(name)) {
-            return "fa-solid fa-user";
-        } else if (SchemaConstants.ORG_MANAGER.equals(name)) {
-            return "fa-solid fa-user-tie";
-        } else if (SchemaConstants.ORG_APPROVER.equals(name)) {
-            return "fa-solid fa-clipboard-check";
-        } else if (SchemaConstants.ORG_OWNER.equals(name)) {
-            return "fa-solid fa-crown";
-        }
-
-        return DEFAULT_RELATION_ICON;
-    }
-
-    private Tile<QName> createTileForRelation(QName name) {
-        List<RelationDefinitionType> relations = getSystemRelations();
-
-        String icon = getDefaultRelationIcon(name);
-        String label = name.getLocalPart();
-
-        if (relations == null) {
-            return createTile(icon, label, name);
-        }
-
-        for (RelationDefinitionType rel : relations) {
-            if (!name.equals(rel.getRef())) {
-                continue;
-            }
-
-            DisplayType display = rel.getDisplay();
-            if (display == null) {
-                break;
-            }
-
-            IconType it = display.getIcon();
-            if (it != null && it.getCssClass() != null) {
-                icon = it.getCssClass();
-            }
-
-            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
-
-            break;
-        }
-
-        return createTile(icon, label, name);
-    }
-
-    private Tile<QName> createTile(String icon, String label, QName value) {
-        Tile<QName> tile = new Tile<>(icon, label);
-        tile.setValue(value);
-
-        return tile;
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new EnableBehaviour(() -> relations.getObject().stream().anyMatch(t -> t.isSelected()));
+        return new EnableBehaviour(() -> getPanel().isSelectedRelation());
     }
 
     @Override
@@ -246,26 +155,11 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private void submitData() {
-        Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+        QName selected = getPanel().getSelectedRelation();
         if (selected == null) {
             return;
         }
 
-        getModelObject().setRelation(selected.getValue());
-    }
-
-    private List<RelationDefinitionType> getSystemRelations() {
-        SystemConfigurationType sys = MidPointApplication.get().getSystemConfigurationIfAvailable();
-        if (sys == null) {
-            return null;
-        }
-
-        RoleManagementConfigurationType roleManagement = sys.getRoleManagement();
-        if (roleManagement == null) {
-            return null;
-        }
-
-        RelationsDefinitionType relations = roleManagement.getRelations();
-        return relations != null ? relations.getRelation() : null;
+        getModelObject().setRelation(selected);
     }
 }

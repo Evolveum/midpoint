@@ -42,8 +42,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -58,7 +58,6 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,8 +67,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private static final String ID_TITLE = "title";
     private static final String ID_TILES_FRAGMENT = "tilesFragment";
+    private static final String ID_RELATIONS_CONTAINER = "relationsContainer";
     private static final String ID_RELATIONS = "relations";
     private static final String ID_RELATION = "relation";
+    private static final String ID_NEW_MEMBER_TILE = "newMemberTile";
 
     private IModel<Search> searchModel;
 
@@ -160,54 +161,23 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         getTableId(getType())) {
 
                     @Override
+                    protected void onInitialize() {
+                        super.onInitialize();
+                        getTilesNavigation().add(new VisibleBehaviour(() -> getTilesModel().getObject().size() >= 20));
+                    }
+
+                    @Override
                     protected Fragment createTilesContainer(String idTilesContainer, ISortableDataProvider<SelectableBean<FocusType>, String> provider, UserProfileStorage.TableId tableId) {
                         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, GovernanceCardsPanel.this);
 
                         PageableListView tiles = createTilesPanel(provider);
                         tilesFragment.add(tiles);
 
-                        ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
-                            @Override
-                            protected void populateItem(ListItem<QName> item) {
-                                RelationDefinitionType definition = WebComponentUtil.getRelationDefinition(item.getModelObject());
-                                DisplayType display = definition.getDisplay();
+                        WebMarkupContainer relationContainer = createRelationTilesForAssignMembers();
+                        tilesFragment.add(relationContainer);
 
-                                String icon = GuiDisplayTypeUtil.getIconCssClass(display);
-                                PolyStringType label = GuiDisplayTypeUtil.getLabel(display);
-
-                                String title;
-                                if (label == null) {
-                                    title = item.getModelObject().getLocalPart();
-                                } else {
-                                    title = LocalizationUtil.translatePolyString(label);
-                                }
-
-                                Tile<QName> tile = new Tile<>(icon, title);
-                                tile.setValue(item.getModelObject());
-
-                                TilePanel tilePanel = new TilePanel<>(ID_RELATION, Model.of(tile)) {
-
-                                    @Override
-                                    protected void onInitialize() {
-                                        super.onInitialize();
-                                        add(AttributeAppender.append(
-                                                "class",
-                                                "card catalog-tile-panel d-flex flex-column "
-                                                        + "align-items-center bordered p-3 h-100 mb-0 selectable"));
-                                    }
-
-                                    @Override
-                                    protected void onClick(AjaxRequestTarget target) {
-                                        assignMembersPerformed(target, getModelObject().getValue());
-                                    }
-                                };
-
-
-                                item.add(tilePanel);
-                                item.add(AttributeAppender.append("class", getTileCssClasses()));
-                            }
-                        };
-                        tilesFragment.add(relations);
+                        WebMarkupContainer newMemberTile = createBaseTileForAssignMembers();
+                        tilesFragment.add(newMemberTile);
 
                         tilesFragment.add(createRefreshBehaviour(getObjectCollectionView()));
 
@@ -217,13 +187,8 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     @Override
                     protected WebMarkupContainer createTilesButtonToolbar(String id) {
                         RepeatingView repView = new RepeatingView(id);
-//                        AjaxIconButton assignButton = createAssignButton(repView.newChildId());
-//                        assignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
-//                        assignButton.showTitleAsLabel(true);
-//                        repView.add(assignButton);
 
                         AjaxIconButton unassignButton = createUnassignButton(repView.newChildId());
-//                        unassignButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
                         unassignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
                         unassignButton.showTitleAsLabel(true);
                         repView.add(unassignButton);
@@ -323,6 +288,59 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
                 };
         memberContainer.add(tilesTable);
+    }
+
+    private WebMarkupContainer createBaseTileForAssignMembers() {
+        WebMarkupContainer newMemberTile = new WebMarkupContainer(ID_NEW_MEMBER_TILE);
+        newMemberTile.add(new AjaxEventBehavior("click") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                ChooseRelationPopup choose = new ChooseRelationPopup(
+                        GovernanceCardsPanel.this.getPageBase().getMainPopupBodyId(),
+                        Model.ofList(getSupportedRelations())) {
+                    @Override
+                    protected void onSelectRelation(QName selectedRelation, AjaxRequestTarget target) {
+                        GovernanceCardsPanel.this.getPageBase().replaceMainPopup(
+                                createAssignPopup(target, selectedRelation),
+                                target);
+                    }
+
+                    @Override
+                    protected void customizeTilePanel(TilePanel tp) {
+                        tp.add(AttributeAppender.append("class", "card"));
+                        tp.add(AttributeAppender.append("style", "min-width:200px"));
+                    }
+                };
+                choose.setOutputMarkupId(true);
+                GovernanceCardsPanel.this.getPageBase().showMainPopup(choose, target);
+            }
+        });
+        newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+        return newMemberTile;
+    }
+
+    private WebMarkupContainer createRelationTilesForAssignMembers() {
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATIONS_CONTAINER);
+        relationContainer.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().isEmpty()));
+
+        ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
+            @Override
+            protected void populateItem(ListItem<QName> item) {
+                RelationTilePanel tilePanel = new RelationTilePanel(ID_RELATION, item.getModelObject()) {
+                    @Override
+                    protected void onChoose(QName relation, AjaxRequestTarget target) {
+                        GovernanceCardsPanel.this.getPageBase().showMainPopup(
+                                createAssignPopup(target, relation),
+                                target);
+                    }
+                };
+                item.add(tilePanel);
+                item.add(AttributeAppender.append("class", getTileCssClasses()));
+            }
+        };
+        relationContainer.add(relations);
+        return relationContainer;
     }
 
     protected String getTileCssClasses() {
@@ -427,9 +445,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     private void unselectAllPerformed(AjaxRequestTarget target) {
-        ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
+        ((SelectableBeanObjectDataProvider) getMemberTileTable().getProvider()).clearSelectedObjects();
         target.add(getMemberTileTable());
     }
+
     protected TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>> getMemberTileTable() {
         return (TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>>)
                 get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
