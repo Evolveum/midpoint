@@ -9,12 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.component.preview;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -49,13 +51,15 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
 
     private static final String ID_PRIMARY_DELTAS = "primaryDeltas";
     private static final String ID_SECONDARY_DELTAS = "secondaryDeltas";
+    private static final String ID_PRIMARY = "primary";
+    private static final String ID_SECONDARY = "secondary";
     private static final String ID_APPROVALS_CONTAINER = "approvalsContainer";
     private static final String ID_APPROVALS = "approvals";
     private static final String ID_POLICY_VIOLATIONS_CONTAINER = "policyViolationsContainer";
     private static final String ID_POLICY_VIOLATIONS = "policyViolations";
 
-    private IModel<VisualizationDto> primaryDeltasModel;
-    private IModel<VisualizationDto> secondaryDeltasModel;
+    private IModel<List<VisualizationDto>> primaryModel;
+    private IModel<List<VisualizationDto>> secondaryModel;
     private IModel<List<EvaluatedTriggerGroupDto>> policyViolationsModel;
     private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
@@ -94,16 +98,11 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             LOGGER.trace("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondary));
         }
 
-        final WrapperVisualization primaryVisualization = new WrapperVisualization(primary,
-                primary.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primary.size());
-        final WrapperVisualization secondaryVisualization = new WrapperVisualization(secondary,
-                secondary.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondary.size());
+        final List<VisualizationDto> primaryList = primary.stream().map(v -> new VisualizationDto(v)).collect(Collectors.toList());
+        final List<VisualizationDto> secondaryList = secondary.stream().map(v -> new VisualizationDto(v)).collect(Collectors.toList());
 
-        final VisualizationDto primaryDto = new VisualizationDto(primaryVisualization);
-        final VisualizationDto secondaryDto = new VisualizationDto(secondaryVisualization);
-
-        primaryDeltasModel = () -> primaryDto;
-        secondaryDeltasModel = () -> secondaryDto;
+        primaryModel = () -> primaryList;
+        secondaryModel = () -> secondaryList;
 
         PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
                 ? modelContext.getPolicyRuleEnforcerPreviewOutput()
@@ -139,34 +138,53 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         approvalsModel = Model.ofList(approvals);
     }
 
+    private IModel<VisualizationDto> createVisualizationModel(IModel<List<VisualizationDto>> model, String oneKey, String moreKey) {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected VisualizationDto load() {
+                List<Visualization> visualizations = model.getObject().stream().map(v -> v.getVisualization()).collect(Collectors.toList());
+
+                int size = visualizations.size();
+                String key = size != 1 ? moreKey : oneKey;
+
+                return new VisualizationDto(new WrapperVisualization(visualizations, key, size));
+            }
+        };
+    }
+
     private void initLayout() {
-        VisualizationPanel primaryDeltas = new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel);
-        primaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        VisualizationPanel primaryDeltas = new VisualizationPanel(ID_PRIMARY_DELTAS,
+                createVisualizationModel(primaryModel, "PagePreviewChanges.primaryChangesOne", "PagePreviewChanges.primaryChangesMore"));
+//        primaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(primaryDeltas);
 
-        VisualizationPanel secondaryDeltas = new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel);
-        secondaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        VisualizationPanel secondaryDeltas = new VisualizationPanel(ID_SECONDARY_DELTAS,
+                createVisualizationModel(secondaryModel, "PagePreviewChanges.secondaryChangesOne", "PagePreviewChanges.secondaryChangesMore"));
+//        secondaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(secondaryDeltas);
 
-        add(new ChangesPanel("primary", null, primaryDeltasModel) {
+        add(new ChangesPanel(ID_PRIMARY, null, primaryModel) {
 
             @Override
             protected IModel<String> createTitle() {
                 return () -> {
-                    WrapperVisualization wrapper = (WrapperVisualization) primaryDeltasModel.getObject().getVisualization();
+                    int size = primaryModel.getObject().size();
+                    String key = size != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne";
 
-                    return getString(wrapper.getDisplayNameKey(), wrapper.getDisplayNameParameters());
+                    return getString(key, size);
                 };
             }
         });
-        add(new ChangesPanel("secondary", null, secondaryDeltasModel) {
+        add(new ChangesPanel(ID_SECONDARY, null, secondaryModel) {
 
             @Override
             protected IModel<String> createTitle() {
                 return () -> {
-                    WrapperVisualization wrapper = (WrapperVisualization) secondaryDeltasModel.getObject().getVisualization();
+                    int size = secondaryModel.getObject().size();
+                    String key = size != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne";
 
-                    return getString(wrapper.getDisplayNameKey(), wrapper.getDisplayNameParameters());
+                    return getString(key, size);
                 };
             }
         });

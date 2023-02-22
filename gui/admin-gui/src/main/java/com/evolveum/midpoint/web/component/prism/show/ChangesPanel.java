@@ -15,6 +15,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -39,30 +41,35 @@ public class ChangesPanel extends BasePanel<Void> {
     private static final String ID_TITLE = "title";
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_BODY = "body";
+    private static final String ID_VISUALIZATIONS = "visualizations";
     private static final String ID_VISUALIZATION = "visualization";
 
     private IModel<ChangesView> changesViewModel;
 
-    private IModel<VisualizationDto> changesModel;
+    private IModel<List<VisualizationDto>> changesModel;
 
-    public ChangesPanel(String id, IModel<List<ObjectDeltaType>> deltaModel, IModel<VisualizationDto> visualizationModel) {
+    public ChangesPanel(String id, IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
         super(id);
 
         initModels(deltaModel, visualizationModel);
         initLayout();
     }
 
-    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<VisualizationDto> visualizationModel) {
+    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
         changesViewModel = Model.of(ChangesView.SIMPLE);
 
         changesModel = visualizationModel != null ? visualizationModel : new LoadableModel<>(false) {
 
             @Override
-            protected VisualizationDto load() {
-                ObjectDeltaType objectDelta = deltaModel.getObject().get(0);
-                Visualization visualization = SimulationsGuiUtil.createVisualization(objectDelta, getPageBase());
+            protected List<VisualizationDto> load() {
+                List<VisualizationDto> result = new ArrayList<>();
 
-                return new VisualizationDto(visualization);
+                for (ObjectDeltaType delta : deltaModel.getObject()) {
+                    Visualization visualization = SimulationsGuiUtil.createVisualization(delta, getPageBase());
+                    result.add(new VisualizationDto(visualization));
+                }
+
+                return result;
             }
         };
     }
@@ -112,24 +119,40 @@ public class ChangesPanel extends BasePanel<Void> {
         body.setOutputMarkupId(true);
         add(body);
 
-        Component visualization = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
-        body.add(visualization);
+        Component visualizations = createVisualizations();
+        body.add(visualizations);
+    }
+
+    private ListView<VisualizationDto> createVisualizations() {
+        return new ListView<>(ID_VISUALIZATIONS, changesModel) {
+
+            @Override
+            protected void populateItem(ListItem<VisualizationDto> item) {
+                IModel<VisualizationDto> model = item.getModel();
+
+                boolean advanced = changesViewModel.getObject() == ChangesView.ADVANCED;
+
+                if (advanced) {
+                    expandVisualization(model.getObject());
+                }
+
+                Component component;
+                if (!advanced && changesModel.getObject().size() == 1) {
+                    component = new MainVisualizationPanel(ID_VISUALIZATION, model, false, advanced);
+                } else {
+                    component = new VisualizationPanel(ID_VISUALIZATION, model, false, advanced);
+                }
+
+                item.add(component);
+            }
+        };
     }
 
     private void onChangesViewClicked(AjaxRequestTarget target, Toggle<ChangesView> toggle) {
         changesViewModel.setObject(toggle.getValue());
 
-        Component newOne = null;
-        switch (changesViewModel.getObject()) {
-            case SIMPLE:
-                newOne = new MainVisualizationPanel(ID_VISUALIZATION, changesModel, false, false);
-                break;
-            case ADVANCED:
-                expandVisualization(changesModel.getObject());
-                newOne = new VisualizationPanel(ID_VISUALIZATION, changesModel, false, true);
-        }
-
-        Component existing = get(createComponentPath(ID_BODY, ID_VISUALIZATION));
+        Component newOne = createVisualizations();
+        Component existing = get(createComponentPath(ID_BODY, ID_VISUALIZATIONS));
         existing.replaceWith(newOne);
 
         target.add(get(ID_BODY));
