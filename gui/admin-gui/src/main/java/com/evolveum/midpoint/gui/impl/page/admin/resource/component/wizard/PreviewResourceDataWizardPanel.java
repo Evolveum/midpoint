@@ -103,4 +103,9 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("PreviewResourceDataWizardPanel.subText");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-8";
+    }
 }

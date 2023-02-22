@@ -13,9 +13,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -57,7 +59,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         add(parametersPanelFragment);
     }
 
-    protected Component initObjectListPanel() {
+    protected PopupObjectListPanel initObjectListPanel() {
         PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<>
                 (ID_OBJECT_LIST_PANEL, getObjectType().getClassDefinition(), true) {
 
@@ -118,6 +120,12 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                 return customQuery;
             }
 
+            @Override
+            protected void customProcessNewRowItem(Item<SelectableBean<O>> item, IModel<SelectableBean<O>> model) {
+                item.add(AttributeAppender.append(
+                        "class",
+                        () -> item != null && item.getModelObject() != null &&item.getModelObject().isSelected() ? "table-primary" : ""));
+            }
         };
         listPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;

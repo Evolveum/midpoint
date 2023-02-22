@@ -11,16 +11,15 @@
     <div class="card-header d-flex gap-2 align-items-center">
         <h3 class="card-title flex-grow-1">
             <i class="fa-solid fa-square-poll-vertical mr-1"></i>
-            <span><wicket:message key="ChangesPanel.title"/></span>
+            <span wicket:id="title"/>
         </h3>
+
         <div wicket:id="toggle"/>
     </div>
     <div class="card-body" wicket:id="body">
-        <wicket:container wicket:id="changes">
-            <div wicket:id="change"/>
+        <wicket:container wicket:id="visualizations">
+            <div wicket:id="visualization"/>
         </wicket:container>
-
-        <div wicket:id="advanced"/>
     </div>
 </wicket:panel>
 </html>

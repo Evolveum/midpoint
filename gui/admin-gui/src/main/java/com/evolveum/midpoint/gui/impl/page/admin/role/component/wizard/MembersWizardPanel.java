@@ -50,6 +50,14 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
         AbstractRoleMemberPanel table = new AbstractRoleMemberPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
 
             @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getMemberTable().getTable().setShowAsCard(false);
+                getMemberTable().getTable().add(AttributeAppender.replace("class", ""));
+                getMemberTable().getTable().add(createRefreshBehaviour(getMemberTable().getObjectCollectionView()));
+            }
+
+            @Override
             protected List<InlineMenuItem> createRowActions() {
                 List<InlineMenuItem> menu = new ArrayList<>();
                 createUnassignMemberRowAction(menu);
@@ -58,7 +66,11 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
 
             @Override
             protected List<Component> createToolbarButtonList(String buttonId, List defaultToolbarList) {
-                return List.of(createAssignButton(buttonId), createUnassignButton(buttonId));
+                return List.of(
+                        createAssignButton(buttonId),
+                        createUnassignButton(buttonId),
+                        createRefreshButton(buttonId),
+                        createPlayPauseButton(buttonId));
             }
 
             protected String getStorageKeyTabSuffix() {
@@ -87,7 +99,7 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
 
             @Override
             protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-                waitWhileTaskFinish(task, target);
+                showMessageWithoutLinkForTask(task, target);
             }
 
             @Override
@@ -131,5 +143,10 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("MembersWizardPanel.subText");
+    }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
     }
 }

@@ -227,6 +227,24 @@
                     </expression>
                 </export>
             </column>
+            <column>
+                <name>createChannel</name>
+                <display>
+                    <label>Source</label> <!-- TODO better name? -->
+                </display>
+                <previousColumn>since</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                // Explicit String to use the right split() and not random Groovy default method.
+                                String channel = data?.assignment?.metadata?.createChannel
+                                return channel?.split('#')?.last()?.with(s -> midpoint.translate('Channel.' + s))
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
         </view>
     </objectCollection>
 </report>

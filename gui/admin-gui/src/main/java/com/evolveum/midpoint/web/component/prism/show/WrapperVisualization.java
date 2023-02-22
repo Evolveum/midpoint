@@ -80,7 +80,7 @@ public class WrapperVisualization implements Visualization {
             }
 
             @Override
-            public IconType getSimpleIcon() {
+            public String getSimpleIcon() {
                 return null;
             }
 

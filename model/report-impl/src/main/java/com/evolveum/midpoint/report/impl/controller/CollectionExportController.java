@@ -374,9 +374,8 @@ public class CollectionExportController<C> implements ExportController<C> {
         variables.putAll(evaluateSimpleSubreportParameters(variables, workerTask, result));
         for (SubreportParameterType asRowParam : paramsAsRow) {
             // We don't want to re-evaluate the sub-reports, but we need some value for each variable.
-            // Null wrapped in TypedValue is also an alternative, but report scripts would need to check it
-            // (e.g. use ?.) which currently some test reports do not do - empty collection works fine for them.
-            variables.put(asRowParam.getName(), new TypedValue<>(List.of(), List.class));
+            // Null is the best alternative to represent "no element" generated from the asRow subreport.
+            variables.put(asRowParam.getName(), new TypedValue<>(null, Object.class));
         }
 
         convertAndWriteRow(sequentialNumber, record, variables, workerTask, result);

@@ -228,4 +228,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
+    }
 }

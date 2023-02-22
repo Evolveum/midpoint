@@ -29,6 +29,7 @@ import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
 
 import java.io.Serializable;
@@ -131,10 +132,18 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
     }
 
     protected IModel<IResource> createPreferredImage(IModel<T> model) {
-        return null;
+        return Model.of();
     }
 
     protected RoundedImagePanel getLogo() {
         return (RoundedImagePanel) get(ID_LOGO);
+    }
+
+    protected Label getTitle() {
+        return (Label) get(ID_TITLE);
+    }
+
+    protected WebMarkupContainer getIcon() {
+        return (WebMarkupContainer) get(ID_ICON);
     }
 }

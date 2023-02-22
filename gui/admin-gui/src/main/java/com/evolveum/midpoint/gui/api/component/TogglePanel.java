@@ -60,6 +60,7 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                     }
                 };
                 button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive() ? "active" : null));
+                button.add(AttributeAppender.replace("aria-pressed", () -> item.getModelObject().isActive() ? "true" : "false"));
                 item.add(button);
 
                 Component content = createButtonContent(ID_CONTENT, item.getModel());

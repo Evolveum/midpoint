@@ -18001,7 +18001,13 @@
                     <xsd:element name="asRow" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
-                                <!-- todo documentation -->
+                                When set to true, the subreport should return a collection of objects
+                                which is used to generate row for each element of the returned collection.
+                                In each generated row the value of the respective element is provided as
+                                a variable named as specified in this subreport.
+                                If null or empty collection is returned by asRow subreport, no additional
+                                rows are generated, but the original row is still processed.
+                                The subreport variable value in this case is `null`.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SubreportParameterType.asRow</a:displayName>

@@ -103,4 +103,9 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
     protected IModel<PrismContainerValueWrapper<C>> getValueModel() {
         return superHelper.getValueModel();
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-8";
+    }
 }
