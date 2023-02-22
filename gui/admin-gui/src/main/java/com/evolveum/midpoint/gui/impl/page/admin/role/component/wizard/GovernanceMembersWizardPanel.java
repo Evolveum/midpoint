@@ -109,4 +109,9 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("GovernanceMembersWizardPanel.subText");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
+    }
 }

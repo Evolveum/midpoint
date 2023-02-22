@@ -81,4 +81,9 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractResourceW
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("MappingOverridesTableWizardPanel.subText");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-10";
+    }
 }
