@@ -7,21 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import static com.evolveum.midpoint.prism.delta.ChangeType.*;
-import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-
-import java.util.*;
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
@@ -43,6 +28,21 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.*;
+
+import static com.evolveum.midpoint.prism.delta.ChangeType.*;
+import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 @Component
 public class Visualizer {
@@ -329,7 +329,9 @@ public class Visualizer {
         }
     }
 
-    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
+    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive,
+            VisualizationContext context, Task task, OperationResult result) {
+
         if (items == null) {
             return;
         }
@@ -356,6 +358,7 @@ public class Visualizer {
                 for (PrismContainerValue<?> pcv : pc.getValues()) {
                     if (separate) {
                         VisualizationImpl si = new VisualizationImpl(visualization);
+                        si.setChangeType(visualization.getChangeType());
                         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
                         name.setId(name.getSimpleName());
                         if (def != null) {
@@ -375,11 +378,11 @@ public class Visualizer {
                         si.setSourceDelta(null);
                         visualization.addPartialVisualization(si);
 
-                        evaluateDescriptionHandlers(si, task, result);
-
                         currentVisualization = si;
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
+
+                    evaluateDescriptionHandlers(currentVisualization, task, result);
                 }
             } else {
                 throw new IllegalStateException("Not a property nor reference nor container: " + item);
