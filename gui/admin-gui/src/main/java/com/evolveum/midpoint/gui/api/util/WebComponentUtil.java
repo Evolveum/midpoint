@@ -1382,7 +1382,7 @@ public final class WebComponentUtil {
 
         if (def.getDisplayName() != null) {
             StringResourceModel nameModel = PageBase.createStringResourceStatic(def.getDisplayName());
-            if (StringUtils.isNotEmpty(nameModel.getString()) && !def.getDisplayName().equals(nameModel.getString())) {
+            if (StringUtils.isNotEmpty(nameModel.getString())) {
                 return nameModel.getString();
             }
         }
