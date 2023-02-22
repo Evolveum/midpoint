@@ -156,12 +156,11 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     private void initLayout() {
         VisualizationPanel primaryDeltas = new VisualizationPanel(ID_PRIMARY_DELTAS,
                 createVisualizationModel(primaryModel, "PagePreviewChanges.primaryChangesOne", "PagePreviewChanges.primaryChangesMore"));
-//        primaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        primaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(primaryDeltas);
 
         VisualizationPanel secondaryDeltas = new VisualizationPanel(ID_SECONDARY_DELTAS,
                 createVisualizationModel(secondaryModel, "PagePreviewChanges.secondaryChangesOne", "PagePreviewChanges.secondaryChangesMore"));
-//        secondaryDeltas.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(secondaryDeltas);
 
         add(new ChangesPanel(ID_PRIMARY, null, primaryModel) {

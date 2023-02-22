@@ -631,6 +631,8 @@ public class Visualizer {
             }
         }
         visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
+
+        evaluateDescriptionHandlers(visualizationForItem, task, result);
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
