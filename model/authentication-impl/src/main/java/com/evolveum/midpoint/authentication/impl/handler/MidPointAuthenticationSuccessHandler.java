@@ -155,12 +155,13 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     }
 
     private boolean isCorrectlyConfigured(SecurityPolicyType securityPolicy, MidpointAuthentication mpAuthentication) {
-        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, mpAuthentication.getSequence().getIdentifier());
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()));
         if (sequence == null) {
             return false;
         }
         return !mpAuthentication.wrongConfiguredSufficientModuleExists();
     }
+
 
     private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {
         AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
