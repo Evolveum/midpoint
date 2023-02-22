@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1124,7 +1124,7 @@ public interface MidpointFunctions {
      * Returns a map from the translated xml attribute - value pairs.
      *
      * @param xml A string representation of xml formatted data.
-     * @throws SystemException when an xml stream exception occurs
+     * @throws SystemException when a xml stream exception occurs
      */
     Map<String, String> parseXmlToMap(String xml);
 
@@ -1201,6 +1201,8 @@ public interface MidpointFunctions {
     TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
             String templateTaskOid, Task opTask,
             OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    String translate(String key, Objects... args);
 
     String translate(LocalizableMessage message);
 

@@ -42,7 +42,7 @@
                     <expression>
                         <script>
                             <code>
-                                return assignment.targetRef
+                                return assignment?.targetRef
                             </code>
                         </script>
                     </expression>

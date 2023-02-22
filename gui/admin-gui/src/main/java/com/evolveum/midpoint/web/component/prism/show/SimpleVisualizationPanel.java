@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -30,16 +30,19 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
     private static final String ID_PARTIAL_VISUALIZATIONS = "partialVisualizations";
     private static final String ID_PARTIAL_VISUALIZATION = "partialVisualization";
     private static final String ID_SHOW_OPERATIONAL_ITEMS_LINK = "showOperationalItemsLink";
+
+    private final boolean advanced;
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible;
 
     public SimpleVisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
-        this(id, model, false);
+        this(id, model, false, true);
     }
 
-    public SimpleVisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems) {
+    public SimpleVisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems, boolean advanced) {
         super(id, model);
 
+        this.advanced = advanced;
         this.showOperationalItems = showOperationalItems;
     }
 
@@ -60,7 +63,6 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
                 return operationalItemsVisible;
             }
         };
-        itemsTable.add(AttributeAppender.append("class", () -> !getModelObject().getPartialVisualizations().isEmpty() ? "mb-2" : null));
         itemsTable.add(new VisibleBehaviour(() -> !model.getObject().getItems().isEmpty()));
         itemsTable.setOutputMarkupId(true);
         add(itemsTable);
@@ -70,7 +72,7 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
 
             @Override
             protected void populateItem(ListItem<VisualizationDto> item) {
-                VisualizationPanel panel = new VisualizationPanel(ID_PARTIAL_VISUALIZATION, item.getModel()) {
+                VisualizationPanel panel = new VisualizationPanel(ID_PARTIAL_VISUALIZATION, item.getModel(), showOperationalItems, advanced) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
