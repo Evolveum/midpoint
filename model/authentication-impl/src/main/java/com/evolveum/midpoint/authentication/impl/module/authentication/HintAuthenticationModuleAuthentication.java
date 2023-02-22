@@ -18,6 +18,7 @@ public class HintAuthenticationModuleAuthentication extends CredentialModuleAuth
 
     public HintAuthenticationModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.HINT, sequenceModule);
+        setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {

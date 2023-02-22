@@ -48,6 +48,8 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     private final Integer order;
 
+    private boolean sufficient = true;
+
     public ModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
         Validate.notNull(nameOfType);
         this.nameOfType = nameOfType;
@@ -157,6 +159,16 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     public boolean isInternalLogout() {
         return internalLogout;
+    }
+
+    @Override
+    public boolean isSufficient() {
+        return sufficient;
+    }
+
+    @Override
+    public void setSufficient(boolean sufficient) {
+        this.sufficient = sufficient;
     }
 
     @Override

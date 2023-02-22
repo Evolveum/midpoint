@@ -355,7 +355,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {
         // if index == -1 indicate restart authentication flow
-        return !isIdentifiedFocus(mpAuthentication) || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX; // || mpAuthentication == null || !mpAuthentication.isMerged();
+        return !isIdentifiedFocus(mpAuthentication) || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
     }
 
     private boolean isIdentifiedFocus(MidpointAuthentication mpAuthentication) {

@@ -13,6 +13,7 @@ public class AttributeVerificationModuleAuthentication extends CredentialModuleA
 
     public AttributeVerificationModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION, sequenceModule);
+        setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {

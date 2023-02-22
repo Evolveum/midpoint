@@ -13,6 +13,7 @@ public class FocusIdentificationModuleAuthentication extends CredentialModuleAut
 
     public FocusIdentificationModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION, sequenceModule);
+        setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {

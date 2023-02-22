@@ -169,9 +169,17 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         }
 
         if (shouldEvaluateAuthentication()) {
-            return allProcessedModulesWithNecessityAreSuccessful();
+            return allProcessedModulesWithNecessityAreSuccessful() && wasSuccessfullyProcessedOtherThanUnsufficientModules();
         }
-        return allAuthenticationModulesExist() && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
+        return allAuthenticationModulesExist() && wasSuccessfullyProcessedOtherThanUnsufficientModules() && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
+    }
+
+    private boolean wasSuccessfullyProcessedOtherThanUnsufficientModules() {
+        long sufficientModuleCount = getAuthentications().stream()
+                .filter(module -> AuthenticationModuleState.SUCCESSFULLY == module.getState())
+                .filter(module -> module.isSufficient())
+                .count();
+        return sufficientModuleCount > 0;
     }
 
     private boolean shouldEvaluateAuthentication() {
@@ -377,6 +385,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return merged;
     }
 
+    //TODO remove
     public void setMerged(boolean merged) {
         this.merged = merged;
     }

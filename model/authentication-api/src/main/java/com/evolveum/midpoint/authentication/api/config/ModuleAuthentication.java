@@ -69,4 +69,8 @@ public interface ModuleAuthentication {
     Integer getOrder();
 
     boolean applicable();
+
+    boolean isSufficient();
+
+    void setSufficient(boolean sufficient);
 }
