@@ -4518,26 +4518,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="addWizard">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Define add operation (visible only in wizard).
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <jaxb:typesafeEnumMember name="ADD_WIZARD"/>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:enumeration>
-        <xsd:enumeration value="modifyWizard">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Define modify operation (visible only in wizard).
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <jaxb:typesafeEnumMember name="MODIFY_WIZARD"/>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
