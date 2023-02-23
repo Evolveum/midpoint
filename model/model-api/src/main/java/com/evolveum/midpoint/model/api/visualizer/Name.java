@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.model.api.visualizer;
 
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 import java.io.Serializable;
+
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Name of a visualization or a visualization item.
@@ -24,8 +23,6 @@ public interface Name extends Serializable {
     String getId();
     String getDescription();
     boolean namesAreResourceKeys();
-
-    String getSimpleIcon();
 
     LocalizableMessage getSimpleDescription();
 }

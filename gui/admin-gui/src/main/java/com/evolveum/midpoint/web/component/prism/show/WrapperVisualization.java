@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
@@ -25,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Artificial implementation of a visualization used to hold a list of deltas.
@@ -77,11 +75,6 @@ public class WrapperVisualization implements Visualization {
             @Override
             public boolean namesAreResourceKeys() {
                 return false;
-            }
-
-            @Override
-            public String getSimpleIcon() {
-                return null;
             }
 
             @Override
