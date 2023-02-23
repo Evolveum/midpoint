@@ -13,16 +13,18 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Name of a visualization or a visualization item.
- *
- * TODO reconsider this structure
  */
 public interface Name extends Serializable {
 
-    String getSimpleName();
-    String getDisplayName();
-    String getId();
-    String getDescription();
-    boolean namesAreResourceKeys();
+    LocalizableMessage getOverview();
 
-    LocalizableMessage getSimpleDescription();
+    String getDisplayName();
+
+    String getSimpleName();
+
+    String getDescription();
+
+    String getId();
+
+    boolean namesAreResourceKeys();
 }

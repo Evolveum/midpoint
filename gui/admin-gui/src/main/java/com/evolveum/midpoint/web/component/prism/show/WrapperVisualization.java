@@ -78,7 +78,7 @@ public class WrapperVisualization implements Visualization {
             }
 
             @Override
-            public LocalizableMessage getSimpleDescription() {
+            public LocalizableMessage getOverview() {
                 return null;
             }
         };

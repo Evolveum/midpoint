@@ -74,7 +74,7 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
             LOGGER.debug("Couldn't get resource", ex);
         }
 
-        visualization.getName().setSimpleDescription(
+        visualization.getName().setOverview(
                 new SingleLocalizableMessage("ShadowDescriptionHandler.shadow", new Object[] {
                         new SingleLocalizableMessage("ShadowKindType." + kind.name()),
                         name,

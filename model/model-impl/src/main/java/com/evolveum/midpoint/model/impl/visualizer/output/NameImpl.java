@@ -19,7 +19,7 @@ public class NameImpl implements Name {
     private String id;
     private String description;
     private boolean namesAreResourceKeys;
-    private LocalizableMessage simpleDescription;
+    private LocalizableMessage overview;
 
     public NameImpl(String simpleName) {
         this.simpleName = simpleName;
@@ -66,12 +66,12 @@ public class NameImpl implements Name {
     }
 
     @Override
-    public LocalizableMessage getSimpleDescription() {
-        return simpleDescription;
+    public LocalizableMessage getOverview() {
+        return overview;
     }
 
-    public void setSimpleDescription(LocalizableMessage simpleDescription) {
-        this.simpleDescription = simpleDescription;
+    public void setOverview(LocalizableMessage overview) {
+        this.overview = overview;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class NameImpl implements Name {
         if (!Objects.equals(displayName, name.displayName)) {return false;}
         if (!Objects.equals(id, name.id)) {return false;}
         if (!Objects.equals(description, name.description)) {return false;}
-        return Objects.equals(simpleDescription, name.simpleDescription);
+        return Objects.equals(overview, name.overview);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class NameImpl implements Name {
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (namesAreResourceKeys ? 1 : 0);
-        result = 31 * result + (simpleDescription != null ? simpleDescription.hashCode() : 0);
+        result = 31 * result + (overview != null ? overview.hashCode() : 0);
         return result;
     }
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -23,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationGuiUtil;
@@ -43,18 +44,16 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import javax.xml.namespace.QName;
-
 public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private static final long serialVersionUID = 1L;
 
     public static final String ID_ICON = "icon";
+    public static final String ID_OVERVIEW = "overview";
     public static final String ID_MINIMIZE = "minimize";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
-    private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME_LINK = "nameLink";
     private static final String ID_CHANGE_TYPE = "changeType";
     private static final String ID_OBJECT_TYPE = "objectType";
@@ -67,7 +66,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible = false;
 
-    private IModel<String> simpleDescriptionModel;
+    private IModel<String> overviewModel;
 
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false, true);
@@ -87,19 +86,19 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initModels();
         initLayout();
 
-        if (!advanced && simpleDescriptionModel.getObject() != null) {
+        if (!advanced && overviewModel.getObject() != null) {
             getModelObject().setMinimized(true);
         }
     }
 
     private void initModels() {
-        simpleDescriptionModel = () -> {
+        overviewModel = () -> {
             Visualization visualization = getModelObject().getVisualization();
             if (visualization == null || visualization.getName() == null) {
                 return null;
             }
 
-            LocalizableMessage msg = visualization.getName().getSimpleDescription();
+            LocalizableMessage msg = visualization.getName().getOverview();
             String translated = msg != null ? LocalizationUtil.translateMessage(msg) : null;
             if (translated == null) {
                 return null;
@@ -154,20 +153,20 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             QName type = value.getTypeName();
             String icon = WebComponentUtil.createDefaultBlackIcon(type);
 
-            return StringUtils.isNotEmpty(icon) ? icon : null;
+            return StringUtils.isNotEmpty(icon) ? "mr-1 " + icon : null;
         };
 
         IconComponent icon = new IconComponent(ID_ICON, iconModel);
         icon.add(new VisibleBehaviour(() -> iconModel.getObject() != null));
         headerPanel.add(icon);
 
-        final Label simpleDescription = new Label("simpleDescription", simpleDescriptionModel);
-        simpleDescription.setEscapeModelStrings(false);
-        simpleDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() != null));
-        headerPanel.add(simpleDescription);
+        final Label overview = new Label(ID_OVERVIEW, overviewModel);
+        overview.setEscapeModelStrings(false);
+        overview.add(new VisibleBehaviour(() -> overviewModel.getObject() != null));
+        headerPanel.add(overview);
 
         WebMarkupContainer fullDescription = new WebMarkupContainer("fullDescription");
-        fullDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() == null));
+        fullDescription.add(new VisibleBehaviour(() -> overviewModel.getObject() == null));
         headerPanel.add(fullDescription);
 
         final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
