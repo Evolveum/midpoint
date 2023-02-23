@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import static com.evolveum.midpoint.prism.delta.ChangeType.*;
+import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
+import java.util.*;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
@@ -28,21 +43,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.delta.ChangeType.*;
-import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 @Component
 public class Visualizer {
@@ -360,11 +360,10 @@ public class Visualizer {
                         VisualizationImpl si = new VisualizationImpl(visualization);
                         si.setChangeType(visualization.getChangeType());
                         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
-                        name.setId(name.getSimpleName());
+                        name.setId(item.getElementName().getLocalPart());
                         if (def != null) {
                             name.setDisplayName(def.getDisplayName());
                         }
-                        name.setNamesAreResourceKeys(true);
                         si.setName(name);
                         if (def != null) {
                             si.setOperational(def.isOperational());
@@ -557,7 +556,6 @@ public class Visualizer {
         if (visualizationDefinition != null) {
             name.setDisplayName(visualizationDefinition.getDisplayName());
         }
-        name.setNamesAreResourceKeys(true);            // TODO: ok?
         return name;
     }
 
@@ -823,7 +821,6 @@ public class Visualizer {
             name.setDisplayName(itemDelta.getDefinition().getDisplayName());
         }
         name.setId(simpleName);
-        name.setNamesAreResourceKeys(true);
 
         VisualizationDeltaItemImpl si = new VisualizationDeltaItemImpl(name);
         si.setSourceDelta(itemDelta);
@@ -852,8 +849,7 @@ public class Visualizer {
             name.setDisplayName(def.getDisplayName());
             name.setDescription(def.getDocumentation());
         }
-        name.setId(name.getSimpleName());        // todo reconsider
-        name.setNamesAreResourceKeys(true);
+        name.setId(item.getElementName().getLocalPart());        // todo reconsider
         return name;
     }
 
@@ -949,7 +945,6 @@ public class Visualizer {
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }
-        name.setNamesAreResourceKeys(false);
         return name;
     }
 
@@ -962,7 +957,6 @@ public class Visualizer {
                 nv.setDisplayName(object.asObjectable().getName().getOrig());
             }
         }
-        nv.setNamesAreResourceKeys(false);
         return nv;
     }
 

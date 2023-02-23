@@ -53,12 +53,12 @@ public class WrapperVisualization implements Visualization {
         return new Name() {
 
             @Override
-            public String getSimpleName() {
-                return "";
+            public LocalizableMessage getSimpleName() {
+                return null;
             }
 
             @Override
-            public String getDisplayName() {
+            public LocalizableMessage getDisplayName() {
                 return null;
             }
 
@@ -68,13 +68,8 @@ public class WrapperVisualization implements Visualization {
             }
 
             @Override
-            public String getDescription() {
+            public LocalizableMessage getDescription() {
                 return null;
-            }
-
-            @Override
-            public boolean namesAreResourceKeys() {
-                return false;
             }
 
             @Override

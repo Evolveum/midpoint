@@ -11,22 +11,30 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 public class NameImpl implements Name {
 
-    private final String simpleName;
-    private String displayName;
-    private String id;
-    private String description;
-    private boolean namesAreResourceKeys;
     private LocalizableMessage overview;
 
+    private LocalizableMessage displayName;
+
+    private LocalizableMessage simpleName;
+
+    private LocalizableMessage description;
+
+    private String id;
+
     public NameImpl(String simpleName) {
+        this(simpleName != null ? new SingleLocalizableMessage(simpleName, new Object[0], simpleName) : null);
+    }
+
+    public NameImpl(LocalizableMessage simpleName) {
         this.simpleName = simpleName;
     }
 
     @Override
-    public String getSimpleName() {
+    public LocalizableMessage getSimpleName() {
         return simpleName;
     }
 
@@ -40,29 +48,33 @@ public class NameImpl implements Name {
     }
 
     @Override
-    public String getDisplayName() {
+    public LocalizableMessage getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public void setDisplayName(LocalizableMessage displayName) {
         this.displayName = displayName;
     }
 
+    public void setDisplayName(String displayName) {
+        LocalizableMessage msg = displayName != null ? new SingleLocalizableMessage(displayName, new Object[0], displayName) : null;
+
+        setDisplayName(msg);
+    }
+
     @Override
-    public String getDescription() {
+    public LocalizableMessage getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(LocalizableMessage description) {
         this.description = description;
     }
 
-    public boolean namesAreResourceKeys() {
-        return namesAreResourceKeys;
-    }
+    public void setDescription(String description) {
+        LocalizableMessage msg = description != null ? new SingleLocalizableMessage(description, new Object[0], description) : null;
 
-    public void setNamesAreResourceKeys(boolean namesAreResourceKeys) {
-        this.namesAreResourceKeys = namesAreResourceKeys;
+        setDescription(msg);
     }
 
     @Override
@@ -90,7 +102,6 @@ public class NameImpl implements Name {
 
         NameImpl name = (NameImpl) o;
 
-        if (namesAreResourceKeys != name.namesAreResourceKeys) {return false;}
         if (!Objects.equals(simpleName, name.simpleName)) {return false;}
         if (!Objects.equals(displayName, name.displayName)) {return false;}
         if (!Objects.equals(id, name.id)) {return false;}
@@ -104,7 +115,6 @@ public class NameImpl implements Name {
         result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (namesAreResourceKeys ? 1 : 0);
         result = 31 * result + (overview != null ? overview.hashCode() : 0);
         return result;
     }

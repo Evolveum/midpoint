@@ -186,7 +186,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         objectType.add(visibleIfNotWrapper);
         fullDescription.add(objectType);
 
-        final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName(this)) {
+        final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName()) {
 
             @Override
             protected void disableLink(ComponentTag tag) {
@@ -214,7 +214,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         nameLink.add(new VisibleEnableBehaviour(() -> !getModelObject().isWrapper(), () -> isExistingViewableObject() && isAutorized()));
         fullDescription.add(nameLink);
 
-        final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
+        final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(visibleIfNotWrapper);
         fullDescription.add(description);
 

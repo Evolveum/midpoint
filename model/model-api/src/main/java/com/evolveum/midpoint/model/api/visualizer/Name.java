@@ -18,13 +18,11 @@ public interface Name extends Serializable {
 
     LocalizableMessage getOverview();
 
-    String getDisplayName();
+    LocalizableMessage getDisplayName();
 
-    String getSimpleName();
+    LocalizableMessage getSimpleName();
 
-    String getDescription();
+    LocalizableMessage getDescription();
 
     String getId();
-
-    boolean namesAreResourceKeys();
 }
