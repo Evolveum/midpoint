@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class ChangesPanel extends BasePanel<Void> {
@@ -44,7 +47,9 @@ public class ChangesPanel extends BasePanel<Void> {
     private static final String ID_VISUALIZATIONS = "visualizations";
     private static final String ID_VISUALIZATION = "visualization";
 
-    private IModel<ChangesView> changesViewModel;
+    private IModel<ChangesView> changesView = Model.of(ChangesView.SIMPLE);
+
+    private VisibleEnableBehaviour changesViewVisible = VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
 
     private IModel<List<VisualizationDto>> changesModel;
 
@@ -55,9 +60,15 @@ public class ChangesPanel extends BasePanel<Void> {
         initLayout();
     }
 
-    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
-        changesViewModel = Model.of(ChangesView.SIMPLE);
+    public void setChangesView(@NotNull IModel<ChangesView> changesView) {
+        this.changesView = changesView;
+    }
 
+    public void setChangesViewVisible(@NotNull VisibleEnableBehaviour changesViewVisible) {
+        this.changesViewVisible = changesViewVisible;
+    }
+
+    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
         changesModel = visualizationModel != null ? visualizationModel : new LoadableModel<>(false) {
 
             @Override
@@ -92,12 +103,12 @@ public class ChangesPanel extends BasePanel<Void> {
 
                 Toggle<ChangesView> simple = new Toggle<>("fa-solid fa-magnifying-glass mr-1", "ChangesView.SIMPLE");
                 simple.setValue(ChangesView.SIMPLE);
-                simple.setActive(changesViewModel.getObject() == simple.getValue());
+                simple.setActive(changesView.getObject() == simple.getValue());
                 toggles.add(simple);
 
                 Toggle<ChangesView> advanced = new Toggle<>("fa-solid fa-microscope mr-1", "ChangesView.ADVANCED");
                 advanced.setValue(ChangesView.ADVANCED);
-                advanced.setActive(changesViewModel.getObject() == advanced.getValue());
+                advanced.setActive(changesView.getObject() == advanced.getValue());
                 toggles.add(advanced);
 
                 return toggles;
@@ -113,6 +124,7 @@ public class ChangesPanel extends BasePanel<Void> {
                 onChangesViewClicked(target, item.getObject());
             }
         };
+        toggle.add(changesViewVisible);
         add(toggle);
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
@@ -130,7 +142,7 @@ public class ChangesPanel extends BasePanel<Void> {
             protected void populateItem(ListItem<VisualizationDto> item) {
                 IModel<VisualizationDto> model = item.getModel();
 
-                boolean advanced = changesViewModel.getObject() == ChangesView.ADVANCED;
+                boolean advanced = changesView.getObject() == ChangesView.ADVANCED;
 
                 if (advanced) {
                     expandVisualization(model.getObject());
@@ -149,7 +161,7 @@ public class ChangesPanel extends BasePanel<Void> {
     }
 
     private void onChangesViewClicked(AjaxRequestTarget target, Toggle<ChangesView> toggle) {
-        changesViewModel.setObject(toggle.getValue());
+        changesView.setObject(toggle.getValue());
 
         Component newOne = createVisualizations();
         Component existing = get(createComponentPath(ID_BODY, ID_VISUALIZATIONS));
