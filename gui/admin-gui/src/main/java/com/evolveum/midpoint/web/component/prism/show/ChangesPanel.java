@@ -148,14 +148,8 @@ public class ChangesPanel extends BasePanel<Void> {
                     expandVisualization(model.getObject());
                 }
 
-                Component component;
-                if (!advanced && changesModel.getObject().size() == 1) {
-                    component = new MainVisualizationPanel(ID_VISUALIZATION, model, false, advanced);
-                } else {
-                    component = new VisualizationPanel(ID_VISUALIZATION, model, false, advanced);
-                }
-
-                item.add(component);
+                VisualizationPanel visualization = new VisualizationPanel(ID_VISUALIZATION, model, false, advanced);
+                item.add(visualization);
             }
         };
     }
