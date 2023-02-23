@@ -41,11 +41,13 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.*;
 
@@ -72,6 +74,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
    protected String currentPasswordValue = null;
    protected ProtectedStringType newPasswordValue = new ProtectedStringType();
+   private String hintValue = null;
    protected LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
     protected boolean savedPassword = false;
     protected ProgressDto progress = null;
@@ -170,7 +173,16 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
 
-        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL, Model.of(), Model.of(newPasswordValue), false);
+        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL,
+                new PropertyModel<>(getModel(), FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_HINT),
+                Model.of(newPasswordValue), false) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean hideHintValue() {
+                return true;
+            }
+        };
         hint.setOutputMarkupId(true);
         hint.add(new EnableBehaviour(() -> !savedPassword));
         add(hint);
@@ -343,13 +355,31 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 
         PrismObjectDefinition<UserType> objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        List<PropertyDelta<?>> modifications = new ArrayList<>();
 
-        PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+        PropertyDelta<ProtectedStringType> passwordDelta = getPrismContext().deltaFactory().property()
                 .createModificationReplaceProperty(valuePath, objDef, newPasswordValue);
+        modifications.add(passwordDelta);
         if (currentPassword != null) {
-            delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
+            passwordDelta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
         }
-        deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), delta, UserType.class));
+
+        String newHintValue = getHintValue();
+        if (StringUtils.isNotEmpty(newHintValue)) {
+            ItemPath hintPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
+                    CredentialsType.F_PASSWORD, PasswordType.F_HINT);
+            PropertyDelta<String> hintDelta = getPrismContext().deltaFactory().property()
+                    .createModificationReplaceProperty(hintPath, objDef, newHintValue);
+
+            modifications.add(hintDelta);
+        }
+
+        deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), modifications, UserType.class));
+    }
+
+    private String getHintValue() {
+        return getModelObject().getCredentials() != null && getModelObject().getCredentials().getPassword() != null ?
+                getModelObject().getCredentials().getPassword().getHint() : null;
     }
 
     protected void setNullEncryptedPasswordData() {
