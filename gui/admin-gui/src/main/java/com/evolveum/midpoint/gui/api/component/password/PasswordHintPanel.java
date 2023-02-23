@@ -22,6 +22,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,11 +103,16 @@ public class PasswordHintPanel extends InputPanel {
             WebComponentUtil.encryptProtectedString(passwordValue, false,
                     MidPointApplication.get());
             String passwordString = passwordValue != null ? passwordValue.getClearValue() : null;
-            if (StringUtils.isNotEmpty(passwordString) && passwordString.contains(hintValue)) {
+            if (StringUtils.isNotEmpty(passwordString) && hintEqualsOrSimilarToPassword(passwordString, hintValue)) {
                 ValidationError err = new ValidationError();
                 err.addKey("PasswordHintPanel.incorrectHint.error");
                 validatable.error(err);
             }
+        }
+
+        private boolean hintEqualsOrSimilarToPassword(@NotNull String password, @NotNull String hint) {
+            return password.equals(hint) || password.contains(hint.trim().replaceAll(" ", ""))
+                    || hint.contains(password);
         }
     }
 
