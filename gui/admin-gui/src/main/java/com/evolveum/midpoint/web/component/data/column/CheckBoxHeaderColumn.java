@@ -18,8 +18,10 @@ import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -149,7 +151,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
      * This method is called after checkbox in row is updated
      */
     @Override
-    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel, IModel<Boolean> selected) {
+    protected void onUpdateRow(Item<ICellPopulator<T>> cellItem, AjaxRequestTarget target, DataTable table, IModel<T> rowModel, IModel<Boolean> selected) {
         //update header checkbox
         IsolatedCheckBoxPanel header = findCheckBoxColumnHeader(table);
         if (header == null) {

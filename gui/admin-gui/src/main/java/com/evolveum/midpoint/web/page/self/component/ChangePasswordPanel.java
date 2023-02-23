@@ -252,8 +252,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             }
 
             @Override
-            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<PasswordAccountDto> rowModel, IModel<Boolean> selected) {
-                super.onUpdateRow(target, table, rowModel, selected);
+            protected void onUpdateRow(Item<ICellPopulator<PasswordAccountDto>> cellItem, AjaxRequestTarget target, DataTable table, IModel<PasswordAccountDto> rowModel, IModel<Boolean> selected) {
+                super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (rowModel.getObject().isMidpoint()) {
                     table.visitChildren(IsolatedCheckBoxPanel.class,
                             (IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>) (panel, iVisit) -> {

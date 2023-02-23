@@ -233,6 +233,13 @@ public class GuiDisplayTypeUtil {
         return displayType == null ? null : displayType.getLabel();
     }
 
+    public static String getTranslatedLabel(DisplayType displayType) {
+        if (displayType == null || displayType.getLabel() == null) {
+            return "";
+        }
+        return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+    }
+
     public static String getIconColor(DisplayType displayType) {
         if (displayType == null || displayType.getIcon() == null) {
             return "";

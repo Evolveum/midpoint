@@ -45,14 +45,14 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     static final String ID_TILES_CONTAINER = "tilesContainer";
     static final String ID_TILES_FRAGMENT = "tilesFragment";
-    private static final String ID_TILES = "tiles";
+    protected static final String ID_TILES = "tiles";
 
     private static final String ID_HEADER_FRAGMENT = "headerFragment";
     static final String ID_HEADER = "header";
     private static final String ID_VIEW_TOGGLE = "viewToggle";
     private static final String ID_PANEL_HEADER = "panelHeader";
 
-    private static final String ID_TILE = "tile";
+    protected static final String ID_TILE = "tile";
     private static final String ID_TABLE = "table";
 
     static final String ID_FOOTER_CONTAINER = "footerContainer";
@@ -130,14 +130,15 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected WebMarkupContainer createTilesContainer(String idTilesContainer, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
 
-        PageableListView tiles = createTilesPanel(provider);
+        PageableListView tiles = createTilesPanel(ID_TILES, provider);
         tilesFragment.add(tiles);
 
         return tilesFragment;
     }
 
-    protected PageableListView createTilesPanel(ISortableDataProvider<O, String> provider) {
-        return new PageableListView<T, O>(ID_TILES, provider, tableId) {
+    protected PageableListView createTilesPanel(
+            String tilesId, ISortableDataProvider<O, String> provider) {
+        return new PageableListView<T, O>(tilesId, provider, getTableId()) {
 
             @Override
             protected void populateItem(ListItem<T> item) {
@@ -148,10 +149,14 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
 
             @Override
-            protected T createItem(O object) {
-                return createTileObject(object);
+            protected List<T> createItem(O object) {
+                return List.of(createTileObject(object));
             }
         };
+    }
+
+    protected UserProfileStorage.TableId getTableId() {
+        return tableId;
     }
 
     protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {

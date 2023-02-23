@@ -114,8 +114,8 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             }
 
             @Override
-            protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
-                super.executeUnassign(object, target);
+            protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+                super.executeUnassign(object, relation, target);
                 target.add(getFeedback());
             }
         };

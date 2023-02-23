@@ -100,7 +100,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     protected boolean isVisibleParameterPanel() {
-        return true;
+        return getSupportedRelations().size() > 1;
     }
 
     protected QName getDefaultRelation() {

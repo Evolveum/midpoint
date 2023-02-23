@@ -11,6 +11,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -313,7 +314,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             protected boolean isVisibleParameterPanel() {
-                return getRelationIfIsStable() == null;
+                if (getRelationIfIsStable() == null) {
+                    super.isVisibleParameterPanel();
+                }
+                return false;
             }
         };
     }
@@ -493,7 +497,25 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return RoleType.COMPLEX_TYPE;
     }
 
+    private List<QName> getSupportedRelations() {
+        AbstractRoleSearchItemWrapper memberSearchItem = search.findMemberSearchItem();
+        return memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
+    }
+
     public StringResourceModel getTitle(){
+        QName stableRelation = getRelationIfIsStable();
+        if (stableRelation == null) {
+            AbstractRoleSearchItemWrapper memberSearchItem = search.findMemberSearchItem();
+            List<QName> relations = memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
+            stableRelation = relations.stream().findFirst().orElse(null);
+        }
+        if (stableRelation != null) {
+            RelationDefinitionType def = WebComponentUtil.getRelationDefinition(stableRelation);
+            if (def != null) {
+                String label = GuiDisplayTypeUtil.getTranslatedLabel(def.getDisplay());
+                return createStringResource("ChooseMemberPopup.selectObjectWithRelation", label);
+            }
+        }
         return createStringResource("TypedAssignablePanel.selectObjects");
     }
 }

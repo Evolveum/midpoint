@@ -223,8 +223,8 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
             }
 
             @Override
-            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
-                super.onUpdateRow(target, table, rowModel, selected);
+            protected void onUpdateRow(Item<ICellPopulator<SelectableBean<ObjectClassWrapper>>> cellItem, AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
+                super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (Boolean.TRUE.equals(selected.getObject())) {
                     if (!selectedItems.getObject().containsKey(rowModel.getObject().getValue().getObjectClassName())) {
                         selectedItems.getObject().put(rowModel.getObject().getValue().getObjectClassName(), true);

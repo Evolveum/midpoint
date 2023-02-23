@@ -493,7 +493,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractRoleMemberPanel.this.getPageBase().showMainPopup(
-                        createAssignPopup(target, null),
+                        createAssignPopup(null),
                         target);
             }
         };
@@ -502,7 +502,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return assignButton;
     }
 
-    protected Popupable createAssignPopup(AjaxRequestTarget target, QName stableRelation) {
+    protected Popupable createAssignPopup(QName stableRelation) {
         ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
                 getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel(false)) {
             private static final long serialVersionUID = 1L;
@@ -959,6 +959,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
+        unassignMembersPerformed(rowModel, null, target);
+    }
+
+    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
 
@@ -969,7 +973,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     : createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel",
                     getSelectedObjectsCount());
 
-            executeSimpleUnassignedOperation(rowModel, confirmModel, target);
+            executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel");
 
@@ -1105,7 +1109,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         getPageBase().showMainPopup(dialog, target);
     }
 
-    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
+    protected void executeSimpleUnassignedOperation(
+            IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
         ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
 
             @Override
@@ -1127,7 +1132,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             public void yesPerformed(AjaxRequestTarget target) {
                 AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
                 if (object != null) {
-                    executeUnassign(object, target);
+                    executeUnassign(object, relation, target);
 
                 } else {
 
@@ -1184,8 +1189,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         refreshTable(target);
     }
 
-    protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
-        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object);
+    protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object, relation);
         OperationResult result = new OperationResult(
                 assignmentTypeList.size() == 1 ? OPERATION_UNASSIGN_OBJECT : OPERATION_UNASSIGN_OBJECTS);
         for (AssignmentType assignmentType : assignmentTypeList) {
@@ -1222,11 +1227,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return memberRef.getOid();
     }
 
-    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object) {
+    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object, QName relation) {
         return object.getAssignment().stream()
                 .filter(
                         assignment -> assignment.getTargetRef() != null
-                                && assignment.getTargetRef().getOid().equals(getTargetOrganizationOid()))
+                                && assignment.getTargetRef().getOid().equals(getTargetOrganizationOid())
+                                && (relation == null || QNameUtil.match(relation, assignment.getTargetRef().getRelation())))
                 .collect(Collectors.toList());
     }
 
