@@ -8,14 +8,14 @@ package com.evolveum.midpoint.report.impl.controller;
 
 import static java.util.Objects.requireNonNull;
 
-import static com.evolveum.midpoint.report.impl.controller.GenericSupport.evaluateCondition;
 import static com.evolveum.midpoint.report.impl.controller.GenericSupport.getHeaderColumns;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,10 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -40,88 +43,81 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * Controls the process of exporting collection-based reports.
- * </p>
+ *
  * Currently, the only use of this class is to be a "bridge" between the world of the activity framework
  * (represented mainly by {@link ClassicCollectionReportExportActivityRun} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
- * </p>
+ *
  * The process is driven by the activity execution that calls the following methods of this class:
- * </p>
+ *
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
  * 3. {@link #handleDataRecord(int, Object, RunningTask, OperationResult)} that processes given prism object,
  * to be aggregated.
  *
- * @param <C> Type of records to be processed.
+ * @param <R> Type of records to be processed.
  */
 @Experimental
-public class CollectionExportController<C> implements ExportController<C> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CollectionExportController.class);
+public class CollectionExportController<R> implements ExportController<R> {
 
     /**
      * Data source for the report. It is initialized from within this class. But the actual feeding
      * of data from the source to this class is ensured out of band, "behind the scenes". For example,
      * if activity framework is used, then it itself feeds the data to this controller.
      */
-    @NotNull private final ReportDataSource<C> dataSource;
+    @NotNull private final ReportDataSource<R> dataSource;
 
     /**
      * Definition of records that are processed. Initialized along with the data source.
      */
-    protected ItemDefinition<?> recordDefinition;
+    ItemDefinition<?> recordDefinition;
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
      */
-    @NotNull protected final ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
+    @NotNull final ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     /** The report of which an export is being done. */
     @NotNull protected final ReportType report;
 
-    /** The report parameters. */
-    protected ReportParameterType reportParameters;
+    /** Values of report parameters for the current execution in the form of {@link ReportParameterType} bean. */
+    private final ReportParameterType parametersValuesBean;
+
+    /** The {@link #parametersValuesBean} converted into the form of {@link VariablesMap}, usable in scripts. */
+    VariablesMap parametersValuesMap;
 
     /** Configuration of the report export, taken from the report. */
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
 
     /** Compiled final collection from more collections and archetypes related to object type. */
-    @NotNull protected final CompiledObjectCollectionView compiledCollection;
+    @NotNull final CompiledObjectCollectionView compiledCollection;
 
-    /**
-     * Columns for the report.
-     */
+    /** Definitions of columns for the report. */
     protected List<GuiObjectColumnType> columns;
-
-    /**
-     * Values of report parameters.
-     */
-    protected VariablesMap parameters;
 
     // Useful Spring beans
     protected final ReportServiceImpl reportService;
     protected final PrismContext prismContext;
-    protected final SchemaRegistry schemaRegistry;
+    private final SchemaRegistry schemaRegistry;
     protected final SchemaService schemaService;
     protected final ModelInteractionService modelInteractionService;
     protected final RepositoryService repositoryService;
     protected final LocalizationService localizationService;
 
-    public CollectionExportController(@NotNull ReportDataSource<C> dataSource,
+    public CollectionExportController(@NotNull ReportDataSource<R> dataSource,
             @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,
             @NotNull CompiledObjectCollectionView compiledCollection,
-            ReportParameterType reportParameters) {
+            ReportParameterType parametersValuesBean) {
 
         this.dataSource = dataSource;
         this.dataWriter = dataWriter;
@@ -135,7 +131,7 @@ public class CollectionExportController<C> implements ExportController<C> {
         this.repositoryService = reportService.getRepositoryService();
         this.localizationService = reportService.getLocalizationService();
         this.compiledCollection = compiledCollection;
-        this.reportParameters = reportParameters;
+        this.parametersValuesBean = parametersValuesBean;
     }
 
     /**
@@ -147,7 +143,7 @@ public class CollectionExportController<C> implements ExportController<C> {
 
         columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
 
-        initializeParameters(configuration.getParameter()); // must come before data source initialization
+        initializeParametersValuesMap(); // must come before data source initialization
         initializeDataSource(task, result);
     }
 
@@ -156,8 +152,8 @@ public class CollectionExportController<C> implements ExportController<C> {
         Class<?> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(type, schemaService);
 
-        ModelInteractionService.SearchSpec<C> searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
-                compiledCollection, compiledCollection.getContainerType(), defaultOptions, parameters, task, result);
+        ModelInteractionService.SearchSpec<R> searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
+                compiledCollection, compiledCollection.getContainerType(), defaultOptions, parametersValuesMap, task, result);
 
         recordDefinition = requireNonNull(
                 Referencable.class.isAssignableFrom(searchSpec.type)
@@ -168,26 +164,26 @@ public class CollectionExportController<C> implements ExportController<C> {
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
     }
 
-    private void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) throws SchemaException {
-        VariablesMap parameters = new VariablesMap();
-        if (reportParameters != null) {
+    private void initializeParametersValuesMap() throws SchemaException {
+        VariablesMap parameterValuesMap = new VariablesMap();
+        if (parametersValuesBean != null) {
             //noinspection unchecked
-            PrismContainerValue<ReportParameterType> reportParamsValue = reportParameters.asPrismContainerValue();
-            @NotNull Collection<Item<?, ?>> items = reportParamsValue.getItems();
-            for (Item<?, ?> item : items) {
-                if (item.hasAnyValue()) {
-                    String paramName = item.getPath().lastName().getLocalPart();
-                    parameters.put(paramName, getRealValuesAsTypedValue(item));
+            @NotNull Collection<Item<?, ?>> paramItems = parametersValuesBean.asPrismContainerValue().getItems();
+            for (Item<?, ?> paramItem : paramItems) {
+                if (paramItem.hasAnyValue()) {
+                    String paramName = paramItem.getPath().lastName().getLocalPart();
+                    parameterValuesMap.put(paramName, getRealValuesAsTypedValue(paramItem));
                 }
             }
         }
 
-        initializeMissingParametersToNull(parameters, parametersDefinitions);
-        this.parameters = parameters;
+        initializeMissingParametersToNull(parameterValuesMap);
+        this.parametersValuesMap = parameterValuesMap;
     }
 
     /**
      * FIXME This functionality should be provided in some common place.
+     *  (But beware of the specifics like .get(0) and ObjectReferenceType.class.)
      */
     private TypedValue<?> getRealValuesAsTypedValue(Item<?, ?> item) throws SchemaException {
         ItemDefinition<?> itemDef = item.getDefinition();
@@ -213,8 +209,8 @@ public class CollectionExportController<C> implements ExportController<C> {
         }
     }
 
-    private void initializeMissingParametersToNull(VariablesMap parameters, List<SearchFilterParameterType> parametersDefinitions) {
-        for (SearchFilterParameterType parameterDefinition : parametersDefinitions) {
+    private void initializeMissingParametersToNull(VariablesMap parameters) {
+        for (SearchFilterParameterType parameterDefinition : configuration.getParameter()) {
             if (!parameters.containsKey(parameterDefinition.getName())) {
                 Class<?> clazz = schemaRegistry.determineClassForType(parameterDefinition.getType());
                 parameters.put(parameterDefinition.getName(), null, clazz);
@@ -249,128 +245,21 @@ public class CollectionExportController<C> implements ExportController<C> {
      * BEWARE: Can be called from multiple threads at once.
      * The resulting rows should be sorted on sequentialNumber.
      */
-    public void handleDataRecord(int sequentialNumber, C record, RunningTask workerTask, OperationResult result) {
+    public void handleDataRecord(int sequentialNumber, R record, RunningTask workerTask, OperationResult result)
+            throws ConfigurationException {
 
         VariablesMap variables = new VariablesMap();
-        variables.putAll(parameters);
+        variables.putAll(parametersValuesMap);
         variables.put(ExpressionConstants.VAR_OBJECT, record, recordDefinition);
 
-        ExpressionType condition = configuration.getCondition();
-        if (condition != null) {
-            try {
-                boolean writeRecord = evaluateCondition(condition, variables, this.reportService.getExpressionFactory(), workerTask, result);
-                if (!writeRecord) {
-                    return;
-                }
-            } catch (Exception e) {
-                LOGGER.error("Couldn't evaluate condition for report record " + record);
-                return;
-            }
-        }
-
-        // handle subreport parameters that have asRow=true, we'll create "new virtual rows")
-        List<SubreportParameterType> paramsAsRow = getSubreports(true);
-        if (paramsAsRow.isEmpty()) {
-            processSingleDataRecord(sequentialNumber, record, variables, paramsAsRow, workerTask, result);
-            return;
-        }
-
-        boolean rowsCreated = handleSubreportParameters(
-                sequentialNumber, record, paramsAsRow, variables, workerTask, result);
-
-        if (!rowsCreated) {
-            processSingleDataRecord(sequentialNumber, record, variables, paramsAsRow, workerTask, result);
-        }
+        new DataRecordEvaluation<>(
+                sequentialNumber, record, variables, workerTask, report, configuration, this::convertAndWriteRow)
+                .evaluate(result);
     }
 
-    private <T> List<T> tail(List<T> list) {
-        if (list == null) {
-            return null;
-        }
-
-        if (list.size() == 1) {
-            return Collections.emptyList();
-        }
-
-        return new ArrayList<>(list.subList(1, list.size()));
-    }
-
-    private boolean handleSubreportParameters(int sequentialNumber, C record,
-            List<SubreportParameterType> params, VariablesMap variables, RunningTask task, OperationResult result) {
-        SubreportParameterType param = params.stream().findFirst().orElse(null);
-        if (param == null) {
-            return false;
-        }
-
-        VariablesMap map = reportService.evaluateSubreportParameter(report.asPrismObject(), variables, param, task, result);
-        if (map.isEmpty()) {
-            return false;
-        }
-
-        TypedValue<?> value = map.get(param.getName());
-        if (value == null || value.getValue() == null) {
-            return false;
-        }
-
-        Object obj = value.getValue();
-
-        VariablesMap vars = new VariablesMap();
-        vars.putAll(variables);
-
-        List<Object> rows = new ArrayList<>();
-        if (obj instanceof Collection) {
-            rows.addAll((Collection<?>) obj);
-        } else {
-            rows.add(obj);
-        }
-
-        if (rows.isEmpty()) {
-            return false;
-        }
-
-        boolean rowsCreated = false;
-
-        for (Object row : rows) {
-            if (row instanceof Item) {
-                row = ((Item<?, ?>) row).getRealValue();
-            } else if (row instanceof PrismValue) {
-                row = ((PrismValue) row).getRealValue();
-            }
-
-            vars.put(param.getName(), row, row.getClass());
-
-            if (params.size() == 1) {
-                vars.putAll(evaluateSimpleSubreportParameters(vars, task, result));
-
-                convertAndWriteRow(sequentialNumber, record, vars, task, result);
-
-                rowsCreated = true;
-            } else {
-                rowsCreated = rowsCreated | handleSubreportParameters(sequentialNumber, record, tail(params), vars, task, result);
-            }
-        }
-
-        return rowsCreated;
-    }
-
-    private VariablesMap evaluateSimpleSubreportParameters(VariablesMap variables, RunningTask task, OperationResult result) {
-        VariablesMap resultMap = new VariablesMap();
-
-        List<SubreportParameterType> params = getSubreports(false);
-        for (SubreportParameterType param : params) {
-            VariablesMap allVars = new VariablesMap();
-            allVars.putAll(variables);
-            allVars.putAll(resultMap);
-
-            resultMap.putAll(reportService.evaluateSubreportParameter(report.asPrismObject(), allVars, param, task, result));
-        }
-
-        return resultMap;
-    }
-
-    private void convertAndWriteRow(int sequentialNumber, C record,
+    private void convertAndWriteRow(int sequentialNumber, R record,
             VariablesMap variables, RunningTask workerTask, OperationResult result) {
-        ColumnDataConverter<C> columnDataConverter =
+        ColumnDataConverter<R> columnDataConverter =
                 new ColumnDataConverter<>(record, report, variables, reportService, workerTask, result);
 
         ExportedReportDataRow dataRow = new ExportedReportDataRow(sequentialNumber);
@@ -382,31 +271,8 @@ public class CollectionExportController<C> implements ExportController<C> {
         dataWriter.appendDataRow(dataRow);
     }
 
-    /** Used for cases when there are no asRows params, or when no rows are generated by them. */
-    private void processSingleDataRecord(int sequentialNumber, C record, VariablesMap variables,
-            List<SubreportParameterType> paramsAsRow, RunningTask workerTask, OperationResult result) {
-        variables.putAll(evaluateSimpleSubreportParameters(variables, workerTask, result));
-        for (SubreportParameterType asRowParam : paramsAsRow) {
-            // We don't want to re-evaluate the sub-reports, but we need some value for each variable.
-            // Null is the best alternative to represent "no element" generated from the asRow subreport.
-            variables.put(asRowParam.getName(), new TypedValue<>(null, Object.class));
-        }
-
-        convertAndWriteRow(sequentialNumber, record, variables, workerTask, result);
-    }
-
-    private List<SubreportParameterType> getSubreports(boolean asRow) {
-        ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
-        if (collection == null || collection.getSubreport().isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Collection<SubreportParameterType> subreports = collection.getSubreport();
-        List<SubreportParameterType> paramsAsRow = subreports.stream()
-                .filter(s -> asRow ? BooleanUtils.isTrue(s.isAsRow()) : BooleanUtils.isNotTrue(s.isAsRow()))
-                .sorted(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)))
-                .collect(Collectors.toList());
-
-        return paramsAsRow;
+    interface RowEmitter<R> {
+        void emit(int sequentialNumber, R record,
+                VariablesMap variables, RunningTask workerTask, OperationResult result);
     }
 }

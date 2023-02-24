@@ -447,6 +447,6 @@ public class ReportManagerImpl implements ReportManager {
 
     @Override
     public VariablesMap evaluateSubreportParameters(PrismObject<ReportType> report, VariablesMap variables, Task task, OperationResult result) {
-        return reportService.evaluateSubreportParameters(report, variables, task, result);
+        return reportService.evaluateSubreports(report, variables, task, result);
     }
 }

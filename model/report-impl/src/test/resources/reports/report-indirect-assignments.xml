@@ -33,7 +33,7 @@
             -->
             <name>data</name>
             <order>1</order>
-            <asRow>true</asRow>
+            <use>leftJoin</use>
             <expression>
                 <script>
                     <objectVariableMode>prismReference</objectVariableMode>

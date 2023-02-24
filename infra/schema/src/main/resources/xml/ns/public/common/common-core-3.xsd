@@ -17941,19 +17941,15 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="asRow" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="use" type="tns:SubreportUseType" minOccurs="0" default="embedded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When set to true, the subreport should return a collection of objects
-                                which is used to generate row for each element of the returned collection.
-                                In each generated row the value of the respective element is provided as
-                                a variable named as specified in this subreport.
-                                If null or empty collection is returned by asRow subreport, no additional
-                                rows are generated, but the original row is still processed.
-                                The subreport variable value in this case is `null`.
+                                How should be the values of subreport used with regard to the parent report row:
+                                embedded to it or joined with it. Mostly useful for subreports that produce more values.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SubreportParameterType.asRow</a:displayName>
+                                <a:since>4.7</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17961,6 +17957,54 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="SubreportUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How is the result of a sub-report used.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="embedded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value(s) of the sub-report are used within the parent result row.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EMBEDDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="leftJoin">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
+                        producing N rows (if N > 0) or 1 row (if N = 0).
+
+                        In each generated row the value of the respective element is provided as a variable named
+                        as specified in this subreport. If N = 0, the value of this variable is null.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LEFT_JOIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="innerJoin">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
+                        producing N rows. If N = 0, the parent row is eliminated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INNER_JOIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ReportDataType">
         <xsd:annotation>

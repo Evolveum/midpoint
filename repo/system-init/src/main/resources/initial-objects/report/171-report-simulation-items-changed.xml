@@ -181,7 +181,7 @@
                     </code>
                 </script>
             </expression>
-            <asRow>true</asRow>
+            <use>innerJoin</use>
         </subreport>
     </objectCollection>
 </report>

@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.test.TestReport;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -86,8 +88,10 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "report-dashboard-with-triple-view.xml", "2b87aa2e-dd86-4842-bcf5-76200a9a8533");
     static final TestObject<ReportType> REPORT_DASHBOARD_EMPTY = TestObject.file(TEST_DIR_REPORTS,
             "report-dashboard-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8eee");
-    static final TestObject<ReportType> REPORT_SUBREPORT_AS_ROW_USERS = TestObject.file(TEST_DIR_REPORTS,
-            "report-subreport-as-row-users.xml", "a9934d64-5e6b-4d3e-9526-e334883fff34");
+    static final TestReport REPORT_ASSIGNMENTS_LEFT_JOIN = TestReport.file(TEST_DIR_REPORTS,
+            "report-assignments-left-join.xml", "a9934d64-5e6b-4d3e-9526-e334883fff34");
+    static final TestReport REPORT_ASSIGNMENTS_INNER_JOIN = TestReport.file(TEST_DIR_REPORTS,
+            "report-assignments-inner-join.xml", "e0f77e37-ec74-4c5e-a809-286ec77a3e38");
     static final TestObject<ReportType> REPORT_SUBREPORT_AUDIT = TestObject.file(TEST_DIR_REPORTS,
             "report-subreport-audit.xml", "44026fc7-c73d-4210-91c3-e5d10391c02b");
     static final TestObject<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS = TestObject.file(TEST_DIR_COMMON,

@@ -13,11 +13,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.assertj.core.api.ListAssert;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -110,6 +112,13 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
     public CsvAsserter<RA> assertRecords(int expected) throws IOException {
         parse();
         assertThat(records).as("records").hasSize(expected);
+        return this;
+    }
+
+    public CsvAsserter<RA> assertRecords(Consumer<ListAssert<?>> consumer) throws IOException {
+        parse();
+        consumer.accept(
+                assertThat(records).as("records"));
         return this;
     }
 

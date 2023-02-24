@@ -72,7 +72,7 @@ public class DashboardExportController<C> extends CollectionExportController<C> 
 
         columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
 
-        this.parameters = new VariablesMap();
+        this.parametersValuesMap = new VariablesMap();
         initializeDataSource(task, result);
     }
 

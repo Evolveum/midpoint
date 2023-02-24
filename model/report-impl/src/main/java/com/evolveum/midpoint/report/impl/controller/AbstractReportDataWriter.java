@@ -58,13 +58,17 @@ public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow,
      * Note: we are going from the end because we assume that the new object will be placed approximately there.
      * So the time complexity is more O(n) than O(n^2) as it would be if we would go from the beginning of the list.
      *
+     * Beware that after implementing use = inner or left join (~ asRow mode), there may be multiple rows with the same
+     * sequential number. They are produced within the same thread, so their order is guaranteed now: the insertion algorithm
+     * places them into the order they are generated in.
+     *
      * @param row Formatted (string) values for the row.
      */
     @Override
     public synchronized void appendDataRow(ED row) {
         int i;
         for (i = getDataRows().size() - 1; i >= 0; i--) {
-            if (getDataRows().get(i).getSequentialNumber() < row.getSequentialNumber()) {
+            if (getDataRows().get(i).getSequentialNumber() <= row.getSequentialNumber()) {
                 break;
             }
         }

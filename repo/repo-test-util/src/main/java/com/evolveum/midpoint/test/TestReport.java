@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -56,6 +57,15 @@ public class TestReport extends TestObject<ReportType> {
     public static TestReport classPath(@NotNull String dir, @NotNull String name, String oid, List<String> defaultParameterNames) {
         return new TestReport(
                 new ClassPathBasedTestObjectSource(dir, name), oid, DEFAULT_TIMEOUT, defaultParameterNames);
+    }
+
+    public static TestReport file(@NotNull File dir, @NotNull String name, String oid) {
+        return file(dir, name, oid, List.of());
+    }
+
+    public static TestReport file(@NotNull File dir, @NotNull String name, String oid, List<String> defaultParameterNames) {
+        return new TestReport(
+                new FileBasedTestObjectSource(dir, name), oid, DEFAULT_TIMEOUT, defaultParameterNames);
     }
 
     /**

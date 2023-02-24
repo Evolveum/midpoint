@@ -160,7 +160,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines1, "after")
                 .parse()
-                .display();
+                .display()
+                .assertRecords(15); // 10 changes of name, 5 changes of administrative status
 
         when("item-level report is created - all items");
         var itemsLines2 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -172,7 +173,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines2, "after")
                 .parse()
-                .display();
+                .display()
+                .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
 
         when("item-level report is created - 'name' only");
         var itemsLines3 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -197,6 +199,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines4, "after")
                 .parse()
-                .display();
+                .display()
+                .assertRecords(5);
     }
 }

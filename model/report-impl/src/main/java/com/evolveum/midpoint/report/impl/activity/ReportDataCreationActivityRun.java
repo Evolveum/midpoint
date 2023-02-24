@@ -17,6 +17,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -238,7 +240,8 @@ public final class ReportDataCreationActivityRun
 
     @Override
     public boolean processItem(@NotNull Containerable item,
-            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result) {
+            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
+            throws ConfigurationException {
         controller.handleDataRecord(request.getSequentialNumber(), item, workerTask, result);
         return true;
     }
