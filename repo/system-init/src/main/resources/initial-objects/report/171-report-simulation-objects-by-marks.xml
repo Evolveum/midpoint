@@ -8,8 +8,8 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="89bd4f11-8add-4f52-97f9-286d76cea7c5">
-    <name>Simulation report: Objects</name>
+        oid="797b3697-a41f-4a06-ba14-616a5c5dbca8">
+    <name>Simulation report: Objects (by marks)</name>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
@@ -50,9 +50,15 @@
                 <previousColumn>type</previousColumn>
             </column>
             <column>
-                <name>eventMarkRef</name>
-                <path>eventMarkRef</path>
+                <name>eventMark</name>
                 <previousColumn>state</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>eventMarks</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>
@@ -61,5 +67,19 @@
             <type>ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
         </parameter>
+        <subreport>
+            <name>eventMarks</name>
+            <type>c:ObjectReferenceType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        (object as SimulationResultProcessedObjectType).eventMarkRef
+                    </code>
+                </script>
+            </expression>
+            <use>leftJoin</use>
+        </subreport>
     </objectCollection>
 </report>

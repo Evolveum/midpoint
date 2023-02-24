@@ -85,11 +85,40 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
             @Nullable Object pathsToInclude, @Nullable Object pathsToExclude, @Nullable Boolean includeOperationalItems);
 
     interface ProcessedObjectItemDelta<V extends PrismValue, D extends ItemDefinition<?>> extends ItemDelta<V, D> {
-
         @NotNull Collection<?> getRealValuesBefore();
         @NotNull Collection<?> getRealValuesAfter();
         @NotNull Collection<?> getRealValuesAdded();
         @NotNull Collection<?> getRealValuesDeleted();
+        @NotNull Collection<?> getRealValuesUnchanged();
+        @NotNull Collection<ValueWithState> getValuesWithStates();
+    }
+
+    class ValueWithState implements Serializable {
+
+        @NotNull private final Object value;
+        @NotNull private final State state;
+
+        public ValueWithState(@NotNull Object value, @NotNull State state) {
+            this.value = value;
+            this.state = state;
+        }
+
+        public @NotNull Object getValue() {
+            return value;
+        }
+
+        public @NotNull State getState() {
+            return state;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("'%s' (%s)", value, state);
+        }
+
+        public enum State {
+            UNCHANGED, ADDED, DELETED
+        }
     }
 
     interface Factory {

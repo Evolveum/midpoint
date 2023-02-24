@@ -824,6 +824,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             return delegate;
         }
 
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
         @Override
         public ItemDelta<V, D> clone() {
             return new ProcessedObjectItemDeltaImpl<>(delegate);
@@ -847,6 +848,20 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         @Override
         public @NotNull Set<?> getRealValuesDeleted() {
             return Sets.difference(getRealValuesBefore(), getRealValuesAfter());
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesUnchanged() {
+            return Sets.intersection(getRealValuesBefore(), getRealValuesAfter());
+        }
+
+        @Override
+        public @NotNull Collection<ValueWithState> getValuesWithStates() {
+            List<ValueWithState> all = new ArrayList<>();
+            getRealValuesAdded().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.ADDED)));
+            getRealValuesDeleted().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.DELETED)));
+            getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
+            return all;
         }
     }
 

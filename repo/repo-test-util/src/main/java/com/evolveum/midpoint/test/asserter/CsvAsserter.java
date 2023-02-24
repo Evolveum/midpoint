@@ -9,10 +9,7 @@ package com.evolveum.midpoint.test.asserter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -102,6 +99,25 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
             IntegrationTestTools.display(message + ": raw content", lines);
         }
         return this;
+    }
+
+    public CsvAsserter<RA> sort(Comparator<CSVRecord> comparator) throws IOException {
+        parse();
+        records = new ArrayList<>(records);
+        records.sort(comparator);
+        return this;
+    }
+
+    public CsvAsserter<RA> sortBy(int... columns) throws IOException {
+        return sort((o1, o2) -> {
+            for (int column : columns) {
+                int c = o1.get(column).compareTo(o2.get(column));
+                if (c != 0) {
+                    return c;
+                }
+            }
+            return 0;
+        });
     }
 
     @Override

@@ -31,7 +31,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
     private static final int EXISTING_USERS = 10;
 
-    private static final int COLUMNS = 6;
+    private static final int OBJECT_REPORT_COLUMNS = 6;
 
     private List<UserType> existingUsers;
 
@@ -56,7 +56,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(initResult);
 
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
+        REPORT_SIMULATION_OBJECTS_BY_MARKS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
+        REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
     }
 
     @Test
@@ -80,16 +82,33 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         when("object-level report is created");
         var lines = REPORT_SIMULATION_OBJECTS.export()
-                .withDefaultParametersValues(simulationResult.getSimulationResultOid())
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("it is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(lines, "after")
-                .parse()
+                .sortBy(2)
                 .display()
                 .assertRecords(users)
-                .assertColumns(COLUMNS)
+                .assertColumns(OBJECT_REPORT_COLUMNS)
+                .record(0)
+                .assertValue(2, "new-0000")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Added")
+                .assertValues(5, "Focus activated")
+                .end();
+
+        when("object-level report is created (by marks)");
+        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("it is OK");
+        assertCsv(byMarksLines, "after")
+                .sortBy(2)
+                .display()
+                .assertRecords(users)
+                .assertColumns(OBJECT_REPORT_COLUMNS)
                 .record(0)
                 .assertValue(2, "new-0000")
                 .assertValue(3, "UserType")
@@ -127,16 +146,15 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         when("object-level report is created");
         var objectsLines = REPORT_SIMULATION_OBJECTS.export()
-                .withDefaultParametersValues(simulationResult.getSimulationResultOid())
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("CSV is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(objectsLines, "after")
-                .parse()
+                .sortBy(2)
                 .display()
                 .assertRecords(EXISTING_USERS)
-                .assertColumns(COLUMNS)
+                .assertColumns(OBJECT_REPORT_COLUMNS)
                 .record(0)
                 .assertValue(1, existingUsers.get(0).getOid())
                 .assertValue(2, "existing-0000-renamed")
@@ -151,17 +169,64 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(4, "Modified")
                 .assertValues(5, "Focus renamed");
 
+        when("object-level report (by marks) is created");
+        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(byMarksLines, "after")
+                .sortBy(2, 5)
+                .display()
+                .assertRecords((int) (EXISTING_USERS * 1.5))
+                .assertColumns(OBJECT_REPORT_COLUMNS)
+                .record(0)
+                .assertValue(1, existingUsers.get(0).getOid())
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Modified")
+                .assertValues(5, "Focus deactivated")
+                .end()
+                .record(1)
+                .assertValue(1, existingUsers.get(0).getOid())
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Modified")
+                .assertValues(5, "Focus renamed")
+                .end()
+                .record(2)
+                .assertValue(1, existingUsers.get(1).getOid())
+                .assertValue(2, "existing-0001-renamed")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Modified")
+                .assertValues(5, "Focus renamed");
+
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("CSV is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines1, "after")
-                .parse()
+                .sortBy(2, 6)
                 .display()
-                .assertRecords(15); // 10 changes of name, 5 changes of administrative status
+                .assertRecords(15) // 10 changes of name, 5 changes of administrative status
+                .record(0)
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(6, "activation/administrativeStatus")
+                .assertValue(7, "") // before
+                .assertValue(8, "Disabled") // after
+                .assertValue(9, "Disabled") // added
+                .assertValue(10, "") // deleted
+                .end()
+                .record(1)
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(6, "name")
+                .assertValue(7, "existing-0000") // before
+                .assertValue(8, "existing-0000-renamed") // after
+                .assertValue(9, "existing-0000-renamed") // added
+                .assertValue(10, "existing-0000") // deleted
+                .end();
 
         when("item-level report is created - all items");
         var itemsLines2 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -170,7 +235,6 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(result);
 
         then("CSV is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines2, "after")
                 .parse()
                 .display()
@@ -183,7 +247,6 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(result);
 
         then("CSV is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines3, "after")
                 .parse()
                 .display()
@@ -196,10 +259,50 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(result);
 
         then("CSV is OK");
-        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(itemsLines4, "after")
                 .parse()
                 .display()
                 .assertRecords(5);
+
+        when("value-level report is created (default)");
+        var valuesLines1 = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(valuesLines1, "after")
+                .sortBy(2, 6, 7, 8)
+                .display()
+                .assertRecords(25) // 20x name (ADD/DELETE), 5x administrativeStatus (ADD)
+                .record(0)
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(6, "activation/administrativeStatus")
+                .assertValue(7, "ADDED")
+                .assertValue(8, "Disabled")
+                .end()
+                .record(1)
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(6, "name")
+                .assertValue(7, "ADDED")
+                .assertValue(8, "existing-0000-renamed")
+                .end()
+                .record(2)
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(6, "name")
+                .assertValue(7, "DELETED")
+                .assertValue(8, "existing-0000")
+                .end();
+
+        when("value-level report is created - all items");
+        var valuesLines2 = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .withParameter(PARAM_INCLUDE_OPERATIONAL_ITEMS, true)
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(valuesLines2, "after")
+                .parse()
+                .display()
+                .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
     }
 }

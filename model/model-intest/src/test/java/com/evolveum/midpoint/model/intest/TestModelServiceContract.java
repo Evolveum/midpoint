@@ -265,7 +265,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when("simulation report is produced");
         List<String> lines = REPORT_SIMULATION_OBJECTS.export()
-                .withDefaultParametersValues(simulationResult.getSimulationResultOid())
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("report is OK");
