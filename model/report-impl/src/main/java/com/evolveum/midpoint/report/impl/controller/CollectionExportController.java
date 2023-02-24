@@ -151,7 +151,7 @@ public class CollectionExportController<C> implements ExportController<C> {
         initializeDataSource(task, result);
     }
 
-    protected void initializeDataSource(RunningTask task, OperationResult result) throws CommonException {
+    void initializeDataSource(RunningTask task, OperationResult result) throws CommonException {
 
         Class<?> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(type, schemaService);
@@ -168,35 +168,49 @@ public class CollectionExportController<C> implements ExportController<C> {
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
     }
 
-    protected void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) {
+    private void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) throws SchemaException {
         VariablesMap parameters = new VariablesMap();
         if (reportParameters != null) {
             //noinspection unchecked
             PrismContainerValue<ReportParameterType> reportParamsValue = reportParameters.asPrismContainerValue();
             @NotNull Collection<Item<?, ?>> items = reportParamsValue.getItems();
             for (Item<?, ?> item : items) {
-                String paramName = item.getPath().lastName().getLocalPart();
-                Object value = null;
-                if (!item.getRealValues().isEmpty()) {
-                    value = item.getRealValue();
-                }
-                if (item.getRealValue() instanceof RawType) {
-                    try {
-                        ObjectReferenceType parsedRealValue = ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
-                        parameters.put(paramName, new TypedValue<>(parsedRealValue, ObjectReferenceType.class));
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());
-                    }
-                } else {
-                    if (item.getRealValue() != null) {
-                        parameters.put(paramName, new TypedValue<>(value, item.getRealValue().getClass()));
-                    }
+                if (item.hasAnyValue()) {
+                    String paramName = item.getPath().lastName().getLocalPart();
+                    parameters.put(paramName, getRealValuesAsTypedValue(item));
                 }
             }
         }
 
         initializeMissingParametersToNull(parameters, parametersDefinitions);
         this.parameters = parameters;
+    }
+
+    /**
+     * FIXME This functionality should be provided in some common place.
+     */
+    private TypedValue<?> getRealValuesAsTypedValue(Item<?, ?> item) throws SchemaException {
+        ItemDefinition<?> itemDef = item.getDefinition();
+        Class<?> itemClass = itemDef != null ? itemDef.getTypeClass() : null;
+
+        List<Object> parsedRealValues = new ArrayList<>();
+        for (Object realValue : item.getRealValues()) {
+            if (realValue instanceof RawType) {
+                // Originally, here it was ObjectReferenceType as hardcoded value. So we keep it here just as the default.
+                Class<?> classToParse = Objects.requireNonNullElse(itemClass, ObjectReferenceType.class);
+                parsedRealValues.add(
+                        ((RawType) realValue).getParsedRealValue(classToParse));
+            } else {
+                parsedRealValues.add(realValue);
+            }
+        }
+        assert !parsedRealValues.isEmpty();
+        Class<?> valueClass = itemClass != null ? itemClass : parsedRealValues.get(0).getClass();
+        if (parsedRealValues.size() == 1) {
+            return new TypedValue<>(parsedRealValues.get(0), itemDef, valueClass);
+        } else {
+            return new TypedValue<>(parsedRealValues, itemDef, valueClass);
+        }
     }
 
     private void initializeMissingParametersToNull(VariablesMap parameters, List<SearchFilterParameterType> parametersDefinitions) {

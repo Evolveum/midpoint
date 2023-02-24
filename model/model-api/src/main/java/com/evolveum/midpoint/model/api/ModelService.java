@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -661,4 +662,7 @@ public interface ModelService {
 
     /** Returns `true` if the particular object type is supported by the current repository. */
     boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type);
+
+    @Experimental
+    <O extends ObjectType> ProcessedObject<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean) throws SchemaException;
 }

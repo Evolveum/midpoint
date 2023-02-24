@@ -1484,7 +1484,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> getExtensionItemUnsynchronized(ItemName name) {
+    private <IV extends PrismValue, ID extends ItemDefinition<?>> Item<IV, ID> getExtensionItemUnsynchronized(ItemName name) {
         PrismContainer<? extends ExtensionType> extension = getExtensionOrClone();
         return extension != null ? extension.findItem(name) : null;
     }

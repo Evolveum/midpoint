@@ -9,7 +9,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="89bd4f11-8add-4f52-97f9-286d76cea7c5">
-    <name>Basic simulation report</name>
+    <name>Simulation report: Objects</name>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
@@ -32,22 +32,27 @@
             <column>
                 <name>oid</name>
                 <path>oid</path>
+                <previousColumn>id</previousColumn>
             </column>
             <column>
                 <name>name</name>
                 <path>name</path>
+                <previousColumn>oid</previousColumn>
             </column>
             <column>
                 <name>type</name>
                 <path>type</path>
+                <previousColumn>name</previousColumn>
             </column>
             <column>
                 <name>state</name>
                 <path>state</path>
+                <previousColumn>type</previousColumn>
             </column>
             <column>
-                <name>markRefs123</name>
+                <name>eventMarkRef</name>
                 <path>eventMarkRef</path>
+                <previousColumn>state</previousColumn>
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>

@@ -71,9 +71,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         ObjectDelta<ResourceType> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
-        Collection<ItemDelta<PrismValue, ItemDefinition>> deltas = new ArrayList<>();
+        Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : getValue().getItems()) {
-            Collection<ItemDelta<PrismValue, ItemDefinition>> delta = itemWrapper.getDelta();
+            Collection<ItemDelta<PrismValue, ItemDefinition<?>>> delta = itemWrapper.getDelta();
             if (delta == null || delta.isEmpty()) {
                 continue;
             }
@@ -121,12 +121,12 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         }
     }
 
-    private Collection<ItemDelta<PrismValue, ItemDefinition>> processModifyDeltas(
-            Collection<ItemDelta<PrismValue, ItemDefinition>> deltas) throws SchemaException {
+    private Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processModifyDeltas(
+            Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) throws SchemaException {
 
-        Collection<ItemDelta<PrismValue, ItemDefinition>> processedDeltas = new ArrayList<>();
+        Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processedDeltas = new ArrayList<>();
 
-        for (ItemDelta<PrismValue, ItemDefinition> delta : deltas) {
+        for (ItemDelta<PrismValue, ItemDefinition<?>> delta : deltas) {
             if (delta.isDelete()) {
                 List<PrismValue> valuesFromTemplate = new ArrayList<>();
                 delta.getValuesToDelete().forEach(v -> {
@@ -138,7 +138,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                 });
                 delta.getValuesToDelete().removeAll(valuesFromTemplate);
                 if (delta.isDelete()) {
-                    ItemDelta<PrismValue, ItemDefinition> deleteDelta = delta.clone();
+                    ItemDelta<PrismValue, ItemDefinition<?>> deleteDelta = delta.clone();
                     deleteDelta.clearValuesToAdd();
                     deleteDelta.clearValuesToReplace();
                     processedDeltas.add(deleteDelta);
@@ -159,7 +159,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                 processedValues.addAll(delta.getValuesToReplace());
             }
 
-            Item<PrismValue, ItemDefinition> parentItem = getItem().findItem(delta.getPath());
+            Item<PrismValue, ItemDefinition<?>> parentItem = getItem().findItem(delta.getPath());
 
             PrismContainerValue<?> parentContainerValue = parentItem.getParent();
 
@@ -169,7 +169,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             }
 
             PrismContainerValue foundValue = null;
-            for (ItemDelta<PrismValue, ItemDefinition> processedDelta : processedDeltas) {
+            for (ItemDelta<PrismValue, ItemDefinition<?>> processedDelta : processedDeltas) {
                 if (processedDelta.isAdd()
                         && processedDelta.getValuesToAdd().iterator().next() instanceof PrismContainerValue
                         && processedDelta.getPath().isSubPath(delta.getPath())) {
@@ -180,7 +180,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                     }
                 }
             }
-            ItemDelta<PrismValue, ItemDefinition> newDelta =
+            ItemDelta<PrismValue, ItemDefinition<?>> newDelta =
                     processAddOrModifyDelta(parentContainerValue, processedValues, foundValue);
             if (newDelta != null) {
                 processedDeltas.add(newDelta);
@@ -189,7 +189,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         return processedDeltas;
     }
 
-    private ItemDelta<PrismValue, ItemDefinition> processAddOrModifyDelta(
+    private ItemDelta<PrismValue, ItemDefinition<?>> processAddOrModifyDelta(
             PrismContainerValue<?> parentContainerValue, Collection<PrismValue> processedValues, PrismContainerValue<?> valueOfExistingDelta) throws SchemaException {
         PrismValue value = processedValues.iterator().next();
         Itemable parent = value.getParent();
@@ -241,7 +241,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             }
             if (MERGE_IDENTIFIERS.containsKey(typeClass)) {
                 for (ItemName path : MERGE_IDENTIFIERS.get(typeClass)) {
-                    Item<PrismValue, ItemDefinition> item = origParentValue.findItem(path);
+                    Item<PrismValue, ItemDefinition<?>> item = origParentValue.findItem(path);
                     if (item != null && !item.isEmpty() && item.valuesStream().anyMatch(v -> !v.isEmpty())) {
                         Item newItem = newValue.findOrCreateItem(path);
                         for (PrismValue value : item.getValues()) {
@@ -272,11 +272,11 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         return newValue;
     }
 
-    private void removingMetadataForSuperOrigin(Collection<ItemDelta<PrismValue, ItemDefinition>> deltas) {
+    private void removingMetadataForSuperOrigin(Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) {
         deltas.forEach(delta -> removingMetadataForSuperOrigin(delta));
     }
 
-    private void removingMetadataForSuperOrigin(ItemDelta<PrismValue, ItemDefinition> delta) {
+    private void removingMetadataForSuperOrigin(ItemDelta<PrismValue, ItemDefinition<?>> delta) {
         removingMetadataFromValues(delta.getValuesToAdd());
         removingMetadataFromValues(delta.getValuesToReplace());
         removingMetadataFromValues(delta.getValuesToDelete());
@@ -295,7 +295,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
 
     private void removingMetadataForSuperOrigin(PrismObject<ResourceType> clone) {
         clone.getDefinition().getDefinitions().forEach(def -> {
-            Item<PrismValue, ItemDefinition> item = clone.findItem(def.getItemName());
+            Item<?, ?> item = clone.findItem(def.getItemName());
             removingMetadataForSuperOrigin(item);
             if (item != null && item.isEmpty()) {
                 clone.remove(item);

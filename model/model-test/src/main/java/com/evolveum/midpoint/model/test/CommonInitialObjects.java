@@ -99,12 +99,22 @@ public interface CommonInitialObjects {
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
 
     String PARAM_SIMULATION_RESULT_OID = "simulationResultOid";
+    String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
+    String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
+    String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
+    String PARAM_INCLUDE_OPERATIONAL_ITEMS = "includeOperationalItems";
 
-    TestReport REPORT_SIMULATION_BASIC = TestReport.classPath(
+    TestReport REPORT_SIMULATION_OBJECTS = TestReport.classPath(
             REPORTS,
-            "170-report-simulation-basic.xml",
+            "170-report-simulation-objects.xml",
             "89bd4f11-8add-4f52-97f9-286d76cea7c5",
             List.of(PARAM_SIMULATION_RESULT_OID));
+
+    TestReport REPORT_SIMULATION_ITEMS_CHANGED = TestReport.classPath(
+            REPORTS,
+            "171-report-simulation-items-changed.xml",
+            "1d12a138-9763-4601-955b-ea32deff43df",
+            List.of(PARAM_SIMULATION_RESULT_REF));
 
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)

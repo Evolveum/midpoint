@@ -380,7 +380,7 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
     }
 
     public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
-        Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
+        Item<?, ?> item = getObject().findItem(itemPath);
         assertNull("Unexpected item "+itemPath+" in "+desc(), item);
         return this;
     }

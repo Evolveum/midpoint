@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.report;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORT_SIMULATION_BASIC;
-
 import java.util.List;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +22,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -53,7 +55,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withNamePattern("existing-%04d")
                 .execute(initResult);
 
-        REPORT_SIMULATION_BASIC.init(this, initTask, initResult);
+        REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
+        REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
     }
 
     @Test
@@ -75,10 +78,12 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertProcessedObjects(simulationResult, "after")
                 .assertSize(users);
 
-        var lines = REPORT_SIMULATION_BASIC.export()
-                .withParameterValues(simulationResult.getSimulationResultOid())
+        when("object-level report is created");
+        var lines = REPORT_SIMULATION_OBJECTS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultOid())
                 .execute(result);
 
+        then("it is OK");
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
         assertCsv(lines, "after")
                 .parse()
@@ -86,9 +91,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertRecords(users)
                 .assertColumns(COLUMNS)
                 .record(0)
-                .assertValue(1, "new-0000")
-                .assertValue(3, "Added")
-                .assertValue(4, "UserType")
+                .assertValue(2, "new-0000")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Added")
                 .assertValues(5, "Focus activated")
                 .end();
     }
@@ -106,10 +111,11 @@ public class TestCsvSimulationReport extends TestCsvReport {
                         UserType existingUser = existingUsers.get(i);
                         modelService.executeChanges(
                                 List.of(deltaFor(UserType.class)
+                                        .optimizing()
                                         .item(UserType.F_NAME)
                                         .replace(PolyString.fromOrig(existingUser.getName().getOrig() + "-renamed"))
                                         .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
-                                        .replace(i%2 == 0 ? ActivationStatusType.DISABLED : null)
+                                        .old().replace(i%2 == 0 ? ActivationStatusType.DISABLED : null)
                                         .asObjectDelta(existingUser.getOid())),
                                 null, task, result);
                     }
@@ -119,30 +125,78 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertProcessedObjects(simulationResult, "after")
                 .assertSize(EXISTING_USERS);
 
-        when("report is exported");
-        var lines = REPORT_SIMULATION_BASIC.export()
-                .withParameterValues(simulationResult.getSimulationResultOid())
+        when("object-level report is created");
+        var objectsLines = REPORT_SIMULATION_OBJECTS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultOid())
                 .execute(result);
 
         then("CSV is OK");
         // Assuming nice sequential ordering of processed records (may require specifying it in the report)
-        assertCsv(lines, "after")
+        assertCsv(objectsLines, "after")
                 .parse()
                 .display()
                 .assertRecords(EXISTING_USERS)
                 .assertColumns(COLUMNS)
                 .record(0)
-                .assertValue(1, "existing-0000-renamed")
-                .assertValue(2, existingUsers.get(0).getOid())
-                .assertValue(3, "Modified")
-                .assertValue(4, "UserType")
+                .assertValue(1, existingUsers.get(0).getOid())
+                .assertValue(2, "existing-0000-renamed")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Modified")
                 .assertValues(5, "Focus renamed", "Focus deactivated")
                 .end()
                 .record(1)
-                .assertValue(1, "existing-0001-renamed")
-                .assertValue(2, existingUsers.get(1).getOid())
-                .assertValue(3, "Modified")
-                .assertValue(4, "UserType")
+                .assertValue(1, existingUsers.get(1).getOid())
+                .assertValue(2, "existing-0001-renamed")
+                .assertValue(3, "UserType")
+                .assertValue(4, "Modified")
                 .assertValues(5, "Focus renamed");
+
+        when("item-level report is created (default)");
+        var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
+        assertCsv(itemsLines1, "after")
+                .parse()
+                .display();
+
+        when("item-level report is created - all items");
+        var itemsLines2 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .withParameter(PARAM_INCLUDE_OPERATIONAL_ITEMS, true)
+                .execute(result);
+
+        then("CSV is OK");
+        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
+        assertCsv(itemsLines2, "after")
+                .parse()
+                .display();
+
+        when("item-level report is created - 'name' only");
+        var itemsLines3 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .withParameter(PARAM_PATHS_TO_INCLUDE, UserType.F_NAME.toBean())
+                .execute(result);
+
+        then("CSV is OK");
+        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
+        assertCsv(itemsLines3, "after")
+                .parse()
+                .display()
+                .assertRecords(10);
+
+        when("item-level report is created - 'activation/effectiveStatus' only");
+        var itemsLines4 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .withParameter(PARAM_PATHS_TO_INCLUDE, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS.toBean())
+                .execute(result);
+
+        then("CSV is OK");
+        // Assuming nice sequential ordering of processed records (may require specifying it in the report)
+        assertCsv(itemsLines4, "after")
+                .parse()
+                .display();
     }
 }

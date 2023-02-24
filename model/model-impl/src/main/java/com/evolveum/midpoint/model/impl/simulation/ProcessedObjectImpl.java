@@ -13,14 +13,20 @@ import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUti
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.deleg.ItemDeltaDelegator;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
+import com.evolveum.midpoint.schema.util.delta.ItemDeltaFilter;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -30,9 +36,6 @@ import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -65,6 +68,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @SuppressWarnings("CommentedOutCode")
 public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
+
+    public static final String KEY_PARSED = ProcessedObjectImpl.class.getName() + ".parsed";
 
     private Long recordId;
     @NotNull private final String transactionId;
@@ -695,7 +700,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 () -> "No cached bean or no ID in it: " + cachedBean);
     }
 
-    static class ParsedMetricValues implements DebugDumpable {
+    static class ParsedMetricValues implements DebugDumpable, Serializable {
         @NotNull private final Map<SimulationMetricReference, MetricValue> valueMap;
 
         private ParsedMetricValues(@NotNull Map<SimulationMetricReference, MetricValue> valueMap) {
@@ -773,7 +778,79 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
     }
 
-    static class MetricValue {
+    private Set<?> getRealValuesBefore(@NotNull ItemPath path) {
+        return getRealValues(before, path);
+    }
+
+    private Set<?> getRealValuesAfter(@NotNull ItemPath path) {
+        return getRealValues(after, path);
+    }
+
+    @Override
+    public @NotNull Collection<ProcessedObjectItemDelta<?, ?>> getItemDeltas(
+            @Nullable Object pathsToInclude, @Nullable Object pathsToExclude, @Nullable Boolean includeOperationalItems) {
+        if (delta != null && delta.isModify()) {
+            ItemDeltaFilter filter = ItemDeltaFilter.create(pathsToInclude, pathsToExclude, includeOperationalItems);
+            return delta.getModifications().stream()
+                    .map(itemDelta -> new ProcessedObjectItemDeltaImpl<>(itemDelta))
+                    .filter(itemDelta -> filter.matches(itemDelta))
+                    .collect(Collectors.toList());
+        } else {
+            return List.of();
+        }
+    }
+
+    private Set<?> getRealValues(O object, ItemPath path) {
+        if (object == null) {
+            return Set.of();
+        }
+        Item<?, ?> item = object.asPrismContainerValue().findItem(path);
+        return item != null ?
+                Set.copyOf(item.getRealValues()) :
+                Set.of();
+    }
+
+    class ProcessedObjectItemDeltaImpl<V extends PrismValue, D extends ItemDefinition<?>>
+            implements ItemDeltaDelegator<V, D>, ProcessedObjectItemDelta<V, D> {
+
+        @NotNull private final ItemDelta<V, D> delegate;
+
+        ProcessedObjectItemDeltaImpl(@NotNull ItemDelta<V, D> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public ItemDelta<V, D> delegate() {
+            return delegate;
+        }
+
+        @Override
+        public ItemDelta<V, D> clone() {
+            return new ProcessedObjectItemDeltaImpl<>(delegate);
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesBefore() {
+            return ProcessedObjectImpl.this.getRealValuesBefore(getPath());
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesAfter() {
+            return ProcessedObjectImpl.this.getRealValuesAfter(getPath());
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesAdded() {
+            return Sets.difference(getRealValuesAfter(), getRealValuesBefore());
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesDeleted() {
+            return Sets.difference(getRealValuesBefore(), getRealValuesAfter());
+        }
+    }
+
+    static class MetricValue implements Serializable {
         @NotNull final BigDecimal value;
         final boolean inSelection;
 

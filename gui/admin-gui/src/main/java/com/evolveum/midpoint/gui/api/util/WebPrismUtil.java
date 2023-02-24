@@ -304,7 +304,7 @@ public class WebPrismUtil {
         if (hasValueMetadata(valueFromDelta)) {
             return true;
         }
-        Item<PrismValue, ItemDefinition> item = parent.findItem(valueFromDelta.getParent().getPath());
+        Item<PrismValue, ItemDefinition<?>> item = parent.findItem(valueFromDelta.getParent().getPath());
         PrismContainerValue<?> value = item.getParent();
         while (!(value instanceof PrismObjectValue)) {
             if (hasValueMetadata(value)) {

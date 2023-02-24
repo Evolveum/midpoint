@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.model.api.simulation;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,13 +24,14 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
 /**
  * Parsed analogy of {@link SimulationResultProcessedObjectType}.
  */
-public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
+public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Serializable {
 
     // TODO document all this!!!!!!!!!
 
@@ -72,6 +76,21 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable {
     boolean hasEventMark(@NotNull String eventMarkOid);
     boolean hasNoEventMarks();
     @Nullable String getResourceOid();
+
+    default @NotNull Collection<ProcessedObjectItemDelta<?,?>> getItemDeltas() {
+        return getItemDeltas(null, null, true);
+    }
+
+    @NotNull Collection<ProcessedObjectItemDelta<?,?>> getItemDeltas(
+            @Nullable Object pathsToInclude, @Nullable Object pathsToExclude, @Nullable Boolean includeOperationalItems);
+
+    interface ProcessedObjectItemDelta<V extends PrismValue, D extends ItemDefinition<?>> extends ItemDelta<V, D> {
+
+        @NotNull Collection<?> getRealValuesBefore();
+        @NotNull Collection<?> getRealValuesAfter();
+        @NotNull Collection<?> getRealValuesAdded();
+        @NotNull Collection<?> getRealValuesDeleted();
+    }
 
     interface Factory {
         <O extends ObjectType> ProcessedObject<O> create(
