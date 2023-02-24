@@ -8,30 +8,34 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box" wicket:id="nextStagesContainer">
-        <div class="box-header">
-            <h3 class="box-title"><wicket:message key="ItemApprovalPanel.nextStages"/></h3> <i wicket:id="nextStagesHelp" wicket:message="title:TaskWfChildPanel.nextStagesHelp"/>
+    <div class="card" wicket:id="nextStagesContainer">
+        <div class="card-header">
+            <h3 class="card-title"><wicket:message key="ItemApprovalPanel.nextStages"/></h3>
+            <i class="ml-2" wicket:id="nextStagesHelp" wicket:message="title:TaskWfChildPanel.nextStagesHelp"/>
         </div>
-        <div class="box-body">
+        <div class="card-body">
             <div wicket:id="nextStages" />
         </div>
     </div>
-    <div class="box" wicket:id="wholeProcessContainer">
-        <div class="box-header">
-            <h3 class="box-title"><wicket:message key="ItemApprovalPanel.wholeProcess"/></h3> <i wicket:id="wholeProcessHelp" wicket:message="title:TaskWfChildPanel.wholeProcessHelp"/>
+    <div class="card" wicket:id="wholeProcessContainer">
+        <div class="card-header">
+            <h3 class="card-title"><wicket:message key="ItemApprovalPanel.wholeProcess"/></h3>
+            <i class="ml-2" wicket:id="wholeProcessHelp" wicket:message="title:TaskWfChildPanel.wholeProcessHelp"/>
         </div>
-        <div class="box-body">
+        <div class="card-body">
             <div wicket:id="wholeProcess" />
             <div wicket:id="triggers" style="margin-right:5px;margin-left: 5px;"/>
         </div>
     </div>
     <div style="padding-bottom:15px">   <!-- TODO use some css here -->
         <span wicket:id="showNextStagesContainer">
-                    <a href="#" wicket:id="showNextStages"><wicket:message key="taskWfChildPanel.showNextStages"/></a> <i wicket:id="showNextStagesHelp" wicket:message="title:TaskWfChildPanel.showNextStagesHelp"/>&nbsp;&nbsp;&nbsp;
-                </span>
+            <a href="#" wicket:id="showNextStages"><wicket:message key="taskWfChildPanel.showNextStages"/></a>
+            <i wicket:id="showNextStagesHelp" wicket:message="title:TaskWfChildPanel.showNextStagesHelp"/>&nbsp;&nbsp;&nbsp;
+        </span>
         <span wicket:id="showWholeProcessContainer">
-                    <a href="#" wicket:id="showWholeProcess"><wicket:message key="taskWfChildPanel.showWholeProcess"/></a> <i wicket:id="showWholeProcessHelp" wicket:message="title:TaskWfChildPanel.showWholeProcessHelp"/>
-                </span>
+            <a href="#" wicket:id="showWholeProcess"><wicket:message key="taskWfChildPanel.showWholeProcess"/></a>
+            <i wicket:id="showWholeProcessHelp" wicket:message="title:TaskWfChildPanel.showWholeProcessHelp"/>
+        </span>
     </div>
 </wicket:panel>
 </html>

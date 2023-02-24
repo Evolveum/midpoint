@@ -1087,23 +1087,25 @@ span.tree-content > table tr td:first-child {
 	margin: 10px;
 
 	.box-label {
-		border-bottom: 1px solid;
-		padding-top: 3px;
-    	padding-bottom: 3px;
-    	font-weight: bold;
+        display: flex;
+        align-items: baseline;
+        gap: .5rem;
+        padding: .5rem;
+
+        border-bottom: 1px solid;
+		font-weight: bold;
 
     	.process-label {
-
+          flex-grow: 1;
     	}
 
     	.process-outcome {
-    		float: right;
-    	}
 
+    	}
 	}
 
 	.box-content {
-		padding: 15px;
+		padding: 1.25rem;
 	}
 }
 
