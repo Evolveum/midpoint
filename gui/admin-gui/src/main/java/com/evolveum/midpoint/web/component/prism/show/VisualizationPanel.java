@@ -27,7 +27,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -126,7 +125,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             ChangeType change = dto.getChangeType();
 
-            return change != null ? VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(change) : null;
+            return change != null ? VisualizationUtil.createChangeTypeCssClassForOutlineCard(change) : null;
         }));
 
         final VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
@@ -171,9 +170,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
-            String key = visualization.getDisplayNameKey();
-            Object[] parameters = visualization.getDisplayNameParameters();
-            return LocalizationUtil.translate(key, parameters);
+            return LocalizationUtil.translateMessage(visualization.getName().getDisplayName());
         });
         wrapperDisplayName.add(visibleIfWrapper);
         fullDescription.add(wrapperDisplayName);

@@ -13,10 +13,12 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -41,7 +43,7 @@ public class VisualizationUtil {
                 visualizations.add(modelInteractionService.visualizeDelta(delta, task, result));
             }
         }
-        return new WrapperVisualization(visualizations, displayNameKey);
+        return new WrapperVisualization(new SingleLocalizableMessage("displayNameKey"), visualizations);
     }
 
     public static Visualization visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
@@ -52,6 +54,23 @@ public class VisualizationUtil {
             ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
             visualizations.add(modelInteractionService.visualizeDelta(delta, false, objectRef, task, result));
         }
-        return new WrapperVisualization(visualizations, displayNameKey);
+        return new WrapperVisualization(new SingleLocalizableMessage(displayNameKey), visualizations);
+    }
+
+    public static String createChangeTypeCssClassForOutlineCard(ChangeType change) {
+        if (change == null) {
+            return "card-outline-left-secondary";
+        }
+
+        switch (change) {
+            case ADD:
+                return "card-outline-left-success";
+            case MODIFY:
+                return "card-outline-left-info";
+            case DELETE:
+                return "card-outline-left-danger";
+        }
+
+        return "card-outline-left-secondary";
     }
 }
