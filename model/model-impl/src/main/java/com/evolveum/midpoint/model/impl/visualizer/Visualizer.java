@@ -379,6 +379,7 @@ public class Visualizer {
                         si.setSourceRelPath(ItemPath.create(item.getElementName()));
                         si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
+                        si.setSourceValue(pcv);
                         visualization.addPartialVisualization(si);
 
                         currentVisualization = si;
