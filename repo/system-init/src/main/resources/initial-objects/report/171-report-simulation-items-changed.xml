@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="1d12a138-9763-4601-955b-ea32deff43df">
+    <name>Simulation report: Items changed</name>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+            <filter>
+                <q:inOid>
+                    <c:expression>
+                        <c:script>
+                            <c:code>simulationResultRef.oid</c:code>
+                        </c:script>
+                    </c:expression>
+                    <q:considerOwner>true</q:considerOwner>
+                </q:inOid>
+            </filter>
+        </collection>
+        <view>
+            <column>
+                <name>id</name>
+                <path>#</path>
+            </column>
+            <column>
+                <name>oid</name>
+                <path>oid</path>
+                <previousColumn>id</previousColumn>
+            </column>
+            <column>
+                <name>name</name>
+                <path>name</path>
+                <previousColumn>oid</previousColumn>
+            </column>
+            <column>
+                <name>type</name>
+                <path>type</path>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>state</name>
+                <path>state</path>
+                <previousColumn>type</previousColumn>
+            </column>
+            <column>
+                <name>eventMarkRef</name>
+                <path>eventMarkRef</path>
+                <previousColumn>state</previousColumn>
+            </column>
+            <column>
+                <name>itemChanged</name>
+                <display>
+                    <label>Item changed</label>
+                </display>
+                <previousColumn>eventMarkRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (itemDelta as ProcessedObject.ProcessedObjectItemDelta)?.path
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>oldValues</name>
+                <display>
+                    <label>Old value(s)</label>
+                </display>
+                <previousColumn>itemChanged</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (itemDelta as ProcessedObject.ProcessedObjectItemDelta)?.realValuesBefore
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>newValues</name>
+                <display>
+                    <label>New value(s)</label>
+                </display>
+                <previousColumn>oldValues</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (itemDelta as ProcessedObject.ProcessedObjectItemDelta)?.realValuesAfter
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>valuesAdded</name>
+                <display>
+                    <label>Value(s) added</label>
+                </display>
+                <previousColumn>newValues</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (itemDelta as ProcessedObject.ProcessedObjectItemDelta)?.realValuesAdded
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>valuesDeleted</name>
+                <display>
+                    <label>Value(s) deleted</label>
+                </display>
+                <previousColumn>valuesAdded</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (itemDelta as ProcessedObject.ProcessedObjectItemDelta)?.realValuesDeleted
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>c:SimulationResultProcessedObjectType</type>
+        </view>
+        <parameter>
+            <name>simulationResultRef</name>
+            <type>ObjectReferenceType</type>
+            <targetType>SimulationResultType</targetType>
+        </parameter>
+        <parameter>
+            <name>pathsToInclude</name>
+            <type>t:ItemPathType</type>
+        </parameter>
+        <parameter>
+            <name>pathsToExclude</name>
+            <type>t:ItemPathType</type>
+        </parameter>
+        <parameter>
+            <name>includeOperationalItems</name>
+            <type>xsd:boolean</type>
+        </parameter>
+        <subreport>
+            <name>itemDelta</name>
+            <!-- Returns a list of (non-prism) ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getProcessedObjectItemDeltas(
+                                object as SimulationResultProcessedObjectType,
+                                pathsToInclude,
+                                pathsToExclude,
+                                includeOperationalItems)
+                    </code>
+                </script>
+            </expression>
+            <asRow>true</asRow>
+        </subreport>
+    </objectCollection>
+</report>

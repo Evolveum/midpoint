@@ -817,7 +817,7 @@ public class Visualizer {
     }
 
     @SuppressWarnings("unchecked")
-    private <V extends PrismValue, D extends ItemDefinition> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
+    private <V extends PrismValue, D extends ItemDefinition<?>> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
             VisualizationImpl parent)
             throws SchemaException {
         String simpleName = itemDelta.getElementName() != null ? itemDelta.getElementName().getLocalPart() : "";

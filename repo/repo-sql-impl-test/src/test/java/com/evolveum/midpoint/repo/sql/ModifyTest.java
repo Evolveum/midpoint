@@ -963,7 +963,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("Serialized for export:\n" + xml);
         PrismObject<Objectable> shadowReparsed = prismContext.parseObject(xml);
         System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
-        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
+        Item<PrismValue, ItemDefinition<?>> attr1Reparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
         assertNotNull(attr1Reparsed);
         assertFalse("Reparsed attribute is raw", attr1Reparsed.getAnyValue().isRaw());
     }
@@ -1646,7 +1646,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private void assertValueMetadataChannel(PrismObject<?> object, ItemName itemName, String expectedValue) {
-        Item<PrismValue, ItemDefinition> item = object.findItem(itemName);
+        Item<PrismValue, ItemDefinition<?>> item = object.findItem(itemName);
         assertThat(item).isNotNull();
         assertThat(item.size()).isEqualTo(1);
         ValueMetadataType metadata = item.getValue().getValueMetadata().getRealValue(ValueMetadataType.class);

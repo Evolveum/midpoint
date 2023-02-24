@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.createParameters;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.assertj.core.util.Arrays;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +20,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.*;
 
 /**
  * A report that is to be used in tests.
@@ -84,7 +85,7 @@ public class TestReport extends TestObject<ReportType> {
     /** Configures and executes the export. */
     public class Export {
 
-        private List<Object> parameterValues = new ArrayList<>();
+        @NotNull private final ReportParameterType parameters = new ReportParameterType();
 
         private ObjectCustomizer<TaskType> taskCustomizer;
 
@@ -92,8 +93,13 @@ public class TestReport extends TestObject<ReportType> {
         private TestTask exportTask;
 
         /** Assumes default parameter names are set up in the main object. */
-        public Export withParameterValues(Object... parameterValues) {
-            this.parameterValues = Arrays.asList(parameterValues); // some values may be null, hence not List.of(..)
+        public Export withDefaultParametersValues(Object... parameterValues) throws SchemaException {
+            addParameters(parameters, defaultParameterNames, Arrays.asList(parameterValues));
+            return this;
+        }
+
+        public Export withParameter(String parameterName, Object... parameterValues) throws SchemaException {
+            addParameter(parameters, parameterName, parameterValues);
             return this;
         }
 
@@ -105,13 +111,6 @@ public class TestReport extends TestObject<ReportType> {
         }
 
         public @NotNull List<String> execute(OperationResult result) throws CommonException, IOException {
-            ReportParameterType parameters;
-            if (!parameterValues.isEmpty()) {
-                parameters = createParameters(defaultParameterNames, parameterValues);
-            } else {
-                parameters = null;
-            }
-
             TaskType newTask = new TaskType()
                     .name("report export task for " + getObjectable().getName())
                     .executionState(TaskExecutionStateType.CLOSED)

@@ -72,8 +72,7 @@ public class ConsolidationMetadataComputation extends ValueMetadataComputation {
     Collection<?> getSourceValues(ItemPath sourcePath) {
         Collection<PrismValue> values = new HashSet<>();
         for (ValueMetadataType yield : nonNegativeValues) {
-            //noinspection unchecked
-            Item<PrismValue, ItemDefinition> sourceItem = yield.asPrismContainerValue().findItem(sourcePath);
+            Item<?, ?> sourceItem = yield.asPrismContainerValue().findItem(sourcePath);
             if (sourceItem != null) {
                 values.addAll(CloneUtil.cloneCollectionMembers(sourceItem.getValues()));
             }

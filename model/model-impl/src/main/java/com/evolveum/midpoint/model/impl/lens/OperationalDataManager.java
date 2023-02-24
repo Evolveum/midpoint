@@ -61,7 +61,7 @@ public class OperationalDataManager {
     }
 
     private MetadataType collectRequestMetadata(XMLGregorianCalendar now, Task task) {
-        MetadataType metaData = new MetadataType(prismContext);
+        MetadataType metaData = new MetadataType();
         metaData.setRequestTimestamp(now);
         if (task.getOwnerRef() != null) {
             metaData.setRequestorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
