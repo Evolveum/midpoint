@@ -6,26 +6,26 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-
-                <div wicket:id="objectDeltaOperationMarkup" class="card">
-                    <table class="table table-striped">
-                        <tr>
-                            <td><wicket:message key="ObjectDeltaOperationType.resourceName" /></td>
-                            <td><span wicket:id="resourceName" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message
-                                    key="ObjectDeltaOperationType.objectName" /></td>
-                            <td><span wicket:id="objectName" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="ObjectDeltaOperationType.executionResult" /></td>
-                            <td><div wicket:id="executionResult" class="pull-left"/>
-                                <div wicket:id="fullResultLink" class="show-empty-button pull-right" /></td>
-                        </tr>
-                    </table>
-
-                <div wicket:id="deltaPanel" />
-            </div>
-
+    <div wicket:id="objectDeltaOperationMarkup" class="card card-outline">
+        <table class="table table-striped">
+            <wicket:enclosure>
+                <tr>
+                    <td><wicket:message key="ObjectDeltaOperationType.resourceName"/></td>
+                    <td><span wicket:id="resourceName"/></td>
+                </tr>
+            </wicket:enclosure>
+            <tr>
+                <td><wicket:message key="ObjectDeltaOperationType.objectName"/></td>
+                <td><span wicket:id="objectName"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="ObjectDeltaOperationType.executionResult"/></td>
+                <td class="d-flex gap-1 align-items-baseline">
+                    <span wicket:id="executionResult"/>
+                    <a class="text-sm" wicket:id="fullResultLink"><wicket:message key="ObjectDeltaOperationResult.showFullResult"/></a>
+                </td>
+            </tr>
+        </table>
+        <div class="mx-3" wicket:id="deltaPanel"/>
+    </div>
 </wicket:panel>

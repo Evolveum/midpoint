@@ -8,14 +8,12 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -93,7 +91,7 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
         partialVisualizations.setReuseItems(true);
         add(partialVisualizations);
 
-        AjaxButton showOperationalItemsLink = new AjaxButton(ID_SHOW_OPERATIONAL_ITEMS_LINK) {
+        AjaxButton showOperationalItemsLink = new AjaxButton(ID_SHOW_OPERATIONAL_ITEMS_LINK, getShowOperationalItemsLinkLabel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -101,14 +99,8 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
                 setOperationalItemsVisible(!operationalItemsVisible);
                 target.add(SimpleVisualizationPanel.this);
             }
-
-            @Override
-            public IModel<?> getBody() {
-                return getShowOperationalItemsLinkLabel();
-            }
         };
         showOperationalItemsLink.setOutputMarkupId(true);
-        showOperationalItemsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
         showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems));
         add(showOperationalItemsLink);
     }
@@ -117,9 +109,8 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
         this.operationalItemsVisible = operationalItemsVisible;
     }
 
-    private IModel<?> getShowOperationalItemsLinkLabel() {
-        return operationalItemsVisible ? PageBase.createStringResourceStatic("ScenePanel.hideOperationalItemsLink")
-                : PageBase.createStringResourceStatic("ScenePanel.showOperationalItemsLink");
+    private IModel<String> getShowOperationalItemsLinkLabel() {
+        return () -> operationalItemsVisible ? getString("ScenePanel.hideOperationalItemsLink") : getString("ScenePanel.showOperationalItemsLink");
     }
 
     private boolean isOperationalPartialVisualization(IModel<VisualizationDto> visualizationDtoModel) {

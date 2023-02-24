@@ -304,6 +304,10 @@ public class Visualizer {
     }
 
     private PrismObject<? extends ObjectType> getObject(String oid, Class<? extends ObjectType> objectTypeClass, VisualizationContext context, Task task, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+
         PrismObject<? extends ObjectType> object = context.getCurrentObject(oid);
         if (object != null) {
             return object;

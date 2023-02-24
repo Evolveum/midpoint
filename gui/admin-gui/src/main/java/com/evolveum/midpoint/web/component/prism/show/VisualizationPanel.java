@@ -247,7 +247,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         add(body);
 
         final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
-        visualization.setRenderBodyOnly(true);
         body.add(visualization);
     }
 

@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.api.component.delta;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -16,6 +16,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -61,71 +61,56 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     private void initLayout() {
         WebMarkupContainer objectDeltaOperationMarkup = new WebMarkupContainer(ID_OBJECT_DELTA_OPERATION_MARKUP);
-        objectDeltaOperationMarkup.setOutputMarkupId(true);
-
         objectDeltaOperationMarkup.add(AttributeModifier.append("class", (IModel<String>) this::getBoxCssClass));
         add(objectDeltaOperationMarkup);
 
-        Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT,
-                new PropertyModel<>(getModel(), "executionResult.status"));
-        executionResult.setOutputMarkupId(true);
+        Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT, new PropertyModel<>(getModel(), "executionResult.status"));
         objectDeltaOperationMarkup.add(executionResult);
 
-        AjaxButton showFullResultsLink = new AjaxButton(ID_PARAMETERS_FULL_RESULT_LINK) {
+        AjaxLink showFullResultsLink = new AjaxLink<>(ID_PARAMETERS_FULL_RESULT_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showFullResultsPerformed(target);
             }
-
-            @Override
-            public IModel<?> getBody() {
-                return getPageBase().createStringResource("ObjectDeltaOperationResult.showFullResult");
-            }
         };
-        showFullResultsLink.setOutputMarkupId(true);
-        showFullResultsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
         showFullResultsLink.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getExecutionResult() != null));
         objectDeltaOperationMarkup.add(showFullResultsLink);
 
-        Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
-                new PropertyModel<>(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
-        resourceName.setOutputMarkupId(true);
+        Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME, new PropertyModel<>(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
+        resourceName.add(new VisibleBehaviour(() -> getModelObject().getResourceName() != null));
         objectDeltaOperationMarkup.add(resourceName);
 
         Label objectName = new Label(ID_PARAMETERS_OBJECT_NAME,
                 new PropertyModel<>(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
-        objectName.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(objectName);
-        final VisualizationDto visualizationDto;
-        try {
-            visualizationDto = loadVisualizationForDelta();
-        } catch (SchemaException | ExpressionEvaluationException e) {
-            OperationResult result = new OperationResult(ObjectDeltaOperationPanel.class.getName() + ".loadSceneForDelta");
-            result.recordFatalError(createStringResource("ObjectDeltaOperationPanel.message.fetchOrVisualize.fatalError", e.getMessage()).getString(), e);
-            parentPage.showResult(result);
-            throw parentPage.redirectBackViaRestartResponseException();
-        }
-        IModel<VisualizationDto> deltaModel = new IModel<>() {
-            private static final long serialVersionUID = 1L;
 
-            public VisualizationDto getObject() {
-                return visualizationDto;
+        IModel<VisualizationDto> deltaModel = new LoadableModel<>(false) {
+
+            @Override
+            protected VisualizationDto load() {
+                try {
+                    return loadVisualizationForDelta();
+                } catch (SchemaException | ExpressionEvaluationException e) {
+                    OperationResult result = new OperationResult(ObjectDeltaOperationPanel.class.getName() + ".loadSceneForDelta");
+                    result.recordFatalError(createStringResource("ObjectDeltaOperationPanel.message.fetchOrVisualize.fatalError", e.getMessage()).getString(), e);
+                    parentPage.showResult(result);
+                    throw parentPage.redirectBackViaRestartResponseException();
+                }
             }
-
         };
+
         VisualizationPanel deltaPanel = new VisualizationPanel(ID_DELTA_PANEL, deltaModel, true, true) {
             @Override
             public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
                 super.headerOnClickPerformed(target, model);
-//                model.getObject().setMinimized(!model.getObject().isMinimized());
+
                 target.add(ObjectDeltaOperationPanel.this);
             }
         };
         deltaPanel.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(deltaPanel);
-
     }
 
     private String getBoxCssClass() {
@@ -167,25 +152,22 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         ObjectDelta<? extends ObjectType> delta;
         ObjectDeltaType deltaType = getModel().getObject().getObjectDelta();
         try {
-            delta = DeltaConvertor.createObjectDelta(deltaType,
-                    parentPage.getPrismContext());
+            delta = DeltaConvertor.createObjectDelta(deltaType, parentPage.getPrismContext());
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "SchemaException while converting delta:\n{}", e, deltaType);
             throw e;
         }
+
         try {
             visualization = parentPage.getModelInteractionService().visualizeDelta(delta, true, getIncludeOriginalObject(),
                     parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
                     new OperationResult(ID_PARAMETERS_DELTA));
         } catch (SchemaException | ExpressionEvaluationException e) {
-            LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}",
-                    e, DebugUtil.debugDump(delta));
+            LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}", e, DebugUtil.debugDump(delta));
             throw e;
         }
-        VisualizationDto visualizationDto = new VisualizationDto(visualization);
-        visualizationDto.setMinimized(true);
-        return visualizationDto;
 
+        return new VisualizationDto(visualization);
     }
 
     public boolean getIncludeOriginalObject() {

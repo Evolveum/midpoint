@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -137,11 +138,17 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
             if (val == null) {
                 return null;
             }
-            if (val.getSourceValue() != null) {
-                if (val.getSourceValue() instanceof PrismReferenceValue) {
-                    return WebComponentUtil.getReferencedObjectDisplayNameAndName(((PrismReferenceValue) val.getSourceValue()).asReferencable(), true, getPageBase());
-                } else if (val.getSourceValue() instanceof Objectable) {
-                    WebComponentUtil.getDisplayNameOrName(((Objectable) val.getSourceValue()).asPrismObject());
+            PrismValue prismvalue = val.getSourceValue();
+            if (prismvalue != null) {
+                if (prismvalue instanceof PrismReferenceValue) {
+                    PrismReferenceValue ref = (PrismReferenceValue) prismvalue;
+                    if (ref.getOid() == null) {
+                        return LocalizationUtil.translate("VisualizationItemValue.undefinedOid");
+                    }
+
+                    return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), true, getPageBase());
+                } else if (prismvalue instanceof Objectable) {
+                    WebComponentUtil.getDisplayNameOrName(((Objectable) prismvalue).asPrismObject());
                 }
             }
             LocalizableMessage textValue = getModelObject().getText();
