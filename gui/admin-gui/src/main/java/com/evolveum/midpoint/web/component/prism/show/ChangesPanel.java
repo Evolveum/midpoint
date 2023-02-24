@@ -53,11 +53,21 @@ public class ChangesPanel extends BasePanel<Void> {
 
     private IModel<List<VisualizationDto>> changesModel;
 
+    private boolean showOperationalItems;
+
     public ChangesPanel(String id, IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
         super(id);
 
         initModels(deltaModel, visualizationModel);
         initLayout();
+    }
+
+    protected WebMarkupContainer getBody() {
+        return (WebMarkupContainer) get(ID_BODY);
+    }
+
+    public void setShowOperationalItems(boolean showOperationalItems) {
+        this.showOperationalItems = showOperationalItems;
     }
 
     public void setChangesView(@NotNull IModel<ChangesView> changesView) {
@@ -148,7 +158,7 @@ public class ChangesPanel extends BasePanel<Void> {
                     expandVisualization(model.getObject());
                 }
 
-                VisualizationPanel visualization = new VisualizationPanel(ID_VISUALIZATION, model, false, advanced);
+                VisualizationPanel visualization = new VisualizationPanel(ID_VISUALIZATION, model, showOperationalItems, advanced);
                 item.add(visualization);
             }
         };

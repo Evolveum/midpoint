@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component.delta;
 
+import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -36,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import java.util.Arrays;
 
 public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationType> {
 
@@ -101,15 +105,16 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             }
         };
 
-        VisualizationPanel deltaPanel = new VisualizationPanel(ID_DELTA_PANEL, deltaModel, true, true) {
-            @Override
-            public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
-                super.headerOnClickPerformed(target, model);
-
-                target.add(ObjectDeltaOperationPanel.this);
-            }
-        };
-        deltaPanel.setOutputMarkupId(true);
+        ChangesPanel deltaPanel = new ChangesPanel(ID_DELTA_PANEL, null, () -> Arrays.asList(deltaModel.getObject()));
+        deltaPanel.setShowOperationalItems(true);
+//        VisualizationPanel deltaPanel = new VisualizationPanel(ID_DELTA_PANEL, deltaModel, true, true) {
+//            @Override
+//            public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
+//                super.headerOnClickPerformed(target, model);
+//
+//                target.add(ObjectDeltaOperationPanel.this);
+//            }
+//        };
         objectDeltaOperationMarkup.add(deltaPanel);
     }
 
