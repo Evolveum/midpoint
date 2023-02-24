@@ -43,7 +43,7 @@ public class VisualizationUtil {
                 visualizations.add(modelInteractionService.visualizeDelta(delta, task, result));
             }
         }
-        return new WrapperVisualization(new SingleLocalizableMessage("displayNameKey"), visualizations);
+        return new WrapperVisualization(new SingleLocalizableMessage(displayNameKey), visualizations);
     }
 
     public static Visualization visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,

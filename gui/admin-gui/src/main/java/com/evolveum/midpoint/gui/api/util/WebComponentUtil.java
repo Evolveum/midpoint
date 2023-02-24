@@ -4762,27 +4762,27 @@ public final class WebComponentUtil {
             OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<VisualizationDto> changes = new ArrayList<>();
         if (!changesByState.getApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-success", changesByState.getApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-outline-left-success", changesByState.getApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getBeingApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-info", changesByState.getBeingApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-outline-left-info", changesByState.getBeingApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-warning",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-outline-left-warning",
                     changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-primary",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-outline-left-primary",
                     changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getRejected().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-danger", changesByState.getRejected(),
+            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-outline-left-danger", changesByState.getRejected(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getCanceled().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-danger", changesByState.getCanceled(),
+            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-outline-left-danger", changesByState.getCanceled(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         return changes;
