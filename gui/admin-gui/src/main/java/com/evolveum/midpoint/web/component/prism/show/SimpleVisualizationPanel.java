@@ -101,7 +101,7 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
             }
         };
         showOperationalItemsLink.setOutputMarkupId(true);
-        showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems));
+        showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems && getModelObject().hasOperationalItems()));
         add(showOperationalItemsLink);
     }
 

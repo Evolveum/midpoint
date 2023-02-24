@@ -155,9 +155,26 @@ public class VisualizationDto implements Serializable {
         this.sorted = sorted;
     }
 
-    // minimized is NOT included in equality check - because the VisualizationDto's are compared in order to determine
-    // whether they should be redrawn (i.e. their content is important, not the presentation)
+    public boolean hasOperationalItems() {
+        if (getVisualization().isOperational()) {
+            return true;
+        }
 
+        if (getItems().stream().anyMatch(i -> i.isOperational())) {
+            return true;
+        }
+
+        if (getPartialVisualizations().stream().anyMatch(v -> v.hasOperationalItems())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * minimized is NOT included in equality check - because the VisualizationDto's are compared in order to determine
+     * whether they should be redrawn (i.e. their content is important, not the presentation)
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {return true;}
