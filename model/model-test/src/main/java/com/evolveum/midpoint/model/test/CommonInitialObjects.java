@@ -102,6 +102,7 @@ public interface CommonInitialObjects {
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
     String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
     String PARAM_INCLUDE_OPERATIONAL_ITEMS = "includeOperationalItems";
+    String PARAM_SHOW_IF_NO_DETAILS = "showIfNoDetails";
 
     TestReport REPORT_SIMULATION_OBJECTS = TestReport.classPath(
             REPORTS,

@@ -47,9 +47,34 @@
                 <previousColumn>name</previousColumn>
             </column>
             <column>
+                <name>archetype</name>
+                <path>structuralArchetypeRef</path>
+                <previousColumn>type</previousColumn>
+            </column>
+            <column>
+                <name>resourceRef</name>
+                <path>resourceObjectCoordinates/resourceRef</path>
+                <previousColumn>archetype</previousColumn>
+            </column>
+            <column>
+                <name>kind</name>
+                <path>resourceObjectCoordinates/kind</path>
+                <previousColumn>resourceRef</previousColumn>
+            </column>
+            <column>
+                <name>intent</name>
+                <path>resourceObjectCoordinates/intent</path>
+                <previousColumn>kind</previousColumn>
+            </column>
+            <column>
+                <name>tag</name>
+                <path>resourceObjectCoordinates/tag</path>
+                <previousColumn>intent</previousColumn>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>type</previousColumn>
+                <previousColumn>tag</previousColumn>
             </column>
             <column>
                 <name>eventMarkRef</name>
@@ -68,7 +93,7 @@
                             <code>
                                 import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
 
-                                (itemDelta as ProcessedObjectItemDelta).path
+                                (itemDelta as ProcessedObjectItemDelta)?.path
                             </code>
                         </script>
                     </expression>
@@ -86,7 +111,7 @@
                             <code>
                                 import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
 
-                                (valueWithState as ValueWithState).state
+                                (valueWithState as ValueWithState)?.state
                             </code>
                         </script>
                     </expression>
@@ -104,8 +129,106 @@
                             <code>
                                 import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
 
-                                (valueWithState as ValueWithState).value
+                                (valueWithState as ValueWithState)?.value
                             </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignment</name>
+                <display>
+                    <label>Related assignment</label>
+                </display>
+                <previousColumn>value</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentId</name>
+                <display>
+                    <label>Related assignment ID</label>
+                </display>
+                <previousColumn>relatedAssignment</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.id</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentTarget</name>
+                <display>
+                    <label>Related assignment target</label>
+                </display>
+                <previousColumn>relatedAssignmentId</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.targetRef</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentTargetRelation</name>
+                <display>
+                    <label>Related assignment relation</label>
+                </display>
+                <previousColumn>relatedAssignmentTarget</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.targetRef?.relation</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentResource</name>
+                <display>
+                    <label>Related assignment resource</label>
+                </display>
+                <previousColumn>relatedAssignmentTargetRelation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.resourceRef</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentKind</name>
+                <display>
+                    <label>Related assignment kind</label>
+                </display>
+                <previousColumn>relatedAssignmentResource</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.kind</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentIntent</name>
+                <display>
+                    <label>Related assignment intent</label>
+                </display>
+                <previousColumn>relatedAssignmentKind</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.intent</code>
                         </script>
                     </expression>
                 </export>
@@ -129,6 +252,10 @@
             <name>includeOperationalItems</name>
             <type>xsd:boolean</type>
         </parameter>
+        <parameter>
+            <name>showIfNoDetails</name>
+            <type>xsd:boolean</type>
+        </parameter>
         <subreport>
             <name>itemDelta</name>
             <!-- Returns a list of non-prism ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->
@@ -146,8 +273,8 @@
                     </code>
                 </script>
             </expression>
-            <order>1</order>
-            <use>innerJoin</use>
+            <order>10</order>
+            <use>leftJoin</use>
         </subreport>
         <subreport>
             <name>valueWithState</name>
@@ -157,12 +284,35 @@
                     <code>
                         import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
 
-                        (itemDelta as ProcessedObjectItemDelta).valuesWithStates
+                        (itemDelta as ProcessedObjectItemDelta)?.valuesWithStates
                     </code>
                 </script>
             </expression>
-            <order>2</order>
+            <order>20</order>
+            <use>leftJoin</use>
+        </subreport>
+        <subreport>
+            <!-- Special hack to eliminate rows with no details if requested so -->
+            <name>detailsPresent</name>
+            <type>xsd:boolean</type>
+            <expression>
+                <script>
+                    <code>showIfNoDetails != false || valueWithState != null ? true : null</code>
+                </script>
+            </expression>
+            <order>30</order>
             <use>innerJoin</use>
+        </subreport>
+        <subreport>
+            <name>relatedAssignment</name>
+            <type>AssignmentType</type>
+            <expression>
+                <script>
+                    <code>report.getRelatedAssignment(itemDelta, valueWithState?.value)</code>
+                </script>
+            </expression>
+            <order>30</order>
+            <use>leftJoin</use>
         </subreport>
     </objectCollection>
 </report>

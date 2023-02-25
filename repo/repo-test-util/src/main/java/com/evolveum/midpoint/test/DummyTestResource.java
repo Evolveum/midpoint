@@ -68,7 +68,7 @@ public class DummyTestResource extends AnyTestResource {
     }
 
     // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
-    public void init(DummyTestResourceInitializer initializer, Task task, OperationResult result) throws Exception {
+    public void init(AbstractIntegrationTest initializer, Task task, OperationResult result) throws Exception {
         initializer.initDummyResource(this, task, result);
     }
 }

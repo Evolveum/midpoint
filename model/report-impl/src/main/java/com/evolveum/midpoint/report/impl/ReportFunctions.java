@@ -569,4 +569,22 @@ public class ReportFunctions {
         return getProcessedObject(objectBean)
                 .getItemDeltas(pathsToInclude, pathsToExclude, includeOperationalItems);
     }
+
+    public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
+        return getRelatedAssignment(itemDelta, null);
+    }
+
+    public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta, Object value) {
+        if (itemDelta != null) {
+            AssignmentType fromDelta = itemDelta.getRelatedAssignment();
+            if (fromDelta != null) {
+                return fromDelta;
+            }
+        }
+        if (value instanceof AssignmentType) {
+            return (AssignmentType) value;
+        }
+
+        return null;
+    }
 }

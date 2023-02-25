@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestReport;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,8 +43,9 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final int DONT_COUNT_ROWS = -1;
 
     static final String DIR_REPORTS = "reports";
-    static final File TEST_DIR_REPORTS = new File("src/test/resources/" + DIR_REPORTS);
-    static final File TEST_DIR_COMMON = new File("src/test/resources/common");
+    static final File TEST_RESOURCES_DIR = new File("src/test/resources");
+    static final File TEST_DIR_REPORTS = new File(TEST_RESOURCES_DIR, DIR_REPORTS);
+    static final File TEST_DIR_COMMON = new File(TEST_RESOURCES_DIR, "common");
     private static final File EXPORT_DIR = new File("target/midpoint-home/export");
 
     static final TestObject<ReportType> REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN = TestObject.file(TEST_DIR_REPORTS,
@@ -145,6 +147,10 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
     static final TestTask TASK_EXPORT_CLASSIC = TestTask.file(TEST_DIR_REPORTS,
             "task-export.xml", "d3a13f2e-a8c0-4f8c-bbf9-e8996848bddf");
+
+    static final DummyTestResource RESOURCE_DUMMY_OUTBOUND = new DummyTestResource(
+            TEST_DIR_COMMON, "resource-dummy-outbound.xml", "846e4c54-cee5-4e45-b0cf-ce8914ecba54",
+            "outbound", (c) -> c.extendSchemaPirate());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
             "archetype-task-report-export-classic.xml", "00000000-0000-0000-0000-000000000511");

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFoundCollection;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
@@ -315,13 +316,14 @@ public class ReportServiceImpl implements ReportService {
     public <O extends ObjectType> PrismObject<O> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
         Class<O> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
-        if (ref.asReferenceValue().getObject() != null) {
-            return ref.asReferenceValue().getObject();
+        PrismObject<O> embedded = ref.asReferenceValue().getObject();
+        if (embedded != null) {
+            return embedded;
         }
 
         PrismObject<O> object = null;
         try {
-            object = getModelService().getObject(type, ref.getOid(), null, task, result.createSubresult("get ref object"));
+            object = getModelService().getObject(type, ref.getOid(), createAllowNotFoundCollection(), task, result);
         } catch (Exception e) {
             LOGGER.debug("Couldn't get object from objectRef " + ref, e);
         }

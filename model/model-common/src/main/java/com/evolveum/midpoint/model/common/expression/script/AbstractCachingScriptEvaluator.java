@@ -89,14 +89,14 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
                 if (evalRawResult instanceof Collection) {
                     //noinspection unchecked,rawtypes
                     ((Collection)evalRawResult).forEach(rawResultValue -> {
-                        //noinspection unchecked
-                        evalPrismValues.add(
-                                (V) getPrismContext().itemFactory().createPropertyValue(rawResultValue));
+                        if (rawResultValue != null) {
+                            //noinspection unchecked
+                            evalPrismValues.add((V) toPrismValue(rawResultValue));
+                        }
                     });
                 } else {
                     //noinspection unchecked
-                    evalPrismValues.add(
-                            (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult));
+                    evalPrismValues.add((V) toPrismValue(evalRawResult));
                 }
             }
             return evalPrismValues;
@@ -128,6 +128,19 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         }
 
         return values;
+    }
+
+    // FIXME this should be some low-level utility method
+    private PrismValue toPrismValue(@NotNull Object realValue) {
+        if (realValue instanceof Objectable) {
+            return ((Objectable) realValue).asPrismObject().getValue();
+        } else if (realValue instanceof Containerable) {
+            return ((Containerable) realValue).asPrismContainerValue();
+        } else if (realValue instanceof Referencable) {
+            return ((Referencable) realValue).asReferenceValue();
+        } else {
+            return getPrismContext().itemFactory().createPropertyValue(realValue);
+        }
     }
 
     @NotNull

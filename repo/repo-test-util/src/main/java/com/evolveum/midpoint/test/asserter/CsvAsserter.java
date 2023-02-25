@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.ListAssert;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +40,8 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
     private List<String> headerNames;
     private List<CSVRecord> records;
 
+    @NotNull private Set<Integer> numericColumns = Set.of(); // because of sorting
+
     public CsvAsserter(@NotNull List<String> lines, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.lines = lines;
@@ -51,6 +54,11 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
 
     public CsvAsserter<RA> withCustomFormat(CSVFormat format) {
         customCsvFormat = format;
+        return this;
+    }
+
+    public CsvAsserter<RA> withNumericColumns(Integer... columns) {
+        numericColumns = Set.of(columns);
         return this;
     }
 
@@ -111,13 +119,24 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
     public CsvAsserter<RA> sortBy(int... columns) throws IOException {
         return sort((o1, o2) -> {
             for (int column : columns) {
-                int c = o1.get(column).compareTo(o2.get(column));
+                //noinspection unchecked
+                int c = getValue(o1, column).compareTo(getValue(o2, column));
                 if (c != 0) {
                     return c;
                 }
             }
             return 0;
         });
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Comparable getValue(CSVRecord record, int column) {
+        String stringValue = record.get(column);
+        return isNumeric(column) ? Long.valueOf(stringValue) : stringValue;
+    }
+
+    private boolean isNumeric(int column) {
+        return numericColumns.contains(column);
     }
 
     @Override
@@ -162,6 +181,28 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
 
         public RecordAsserter assertValue(int column, String expected) {
             assertThat(getValue(column)).as("value in col " + column + " in " + desc()).isEqualTo(expected);
+            return this;
+        }
+
+        public RecordAsserter assertValue(int column, Consumer<AbstractStringAssert<?>> assertConsumer) {
+            assertConsumer.accept(
+                    assertThat(getValue(column)).as("value in col " + column + " in " + desc()));
+            return this;
+        }
+
+        public RecordAsserter assertValueNotEmpty(int column) {
+            assertThat(getValue(column)).as("value in col " + column + " in " + desc()).isNotEmpty();
+            return this;
+        }
+
+        public RecordAsserter assertValuesEqual(int column1, int column2) {
+            String value1 = getValue(column1);
+            String value2 = getValue(column2);
+            assertThat(value1)
+                    .withFailMessage(
+                            String.format("values in col %d (%s) and %d (%s) differ although they should not; in %s",
+                                    column1, value1, column2, value2, desc()))
+                    .isEqualTo(value2);
             return this;
         }
 

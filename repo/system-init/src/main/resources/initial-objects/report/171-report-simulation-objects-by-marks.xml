@@ -45,9 +45,34 @@
                 <previousColumn>name</previousColumn>
             </column>
             <column>
+                <name>archetype</name>
+                <path>structuralArchetypeRef</path>
+                <previousColumn>type</previousColumn>
+            </column>
+            <column>
+                <name>resourceRef</name>
+                <path>resourceObjectCoordinates/resourceRef</path>
+                <previousColumn>archetype</previousColumn>
+            </column>
+            <column>
+                <name>kind</name>
+                <path>resourceObjectCoordinates/kind</path>
+                <previousColumn>resourceRef</previousColumn>
+            </column>
+            <column>
+                <name>intent</name>
+                <path>resourceObjectCoordinates/intent</path>
+                <previousColumn>kind</previousColumn>
+            </column>
+            <column>
+                <name>tag</name>
+                <path>resourceObjectCoordinates/tag</path>
+                <previousColumn>intent</previousColumn>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>type</previousColumn>
+                <previousColumn>tag</previousColumn>
             </column>
             <column>
                 <name>eventMark</name>

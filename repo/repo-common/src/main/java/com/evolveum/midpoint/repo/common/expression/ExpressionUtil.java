@@ -13,6 +13,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
+
+    private static final String OP_RESOLVE_REFERENCE = ExpressionUtil.class.getName() + ".resolveReference";
 
     /**
      * Slightly more powerful version of "convert" as compared to
@@ -230,7 +234,8 @@ public class ExpressionUtil {
     }
 
     // TODO what about collections of values?
-    public static TypedValue<?> convertVariableValue(TypedValue<?> originalTypedValue, String variableName, ObjectResolver objectResolver,
+    public static TypedValue<?> convertVariableValue(
+            TypedValue<?> originalTypedValue, String variableName, ObjectResolver objectResolver,
             String contextDescription, ObjectVariableModeType objectVariableMode, @NotNull ValueVariableModeType valueVariableMode,
             PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -396,27 +401,32 @@ public class ExpressionUtil {
         ObjectReferenceType originalReference = (ObjectReferenceType) referenceTypedValue.getValue();
         Itemable originalParent = originalReference.asReferenceValue().getParent();
         ObjectReferenceType reference = originalReference.clone();
-        OperationResult subResult = new OperationResult("Resolve reference"); // TODO proper op result handling (for tracing)
+        OperationResult subResult = result.createMinorSubresult(OP_RESOLVE_REFERENCE);
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = null;
+            GetOperationOptionsBuilder builder = GetOperationOptionsBuilder.create().allowNotFound();
             if (reference != null && QNameUtil.match(reference.getType(), ResourceType.COMPLEX_TYPE)) {
-                options = GetOperationOptions.createNoFetchCollection();
+                builder = builder.noFetch();
             }
-            resolvedTypedValue = resolveReference(referenceTypedValue, objectResolver, options, variableName,
-                    contextDescription, task, subResult);
+            resolvedTypedValue = resolveReference(
+                    referenceTypedValue, objectResolver, builder.build(), variableName, contextDescription, task, subResult);
         } catch (SchemaException e) {
-            result.addSubresult(subResult);
-            throw new ExpressionSyntaxException("Schema error during variable " + variableName + " resolution in " + contextDescription + ": " + e.getMessage(), e);
+            subResult.recordException(e);
+            throw new ExpressionSyntaxException(
+                    String.format("Schema error during variable '%s' resolution in %s: %s",
+                            variableName, contextDescription, e.getMessage()),
+                    e);
         } catch (ObjectNotFoundException e) {
             if (ObjectVariableModeType.OBJECT.equals(objectVariableMode)) {
-                result.addSubresult(subResult);
+                subResult.recordException(e);
                 throw e;
             } else {
                 resolvedTypedValue = null;
             }
-        } catch (Exception e) {
-            result.addSubresult(subResult);
-            throw e;
+        } catch (Throwable t) {
+            subResult.recordException(t);
+            throw t;
+        } finally {
+            subResult.close();
         }
 
         if (objectVariableMode == ObjectVariableModeType.PRISM_REFERENCE) {
@@ -438,15 +448,15 @@ public class ExpressionUtil {
     static TypedValue<PrismObject<?>> resolveReference(TypedValue<?> refAndDef, ObjectResolver objectResolver,
             Collection<SelectorOptions<GetOperationOptions>> options, String varDesc, String contextDescription,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
         if (ref.getOid() == null) {
             throw new SchemaException(
                     "Null OID in reference in variable " + varDesc + " in " + contextDescription);
         } else {
             try {
-                ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, options,
-                        contextDescription, task, result);
+                ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, options, contextDescription, task, result);
                 if (objectType == null) {
                     throw new IllegalArgumentException(
                             "Resolve returned null for " + ref + " in " + contextDescription);

@@ -74,7 +74,7 @@ public class TestReport extends TestObject<ReportType> {
      * @param test To provide access to necessary functionality. Temporary!
      */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result)
-            throws IOException, CommonException {
+            throws CommonException {
         this.test = test;
         importObject(task, result);
     }

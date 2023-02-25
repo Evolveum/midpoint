@@ -251,7 +251,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 
         and("simulation result is OK");
-        assertProcessedObjects(simulationResult, "after")
+        // @formatter:off
+        var processedObjects = assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertEventMarks()
@@ -259,7 +260,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
                     .assertEventMarks(MARK_PROJECTION_ACTIVATED)
                 .end()
-                .assertSize(2);
+                .assertSize(2)
+                .getProcessedObjects();
+        // @formatter:on
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
         objectsCounter.assertNoNewObjects(result);
@@ -274,7 +277,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         then("report is OK");
         assertCsv(lines1, "after")
-                .display(); // TODO some asserts
+                .assertRecords(2);
 
         when("item-level simulation report is produced");
         List<String> lines2 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -283,7 +286,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         then("report is OK");
         assertCsv(lines2, "after")
-                .display(); // TODO some asserts
+                .assertRecords(2);
 
         when("value-level simulation report is produced");
         List<String> lines3 = REPORT_SIMULATION_VALUES_CHANGED.export()
@@ -292,7 +295,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         then("report is OK");
         assertCsv(lines3, "after")
-                .display(); // TODO some asserts
+                .assertRecords(2);
     }
 
     @Test
@@ -837,6 +840,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("value-level simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .assertRecords(2);
     }
 
     @Test
@@ -1297,6 +1309,24 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserJack(userJack);
         assertUserNoAccountRefs(userJack); // No accountRef
         assertNoDummyAccount("jack"); // No account in dummy resource
+
+        when("item-level simulation report is produced");
+        List<String> lines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines1, "after")
+                .assertRecords(3);
+
+        when("value-level simulation report is produced");
+        List<String> lines2 = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines2, "after")
+                .assertRecords(3);
     }
 
     @Test
@@ -1492,6 +1522,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
         PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
+
+        when("value-level simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .assertRecords(4); // 1x organizationalUnit, 2x fullname, 1x ship
     }
 
     private ObjectDelta<ShadowType> createJacksAccountModifyDelta() throws SchemaException, ConfigurationException {
@@ -1733,6 +1772,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 
         and("simulation result is OK");
+        // @formatter:off
         assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
@@ -1742,12 +1782,22 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                     .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
                 .end()
                 .assertSize(2);
+        // @formatter:on
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
         objectsCounter.assertNoNewObjects(result);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("value-level simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .assertRecords(3); // assignment, linkRef, shadow
     }
 
     @Test
@@ -3188,6 +3238,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 
         and("simulation result is OK");
+        // @formatter:off
         assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.DELETE).find()
@@ -3197,12 +3248,22 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                     .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
                 .end()
                 .assertSize(2);
+        // @formatter:on
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
         objectsCounter.assertNoNewObjects(result);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("value-level simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .assertRecords(2); // user, shadow
     }
 
     @Test
@@ -3374,6 +3435,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 
         and("simulation result is OK");
+        // @formatter:off
         assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
@@ -3383,6 +3445,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                     .assertEventMarks(MARK_PROJECTION_ACTIVATED)
                 .end()
                 .assertSize(2);
+        // @formatter:on
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
         objectsCounter.assertNoNewObjects(result);
@@ -3492,6 +3555,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 
         and("simulation result is OK");
+        // @formatter:off
         assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
@@ -3501,12 +3565,22 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                     .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
                 .end()
                 .assertSize(2);
+        // @formatter:on
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
         objectsCounter.assertNoNewObjects(result);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
+
+        when("value-level simulation report is produced");
+        List<String> lines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines, "after")
+                .assertRecords(4); // name ADD+DELETE, shadow name ADD+DELETE
     }
 
     @Test

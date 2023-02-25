@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil.getTargetNameOrOid;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
@@ -19,14 +20,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.deleg.ItemDeltaDelegator;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
-import com.evolveum.midpoint.schema.util.delta.ItemDeltaFilter;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -36,9 +29,14 @@ import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.deleg.ItemDeltaDelegator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -49,10 +47,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.PartitionScope;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.delta.ItemDeltaFilter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -202,12 +202,20 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         Class<O> type = elementContext.getObjectTypeClass();
         @Nullable O stateBefore = asObjectable(elementContext.getStateBeforeSimulatedOperation());
-        @Nullable O stateAfter = asObjectable(elementContext.getObjectNew());
-        @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
         @Nullable ObjectDelta<O> delta = singleDelta != null ? singleDelta : elementContext.getSummaryExecutedDelta();
-        if (anyState == null || stateBefore == null && delta == null) {
-            // Nothing to report on here. Note that for shadows it's possible that stateBefore and delta are null but
-            // stateAfter is "PCV(null)" - due to the way of computation of objectNew for shadows
+
+        // We intentionally do not use "object new" because it does not contain e.g. linkRefs added.
+        @Nullable O stateAfter;
+        if (delta == null) {
+            stateAfter = stateBefore;
+        } else {
+            stateAfter = asObjectable(
+                    delta.computeChangedObject(
+                            asPrismObject(stateBefore)));
+        }
+        @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
+
+        if (anyState == null) {
             return null;
         }
 
@@ -782,8 +790,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return getRealValues(before, path);
     }
 
+    private Set<? extends PrismValue> getPrismValuesBefore(@NotNull ItemPath path) {
+        return getPrismValues(before, path);
+    }
+
     private Set<?> getRealValuesAfter(@NotNull ItemPath path) {
         return getRealValues(after, path);
+    }
+
+    private Set<? extends PrismValue> getPrismValuesAfter(@NotNull ItemPath path) {
+        return getPrismValues(after, path);
     }
 
     @Override
@@ -801,12 +817,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     private Set<?> getRealValues(O object, ItemPath path) {
+        return getPrismValues(object, path).stream()
+                .map(v -> v.getRealValue())
+                .collect(Collectors.toSet());
+    }
+
+    private Set<? extends PrismValue> getPrismValues(O object, ItemPath path) {
         if (object == null) {
             return Set.of();
         }
         Item<?, ?> item = object.asPrismContainerValue().findItem(path);
         return item != null ?
-                Set.copyOf(item.getRealValues()) :
+                Set.copyOf(item.getValues()) :
                 Set.of();
     }
 
@@ -836,23 +858,54 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
 
         @Override
+        public @NotNull Set<? extends PrismValue> getPrismValuesBefore() {
+            return ProcessedObjectImpl.this.getPrismValuesBefore(getPath());
+        }
+
+        @Override
         public @NotNull Set<?> getRealValuesAfter() {
             return ProcessedObjectImpl.this.getRealValuesAfter(getPath());
         }
 
         @Override
+        public @NotNull Set<? extends PrismValue> getPrismValuesAfter() {
+            return ProcessedObjectImpl.this.getPrismValuesAfter(getPath());
+        }
+
+        @Override
         public @NotNull Set<?> getRealValuesAdded() {
-            return Sets.difference(getRealValuesAfter(), getRealValuesBefore());
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(
+                    PrismValueCollectionsUtil.differenceConsideringIds(
+                            getPrismValuesAfter(),
+                            getPrismValuesBefore(),
+                            ParameterizedEquivalenceStrategy.REAL_VALUE));
         }
 
         @Override
         public @NotNull Set<?> getRealValuesDeleted() {
-            return Sets.difference(getRealValuesBefore(), getRealValuesAfter());
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(
+                    PrismValueCollectionsUtil.differenceConsideringIds(
+                            getPrismValuesBefore(),
+                            getPrismValuesAfter(),
+                            ParameterizedEquivalenceStrategy.REAL_VALUE));
+        }
+
+        @Override
+        public @NotNull Set<?> getRealValuesModified() {
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(
+                    PrismValueCollectionsUtil.sameIdDifferentContent(
+                            getPrismValuesBefore(),
+                            getPrismValuesAfter(),
+                            ParameterizedEquivalenceStrategy.REAL_VALUE));
         }
 
         @Override
         public @NotNull Set<?> getRealValuesUnchanged() {
-            return Sets.intersection(getRealValuesBefore(), getRealValuesAfter());
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(
+                    PrismValueCollectionsUtil.intersection(
+                            getPrismValuesBefore(),
+                            getPrismValuesAfter(),
+                            ParameterizedEquivalenceStrategy.REAL_VALUE));
         }
 
         @Override
@@ -860,8 +913,30 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             List<ValueWithState> all = new ArrayList<>();
             getRealValuesAdded().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.ADDED)));
             getRealValuesDeleted().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.DELETED)));
+            getRealValuesModified().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.MODIFIED)));
             getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
             return all;
+        }
+
+        @Override
+        public @Nullable AssignmentType getRelatedAssignment() {
+            ItemPath path = getPath();
+            if (!path.startsWith(AssignmentHolderType.F_ASSIGNMENT)) {
+                return null;
+            }
+            ItemPath rest = path.rest();
+            Long id = rest.firstToIdOrNull();
+            if (id == null) {
+                return null;
+            }
+            O any = MiscUtil.getFirstNonNull(after, before);
+            if (!(any instanceof AssignmentHolderType)) {
+                return null; // should not occur
+            }
+            return ((AssignmentHolderType) any).getAssignment().stream()
+                    .filter(a -> id.equals(a.getId()))
+                    .findFirst()
+                    .orElse(null);
         }
 
         @Override

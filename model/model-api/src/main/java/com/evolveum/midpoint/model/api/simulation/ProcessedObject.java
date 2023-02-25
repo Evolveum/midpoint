@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Parsed analogy of {@link SimulationResultProcessedObjectType}.
@@ -86,11 +87,15 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
 
     interface ProcessedObjectItemDelta<V extends PrismValue, D extends ItemDefinition<?>> extends ItemDelta<V, D> {
         @NotNull Collection<?> getRealValuesBefore();
+        @NotNull Set<? extends PrismValue> getPrismValuesBefore();
         @NotNull Collection<?> getRealValuesAfter();
+        @NotNull Set<? extends PrismValue> getPrismValuesAfter();
         @NotNull Collection<?> getRealValuesAdded();
         @NotNull Collection<?> getRealValuesDeleted();
+        @NotNull Set<?> getRealValuesModified();
         @NotNull Collection<?> getRealValuesUnchanged();
         @NotNull Collection<ValueWithState> getValuesWithStates();
+        @Nullable AssignmentType getRelatedAssignment();
     }
 
     class ValueWithState implements Serializable {
@@ -117,7 +122,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
         }
 
         public enum State {
-            UNCHANGED, ADDED, DELETED
+            UNCHANGED, ADDED, DELETED, MODIFIED
         }
     }
 
