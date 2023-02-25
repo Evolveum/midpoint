@@ -142,7 +142,7 @@
                                 object as SimulationResultProcessedObjectType,
                                 pathsToInclude,
                                 pathsToExclude,
-                                includeOperationalItems) as ProcessedObjectItemDelta
+                                includeOperationalItems)
                     </code>
                 </script>
             </expression>

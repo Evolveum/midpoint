@@ -863,6 +863,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
             return all;
         }
+
+        @Override
+        public String toString() {
+            return "ProcessedObjectItemDelta{" + delegate + '}';
+        }
     }
 
     static class MetricValue implements Serializable {

@@ -118,6 +118,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
+        REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
+        REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
 
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
@@ -208,15 +210,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
         getDummyResource().resetBreakMode();
 
-        // Check notifications
+        and("notifications are OK");
         checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
-        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0); // actually I don't know why provisioning does not report unsupported operation as a failure...
+        // actually I don't know why provisioning does not report unsupported operation as a failure.
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0); // This should be called, but it is not implemented now
+        // This should be called, but it is not implemented now
+        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
@@ -263,14 +267,32 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertNoRecord();
         dummyTransport.assertNoMessages();
 
-        when("simulation report is produced");
-        List<String> lines = REPORT_SIMULATION_OBJECTS.export()
+        when("object-level simulation report is produced");
+        List<String> lines1 = REPORT_SIMULATION_OBJECTS.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("report is OK");
-        assertCsv(lines, "after")
-                .display();
+        assertCsv(lines1, "after")
+                .display(); // TODO some asserts
+
+        when("item-level simulation report is produced");
+        List<String> lines2 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines2, "after")
+                .display(); // TODO some asserts
+
+        when("value-level simulation report is produced");
+        List<String> lines3 = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("report is OK");
+        assertCsv(lines3, "after")
+                .display(); // TODO some asserts
     }
 
     @Test

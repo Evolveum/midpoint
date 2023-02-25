@@ -1218,22 +1218,10 @@ public class BasicExpressionFunctions {
     }
 
     public static String debugDump(Object o) {
-        if (o == null) {
-            return "null";
-        }
-        if (o instanceof ObjectType) {
-            return DebugUtil.debugDump(((ObjectType) o).asPrismObject(), 0);
-        }
         return DebugUtil.debugDump(o, 0);
     }
 
     public static String debugDump(Object o, int indent) {
-        if (o == null) {
-            return "null";
-        }
-        if (o instanceof ObjectType) {
-            return DebugUtil.debugDump(((ObjectType) o).asPrismObject(), indent);
-        }
         return DebugUtil.debugDump(o, indent);
     }
 
