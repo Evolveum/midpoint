@@ -84,6 +84,11 @@ public class Visualizer {
         DESCRIPTION_HANDLERS.addAll(beans.values());
     }
 
+    @PostConstruct
+    public void destroy() {
+        DESCRIPTION_HANDLERS.clear();
+    }
+
     public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualize(object, new VisualizationContext(), task, parentResult);
     }
