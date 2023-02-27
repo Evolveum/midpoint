@@ -13,6 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestReport;
@@ -43,8 +44,15 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult);
         repoAdd(REPORT_INDIRECT_ASSIGNMENTS, initResult);
 
+        String appArchetypeOid = addObject(new ArchetypeType().name("Application")
+                .asPrismObject(), initTask, initResult);
+        String orgOid = addObject(new OrgType().name("Org1")
+                .asPrismObject(), initTask, initResult);
+
         // adding role chain: businessRole -> appRole -> appService
-        String appServiceOid = addObject(new ServiceType().name("appService").asPrismObject(), initTask, initResult);
+        String appServiceOid = addObject(new ServiceType().name("appService")
+                .assignment(new AssignmentType().targetRef(appArchetypeOid, ArchetypeType.COMPLEX_TYPE))
+                .asPrismObject(), initTask, initResult);
         String appRoleOid = addObject(new RoleType().name("appRole")
                 .inducement(new AssignmentType().targetRef(appServiceOid, ServiceType.COMPLEX_TYPE))
                 .asPrismObject(), initTask, initResult);
@@ -67,6 +75,8 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
                 // To mix it up, every third user has also direct assignment to the service.
                 user.assignment(new AssignmentType()
                         .targetRef(appServiceOid, ServiceType.COMPLEX_TYPE)
+                        .targetRef(orgOid, OrgType.COMPLEX_TYPE,
+                                i == 3 ? SchemaConstants.ORG_MANAGER : SchemaConstants.ORG_DEFAULT)
                         .activation(new ActivationType()
                                 // for some output variation
                                 .validFrom(MiscUtil.asXMLGregorianCalendar(Instant.now().minus(10, ChronoUnit.DAYS)))
@@ -82,6 +92,6 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
 
         // 50 * 3 (normal) + 50 // 3 (direct assignments) + 3 (without metadata) + jack + header
         // (subscription footer is considered automatically later, do not count it here)
-        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 171, 8, null, null);
+        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 171, 9, null, null);
     }
 }

@@ -589,7 +589,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             if (target == null) {
                 continue;
             }
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             Collection<String> targetSubtypes = FocusTypeUtil.determineSubTypes((PrismObject) target);
             if (targetSubtypes.contains(roleSubtype)) {
                 return true;
@@ -815,7 +815,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         };
 
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, task, result);
 
         return conflictingObjects;
@@ -2069,13 +2069,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // MID-5243
 
     /**
-     * DEPRECATED use getArchetypes(object)
+     * DEPRECATED use getArchetypes(object) or getStructuralArchetype(object)
      */
     @Override
     @Deprecated
     public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException {
         return ArchetypeTypeUtil.getStructuralArchetype(
                 archetypeManager.determineArchetypes(object, getCurrentResult()));
+    }
+
+    @Override
+    public @Nullable <O extends AssignmentHolderType> ArchetypeType getStructuralArchetype(O object)
+            throws SchemaException {
+        return archetypeManager.determineStructuralArchetype(object, getCurrentResult());
     }
 
     @NotNull

@@ -47,6 +47,7 @@
                         import com.evolveum.midpoint.schema.SelectorOptions
                         import com.evolveum.midpoint.schema.result.OperationResult
                         import com.evolveum.midpoint.util.exception.ObjectNotFoundException
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType
 
@@ -75,6 +76,7 @@
                             def segmentTargets = assignmentPath.segment
 //                                    .collect(s -> midpoint.resolveReferenceIfExists(s?.targetRef)) // slow
                                     .collect(s -> resolveWithRepo(s?.targetRef))
+                            AbstractRoleType role = prismRefValue?.object?.asObjectable() // this one should be available (resolved)
 
                             // we'll return object/hashmap for each assignment path metadata value
                             return [
@@ -82,12 +84,14 @@
                                     segmentTargets: segmentTargets,
                                     createTimestamp: m.storage?.createTimestamp,
                                     owner: owner,
-                                    targetName: prismRefValue?.object?.name?.orig,
+                                    role: role,
+                                    roleArchetype: midpoint.getStructuralArchetype(role),
                                     assignment: directAssignment
                             ]
                         }
 
                         private ObjectType resolveWithRepo(ObjectReferenceType ref) {
+                            if (ref == null) return null
                             try {
                                 var typeDef = prismContext.schemaRegistry.findObjectDefinitionByType(ref.type)
                                 // We're creating ignored operation result as we don't want to contaminate the master
@@ -129,7 +133,7 @@
             <column>
                 <name>nameColumn</name>
                 <display>
-                    <label>Access</label>
+                    <label>Role</label>
                 </display>
                 <previousColumn>user</previousColumn>
                 <export>
@@ -137,7 +141,24 @@
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                return data?.targetName
+                                return data?.role?.name?.orig
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>archetypeName</name>
+                <display>
+                    <label>Type</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                return data?.roleArchetype?.name?.orig
                             </code>
                         </script>
                     </expression>
@@ -148,7 +169,7 @@
                 <display>
                     <label>Path</label>
                 </display>
-                <previousColumn>nameColumn</previousColumn>
+                <previousColumn>archetypeName</previousColumn>
                 <export>
                     <expression>
                         <script>
