@@ -14,12 +14,10 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -48,10 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class Visualizer {
 
     private static final Trace LOGGER = TraceManager.getTrace(Visualizer.class);
+
     public static final String CLASS_DOT = Visualizer.class.getName() + ".";
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private List<VisualizationDescriptionHandler> descriptionHandlers;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -60,8 +59,6 @@ public class Visualizer {
     private Resolver resolver;
 
     private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
-
-    private static final List<VisualizationDescriptionHandler> DESCRIPTION_HANDLERS = new ArrayList<>();
 
     static {
         DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
@@ -76,17 +73,6 @@ public class Visualizer {
                 ShadowType.F_RESOURCE_REF,
                 ShadowType.F_KIND,
                 ShadowType.F_INTENT));
-    }
-
-    @PostConstruct
-    public void init() {
-        Map<String, VisualizationDescriptionHandler> beans = applicationContext.getBeansOfType(VisualizationDescriptionHandler.class);
-        DESCRIPTION_HANDLERS.addAll(beans.values());
-    }
-
-    @PostConstruct
-    public void destroy() {
-        DESCRIPTION_HANDLERS.clear();
     }
 
     public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -531,7 +517,7 @@ public class Visualizer {
     }
 
     private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
-        for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
+        for (VisualizationDescriptionHandler handler : descriptionHandlers) {
             if (handler.match(visualization)) {
                 handler.apply(visualization, task, result);
             }
