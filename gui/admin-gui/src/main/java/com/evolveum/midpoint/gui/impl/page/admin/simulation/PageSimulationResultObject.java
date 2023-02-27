@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -274,7 +276,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
-        changesModel = new LoadableDetachableModel<>() {
+        changesModel = new LoadableModel<>(false) {
 
             @Override
             protected VisualizationDto load() {
@@ -367,6 +369,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         add(details);
 
         ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
+        changesNew.setShowOperationalItems(true);
         changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
         add(changesNew);
 
