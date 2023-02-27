@@ -17,12 +17,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -36,21 +34,16 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,10 +56,8 @@ public class PageFocusIdentification extends PageAuthenticationBase {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
-    private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
-    private static final String ID_SUBMIT_BUTTON = "submit";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_CSRF_FIELD = "csrfField";
 
@@ -168,12 +159,16 @@ public class PageFocusIdentification extends PageAuthenticationBase {
         attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                attrValuesModel.setObject(generateAttributeValuesString());
-                ajaxRequestTarget.add(getHiddenField());
+                updateAttributeValues(ajaxRequestTarget);
             }
         });
+        attributeValue.add(WebComponentUtil.getBlurOnEnterKeyDownBehavior());
         form.add(attributeValue);
-//        form.add(attributeValue);
+    }
+
+    private void updateAttributeValues(AjaxRequestTarget ajaxRequestTarget) {
+        attrValuesModel.setObject(generateAttributeValuesString());
+        ajaxRequestTarget.add(getHiddenField());
     }
 
     private String resolveAttributeLabel(IModel<List<ItemPathType>> path) {

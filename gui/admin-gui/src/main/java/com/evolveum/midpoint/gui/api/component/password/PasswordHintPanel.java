@@ -6,22 +6,17 @@
  */
 package com.evolveum.midpoint.gui.api.component.password;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxChannel;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.attributes.ThrottlingSettings;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.IValidatable;
@@ -29,10 +24,8 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class PasswordHintPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
@@ -56,11 +49,26 @@ public class PasswordHintPanel extends InputPanel {
     }
 
     private void initLayout() {
-        final TextField<String> hint = new TextField<>(ID_HINT, hintModel);
+        final TextField<String> hint = new TextField<>(ID_HINT, hintModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                if (hideHintValue()) {
+                    tag.remove("value");
+                }
+            }
+        };
         hint.setOutputMarkupId(true);
+        hint.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         hint.add(new EnableBehaviour(() -> !isReadonly));
         hint.add(new PasswordHintValidator(passwordModel));
         add(hint);
+    }
+
+    protected boolean hideHintValue() {
+        return false;
     }
 
     public List<FeedbackMessage> collectHintFeedbackMessages() {
@@ -95,11 +103,16 @@ public class PasswordHintPanel extends InputPanel {
             WebComponentUtil.encryptProtectedString(passwordValue, false,
                     MidPointApplication.get());
             String passwordString = passwordValue != null ? passwordValue.getClearValue() : null;
-            if (StringUtils.isNotEmpty(passwordString) && passwordString.contains(hintValue)) {
+            if (StringUtils.isNotEmpty(passwordString) && hintEqualsOrSimilarToPassword(passwordString, hintValue)) {
                 ValidationError err = new ValidationError();
                 err.addKey("PasswordHintPanel.incorrectHint.error");
                 validatable.error(err);
             }
+        }
+
+        private boolean hintEqualsOrSimilarToPassword(@NotNull String password, @NotNull String hint) {
+            return password.equals(hint) || password.contains(hint.trim().replaceAll(" ", ""))
+                    || hint.contains(password);
         }
     }
 

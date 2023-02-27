@@ -45,6 +45,8 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
+        saveException(request, exception);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
@@ -73,8 +75,6 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             }
             moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
         }
-
-        saveException(request, exception);
 
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);
 
