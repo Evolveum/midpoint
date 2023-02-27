@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
@@ -109,9 +110,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                                         ? ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
                             }
                         }
-                        ImagePanel outcomePanel = new ImagePanel(ID_OUTCOME,
-                                Model.of(outcomeIcon.getIcon()),
-                                Model.of(getString(outcomeIcon.getTitle())));
+                        IconComponent outcomePanel = new IconComponent(ID_OUTCOME, Model.of(outcomeIcon.getIcon()), createStringResource(outcomeIcon.getTitle()));
                         outcomePanel.add(new VisibleBehaviour(() -> outcomeIcon != ApprovalOutcomeIcon.EMPTY));
                         approversListItem.add(outcomePanel);
 
@@ -167,9 +166,8 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                                 ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
                     }
                 }
-                ImagePanel stageOutcomePanel = new ImagePanel(ID_STAGE_OUTCOME,
-                        Model.of(stageOutcomeIcon.getIcon()),
-                        Model.of(getString(stageOutcomeIcon.getTitle())));
+                IconComponent stageOutcomePanel = new IconComponent(ID_STAGE_OUTCOME,
+                        Model.of(stageOutcomeIcon.getIcon()), createStringResource(stageOutcomeIcon.getTitle()));
                 stageOutcomePanel.add(new VisibleBehaviour(() -> stageOutcomeIcon != ApprovalOutcomeIcon.EMPTY));
                 stagesListItem.add(stageOutcomePanel);
             }

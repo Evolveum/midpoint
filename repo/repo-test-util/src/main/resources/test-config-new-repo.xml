@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,7 @@
             <extensionDir>./src/test/resources/schema</extensionDir>
         </global>
         <repository>
-            <type>sqale</type>
+            <type>native</type>
 
             <!--
             Use this Vagrantbox to run this:

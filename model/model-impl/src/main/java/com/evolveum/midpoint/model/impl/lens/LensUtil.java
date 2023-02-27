@@ -638,7 +638,7 @@ public class LensUtil {
         if (ctx.getObjectOld() == null) {
             return;
         }
-        Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+        Item<?, ?> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
         if (itemOld != null) {
             //noinspection unchecked
             itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));

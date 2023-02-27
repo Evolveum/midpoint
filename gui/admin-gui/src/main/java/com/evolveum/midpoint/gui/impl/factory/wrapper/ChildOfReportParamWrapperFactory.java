@@ -54,7 +54,7 @@ public class ChildOfReportParamWrapperFactory<R extends Referencable> extends Pr
     public PrismReferenceWrapper<R> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
         ItemName name = def.getItemName();
 
-        Item<PrismValue, ItemDefinition> childItem = parent.getNewValue().findItem(name);
+        Item<?, ?> childItem = parent.getNewValue().findItem(name);
 
         if ((skipCreateWrapper(def, ItemStatus.NOT_CHANGED, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues())))
             || !(childItem.getRealValue() instanceof RawType)) {

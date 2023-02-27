@@ -68,7 +68,7 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
             }
         }
 
-        visualization.getName().setSimpleDescription(
+        visualization.getName().setOverview(
                 new SingleLocalizableMessage("PasswordDescriptionHandler.password", new Object[] {
                         new SingleLocalizableMessage("PasswordDescriptionHandler.changeType." + change.name())
                 })

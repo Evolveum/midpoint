@@ -3358,7 +3358,7 @@ public final class WebComponentUtil {
                                             .collect(Collectors.toSet());
                                 }
                                 if (!oids.isEmpty()) {
-                                    @NotNull Item<PrismValue, ItemDefinition> extensionQuery = prepareExtensionValues(oids);
+                                    @NotNull Item<PrismValue, ItemDefinition<?>> extensionQuery = prepareExtensionValues(oids);
 
                                     MidPointPrincipal principal = pageBase.getPrincipal();
                                     if (principal == null) {
@@ -3415,7 +3415,7 @@ public final class WebComponentUtil {
                  */
 
                 @NotNull
-                private Item<PrismValue, ItemDefinition> prepareExtensionValues(Collection<String> oids) throws SchemaException {
+                private Item<PrismValue, ItemDefinition<?>> prepareExtensionValues(Collection<String> oids) throws SchemaException {
                     PrismContext prismContext = pageBase.getPrismContext();
                     ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
                             .id(oids.toArray(new String[0]))
@@ -3423,13 +3423,13 @@ public final class WebComponentUtil {
                     QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);
                     PrismContainerDefinition<?> extDef = PrismContext.get().getSchemaRegistry()
                             .findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
-                    ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef != null
+                    ItemDefinition<Item<PrismValue, ItemDefinition<?>>> def = extDef != null
                             ? extDef.findItemDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY)
                             : null;
                     if (def == null) {
                         throw new SchemaException("No definition of " + SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY + " in the extension");
                     }
-                    Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+                    Item<PrismValue, ItemDefinition<?>> extensionItem = def.instantiate();
                     extensionItem.add(prismContext.itemFactory().createValue(queryBean));
                     return extensionItem;
                 }
@@ -4767,27 +4767,27 @@ public final class WebComponentUtil {
             OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<VisualizationDto> changes = new ArrayList<>();
         if (!changesByState.getApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-success", changesByState.getApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-outline-left-success", changesByState.getApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getBeingApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-info", changesByState.getBeingApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-outline-left-info", changesByState.getBeingApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-warning",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-outline-left-warning",
                     changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-primary",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-outline-left-primary",
                     changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getRejected().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-danger", changesByState.getRejected(),
+            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-outline-left-danger", changesByState.getRejected(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getCanceled().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-danger", changesByState.getCanceled(),
+            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-outline-left-danger", changesByState.getCanceled(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         return changes;

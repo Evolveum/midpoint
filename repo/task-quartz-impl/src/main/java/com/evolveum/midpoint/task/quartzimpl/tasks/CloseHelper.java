@@ -81,7 +81,7 @@ class CloseHelper {
         task.setCompletionTimestamp(System.currentTimeMillis());
         Duration cleanupAfterCompletion = task.getCleanupAfterCompletion();
         if (cleanupAfterCompletion != null) {
-            TriggerType trigger = new TriggerType(prismContext)
+            TriggerType trigger = new TriggerType()
                     .timestamp(XmlTypeConverter.fromNow(cleanupAfterCompletion))
                     .handlerUri(SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI);
             task.addTrigger(trigger); // we just ignore any other triggers (they will do nothing if launched too early)

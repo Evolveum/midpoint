@@ -23,7 +23,6 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.cases.api.AuditingConstants;
-import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.audit.AuditChangesPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
@@ -99,8 +99,6 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
-//    private static final String ID_HISTORY_PANEL = "historyPanel";
-
     private static final String ID_BUTTON_BACK = "back";
 
     private static final String DOT_CLASS = PageAuditLogDetails.class.getSimpleName() + ".";
@@ -223,13 +221,14 @@ public class PageAuditLogDetails extends PageBase {
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_PARAMETER, new PropertyModel<>(recordModel, ID_PARAMETERS_PARAMETER)));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_MESSAGE, new PropertyModel<>(recordModel, ID_PARAMETERS_MESSAGE)));
 
-        ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<>(
-                ID_ADDITIONAL_ITEM_LINE, createAdditionalItemsListModel()) {
+        ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<>(ID_ADDITIONAL_ITEM_LINE, createAdditionalItemsListModel()) {
 
             @Override
             protected void populateItem(ListItem<AuditEventRecordItemValueDto> item) {
-                item.add(new Label(ID_ITEM_NAME, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_NAME)));
-                item.add(new Label(ID_ITEM_VALUE, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_VALUE)));
+                item.add(new Label(ID_ITEM_NAME, () -> item.getModelObject().getName()));
+                item.add(new Label(ID_ITEM_VALUE, () -> item.getModelObject().getValue()));
+
+                item.add(new VisibleBehaviour(() -> item.getModelObject().getValue() != null));
             }
         };
         WebMarkupContainer additionalItemsContainer = new WebMarkupContainer(ID_ADDITIONAL_ITEMS);
@@ -407,13 +406,14 @@ public class PageAuditLogDetails extends PageBase {
 
             @Override
             protected void populateItem(ListItem<ObjectDeltaOperationType> item) {
-                ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(ID_DELTA_PANEL, item.getModel(), PageAuditLogDetails.this) {
-                    @Override
-                    public boolean getIncludeOriginalObject() {
-                        return false;
-                    }
-                };
-                deltaPanel.setOutputMarkupId(true);
+//                ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(ID_DELTA_PANEL, item.getModel(), PageAuditLogDetails.this) {
+//                    @Override
+//                    public boolean getIncludeOriginalObject() {
+//                        return false;
+//                    }
+//                };
+//                deltaPanel.setOutputMarkupId(true);
+                AuditChangesPanel deltaPanel = new AuditChangesPanel(ID_DELTA_PANEL, item.getModel(), PageAuditLogDetails.this);
                 item.add(deltaPanel);
             }
         };

@@ -485,7 +485,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         ActivityStateType state = getActivityStateRequired(activityPath);
         return requireNonNullElseGet(
                 state.getStatistics(),
-                () -> new ActivityStatisticsType(getPrismContext()));
+                () -> new ActivityStatisticsType());
     }
 
     /**

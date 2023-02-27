@@ -40,13 +40,25 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestSynchronization extends AbstractIntegrationTest {
+
+    protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
+            "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+
+
+    protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
+            "initial-objects/mark", "800-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED.value());
 
     private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 
@@ -87,6 +99,10 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         //it is needed to declare the task owner, so we add the user admin to the reposiotry
         repoAddObjectFromFile(ProvisioningTestUtil.USER_ADMIN_FILE, initResult);
+        if(areMarksSupported()) {
+            repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(MARK_PROTECTED_SHADOW, initResult);
+        }
     }
 
     @Test

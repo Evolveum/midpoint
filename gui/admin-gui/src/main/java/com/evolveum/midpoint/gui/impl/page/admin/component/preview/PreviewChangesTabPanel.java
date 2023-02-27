@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,7 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
-import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
@@ -148,7 +150,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 int size = visualizations.size();
                 String key = size != 1 ? moreKey : oneKey;
 
-                return new VisualizationDto(new WrapperVisualization(visualizations, key, size));
+                return new VisualizationDto(new WrapperVisualization(new SingleLocalizableMessage(key, new Object[] { size }), visualizations));
             }
         };
     }

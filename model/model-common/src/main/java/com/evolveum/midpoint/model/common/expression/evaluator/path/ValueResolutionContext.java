@@ -46,7 +46,7 @@ class ValueResolutionContext extends ResolutionContext {
     @Override
     ResolutionContext stepInto(ItemName step, DefinitionResolver<?, ?> defResolver) throws SchemaException {
         assert isContainer();
-        Item<PrismValue, ItemDefinition> item = ((PrismContainerValue<?>) value).findItem(step);
+        Item<?, ?> item = ((PrismContainerValue<?>) value).findItem(step);
         if (item != null) {
             if (item.size() > 1) {
                 throw new SchemaException("Cannot resolve " + step + " in " + item +

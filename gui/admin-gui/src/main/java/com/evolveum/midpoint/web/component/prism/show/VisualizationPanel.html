@@ -10,10 +10,8 @@
 <wicket:panel>
     <div class="card-header" wicket:id="headerPanel">
         <h3 class="card-title">
-            <wicket:enclosure child="simpleDescription">
-                <i wicket:id="simpleIcon"/>
-                <span wicket:id="simpleDescription"/>
-            </wicket:enclosure>
+            <i wicket:id="icon"/>
+            <span wicket:id="overview"/>
             <wicket:container wicket:id="fullDescription">
                 <span wicket:id="wrapperDisplayName"/>
                 <span wicket:id="changeType"/>
@@ -32,7 +30,7 @@
     </div>
 
     <div wicket:id="body" class="card-body p-0">
-        <div class="m-3" wicket:id="visualization"/>
+        <div wicket:id="visualization"/>
     </div>
 </wicket:panel>
 </html>

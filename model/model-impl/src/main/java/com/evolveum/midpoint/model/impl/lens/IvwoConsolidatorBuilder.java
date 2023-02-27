@@ -18,7 +18,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
-public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V, D>> {
+public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemDefinition<?>, I extends ItemValueWithOrigin<V, D>> {
 
     ItemPath itemPath;
     DeltaSetTriple<I> ivwoTriple;

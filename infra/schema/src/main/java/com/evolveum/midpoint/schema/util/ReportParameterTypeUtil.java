@@ -32,25 +32,25 @@ public class ReportParameterTypeUtil {
         return parameters;
     }
 
-    public static ReportParameterType createParameters(List<String> names, List<Object> realValues) throws SchemaException {
-        ReportParameterType parameters = new ReportParameterType();
+    public static void addParameters(ReportParameterType parameters, List<String> names, List<Object> realValues)
+            throws SchemaException {
         argCheck(
                 names.size() == realValues.size(),
                 "Parameter names and values do not match: %s vs %s", names, realValues);
         for (int i = 0; i < names.size(); i++) {
             addParameter(parameters, names.get(i), realValues.get(i));
         }
-        return parameters;
     }
 
-    private static void addParameter(
-            @NotNull ReportParameterType parameters, @NotNull String paramName, @Nullable Object realValue)
+    public static void addParameter(
+            @NotNull ReportParameterType parameters, @NotNull String paramName, Object... realValues)
             throws SchemaException {
-        if (realValue == null) {
+        if (realValues.length == 0) {
             return;
         }
 
-        QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClass(realValue.getClass());
+        Object firstValue = realValues[0];
+        QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClass(firstValue.getClass());
         MutablePrismPropertyDefinition<Object> paramPropDef =
                 PrismContext.get().definitionFactory().createPropertyDefinition(
                         new QName(SchemaConstants.NS_REPORT_EXTENSION, paramName), typeName);
@@ -59,7 +59,7 @@ public class ReportParameterTypeUtil {
         paramPropDef.toMutable().setMaxOccurs(1);
 
         PrismProperty<Object> paramProperty = paramPropDef.instantiate();
-        paramProperty.addRealValue(realValue);
+        paramProperty.addRealValues(realValues);
         //noinspection unchecked
         ((PrismContainerValue<ReportParameterType>) parameters.asPrismContainerValue()).add(paramProperty);
     }

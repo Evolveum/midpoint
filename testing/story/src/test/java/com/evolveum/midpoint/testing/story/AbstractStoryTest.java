@@ -19,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -102,6 +103,11 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
         modelService.postInit(initResult);
 
         repoAdd(ARCHETYPE_CORRELATION_CASE, initResult);
+
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
 
         // User administrator
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);

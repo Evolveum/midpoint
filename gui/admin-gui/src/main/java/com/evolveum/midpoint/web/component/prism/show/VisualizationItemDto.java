@@ -16,6 +16,7 @@ import java.util.List;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
@@ -44,10 +45,12 @@ public class VisualizationItemDto implements Serializable {
         Name n = visualizationItem.getName();
         if (n == null) {
             return "";
-        } else if (n.getDisplayName() != null) {
-            return n.getDisplayName();
+        }
+
+        if (n.getDisplayName() != null) {
+            return LocalizationUtil.translateMessage(n.getDisplayName());
         } else {
-            return n.getSimpleName();
+            return LocalizationUtil.translateMessage(n.getSimpleName());
         }
     }
 

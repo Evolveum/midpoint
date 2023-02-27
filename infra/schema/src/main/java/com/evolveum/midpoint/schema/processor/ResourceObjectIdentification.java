@@ -175,7 +175,7 @@ public class ResourceObjectIdentification implements Serializable {
 
     @NotNull
     public ResourceObjectIdentityType asBean() throws SchemaException {
-        ResourceObjectIdentityType bean = new ResourceObjectIdentityType(PrismContext.get());
+        ResourceObjectIdentityType bean = new ResourceObjectIdentityType();
         if (resourceObjectDefinition != null) {
             bean.setObjectClass(resourceObjectDefinition.getTypeName());
         }
@@ -189,7 +189,7 @@ public class ResourceObjectIdentification implements Serializable {
         if (identifiers.isEmpty()) {
             return null;
         }
-        ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType(PrismContext.get());
+        ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType();
         for (ResourceAttribute<?> identifier : identifiers) {
             //noinspection unchecked
             identifiersBean.asPrismContainerValue().add(identifier.clone());

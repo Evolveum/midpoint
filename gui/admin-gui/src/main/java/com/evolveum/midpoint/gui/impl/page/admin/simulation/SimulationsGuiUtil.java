@@ -7,15 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.Arrays;
-import javax.xml.namespace.QName;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -27,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -38,6 +30,15 @@ import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.Arrays;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -147,7 +148,7 @@ public class SimulationsGuiUtil {
         }
 
         final WrapperVisualization wrapper =
-                new WrapperVisualization(Arrays.asList(visualization), "PageSimulationResultObject.changes");
+                new WrapperVisualization(new SingleLocalizableMessage("PageSimulationResultObject.changes"), Arrays.asList(visualization));
 
         return new VisualizationDto(wrapper);
     }

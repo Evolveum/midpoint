@@ -14,8 +14,12 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMap
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

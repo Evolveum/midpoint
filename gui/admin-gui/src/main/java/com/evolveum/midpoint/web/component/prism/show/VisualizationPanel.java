@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,10 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.VisualizationGuiUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -46,11 +47,12 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String ID_ICON = "icon";
+    public static final String ID_OVERVIEW = "overview";
     public static final String ID_MINIMIZE = "minimize";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
-    private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME_LINK = "nameLink";
     private static final String ID_CHANGE_TYPE = "changeType";
     private static final String ID_OBJECT_TYPE = "objectType";
@@ -63,7 +65,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible = false;
 
-    private IModel<String> simpleDescriptionModel;
+    private IModel<String> overviewModel;
 
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false, true);
@@ -83,19 +85,19 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initModels();
         initLayout();
 
-        if (!advanced && simpleDescriptionModel.getObject() != null) {
+        if (!advanced && overviewModel.getObject() != null) {
             getModelObject().setMinimized(true);
         }
     }
 
     private void initModels() {
-        simpleDescriptionModel = () -> {
+        overviewModel = () -> {
             Visualization visualization = getModelObject().getVisualization();
             if (visualization == null || visualization.getName() == null) {
                 return null;
             }
 
-            LocalizableMessage msg = visualization.getName().getSimpleDescription();
+            LocalizableMessage msg = visualization.getName().getOverview();
             String translated = msg != null ? LocalizationUtil.translateMessage(msg) : null;
             if (translated == null) {
                 return null;
@@ -123,7 +125,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             ChangeType change = dto.getChangeType();
 
-            return change != null ? VisualizationGuiUtil.createChangeTypeCssClassForOutlineCard(change) : null;
+            return change != null ? VisualizationUtil.createChangeTypeCssClassForOutlineCard(change) : null;
         }));
 
         final VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
@@ -140,44 +142,48 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         });
         add(headerPanel);
 
-        IModel<String> simpleIconModel = () -> {
+        IModel<String> iconModel = () -> {
             Visualization visualization = getModelObject().getVisualization();
-            if (visualization == null || visualization.getName() == null) {
+            if (visualization == null || visualization.getSourceValue() == null) {
                 return null;
             }
-            return visualization.getName().getSimpleIcon();
-        };
-        IconComponent simpleIcon = new IconComponent("simpleIcon", simpleIconModel);
-        simpleIcon.add(new VisibleBehaviour(() -> simpleIconModel.getObject() != null));
-        headerPanel.add(simpleIcon);
 
-        final Label simpleDescription = new Label("simpleDescription", simpleDescriptionModel);
-        simpleDescription.setEscapeModelStrings(false);
-        simpleDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() != null));
-        headerPanel.add(simpleDescription);
+            PrismContainerValue value = visualization.getSourceValue();
+            QName type = value.getTypeName();
+            String icon = WebComponentUtil.createDefaultBlackIcon(type);
+
+            return StringUtils.isNotEmpty(icon) ? "mr-1 " + icon : null;
+        };
+
+        IconComponent icon = new IconComponent(ID_ICON, iconModel);
+        icon.add(new VisibleBehaviour(() -> iconModel.getObject() != null));
+        headerPanel.add(icon);
+
+        final Label overview = new Label(ID_OVERVIEW, overviewModel);
+        overview.setEscapeModelStrings(false);
+        overview.add(new VisibleBehaviour(() -> overviewModel.getObject() != null));
+        headerPanel.add(overview);
 
         WebMarkupContainer fullDescription = new WebMarkupContainer("fullDescription");
-        fullDescription.add(new VisibleBehaviour(() -> simpleDescriptionModel.getObject() == null));
+        fullDescription.add(new VisibleBehaviour(() -> overviewModel.getObject() == null));
         headerPanel.add(fullDescription);
 
         final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
             WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
-            String key = visualization.getDisplayNameKey();
-            Object[] parameters = visualization.getDisplayNameParameters();
-            return LocalizationUtil.translate(key, parameters);
+            return LocalizationUtil.translateMessage(visualization.getName().getDisplayName());
         });
         wrapperDisplayName.add(visibleIfWrapper);
         fullDescription.add(wrapperDisplayName);
 
-        final Label changeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel());
+        final Label changeType = new Label(ID_CHANGE_TYPE, new ChangeTypeModel(getModel()));
         changeType.add(visibleIfNotWrapper);
         fullDescription.add(changeType);
 
-        final Label objectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel());
+        final Label objectType = new Label(ID_OBJECT_TYPE, new ObjectTypeModel(getModel()));
         objectType.add(visibleIfNotWrapper);
         fullDescription.add(objectType);
 
-        final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName(this)) {
+        final AjaxButton nameLink = new AjaxButton(ID_NAME_LINK, () -> getModelObject().getName()) {
 
             @Override
             protected void disableLink(ComponentTag tag) {
@@ -205,7 +211,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         nameLink.add(new VisibleEnableBehaviour(() -> !getModelObject().isWrapper(), () -> isExistingViewableObject() && isAutorized()));
         fullDescription.add(nameLink);
 
-        final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription(VisualizationPanel.this));
+        final Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(visibleIfNotWrapper);
         fullDescription.add(description);
 
@@ -241,7 +247,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         add(body);
 
         final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
-        visualization.setRenderBodyOnly(true);
         body.add(visualization);
     }
 
@@ -265,35 +270,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         target.add(this);
     }
 
-    private class ChangeTypeModel implements IModel<String> {
-
-        @Override
-        public String getObject() {
-            ChangeType changeType = getModel().getObject().getVisualization().getChangeType();
-            if (changeType == null) {
-                return "";
-            }
-            return WebComponentUtil.createLocalizedModelForEnum(changeType, VisualizationPanel.this).getObject();
-        }
-    }
-
-    private class ObjectTypeModel implements IModel<String> {
-
-        @Override
-        public String getObject() {
-            Visualization visualization = getModel().getObject().getVisualization();
-            PrismContainerDefinition<?> def = visualization.getSourceDefinition();
-            if (def == null) {
-                return "";
-            }
-            if (def instanceof PrismObjectDefinition) {
-                return PageBase.createStringResourceStatic(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + def.getTypeName().getLocalPart()).getObject();
-            } else {
-                return "";
-            }
-        }
-    }
-
     private void setOperationalItemsVisible(boolean operationalItemsVisible) {
         this.operationalItemsVisible = operationalItemsVisible;
     }
@@ -312,5 +288,43 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         Class<? extends ObjectType> clazz = ((PrismObject<? extends ObjectType>) value.getParent()).getCompileTimeClass();
 
         return WebComponentUtil.isAuthorized(clazz);
+    }
+
+    private static class ChangeTypeModel implements IModel<String> {
+
+        private IModel<VisualizationDto> visualization;
+
+        public ChangeTypeModel(@NotNull IModel<VisualizationDto> visualization) {
+            this.visualization = visualization;
+        }
+
+        @Override
+        public String getObject() {
+            ChangeType changeType = visualization.getObject().getVisualization().getChangeType();
+            if (changeType == null) {
+                return null;
+            }
+
+            return LocalizationUtil.translate(WebComponentUtil.createEnumResourceKey(changeType));
+        }
+    }
+
+    private static class ObjectTypeModel implements IModel<String> {
+
+        private IModel<VisualizationDto> visualization;
+
+        public ObjectTypeModel(@NotNull IModel<VisualizationDto> visualization) {
+            this.visualization = visualization;
+        }
+
+        @Override
+        public String getObject() {
+            PrismContainerDefinition<?> def = visualization.getObject().getVisualization().getSourceDefinition();
+            if (!(def instanceof PrismObjectDefinition)) {
+                return null;
+            }
+
+            return LocalizationUtil.translate(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + def.getTypeName().getLocalPart());
+        }
     }
 }

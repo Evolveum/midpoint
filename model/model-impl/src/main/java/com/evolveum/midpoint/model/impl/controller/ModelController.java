@@ -17,6 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -2529,5 +2532,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type) {
         return cacheRepositoryService.supports(type);
+    }
+
+    @Override
+    public <O extends ObjectType> ProcessedObjectImpl<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean)
+            throws SchemaException {
+        //noinspection unchecked
+        PrismContainerValue<SimulationResultProcessedObjectType> pcv = bean.asPrismContainerValue();
+        Object existing = pcv.getUserData(ProcessedObjectImpl.KEY_PARSED);
+        if (existing != null) {
+            //noinspection unchecked
+            return (ProcessedObjectImpl<O>) existing;
+        }
+
+        ProcessedObjectImpl<O> parsed = ProcessedObjectImpl.parse(bean);
+        pcv.setUserData(ProcessedObjectImpl.KEY_PARSED, parsed);
+        return parsed;
     }
 }

@@ -17,6 +17,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -209,12 +211,15 @@ class ColumnDataConverter<C> {
                 .collect(Collectors.toList());
     }
 
+    // TODO clean up this mess, and integrate with ValueDisplayUtil / PrettyPrinter / notification text formatter etc
     private String prettyPrintValue(PrismValue value) {
         if (value instanceof PrismPropertyValue) {
             Object realValue = ((PrismPropertyValue<?>) value).getRealValue();
             if (realValue == null) {
                 return "";
             }
+            // TODO why do we load the whole lookup table here, and not only the requested row (by key)?
+            //  Also, we probably could implement some caching for small lookup tables, couldn't we?
             PrismObject<LookupTableType> lookupTable = null;
             try {
                 lookupTable = loadLookupTable((PrismPropertyValue<?>) value);
@@ -255,19 +260,78 @@ class ColumnDataConverter<C> {
         } else if (value instanceof PrismReferenceValue) {
             return getObjectNameFromRef(value.getRealValue());
         }
-        if (value instanceof ObjectType) {
-            return ReportUtils.prettyPrintForReport((ObjectType) value, reportService.getLocalizationService());
-        } else {
-            return ReportUtils.prettyPrintForReport(value);
+
+        if (value instanceof PrismObjectValue<?>) {
+            Objectable realValue = ((PrismObjectValue<?>) value).asObjectable();
+            if (realValue instanceof ObjectType) {
+                return ReportUtils.prettyPrintForReport((ObjectType) realValue, reportService.getLocalizationService());
+            }
         }
+
+        if (value instanceof PrismContainerValue<?>) {
+            PrismContainerValue<?> pcv = ((PrismContainerValue<?>) value);
+            if (pcv.getCompileTimeClass() != null) {
+                Object realValue = pcv.getRealValue();
+                if (realValue instanceof AssignmentType) {
+                    return prettyPrintValue((AssignmentType) realValue);
+                }
+            }
+        }
+
+        return ReportUtils.prettyPrintForReport(value);
+    }
+
+    private String prettyPrintValue(@NotNull AssignmentType assignment) {
+        List<String> segments = new ArrayList<>();
+        segments.add("->");
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef != null) {
+            segments.add(getObjectNameFromRef(targetRef));
+        }
+        ConstructionType construction = assignment.getConstruction();
+        if (construction != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getObjectNameFromRef(construction.getResourceRef()));
+            sb.append(":");
+            sb.append(
+                    ReportUtils.prettyPrintForReport(
+                            Objects.requireNonNullElse(construction.getKind(), ShadowKindType.ACCOUNT)));
+            String intent = construction.getIntent();
+            if (intent != null) {
+                sb.append("/");
+                sb.append(intent);
+            }
+            segments.add(sb.toString());
+        }
+        ActivationType activation = assignment.getActivation();
+        if (activation != null) {
+            XMLGregorianCalendar from = activation.getValidFrom();
+            XMLGregorianCalendar to = activation.getValidTo();
+            ActivationStatusType status = activation.getAdministrativeStatus();
+            if (from != null || to != null) {
+                segments.add(
+                        ReportUtils.prettyPrintForReport(from) + "->" + ReportUtils.prettyPrintForReport(to));
+            }
+            if (status != null) {
+                segments.add(ReportUtils.prettyPrintForReport(status));
+            }
+        }
+        Long id = assignment.getId();
+        if (id != null) {
+            segments.add("[" + id + "]");
+        }
+        // TODO other parts of the assignment?
+        return String.join(" ", segments);
     }
 
     private String getObjectNameFromRef(Referencable ref) {
         if (ref == null) {
             return "";
         }
-        if (ref.getTargetName() != null && ref.getTargetName().getOrig() != null) {
-            return ref.getTargetName().getOrig();
+
+        PolyStringType targetName = ref.getTargetName();
+        if (targetName != null && targetName.getOrig() != null) {
+            return targetName.getOrig();
         }
         PrismObject<?> object = reportService.getObjectFromReference(ref, task, result);
 
@@ -329,8 +393,8 @@ class ColumnDataConverter<C> {
                         .asc(LookupTableRowType.F_LABEL)
                         .end()
                         .build();
-        return reportService.getRepositoryService().getObject(LookupTableType.class,
-                lookupTableOid, options, result);
+        return reportService.getRepositoryService().getObject(
+                LookupTableType.class, lookupTableOid, options, result);
     }
 
     private String getValueEnumerationRefOid(PrismPropertyValue<?> value) {

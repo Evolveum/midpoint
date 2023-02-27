@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.createPa
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +53,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW, initResult);
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_PARAM, initResult);
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, initResult);
-        repoAdd(REPORT_SUBREPORT_AS_ROW_USERS, initResult);
+        REPORT_ASSIGNMENTS_LEFT_JOIN.init(this, initTask, initResult);
+        REPORT_ASSIGNMENTS_INNER_JOIN.init(this, initTask, initResult);
         repoAdd(REPORT_SUBREPORT_AUDIT, initResult);
         repoAdd(REPORT_USER_LIST, initResult);
         repoAdd(REPORT_USER_LIST_SCRIPT, initResult);
@@ -182,13 +184,24 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test130ExportUsersWithAssignments() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         UserType user = new UserType()
                 .name("moreassignments")
                 .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_END_USER.value(), RoleType.COMPLEX_TYPE))
                 .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_APPROVER.value(), RoleType.COMPLEX_TYPE));
         addObject(user.asPrismObject(), getTestTask(), getTestTask().getResult());
 
-        testClassicExport(REPORT_SUBREPORT_AS_ROW_USERS, 56, 3, null);
+        List<String> linesLeft = REPORT_ASSIGNMENTS_LEFT_JOIN.export().execute(result);
+        assertCsv(linesLeft, "left join")
+                .assertRecords(55)
+                .assertColumns(3);
+
+        List<String> linesInner = REPORT_ASSIGNMENTS_INNER_JOIN.export().execute(result);
+        assertCsv(linesInner, "inner join")
+                .assertRecords(4)
+                .assertColumns(3);
     }
 
     @Test

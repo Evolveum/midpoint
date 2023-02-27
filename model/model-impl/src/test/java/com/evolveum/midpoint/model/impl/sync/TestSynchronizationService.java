@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -68,6 +69,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
     private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
 
+
+    private static final File ACCOUNT_SHADOW_MANCOMB_DUMMY_FILE = new File(TEST_DIR, "account-shadow-mancomb-dummy.xml");
+    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    private static final File SHADOW_MARK_CUSTOM_PROTECTED_ACCOUNT_DUMMY_FILE = new File(TEST_DIR, "shadow-mark-custom-protected-account.xml");
+
+
     private static final String INTENT_GROUP = "group";
 
     private static final DummyTestResource RESOURCE_DUMMY_BROKEN =
@@ -83,8 +90,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private String accountShadowJackDummyOid = null;
     private String accountShadowJackDummyLimitedOid;
     private String accountShadowCalypsoDummyOid = null;
+    private String accountShadowMancombDummyOid = null;
 
     private MockLensDebugListener mockListener;
+
+
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

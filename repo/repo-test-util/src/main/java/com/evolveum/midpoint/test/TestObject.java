@@ -200,6 +200,10 @@ public class TestObject<T extends ObjectType> {
         return source + " (" + oid + ")";
     }
 
+    public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        importObject(task, result);
+    }
+
     public interface TestObjectSource {
         @NotNull InputStream getInputStream() throws IOException;
     }
