@@ -7,7 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.simulation;
 
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -26,13 +32,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Computes metrics for (individual) processed object.
  *
@@ -46,14 +45,14 @@ class ObjectMetricsComputation<O extends ObjectType> {
 
     @NotNull private final ModelCommonBeans beans = ModelCommonBeans.get();
 
-    @NotNull private final ProcessedObject<O> processedObject;
+    @NotNull private final ProcessedObjectImpl<O> processedObject;
     @NotNull private final LensElementContext<O> elementContext;
     @NotNull private final SimulationResultImpl simulationResult;
     @NotNull private final Collection<SimulationMetricDefinitionType> metricDefinitions;
     @NotNull private final Task task;
 
     private ObjectMetricsComputation(
-            @NotNull ProcessedObject<O> processedObject,
+            @NotNull ProcessedObjectImpl<O> processedObject,
             @NotNull LensElementContext<O> elementContext,
             @NotNull SimulationResultImpl simulationResult,
             @NotNull Collection<SimulationMetricDefinitionType> metricDefinitions,
@@ -66,7 +65,7 @@ class ObjectMetricsComputation<O extends ObjectType> {
     }
 
     static <O extends ObjectType> List<SimulationProcessedObjectMetricValueType> computeAll(
-            ProcessedObject<O> processedObject,
+            ProcessedObjectImpl<O> processedObject,
             LensElementContext<O> elementContext,
             SimulationResultImpl simulationResult,
             Collection<SimulationMetricDefinitionType> metricDefinitions,
