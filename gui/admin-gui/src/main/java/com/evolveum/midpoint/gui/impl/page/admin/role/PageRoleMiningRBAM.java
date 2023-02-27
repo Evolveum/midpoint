@@ -11,7 +11,6 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
 import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.rbam.UA;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.JaccardSortingMethod;
 import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RBAMAlgorithm;
 import com.evolveum.midpoint.gui.api.component.mining.structure.UPStructure;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -108,7 +107,6 @@ public class PageRoleMiningRBAM extends PageAdmin {
         super.onInitialize();
 
         networkGraphSection();
-        jaccardSection();
 
         List<PrismObject<RoleType>> roles;
         List<PrismObject<UserType>> users;
@@ -270,24 +268,6 @@ public class PageRoleMiningRBAM extends PageAdmin {
         graphForm.add(costModelBasic);
     }
 
-    public void jaccardSection() {
-        Form<?> jaccardForm = new Form<>("jaccard_form");
-        jaccardForm.setOutputMarkupId(true);
-
-        AjaxButton jaccardButton = new AjaxButton(
-                "run_process_jaccard", Model.of("Test")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                JaccardSortingMethod jaccardSortingMethod = new JaccardSortingMethod(getPageBase());
-
-                jaccardSortingMethod.sortDescending();
-            }
-        };
-        jaccardButton.setOutputMarkupId(true);
-        jaccardForm.add(jaccardButton);
-        add(jaccardForm);
-
-    }
 
     public BoxedTablePanel<UA> generateTableRBAM(
             List<UA> uaList) {
