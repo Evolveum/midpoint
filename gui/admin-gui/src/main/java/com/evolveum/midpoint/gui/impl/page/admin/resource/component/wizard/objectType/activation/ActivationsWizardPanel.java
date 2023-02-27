@@ -123,13 +123,13 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformed(target);
-                    return;
-                }
+//                if (!isSavedAfterWizard()) {
+//                    onExitPerformed(target);
+//                    return;
+//                }
                 OperationResult result = ActivationsWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
-                    WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
+//                    WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
             }

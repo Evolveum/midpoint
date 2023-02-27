@@ -23,12 +23,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "roleWizard-construction-mapping")
 @PanelInstance(identifier = "roleWizard-construction-mapping",
-        applicableForType = RoleType.class,
+        applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-arrow-right-from-bracket"),
         containerPath = "empty")
-public class ConstructionOutboundMappingsStepPanel
-        extends AbstractWizardStepPanel<FocusDetailsModels<RoleType>> {
+public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
+        extends AbstractWizardStepPanel<FocusDetailsModels<AR>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionOutboundMappingsStepPanel.class);
 
@@ -37,7 +37,7 @@ public class ConstructionOutboundMappingsStepPanel
     protected static final String ID_PANEL = "panel";
     private final IModel<PrismContainerValueWrapper<ConstructionType>> constructionModel;
 
-    public ConstructionOutboundMappingsStepPanel(FocusDetailsModels<RoleType> model,
+    public ConstructionOutboundMappingsStepPanel(FocusDetailsModels<AR> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(model);
         this.constructionModel = createValueModel(assignmentModel);

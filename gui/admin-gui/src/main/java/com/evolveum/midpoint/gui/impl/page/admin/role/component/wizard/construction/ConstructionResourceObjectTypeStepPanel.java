@@ -40,11 +40,11 @@ import java.util.Optional;
 
 @PanelType(name = "roleWizard-construction-objectType")
 @PanelInstance(identifier = "roleWizard-construction-objectType",
-        applicableForType = RoleType.class,
+        applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.objectType", icon = "fa fa-database"),
         containerPath = "empty")
-public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepPanel<FocusDetailsModels<RoleType>> {
+public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType> extends AbstractWizardStepPanel<FocusDetailsModels<AR>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceObjectTypeStepPanel.class);
 
@@ -58,7 +58,7 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
     private IModel<List<Tile<ResourceObjectTypeWrapper>>> tilesModel;
 
     public ConstructionResourceObjectTypeStepPanel(
-            FocusDetailsModels<RoleType> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
+            FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         super(model);
         this.valueModel = new LoadableDetachableModel<>() {
             @Override

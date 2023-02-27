@@ -91,19 +91,19 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                if (isSavedAfterDetailsWizard()) {
+//                if (isSavedAfterDetailsWizard()) {
                     OperationResult result = onSavePerformed(target);
                     if (result != null && !result.isError()) {
-                        WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
+//                        WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
 
                         getHelper().setValueModel(refreshValueModel(ResourceObjectTypeWizardPanel.this.getValueModel()));
                         showObjectTypePreviewFragment(ResourceObjectTypeWizardPanel.this.getValueModel(), target);
                     } else {
                         target.add(getFeedback());
                     }
-                } else {
-                    showObjectTypePreviewFragment(ResourceObjectTypeWizardPanel.this.getValueModel(), target);
-                }
+//                } else {
+//                    showObjectTypePreviewFragment(ResourceObjectTypeWizardPanel.this.getValueModel(), target);
+//                }
             }
 
             @Override

@@ -35,13 +35,13 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
     }
 
     protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-        if (!isSavedAfterWizard()) {
-            onExitPerformedAfterValidate(target);
-            return;
-        }
+//        if (!isSavedAfterWizard()) {
+//            onExitPerformedAfterValidate(target);
+//            return;
+//        }
         OperationResult result = superHelper.onSaveObjectPerformed(target);
         if (result != null && !result.isError()) {
-            WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
+//            WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
             onExitPerformedAfterValidate(target);
         } else {
             target.add(getFeedback());

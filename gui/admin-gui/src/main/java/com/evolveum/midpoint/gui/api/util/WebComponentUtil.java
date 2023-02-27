@@ -615,6 +615,11 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
+    public static <T extends ObjectType> QName classToQName(Class<T> clazz) {
+        return PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
@@ -5555,6 +5560,14 @@ public final class WebComponentUtil {
 
         String skin = info.getSkin();
         return AdminLTESkin.create(skin);
+    }
+
+    public static void createToastForUpdateObject(AjaxRequestTarget target, Class<? extends ObjectType> type) {
+        createToastForObject("AbstractWizardPanel.updateObject", classToQName(type), target);
+    }
+
+    public static void createToastForCreateObject(AjaxRequestTarget target, Class<? extends ObjectType> type) {
+        createToastForObject("AbstractWizardPanel.createObject", classToQName(type), target);
     }
 
     public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {

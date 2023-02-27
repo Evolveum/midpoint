@@ -9,9 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -22,7 +22,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -76,7 +75,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ODM objectDetailsModels;
     private final boolean isAdd;
-    private boolean isAddedByWizard = false;
+    private boolean isShowedByWizard = false;
+    private List<ObjectDelta<O>> savedDeltas = new ArrayList<>();
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -206,7 +206,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         OperationResult result = new OperationResult(OPERATION_SAVE);
 
         try {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = objectDetailsModels.collectDeltas(result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = collectDeltas(result);
 
             return !deltas.isEmpty();
         } catch (Throwable ex) {
@@ -240,7 +240,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
-            deltas = objectDetailsModels.collectDeltas(result);
+            deltas = collectDeltas(result);
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
@@ -253,13 +253,65 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        if (isWizardNotUsedForCreating()) {
+        if (isNotShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
             reloadObject(result, executedDeltas, target);
         }
 
         return executedDeltas;
+    }
+
+    private Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+        Collection<ObjectDelta<? extends ObjectType>> actualDeltas = objectDetailsModels.collectDeltas(result);
+        if (savedDeltas.isEmpty()) {
+            return actualDeltas;
+        }
+
+        ArrayList<ObjectDelta<? extends ObjectType>> localSavedDeltas = new ArrayList<>();
+
+        mergeDeltas(actualDeltas, localSavedDeltas);
+        return actualDeltas;
+    }
+
+    protected void saveDeltas() {
+        try {
+            OperationResult result = new OperationResult("collect deltas");
+            Collection<ObjectDelta<? extends ObjectType>> actualDeltas = objectDetailsModels.collectDeltas(result);
+            List<ObjectDelta<? extends ObjectType>> newSavedDeltas = new ArrayList<>();
+            mergeDeltas(actualDeltas, newSavedDeltas);
+            savedDeltas.clear();
+            savedDeltas.addAll((Collection<? extends ObjectDelta<O>>) newSavedDeltas);
+
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't collect deltas from " + getModelObjectType());
+        }
+    }
+
+    private void mergeDeltas(
+            Collection<ObjectDelta<? extends ObjectType>> actualDeltas, List<ObjectDelta<? extends ObjectType>> retDeltas) throws SchemaException {
+        for (ObjectDelta<? extends ObjectType> delta : savedDeltas) {
+            Optional<? extends ObjectDelta> match =
+                    actualDeltas.stream()
+                            .filter(actualDelta -> (delta.getOid() == null && actualDelta.getObjectTypeClass().equals(getType()))
+                                    || (actualDelta.getOid() != null && actualDelta.getOid().equals(delta.getOid())))
+                            .findFirst();
+            if (match.isPresent()) {
+                ObjectDelta<? extends ObjectType> newDelta = delta.clone();
+                newDelta.merge(match.get());
+                if (newDelta.getOid() == null) {
+                    newDelta.setOid(match.get().getOid());
+                    newDelta.setChangeType(match.get().getChangeType());
+                }
+                if (!newDelta.isEmpty()) {
+                    retDeltas.add(newDelta);
+                }
+                actualDeltas.remove(match.get());
+            } else {
+                retDeltas.add(delta);
+            }
+        }
+        retDeltas.addAll(actualDeltas);
     }
 
     private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
@@ -275,6 +327,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                             task,
                             task.getResult());
                     if (object != null) {
+                        if (!savedDeltas.isEmpty()) {
+                            savedDeltas.forEach(delta -> {
+                                try {
+                                    delta.applyTo(object);
+                                } catch (SchemaException e) {
+                                    LOGGER.error("Couldn't apply delta " + delta + " to object " + object, e);
+                                }
+                            });
+                        }
                         getObjectDetailsModels().reset();
                         getObjectDetailsModels().reloadPrismObjectModel(object);
                     }
@@ -301,7 +362,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (noChangesToExecute(deltas, options)) {
-            if (isWizardNotUsedForCreating()) {
+            if (isNotShowedByWizard()) {
                 result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
                 showResult(result);
             } else {
@@ -320,7 +381,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
 
         ObjectChangeExecutor changeExecutor;
-        if (isWizardNotUsedForCreating()) {
+        if (isNotShowedByWizard()) {
             changeExecutor = getChangeExecutor();
         } else {
             changeExecutor = getDefaultChangeExecutor();
@@ -334,18 +395,18 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
         if (changeExecutor instanceof ObjectChangesExecutorImpl
-                && (isWizardNotUsedForCreating() || !result.isSuccess())) {
+                && (isNotShowedByWizard() || !result.isSuccess())) {
             showResult(result);
         }
     }
 
-    protected boolean isWizardNotUsedForCreating() {
-        return !isAddedByWizard;
+    protected boolean isNotShowedByWizard() {
+        return !isShowedByWizard;
     }
 
-    protected void setUseWizardForCreating() {
-        getFeedbackPanel().setVisible(false);
-        isAddedByWizard = true;
+    protected void setShowedByWizard(boolean state) {
+        getFeedbackPanel().setVisible(!state);
+        isShowedByWizard = state;
     }
 
     protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
