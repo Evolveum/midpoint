@@ -18171,6 +18171,9 @@
                             <xsd:documentation>
                                 How should we handle the situations when the sub-report produces either multiple values,
                                 or no values at all?
+
+                                BEWARE: This item is currently not supported when previewing reports in GUI. Attempts to
+                                preview reports with this feature may fail.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SubreportParameterType.resultHandling</a:displayName>
