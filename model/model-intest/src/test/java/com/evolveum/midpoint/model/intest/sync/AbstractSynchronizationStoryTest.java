@@ -42,6 +42,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -89,6 +90,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         super.initSystem(initTask, initResult);
 
         repoAdd(USER_TEMPLATE_SYNC, initResult);
+
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
     }

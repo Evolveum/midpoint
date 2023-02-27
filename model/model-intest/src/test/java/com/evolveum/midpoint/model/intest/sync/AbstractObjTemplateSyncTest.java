@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.sync;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,6 +78,11 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
         // templates
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
 

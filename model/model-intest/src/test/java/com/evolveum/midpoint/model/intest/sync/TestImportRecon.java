@@ -49,6 +49,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -222,6 +223,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
+
         reconciliationResultListener = new DebugReconciliationResultListener();
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationResultListener);
 
@@ -305,6 +312,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         return RESOURCE_DUMMY_AZURE_FILE;
     }
 
+    @Override
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
     }
