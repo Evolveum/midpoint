@@ -58,7 +58,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     public @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException {
         List<SimulationDefinitionType> allDefinitions = this.simulationDefinitions;
         if (allDefinitions.size() == 1) {
-            return allDefinitions.get(0); // regardless of whether it's marked as default
+            return allDefinitions.get(0).clone(); // regardless of whether it's marked as default
         }
         List<SimulationDefinitionType> defaultOnes = allDefinitions.stream()
                 .filter(SimulationDefinitionType::isDefault)
@@ -67,7 +67,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             throw new ConfigurationException("More than one default simulation definition present: " +
                     getIdentifiers(defaultOnes));
         } else if (defaultOnes.size() == 1) {
-            return defaultOnes.get(0);
+            return defaultOnes.get(0).clone();
         }
         if (!allDefinitions.isEmpty()) {
             throw new ConfigurationException("Multiple simulation definitions present, none marked as default: " +

@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.test.TestObject;
@@ -98,6 +99,27 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_V_RELATED_ASSIGNMENT_KIND = 19;
     private static final int C_V_RELATED_ASSIGNMENT_INTENT = 20;
 
+    private static final int C_R_OID = 0;
+    private static final int C_R_NAME = 1;
+    private static final int C_R_IDENTIFIER = 2;
+    private static final int C_R_START_TIMESTAMP = 3;
+    private static final int C_R_END_TIMESTAMP = 4;
+    private static final int C_R_TASK = 5;
+    private static final int C_R_PRODUCTION_CONFIGURATION = 6;
+    private static final int C_R_EVENT_MARK = 7;
+    private static final int C_R_CUSTOM_METRIC = 8;
+    private static final int C_R_AGGREGATION_FUNCTION = 9;
+    private static final int C_R_SC_TYPE = 10;
+    private static final int C_R_SC_ARCHETYPE = 11;
+    private static final int C_R_SC_RESOURCE = 12;
+    private static final int C_R_SC_KIND = 13;
+    private static final int C_R_SC_INTENT = 14;
+    private static final int C_R_VALUE = 15;
+    private static final int C_R_SELECTION_SIZE = 16;
+    private static final int C_R_SELECTION_TOTAL_VALUE = 17;
+    private static final int C_R_DOMAIN_SIZE = 18;
+    private static final int C_R_DOMAIN_TOTAL_VALUE = 19;
+
     private List<UserType> existingUsers;
 
     @BeforeMethod
@@ -144,6 +166,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         REPORT_SIMULATION_OBJECTS_WITH_METRICS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
+        REPORT_SIMULATION_RESULTS.init(this, initTask, initResult);
     }
 
     private static void addStandardArchetypeAssignments(UserType u) {
@@ -867,6 +890,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 UserType.F_ASSIGNMENT, dummyAssignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
         when("assignments are modified (simulated)");
+        String simulationId = "test160";
         var simulationResult = executeWithSimulationResult(
                 List.of(deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
@@ -876,6 +900,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
                         .item(pathDummyAssignment)
                         .replace(ActivationStatusType.DISABLED)
                         .asObjectDelta(user.getOid())),
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition().identifier(simulationId),
                 task, result);
         assertSuccess(result);
 
@@ -1064,6 +1090,98 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_VALUE_STATE, "DELETED")
                 .assertValue(C_VALUE, "group: admin")
                 .end();
+
+        when("result-level report is created (default)");
+        var resultsLines = REPORT_SIMULATION_RESULTS.export().execute(result);
+
+        assertCsv(resultsLines, "after")
+                .withNumericColumns(C_ID)
+                .filter(r -> simulationId.equals(r.get(C_R_IDENTIFIER)))
+                .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK)
+                .allRecords(
+                        r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "SELECTION_TOTAL_VALUE"))
+                .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ACTIVATED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "UserType")
+                                .assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ASSIGNMENT_CHANGED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "UserType")
+                                .assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_EVENT_MARK, MARK_PROJECTION_DEACTIVATED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecord(C_R_EVENT_MARK, MARK_PROJECTION_ENTITLEMENT_CHANGED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_CUSTOM_METRIC, "association-values-changed",
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_CUSTOM_METRIC, "attribute-modifications",
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecords(
+                        r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
+                                && "ShadowType".equals(r.get(C_R_SC_TYPE)),
+                        r -> r.assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecords(
+                        r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
+                                && "UserType".equals(r.get(C_R_SC_TYPE)),
+                        r -> r.assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "3")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "3")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "3"))
+                .display();
     }
 
     /** Checks handling of REPLACE deltas. */

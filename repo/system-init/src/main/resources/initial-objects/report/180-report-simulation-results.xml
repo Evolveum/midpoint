@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="00000000-0000-0000-0000-97631b84fde7">
+    <name>Simulation report: Results</name>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+        </collection>
+        <view>
+            <column>
+                <name>oid</name>
+                <path>#</path>
+                <display>
+                    <label>OID</label>
+                </display>
+                <previousColumn>id</previousColumn>
+            </column>
+            <column>
+                <name>name</name>
+                <path>name</path>
+                <previousColumn>oid</previousColumn>
+            </column>
+            <column>
+                <name>identifier</name>
+                <path>definition/identifier</path>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>startTimestamp</name>
+                <path>startTimestamp</path>
+                <previousColumn>identifier</previousColumn>
+            </column>
+            <column>
+                <name>endTimestamp</name>
+                <path>endTimestamp</path>
+                <previousColumn>startTimestamp</previousColumn>
+            </column>
+            <column>
+                <name>rootTaskRef</name>
+                <path>rootTaskRef</path>
+                <previousColumn>endTimestamp</previousColumn>
+            </column>
+            <column>
+                <name>productionConfiguration</name>
+                <path>configurationUsed/productionConfiguration</path>
+                <previousColumn>rootTaskRef</previousColumn>
+            </column>
+            <!-- metric -->
+            <column>
+                <name>eventMark</name>
+                <display>
+                    <label>Event mark</label>
+                </display>
+                <previousColumn>productionConfiguration</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.ref?.eventMarkRef
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>customMetric</name>
+                <display>
+                    <label>Custom metric</label>
+                </display>
+                <previousColumn>eventMark</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.ref?.identifier
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>aggregationFunction</name>
+                <display>
+                    <label>Aggregation function</label>
+                </display>
+                <previousColumn>customMetric</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.aggregationFunction
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <!-- partition -->
+            <column>
+                <name>scopeType</name>
+                <display>
+                    <label>Scope: type</label>
+                </display>
+                <previousColumn>aggregationFunction</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.typeName
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeArchetype</name>
+                <display>
+                    <label>Scope: archetype</label>
+                </display>
+                <previousColumn>scopeType</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.ObjectTypes
+                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.structuralArchetypeOid?.with {
+                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.ARCHETYPE)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeResource</name>
+                <display>
+                    <label>Scope: resource</label>
+                </display>
+                <previousColumn>scopeArchetype</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.ObjectTypes
+                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.resourceOid?.with {
+                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.RESOURCE)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeKind</name>
+                <display>
+                    <label>Scope: kind</label>
+                </display>
+                <previousColumn>scopeResource</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.kind
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeIntent</name>
+                <display>
+                    <label>Scope: intent</label>
+                </display>
+                <previousColumn>scopeKind</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.intent
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>value</name>
+                <display>
+                    <label>Value</label>
+                </display>
+                <previousColumn>scopeIntent</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.value
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selectionSize</name>
+                <display>
+                    <label>Selection size</label>
+                </display>
+                <previousColumn>value</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.selectionSize
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selectionTotalValue</name>
+                <display>
+                    <label>Selection total value</label>
+                </display>
+                <previousColumn>selectionSize</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.selectionTotalValue
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>domainSize</name>
+                <display>
+                    <label>Domain size</label>
+                </display>
+                <previousColumn>selectionTotalValue</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.domainSize
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>domainTotalValue</name>
+                <display>
+                    <label>Domain total value</label>
+                </display>
+                <previousColumn>domainSize</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.domainTotalValue
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>c:SimulationResultType</type>
+        </view>
+        <subreport>
+            <name>metric</name>
+            <type>SimulationMetricValuesType</type>
+            <expression>
+                <script>
+                    <code>object.metric</code>
+                </script>
+            </expression>
+            <order>10</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+        <subreport>
+            <name>partition</name>
+            <type>SimulationMetricPartitionType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                        (metric as SimulationMetricValuesType)?.partition
+                    </code>
+                </script>
+            </expression>
+            <order>20</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+    </objectCollection>
+</report>

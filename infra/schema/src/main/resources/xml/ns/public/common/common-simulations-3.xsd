@@ -556,6 +556,9 @@
                     <xsd:documentation>
                         Identifier of the definition. If used in the global definition list, it must be unique.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationDefinitionType.identifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="super" type="xsd:string" minOccurs="0">
@@ -563,6 +566,9 @@
                     <xsd:documentation>
                         Identifier of the "super-definition", i.e. the definition the current one is based on.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationDefinitionType.super</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
@@ -570,6 +576,9 @@
                     <xsd:documentation>
                         Is this the default definition?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationDefinitionType.default</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="metrics" type="tns:SimulationMetricsUseType" minOccurs="0">
@@ -577,6 +586,9 @@
                     <xsd:documentation>
                         How should be the (globally-defined) metrics used in this particular simulation type?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationDefinitionType.metrics</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" minOccurs="0">
@@ -586,6 +598,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:indexed>true</a:indexed>
+                        <a:displayName>SimulationDefinitionType.useOwnPartitionForProcessedObjects</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1194,6 +1207,9 @@
                         - Development will probably `active` and `proposed` states.
                         (Currently: `active`, `proposed` and `deprecated`.)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ConfigurationSpecificationType.productionConfiguration</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

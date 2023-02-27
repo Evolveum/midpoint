@@ -84,7 +84,7 @@
             <column>
                 <name>eventMark</name>
                 <display>
-                    <label>Event Mark</label>
+                    <label>Event mark</label>
                 </display>
                 <previousColumn>state</previousColumn>
                 <export>
@@ -100,9 +100,9 @@
                 </export>
             </column>
             <column>
-                <name>customMarkId</name>
+                <name>customMetric</name>
                 <display>
-                    <label>Custom Mark</label>
+                    <label>Custom metric</label>
                 </display>
                 <previousColumn>eventMark</previousColumn>
                 <export>
@@ -122,7 +122,7 @@
                 <display>
                     <label>Selected</label>
                 </display>
-                <previousColumn>customMarkId</previousColumn>
+                <previousColumn>customMetric</previousColumn>
                 <export>
                     <expression>
                         <script>

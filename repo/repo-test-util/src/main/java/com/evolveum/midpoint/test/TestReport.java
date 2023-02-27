@@ -9,6 +9,7 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.addParameter;
 import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.addParameters;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,6 +121,8 @@ public class TestReport extends TestObject<ReportType> {
         }
 
         public @NotNull List<String> execute(OperationResult result) throws CommonException, IOException {
+            stateCheck(test != null, "The test object %s is not initialized", this);
+
             TaskType newTask = new TaskType()
                     .name("report export task for " + getObjectable().getName())
                     .executionState(TaskExecutionStateType.CLOSED)

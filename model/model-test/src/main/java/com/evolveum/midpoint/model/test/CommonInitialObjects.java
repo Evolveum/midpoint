@@ -132,6 +132,11 @@ public interface CommonInitialObjects {
             "00000000-0000-0000-0000-61bc8211947c",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
+    TestReport REPORT_SIMULATION_RESULTS = TestReport.classPath(
+            REPORTS,
+            "180-report-simulation-results.xml",
+            "00000000-0000-0000-0000-97631b84fde7");
+
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)
             throws CommonException, IOException {
