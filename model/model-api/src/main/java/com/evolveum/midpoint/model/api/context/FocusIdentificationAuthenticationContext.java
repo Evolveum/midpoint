@@ -17,10 +17,13 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author skublik
@@ -30,6 +33,8 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
 
     private Map<ItemPath, String> values;
     private List<ModuleItemConfigurationType> config;
+
+    private String username;
 
     public FocusIdentificationAuthenticationContext(
             Map<ItemPath, String> values, Class<? extends FocusType> principalType, List<ModuleItemConfigurationType> config, List<ObjectReferenceType> requireAssignment) {
@@ -64,7 +69,12 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
 
         ObjectQuery query = PrismContext.get().queryFor(getPrincipalType()).build();
         query.addFilter(orFilter);
-        return query;
+
+        ObjectQuery simplified = ObjectQueryUtil.simplifyQuery(query);
+        if (ObjectQueryUtil.isNoneQuery(simplified)) {
+            return null;
+        }
+        return simplified;
     }
 
     private ModuleItemConfigurationType findConfigFor(ItemPath path) {
@@ -84,5 +94,19 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
             }
         }
         return null;
+    }
+
+    @Override
+    public String getUsername() {
+        if (StringUtils.isNotBlank(username)) {
+            return username;
+        }
+        for (String username : values.values()) {
+            if (StringUtils.isNotBlank(username)) {
+                this.username = username;
+                break;
+            }
+        }
+        return username;
     }
 }
