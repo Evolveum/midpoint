@@ -30,6 +30,45 @@
 @import "tiles";
 @import "tables";
 
+@import "role-mining-rotated-header";
+@import "role-mining-static-header";
+@import "role-mining-static-header-name";
+@import "role-mining-static-row-header";
+
+
+.role-mining-rotated-header{
+  display:flex;	  display:flex;
+  justify-content:center;	  justify-content:center;
+  align-items:center;	  align-items:center;
+  transform: rotate(180deg);	  transform: rotate(180deg);
+  writing-mode: vertical-lr;	  writing-mode: vertical-lr;
+  width: 40px;	  width: 40px;
+  height: 150px;	  height: 150px;
+  border: 1px solid #f4f4f4;	  border: 1px solid #f4f4f4;
+}
+
+
+.role-mining-static-header {
+  width: 40px;
+  height: 150px;
+}
+
+.role-mining-static-header-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(180deg);
+  writing-mode: revert;
+  width: 40px;
+  height: 150px;
+  border: 1px solid #f4f4f4;
+}
+
+.role-mining-static-row-header {
+  width: 150px;
+  height: 150px;
+}
+
 body.custom-hold-transition {
 	.content-wrapper,
 	.right-side,

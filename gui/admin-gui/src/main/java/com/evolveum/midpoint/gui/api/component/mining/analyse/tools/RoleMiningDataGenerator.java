@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.api.component.mining.analyse.tools;
 
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,12 +47,11 @@ public class RoleMiningDataGenerator {
             probabilityGenerator.addGroupProbability(2, 0.3d);
             probabilityGenerator.addGroupProbability(3, 0.3d);
             probabilityGenerator.addGroupProbability(4, 0.1d);
-        }else {
+        } else {
             return 1;
         }
         return probabilityGenerator.getRandomNumber();
     }
-
 
     int generateAuthGroupSize(int size) {
         ProbabilityGenerator probabilityGenerator = new ProbabilityGenerator();
@@ -62,12 +60,11 @@ public class RoleMiningDataGenerator {
             probabilityGenerator.addGroupProbability(2, 0.3d);
             probabilityGenerator.addGroupProbability(3, 0.3d);
             probabilityGenerator.addGroupProbability(4, 0.1d);
-        }else {
+        } else {
             return 1;
         }
         return probabilityGenerator.getRandomNumber();
     }
-
 
     public void generateUser(PageBase pageBase, int count, List<PrismObject<UserType>> userList) {
         OperationResult result = new OperationResult("Generate UserType object");
@@ -90,7 +87,6 @@ public class RoleMiningDataGenerator {
                 iterator++;
                 name = PolyStringType.fromOrig("U" + iterator + "g");
             }
-
 
             PrismObject<UserType> user = null;
             try {
@@ -121,7 +117,7 @@ public class RoleMiningDataGenerator {
         for (int i = 0; i < count; i++) {
             OperationResult subResult = result.createSubresult("Add object");
 
-            PolyStringType name = PolyStringType.fromOrig("R" + iterator + "g");
+            PolyStringType name = PolyStringType.fromOrig("R_" + iterator + "g");
 
             for (PrismObject<RoleType> roleTypePrismObject : roles) {
                 PolyStringType roleName = PolyStringType.fromOrig(roleTypePrismObject.getName().getOrig());
@@ -130,9 +126,8 @@ public class RoleMiningDataGenerator {
 
             while (listOfNames.contains(name)) {
                 iterator++;
-                name = PolyStringType.fromOrig("R" + iterator + "g");
+                name = PolyStringType.fromOrig("R_" + iterator + "g");
             }
-
 
             PrismObject<RoleType> role = null;
             try {
@@ -157,22 +152,8 @@ public class RoleMiningDataGenerator {
         return IntStream.range(0, object.getRoleMembershipRef().size())
                 .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
                         .equals("RoleType"))
-                .mapToObj(i -> getRoleByOid(object.getRoleMembershipRef().get(i).getOid(), pageBase))
+                .mapToObj(i -> new RoleMiningFilter().getRoleByOid(object.getRoleMembershipRef().get(i).getOid(), pageBase))
                 .collect(Collectors.toList());
-
-    }
-
-    protected PrismObject<RoleType> getRoleByOid(String oid, PageBase pageBase) {
-        String getRole = DOT_CLASS + "getRole";
-        OperationResult result = new OperationResult(getRole);
-        Task task = pageBase.createSimpleTask(getRole);
-        PrismObject<RoleType> prismObject = null;
-        try {
-            prismObject = pageBase.getModelService().getObject(RoleType.class, oid, null, task, result);
-        } catch (Throwable e) {
-            LOGGER.error("Error while getting role object by id {}, {}", oid, e.getMessage(), e);
-        }
-        return prismObject;
     }
 
     public void assignRoles(List<PrismObject<UserType>> userList, List<PrismObject<RoleType>> rolesList, PageBase pageBase) {
@@ -203,7 +184,6 @@ public class RoleMiningDataGenerator {
                             Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
                             pageBase.getModelService().executeChanges(deltas, null, task, result);
                         } catch (Throwable e) {
-                            System.out.println("something is wrong");
                             LOGGER.error("Error while assign object {}, {}", userType, e.getMessage(), e);
                         }
 
@@ -218,18 +198,17 @@ public class RoleMiningDataGenerator {
 
     public void assignAuthorization(List<PrismObject<RoleType>> rolesList, PageBase pageBase) {
         ArrayList<String> authorizationTemp = new ArrayList<>();
-        authorizationTemp.add("A");
-        authorizationTemp.add("B");
-        authorizationTemp.add("C");
-        authorizationTemp.add("D");
-        authorizationTemp.add("E");
+        authorizationTemp.add("P_A");
+        authorizationTemp.add("P_B");
+        authorizationTemp.add("P_C");
+        authorizationTemp.add("P_D");
+        authorizationTemp.add("P_E");
 
         OperationResult result = new OperationResult("Add authorization");
 
         for (PrismObject<RoleType> role : rolesList) {
             if (!role.getName().toString().equals("Superuser")) {
                 int authorizationCount = new RoleMiningFilter().getAuthorization(role.asObjectable()).size();
-
 
                 if (authorizationCount == 0) {
                     int groupSize = generateAuthGroupSize(authorizationTemp.size());
@@ -240,7 +219,6 @@ public class RoleMiningDataGenerator {
                         RoleType roleType = role.asObjectable();
                         AuthorizationType authorizationType = new AuthorizationType();
                         authorizationType.setName(authorizationTemp.get(startIndex + i));
-
 
                         try {
                             Task task = pageBase.createSimpleTask("Add authorization");
@@ -253,7 +231,6 @@ public class RoleMiningDataGenerator {
                             pageBase.getModelService().executeChanges(deltas, null, task, result);
 
                         } catch (Throwable e) {
-                            System.out.println("something is wrong");
                             LOGGER.error("Error while adding authorization object {}, {}", roleType, e.getMessage(), e);
                         }
 
@@ -265,7 +242,6 @@ public class RoleMiningDataGenerator {
         result.computeStatusComposite();
         pageBase.showResult(result);
     }
-
 
     public void unassignRoles(PageBase pageBase, List<PrismObject<UserType>> userList) {
         OperationResult result = new OperationResult("Unassign objects");

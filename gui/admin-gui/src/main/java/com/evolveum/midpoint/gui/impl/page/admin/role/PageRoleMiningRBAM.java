@@ -1,61 +1,50 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
+import static com.evolveum.midpoint.gui.api.component.mining.DataStorage.fillRolesAndUsers;
+import static com.evolveum.midpoint.gui.api.component.mining.DataStorage.resetAll;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.rbam.UA;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RBAMAlgorithm;
-import com.evolveum.midpoint.gui.api.component.mining.structure.UPStructure;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.RpType;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.RuType;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UpType;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UrType;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.role.panels.GenerateDataPanelRBAM;
+import com.evolveum.midpoint.gui.impl.page.admin.role.panels.PrunePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.github.openjson.JSONObject;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(
         urls = {
@@ -73,30 +62,18 @@ import java.util.stream.IntStream;
 
 public class PageRoleMiningRBAM extends PageAdmin {
 
-    private static final String ID_DATATABLE_RBAM_UA = "datatableRBAM";
-    private static final String ID_BASIC_FORM = "secondary_form";
-    private static final String ID_NETWORK_GRAPH_FORM = "graph_form";
-    private static final String ID_NETWORK_GRAPH_CONTAINER = "network_graph_container_auth";
-    private static final String ID_MODEL_COST = "model_cost";
-    private static final String ID_BASIC_MODEL_COST = "model_cost_basic";
-    private static final String ID_INPUT_SIGMA = "weight_o";
-    private static final String ID_INPUT_TAU = "weight_t";
-    private static final String ID_SUBMIT_WEIGHTS = "ajax_submit_link_weights";
-    private static final String ID_HIDE_GRAPH = "network_graph_ajax_link_auth";
+    private static final String ID_GENERATE_DATA_PANEL = "generate_data_panel";
+    private static final String ID_BASIC_TABLE_SELECTOR = "basic_table_selector";
+    private static final String ID_PRUNE_PANEL = "prune_panel";
 
-    double weightSigma = 0;
-    double weightTau = 1 / (double) (11);
-    double modelCost = 0;
-    double modelCostBasic = 0;
+    private static final String ID_FORM_TABLES = "table_dropdown";
+    private static final String ID_DROPDOWN_TABLE = "dropdown_choice";
+    private static final String ID_SUBMIT_DROPDOWN = "ajax_submit_link_dropdown";
 
-    List<AuthorizationType> authorizationTypeList;
-    List<UPStructure> upStructuresList;
-    String javaScriptNetworkAuth;
+    private static final String ID_DATATABLE_EXTRA = "datatable_extra";
 
-    boolean containerVisibilityAuth = true;
-    int usersCount = 0;
-
-    List<UA> uaList = new ArrayList<>();
+    private static final List<String> SEARCH_ENGINES = Arrays.asList("UR", "UP", "RP", "RU");
+    public String selected = "UR";
 
     public PageRoleMiningRBAM() {
         super();
@@ -106,430 +83,179 @@ public class PageRoleMiningRBAM extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
 
-        networkGraphSection();
+        fillRolesAndUsers(getPageBase());
 
-        List<PrismObject<RoleType>> roles;
-        List<PrismObject<UserType>> users;
-        try {
-            roles = getRoles();
-            users = getUsers();
-            usersCount = users.size();
-            fill(users, roles);
+        add(generatePanelSimpleAuthorization());
 
-        } catch (CommonException e) {
-            throw new RuntimeException("Failed to load basic role mining list: " + e);
-        }
+        add(new BasicTableSelector(ID_BASIC_TABLE_SELECTOR, PageRoleMiningRBAM.this));
 
-        Form<?> basicForm = new MidpointForm<>(ID_BASIC_FORM);
-        basicForm.setOutputMarkupId(true);
-        add(basicForm);
-        basicForm.add(generateTableRBAM(uaList));
+        add(new PrunePanel(ID_PRUNE_PANEL, JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(PageRoleMiningRBAM.class, "js/network_graph_auth.js"))));
+
+
+        add(choiceTableForm());
+
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        responseRenderAuthGraph(response, javaScriptNetworkAuth);
-    }
-
-    void responseRenderAuthGraph(@NotNull IHeaderResponse response, String javaScript) {
-
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(PageRoleMiningRBAM.class, "js/network_graph_auth.js")));
-
-        response.render(OnDomReadyHeaderItem.forScript(javaScript));
-    }
-
-    public void generateJsRBAM() {
-
-        if (authorizationTypeList.isEmpty()) {
-            return;
-        }
-
-        if(upStructuresList.isEmpty()){
-            return;
-        }
-
-        int usersCount = upStructuresList.size();
-        double vC = 0;
-
-        RBAMAlgorithm algorithm = new RBAMAlgorithm(upStructuresList, authorizationTypeList, usersCount, weightSigma, weightTau, vC);
-        algorithm.preprocess();
-        uaList = algorithm.getUaList();
-        modelCost = algorithm.getUpdatedModelCost();
-        modelCostBasic = algorithm.getBasicModelCost();
-        getCostLabel().setDefaultModelObject("Cost: " + modelCost);
-        getCostBasicLabel().setDefaultModelObject("Basic cost: " + modelCostBasic);
-
-        List<JSONObject> jsonObjectIds = algorithm.getJsonIds();
-        List<JSONObject> jsonObjectEdges = algorithm.getJsonEdges();
-
-        javaScriptNetworkAuth = "network_graph_auth('"
-                + jsonObjectIds + "', '"
-                + jsonObjectEdges + "');";
-    }
-
-    public void fill(List<PrismObject<UserType>> userList, List<PrismObject<RoleType>> roleList) {
-
-        upStructuresList = new ArrayList<>();
-        for (int i = 0; i < userList.size(); i++) {
-            PrismObject<UserType> userObject = userList.get(i);
-            List<RoleType> userRoles = new RoleMiningFilter().getUserRoles(userObject.asObjectable(), getPageBase());
-            List<String> assignRolesObjectIds = new ArrayList<>();
-            List<AuthorizationType> assignPermission = new ArrayList<>();
-
-            for (int j = 0; j < userRoles.size(); j++) {
-                RoleType roleType = userRoles.get(j);
-                assignRolesObjectIds.add(String.valueOf(roleType.getOid()));
-
-                List<AuthorizationType> authorization = roleType.getAuthorization();
-
-                authorization.stream().filter(authorizationType -> !assignPermission
-                                .contains(authorizationType))
-                        .forEach(assignPermission::add);
-            }
-
-            upStructuresList.add(new UPStructure(userObject, assignRolesObjectIds, assignPermission, i));
-        }
-
-        authorizationTypeList = new ArrayList<>();
-        for (int i = 0; i < roleList.size(); i++) {
-            PrismObject<RoleType> roleTypePrismObject = roleList.get(i);
-            List<AuthorizationType> authorization = roleTypePrismObject.asObjectable().getAuthorization();
-
-            authorization.stream().filter(authorizationType -> !authorizationTypeList
-                            .contains(authorizationType))
-                    .forEach(authorizationType -> authorizationTypeList.add(authorizationType));
-        }
-    }
-
-    public void networkGraphSection() {
-
-        Label costModel = new Label(ID_MODEL_COST, Model.of("Cost: " + modelCost));
-        costModel.setOutputMarkupId(true);
-        costModel.setOutputMarkupPlaceholderTag(true);
-
-        Label costModelBasic = new Label(ID_BASIC_MODEL_COST, Model.of("Basic cost: " + modelCostBasic));
-        costModelBasic.setOutputMarkupId(true);
-        costModelBasic.setOutputMarkupPlaceholderTag(true);
-
-        final TextField<Double> weightO = new TextField<>(ID_INPUT_SIGMA, Model.of(weightSigma));
-        weightO.setOutputMarkupId(true);
-
-        final TextField<Double> weightT = new TextField<>(
-                ID_INPUT_TAU, Model.of(weightTau));
-        weightT.setOutputMarkupId(true);
-
-        Form<?> graphForm = new Form<>(ID_NETWORK_GRAPH_FORM);
-        graphForm.setOutputMarkupId(true);
-        graphForm.add(weightO);
-        graphForm.add(weightT);
-
-        graphForm.add(WebComponentUtil.createHelp("weight_o_info"));
-        graphForm.add(WebComponentUtil.createHelp("weight_t_info"));
-        add(graphForm);
-
-        AjaxSubmitLink ajaxSubmitDropdown = new AjaxSubmitLink(ID_SUBMIT_WEIGHTS, graphForm) {
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                weightSigma = weightO.getModelObject();
-                weightTau = weightT.getModelObject();
-                generateJsRBAM();
-                target.appendJavaScript(javaScriptNetworkAuth);
-                getBoxedTableRBAM().replaceWith(generateTableRBAM(uaList));
-                target.add(getBoxedTableRBAM());
-                getCostLabel().setDefaultModelObject("Cost: " + modelCost);
-                getCostBasicLabel().setDefaultModelObject("Basic cost: " + modelCostBasic);
-                target.add(getCostLabel());
-                target.add(getCostBasicLabel());
-            }
-        };
-        graphForm.add(ajaxSubmitDropdown);
-
-        WebMarkupContainer networkGraphContainerAuth = new WebMarkupContainer(ID_NETWORK_GRAPH_CONTAINER);
-        networkGraphContainerAuth.setOutputMarkupId(true);
-        networkGraphContainerAuth.setOutputMarkupPlaceholderTag(true);
-        graphForm.add(networkGraphContainerAuth);
-
-        AjaxButton networkGraphButtonAuth = new AjaxButton(
-                ID_HIDE_GRAPH, Model.of("Show/Hide network auth graph")) {
+    private @NotNull
+    AjaxButton generatePanelSimpleAuthorization() {
+        AjaxButton ajaxLinkAssign = new AjaxButton(ID_GENERATE_DATA_PANEL, Model.of("Generate data")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                resetAll();
 
-                generateJsRBAM();
-                target.appendJavaScript(javaScriptNetworkAuth);
-
-                containerVisibilityAuth = !containerVisibilityAuth;
-                target.add(networkGraphContainerAuth.setVisible(containerVisibilityAuth));
+                GenerateDataPanelRBAM pageGenerateData = new GenerateDataPanelRBAM(
+                        getPageBase().getMainPopupBodyId(),
+                        createStringResource("RoleMining.generateDataPanel.title"));
+                getPageBase().showMainPopup(pageGenerateData, target);
             }
         };
-        graphForm.add(networkGraphButtonAuth);
-        graphForm.add(costModel);
-        graphForm.add(costModelBasic);
+        ajaxLinkAssign.setOutputMarkupId(true);
+        return ajaxLinkAssign;
     }
 
+    private @NotNull Form<?> choiceTableForm() {
 
-    public BoxedTablePanel<UA> generateTableRBAM(
-            List<UA> uaList) {
+        DropDownChoice<String> listSites = new DropDownChoice<>(
+                ID_DROPDOWN_TABLE, new PropertyModel<>(this, "selected"), SEARCH_ENGINES);
 
-        RoleMiningProvider<UA> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(uaList) {
+        Form<?> formDropdown = new Form<Void>(ID_FORM_TABLES);
 
-            private static final long serialVersionUID = 1L;
+        formDropdown.setOutputMarkupId(true);
 
+        formDropdown.add(new Label(ID_DATATABLE_EXTRA).setOutputMarkupId(true));
+
+        AjaxSubmitLink ajaxSubmitDropdown = new AjaxSubmitLink(ID_SUBMIT_DROPDOWN, formDropdown) {
             @Override
-            public void setObject(List<UA> object) {
-                super.setObject(object);
-            }
+            protected void onSubmit(AjaxRequestTarget target) {
 
-        }, false);
-
-        //provider.setSort(PAStructure.F_NAME, SortOrder.ASCENDING);
-
-        BoxedTablePanel<UA> table = new BoxedTablePanel<>(
-                ID_DATATABLE_RBAM_UA, provider, initColumnsRBAM(),
-                null, true, false);
-        table.setOutputMarkupId(true);
-        table.getDataTable().setItemsPerPage(30);
-        table.enableSavePageSize();
-
-        return table;
-    }
-
-    public List<IColumn<UA, String>> initColumnsRBAM() {
-
-        List<IColumn<UA, String>> columns = new ArrayList<>();
-
-        columns.add(new IconColumn<>(null) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<UA> rowModel) {
-
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
-            }
-        });
-
-        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<UA> iModel) {
-                return null;
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> item, String componentId,
-                    IModel<UA> rowModel) {
-
-                item.add(new AjaxLinkPanel(componentId, createStringResource(rowModel.getObject().getUserUP().getUserObject().getName())) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        UserType object = rowModel.getObject().getUserUP().getUserObject().asObjectable();
-                        PageRoleMiningRBAM.this.detailsPerformed(object.getOid());
-                    }
-                });
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId, createStringResource("RoleMining.name.column"));
-            }
-
-        });
-
-        IColumn<UA, String> column;
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("Permission")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> cellItem,
-                    String componentId, IModel<UA> model) {
-
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("{");
-                for (int i = 0; i < model.getObject().getUserUP().getAssignPermission().size(); i++) {
-                    stringBuilder.append(model.getObject().getUserUP().getAssignPermission().get(i).getName()).append(", ");
-                }
-                stringBuilder.append("}");
-                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<UA> rowModel) {
-                return Model.of(" ");
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("Originally roles")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> cellItem,
-                    String componentId, IModel<UA> model) {
-
-                UserType userObject = model.getObject().getUserUP().getUserObject().asObjectable();
-
-                List<RoleType> userRoles = new RoleMiningFilter().getUserRoles(userObject, getPageBase());
-
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("{");
-                IntStream.range(0, userRoles.size()).forEach(i -> stringBuilder.append(userRoles.get(i).getName()).append(", "));
-                stringBuilder.append("}");
-                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<UA> rowModel) {
-                return Model.of(" ");
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("Candidate roles")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> cellItem,
-                    String componentId, IModel<UA> model) {
-
-                Set<Integer> keys = model.getObject().getCandidateRoleSet().keySet();
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("{");
-                for (Integer key : keys) {
-                    stringBuilder.append(key).append(", ");
-                }
-                stringBuilder.append("}");
-                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<UA> rowModel) {
-                return Model.of(" ");
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("Candidate roles permission")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> cellItem,
-                    String componentId, IModel<UA> model) {
-
-                Set<Integer> keys = model.getObject().getCandidateRoleSet().keySet();
-                StringBuilder stringBuilder = new StringBuilder();
-
-                for (Integer key : keys) {
-                    List<AuthorizationType> authorizationTypes = model.getObject().getCandidateRoleSet().get(key);
-                    stringBuilder.append("{");
-                    for (int i = 0; i < authorizationTypes.size(); i++) {
-                        stringBuilder.append(authorizationTypes.get(i).getName()).append(", ");
-                    }
-                    stringBuilder.append("} + ");
-                }
-                stringBuilder.append(". ");
-
-                cellItem.add(new Label(componentId, String.valueOf(stringBuilder).replace(", }", "}")
-                        .replace("+ .", " "))
-                );
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<UA> rowModel) {
-                return Model.of(" ");
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("Status")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<UA>> cellItem,
-                    String componentId, IModel<UA> model) {
-
-                if (!model.getObject().isCorrelateStatus()) {
-                    cellItem.add(new Label(componentId, "UNPROCESSED"));
-                } else {
-                    cellItem.add(new Label(componentId, "PROCESSED"));
+                switch (selected) {
+                    case "UR":
+                        getBoxedTableExtra().replaceWith(new TableUR(ID_DATATABLE_EXTRA, generateUR(), new RoleMiningFilter().filterRoles(getPageBase())));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "UP":
+                        getBoxedTableExtra().replaceWith(new TableUP(ID_DATATABLE_EXTRA, generateUP(), generatePermissions()));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "RP":
+                        getBoxedTableExtra().replaceWith(new TableRP(ID_DATATABLE_EXTRA, generateRP(), generatePermissions()));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "RU":
+                        getBoxedTableExtra().replaceWith(new TableRU(ID_DATATABLE_EXTRA, generateRU(), new RoleMiningFilter().filterUsers(getPageBase())));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    default:
                 }
             }
-
-            @Override
-            public IModel<String> getDataModel(IModel<UA> rowModel) {
-                return Model.of(" ");
-            }
-
         };
-        columns.add(column);
 
-        return columns;
+        formDropdown.add(listSites);
+        formDropdown.add(ajaxSubmitDropdown);
+        return formDropdown;
     }
 
-    protected BoxedTablePanel<?> getBoxedTableRBAM() {
-        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_BASIC_FORM, ID_DATATABLE_RBAM_UA));
-    }
-
-    protected Label getCostLabel() {
-        return (Label) get(((PageBase) getPage()).createComponentPath(ID_NETWORK_GRAPH_FORM, ID_MODEL_COST));
-    }
-
-    protected Label getCostBasicLabel() {
-        return (Label) get(((PageBase) getPage()).createComponentPath(ID_NETWORK_GRAPH_FORM, ID_BASIC_MODEL_COST));
-    }
-
-    private List<PrismObject<RoleType>> getRoles() throws CommonException {
-        return new RoleMiningFilter().filterRoles(((PageBase) getPage()));
-    }
-
-    private List<PrismObject<UserType>> getUsers() throws CommonException {
-        return new RoleMiningFilter().filterUsers(((PageBase) getPage()));
-    }
-
-    private void detailsPerformed(String objectOid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, objectOid);
-        ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
+    protected Component getBoxedTableExtra() {
+        return get(((PageBase) getPage()).createComponentPath(ID_FORM_TABLES, ID_DATATABLE_EXTRA));
     }
 
     public PageBase getPageBase() {
         return ((PageBase) getPage());
+    }
+
+    public List<UrType> generateUR() {
+
+        List<PrismObject<UserType>> userList = new RoleMiningFilter().filterUsers(getPageBase());
+        List<UrType> userRolesList = new ArrayList<>();
+        for (PrismObject<UserType> userTypePrismObject : userList) {
+            UserType userObject = userTypePrismObject.asObjectable();
+
+            if (userObject.getName().toString().equals("administrator")) {
+                userRolesList.add(new UrType(userObject, new ArrayList<>()));
+                continue;
+            }
+            List<RoleType> userRoles = new RoleMiningFilter().getUserRoles(userObject, getPageBase());
+
+            userRolesList.add(new UrType(userObject, userRoles));
+        }
+        return userRolesList;
+    }
+
+    public List<UpType> generateUP() {
+
+        List<PrismObject<UserType>> userList = new RoleMiningFilter().filterUsers(getPageBase());
+        List<UpType> userPermissionList = new ArrayList<>();
+        for (PrismObject<UserType> userTypePrismObject : userList) {
+            UserType userObject = userTypePrismObject.asObjectable();
+
+            if (userObject.getName().toString().equals("administrator")) {
+                userPermissionList.add(new UpType(userObject, new ArrayList<>()));
+                continue;
+            }
+            List<String> rolesIds = new RoleMiningFilter().roleObjectIdRefType(userObject);
+            //O(K * N)
+            List<AuthorizationType> userAuthorizations = new RoleMiningFilter().getUserAuthorizations(rolesIds, getPageBase());
+            userPermissionList.add(new UpType(userObject, userAuthorizations));
+        }
+
+        return userPermissionList;
+    }
+
+    public List<RpType> generateRP() {
+
+        List<PrismObject<RoleType>> userList = new RoleMiningFilter().filterRoles(getPageBase());
+        List<RpType> rolePermissionList = new ArrayList<>();
+        for (PrismObject<RoleType> userTypePrismObject : userList) {
+            RoleType roleType = userTypePrismObject.asObjectable();
+
+            if (roleType.getName().toString().equals("administrator")) {
+                rolePermissionList.add(new RpType(roleType, new ArrayList<>()));
+                continue;
+            }
+            List<AuthorizationType> authorization = roleType.getAuthorization();
+
+            rolePermissionList.add(new RpType(roleType, authorization));
+        }
+
+        return rolePermissionList;
+    }
+
+    public List<RuType> generateRU() {
+
+        List<PrismObject<RoleType>> userList = new RoleMiningFilter().filterRoles(getPageBase());
+        List<RuType> roleUsersList = new ArrayList<>();
+        for (PrismObject<RoleType> roles : userList) {
+            RoleType roleType = roles.asObjectable();
+
+            if (roleType.getName().toString().equals("administrator")) {
+                roleUsersList.add(new RuType(roleType, new ArrayList<>()));
+                continue;
+            }
+            List<PrismObject<UserType>> roleMembers = new RoleMiningFilter().getRoleMembers(getPageBase(), roleType.getOid());
+
+            roleUsersList.add(new RuType(roleType, roleMembers));
+        }
+
+        return roleUsersList;
+    }
+
+    public List<AuthorizationType> generatePermissions() {
+
+        List<AuthorizationType> permissions = new ArrayList<>();
+        List<PrismObject<RoleType>> roleList = new RoleMiningFilter().filterRoles(getPageBase());
+
+        for (PrismObject<RoleType> roleTypePrismObject : roleList) {
+            if (!roleTypePrismObject.getName().toString().contains("R_")) {
+                continue;
+            }
+            List<AuthorizationType> roleAuthorizations = roleTypePrismObject.asObjectable().getAuthorization();
+
+            roleAuthorizations.stream().filter(authorizationType -> !permissions
+                            .contains(authorizationType))
+                    .forEach(permissions::add);
+        }
+        return permissions;
     }
 
 }

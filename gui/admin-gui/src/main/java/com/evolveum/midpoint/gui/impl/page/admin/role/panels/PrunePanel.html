@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<wicket:panel>
+
+
+    <div class="col-xl-12">
+
+        <form wicket:id="graph_form">
+
+            <br/>
+            <div class="row">
+                <button wicket:id="network_graph_ajax_link_auth" type="button" class="btn btn-primary  ml-2"></button>
+
+
+                <button class="btn btn-default ml-4" wicket:id="ajax_story_mining">
+                </button>
+
+                <div class="ml-4">
+                    <input class="form-control" style="width: 100px" wicket:id="weight_o" type="text" placeholder="o" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&sigma;
+                    <i wicket:id="weight_o_info" wicket:message="title:Role.rbac.weight.o.help"></i>
+                </div>
+
+
+                <div>
+                    <input class="form-control" style="width: 100px" wicket:id="weight_t" type="text" placeholder="t" size="4"/>
+                </div>
+                <div class="btn btn-default" type="text">&tau;
+                    <i wicket:id="weight_t_info" wicket:message="title:Role.rbac.weight.t.help"></i>
+                </div>
+
+                <input class="btn btn-default" wicket:id="ajax_submit_link_weights" type="submit" value="Execute"/>
+
+                <div class="ml-4 btn btn-default" wicket:id="model_cost" type="text"></div>
+                <div class="ml-4 btn btn-default" wicket:id="model_cost_basic" type="text"></div>
+                <div class="ml-4 btn btn-default" wicket:id="processed_value" type="text"></div>
+                <div class="ml-4 btn btn-default" wicket:id="time_value" type="text"></div>
+                <div class="ml-4 btn btn-warning" wicket:id="reload_data"></div>
+            </div>
+
+
+            <div class="border" wicket:id="network_graph_container_auth">
+                <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+                <div id="network_graph_auth" style="height:1000px;background-color: white"></div>
+            </div>
+        </form>
+
+
+        <form wicket:id="table_dropdown_rbac">
+            <div>
+
+                <select class="btn btn-default dropdown-toggle" wicket:id="dropdown_choice_rbac" style="width: 200px"></select>
+                <input class="btn btn-default" wicket:id="ajax_submit_link_dropdown_rbac" type="submit" value="Display"/>
+
+            </div>
+
+            <div wicket:id="datatable_extra_rbac" class="overflow-auto" style="height: 1000px"></div>
+
+        </form>
+
+    </div>
+</wicket:panel>
+</html>

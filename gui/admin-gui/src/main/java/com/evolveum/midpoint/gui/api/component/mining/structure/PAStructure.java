@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.gui.api.component.mining.structure;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PAStructure extends Selectable<RoleMiningStructureList> implements Serializable {
 

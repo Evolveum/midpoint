@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.gui.api.component.mining.structure;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.io.Serializable;
+import java.util.List;
 
 public class RoleMembersList implements Serializable {
 

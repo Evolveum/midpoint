@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.component.mining.structure.RoleMiningStruct
 import com.evolveum.midpoint.gui.api.component.mining.structure.UPStructure;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalyseHelper implements Serializable {
@@ -290,11 +289,7 @@ public class RoleAnalyseHelper implements Serializable {
             }
 
             for (ObjectReferenceType objectReferenceType : rolesForCompare) {
-                try {
-                    jaccardResultRoles.add(new RoleMiningFilter().getRoleByOid(objectReferenceType.getOid(), pageBase));
-                } catch (CommonException e) {
-                    e.printStackTrace();
-                }
+                jaccardResultRoles.add(new RoleMiningFilter().getRoleByOid(objectReferenceType.getOid(), pageBase));
             }
         }
         return jaccardResultRoles;

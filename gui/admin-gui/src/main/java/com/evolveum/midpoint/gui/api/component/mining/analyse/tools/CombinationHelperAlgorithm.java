@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.gui.api.component.mining.analyse.tools;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.CombinationHelperList;
-
 import java.util.*;
+
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.CombinationHelperList;
 
 public class CombinationHelperAlgorithm {
 

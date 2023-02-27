@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.gui.api.component.mining.structure;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import java.io.Serializable;
 import java.util.ArrayList;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class JaccardDataStructure implements Serializable {
 
@@ -34,9 +34,6 @@ public class JaccardDataStructure implements Serializable {
         this.objectPartialResult = objectPartialResult;
         this.objectTotalResult = objectTotalResult;
     }
-
-
-
 
     public ArrayList<Double> getObjectPartialResult() {
         return objectPartialResult;
