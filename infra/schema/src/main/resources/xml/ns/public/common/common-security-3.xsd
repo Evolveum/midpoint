@@ -1638,6 +1638,7 @@
                     <xsd:appinfo>
                         <a:deprecated/>
                         <a:deprecatedSince>4.7</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1673,6 +1674,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Necessity, i.e. the level of requirement, whether the module is mandatory or optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="acceptEmpty" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Some modules might be automatically skipped if the concrete type of credentials is not defined. E.g.
+                            if there is no "hint" defined for the user, we can skip evaluation of the hint module. The same can
+                            apply for example for security questions.
+                        </p>
+                        <p>
+                            In case the module can be skipped, accept empty must be set to 'true'. After module is set, it is
+                            marked as CALLED_OFF in the sequence.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

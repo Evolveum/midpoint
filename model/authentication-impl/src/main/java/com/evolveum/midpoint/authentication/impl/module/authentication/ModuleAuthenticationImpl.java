@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 
@@ -48,7 +49,20 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     private final Integer order;
 
+    /**
+     * Indicate, is a module can exist on its own. E.g. when module is not sufficient,
+     * it means that the module itself cannot perform 'safe' authentication and it is
+     * mandatory to add another module so the authentication might be successful. If
+     * there is more than one module, but all marked as not sufficient, authentication
+     * must not pass.
+     */
     private boolean sufficient = true;
+
+    /**
+     * Indicates, if it is allowed to skip a module when no such credentials (required
+     * by module) are defined.
+     */
+    private boolean acceptEmpty;
 
     public ModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
         Validate.notNull(nameOfType);
@@ -56,9 +70,22 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         this.sequenceModule = sequenceModule;
         this.necessity = sequenceModule.getNecessity();
         this.order = sequenceModule.getOrder();
-
+        this.acceptEmpty = getAcceptEmpty(sequenceModule);
         resolveDefaults();
     }
+
+    private boolean getAcceptEmpty(AuthenticationSequenceModuleType sequenceModule) {
+        if (sequenceModule == null) {
+            //TODO should this happen?
+            return false;
+        }
+        return BooleanUtils.isTrue(sequenceModule.isAcceptEmpty());
+    }
+
+    public boolean canSkipWhenEmptyCredentials() {
+        return acceptEmpty;
+    }
+
 
     private void resolveDefaults() {
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
@@ -67,7 +94,6 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
             this.necessity = AuthenticationSequenceModuleNecessityType.SUFFICIENT;
         }
     }
-
     public String getModuleTypeName() {
         return nameOfType;
     }

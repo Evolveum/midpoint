@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,11 +36,10 @@ public class SecurityQuestionFormModuleAuthentication extends CredentialModuleAu
 
     @Override
     public boolean applicable() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return true;
+        if (!canSkipWhenEmptyCredentials()) {
+            return super.applicable();
         }
-        Object principal = auth.getPrincipal();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return true;
         }
@@ -47,7 +48,7 @@ public class SecurityQuestionFormModuleAuthentication extends CredentialModuleAu
             return false;
         }
 
-        FocusType focus = ((MidPointPrincipal) principal).getFocus();
+        FocusType focus = principal.getFocus();
         CredentialsType credentialsType = focus.getCredentials();
         if (credentialsType == null) {
             return false;
