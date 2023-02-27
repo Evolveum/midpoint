@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -41,8 +40,8 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
     @Override
     public boolean match(VisualizationImpl visualization) {
-        PrismContainerValue value = visualization.getSourceValue();
-        if (value == null || value.getPath() == null) {
+        PrismContainerValue<?> value = visualization.getSourceValue();
+        if (value == null) {
             return false;
         }
 
@@ -51,7 +50,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
-        PrismContainerValue value = visualization.getSourceValue();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         ChangeType changeType = visualization.getChangeType();
 
         AssignmentType a = (AssignmentType) value.asContainerable();
@@ -63,7 +62,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
-        LocalizableMessage targetName = resolveReferenceName(targetRef, task, result);
+        String targetName = resolveReferenceName(targetRef, task, result);
 
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
@@ -73,22 +72,22 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
                 }, (String) null));
     }
 
-    private LocalizableMessage resolveReferenceName(ObjectReferenceType ref, Task task, OperationResult result) {
+    private String resolveReferenceName(ObjectReferenceType ref, Task task, OperationResult result) {
         if (ref == null) {
             return null;
         }
 
         if (ref.getTargetName() != null) {
-            return new SingleLocalizableMessage(ref.getTargetName().getOrig());
+            return ref.getTargetName().getOrig();
         }
 
         if (ref.getObject() != null) {
-            PrismObject object = ref.getObject();
+            PrismObject<?> object = ref.getObject();
             if (object.getName() == null) {
-                return createMessageFromUnknownReference(ref);
+                return ref.getOid();
             }
 
-            return new SingleLocalizableMessage(object.getName().getOrig());
+            return object.getName().getOrig();
         }
 
         String oid = ref.getOid();
@@ -99,25 +98,15 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         try {
             ObjectTypes type = getTypeFromReference(ref);
 
-            PrismObject object = modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
-            return new SingleLocalizableMessage(object.getName().getOrig());
+            PrismObject<?> object = modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
+            return object.getName().getOrig();
         } catch (Exception ex) {
-            return createMessageFromUnknownReference(ref);
+            return ref.getOid();
         }
     }
 
     private ObjectTypes getTypeFromReference(ObjectReferenceType ref) {
         QName typeName = ref.getType() != null ? ref.getType() : ObjectType.COMPLEX_TYPE;
         return ObjectTypes.getObjectTypeFromTypeQName(typeName);
-    }
-
-    private LocalizableMessage createMessageFromUnknownReference(ObjectReferenceType ref) {
-        ObjectTypes type = getTypeFromReference(ref);
-
-        String key = "AssignmentDescriptionHandler.unknownRef";
-        return new SingleLocalizableMessage(key, new Object[] {
-                ref.getOid(),
-                new SingleLocalizableMessage("ObjectTypes." + type.name())
-        }, key);
     }
 }

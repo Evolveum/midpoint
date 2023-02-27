@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationDeltaItemImpl;
@@ -22,6 +20,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -31,7 +30,7 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
 
     @Override
     public boolean match(VisualizationImpl visualization) {
-        PrismContainerValue value = visualization.getSourceValue();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null) {
             return false;
         }
@@ -41,12 +40,8 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
             return value.findContainer(CredentialsType.F_PASSWORD) != null;
         }
 
-        if (ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD).equivalent(value.getPath())) {
-            // we're modifying/deleting password
-            return true;
-        }
-
-        return false;
+        // we're modifying/deleting password
+        return ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD).equivalent(value.getPath());
     }
 
     @Override

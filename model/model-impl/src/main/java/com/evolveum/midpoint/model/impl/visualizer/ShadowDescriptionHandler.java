@@ -41,22 +41,18 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
 
     @Override
     public boolean match(VisualizationImpl visualization) {
-        PrismContainerValue value = visualization.getSourceValue();
-        if (value == null || !(value.asContainerable() instanceof ShadowType)) {
-            return false;
-        }
-
-        return true;
+        PrismContainerValue<?> value = visualization.getSourceValue();
+        return value != null && value.asContainerable() instanceof ShadowType;
     }
 
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
-        PrismContainerValue value = visualization.getSourceValue();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         ShadowType shadow = (ShadowType) value.asContainerable();
 
         ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
 
-        ResourceAttribute namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+        ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
         Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
         String name = realName != null ? realName.toString() : "";
         ChangeType change = visualization.getChangeType();

@@ -46,10 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class Visualizer {
 
     private static final Trace LOGGER = TraceManager.getTrace(Visualizer.class);
+
     public static final String CLASS_DOT = Visualizer.class.getName() + ".";
 
     @Autowired
-    private List<VisualizationDescriptionHandler> DESCRIPTION_HANDLERS = new ArrayList<>();
+    private List<VisualizationDescriptionHandler> descriptionHandlers;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -516,7 +517,7 @@ public class Visualizer {
     }
 
     private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
-        for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
+        for (VisualizationDescriptionHandler handler : descriptionHandlers) {
             if (handler.match(visualization)) {
                 handler.apply(visualization, task, result);
             }
