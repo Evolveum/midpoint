@@ -111,25 +111,25 @@ public interface CommonInitialObjects {
     TestReport REPORT_SIMULATION_OBJECTS = TestReport.classPath(
             REPORTS,
             "170-report-simulation-objects.xml",
-            "89bd4f11-8add-4f52-97f9-286d76cea7c5",
+            "00000000-0000-0000-0000-286d76cea7c5",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
     TestReport REPORT_SIMULATION_OBJECTS_BY_MARKS = TestReport.classPath(
             REPORTS,
             "171-report-simulation-objects-by-marks.xml",
-            "797b3697-a41f-4a06-ba14-616a5c5dbca8",
+            "00000000-0000-0000-0000-616a5c5dbca8",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
     TestReport REPORT_SIMULATION_ITEMS_CHANGED = TestReport.classPath(
             REPORTS,
             "172-report-simulation-items-changed.xml",
-            "1d12a138-9763-4601-955b-ea32deff43df",
+            "00000000-0000-0000-0000-ea32deff43df",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
     TestReport REPORT_SIMULATION_VALUES_CHANGED = TestReport.classPath(
             REPORTS,
             "173-report-simulation-values-changed.xml",
-            "635e4db8-244f-4a9a-b13f-61bc8211947c",
+            "00000000-0000-0000-0000-61bc8211947c",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
     /** To be used when needed. */
