@@ -7,12 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -20,19 +31,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 /**
  * Resolves definitions and old values.
@@ -71,7 +74,7 @@ public class Resolver {
                 if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
                     try {
                         provisioningService.applyDefinition(object, task, result);
-                    } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+                    } catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
                                 ObjectTypeUtil.toShortString(object));
                     }
@@ -85,7 +88,8 @@ public class Resolver {
                         object.asObjectable().setName(new PolyStringType(originalObject.getName()));
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
-                    } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                    } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
+                            SecurityViolationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                         warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                     }
@@ -133,14 +137,15 @@ public class Resolver {
                         } catch (ObjectNotFoundException e) {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
-                        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
+                                SecurityViolationException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                             warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                         }
                         originalObjectFetched = true;
                     }
                     if (originalObject != null) {
-                        Item<?,?> originalItem = originalObject.findItem(itemDelta.getPath());
+                        Item<?, ?> originalItem = originalObject.findItem(itemDelta.getPath());
                         if (originalItem != null) {
                             itemDelta.setEstimatedOldValues(CloneUtil.cloneCollectionMembers(originalItem.getValues()));
                         }
@@ -170,5 +175,43 @@ public class Resolver {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             resolve(delta, true, task, result);
         }
+    }
+
+    public String resolveReferenceName(ObjectReferenceType ref, boolean returnOidIfReferenceUnknown, Task task, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+
+        if (ref.getTargetName() != null) {
+            return ref.getTargetName().getOrig();
+        }
+
+        if (ref.getObject() != null) {
+            PrismObject<?> object = ref.getObject();
+            if (object.getName() == null) {
+                return returnOidIfReferenceUnknown ? ref.getOid() : null;
+            }
+
+            return object.getName().getOrig();
+        }
+
+        String oid = ref.getOid();
+        if (oid == null) {
+            return null;
+        }
+
+        try {
+            ObjectTypes type = getTypeFromReference(ref);
+
+            PrismObject<?> object = modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
+            return object.getName().getOrig();
+        } catch (Exception ex) {
+            return returnOidIfReferenceUnknown ? ref.getOid() : null;
+        }
+    }
+
+    private ObjectTypes getTypeFromReference(ObjectReferenceType ref) {
+        QName typeName = ref.getType() != null ? ref.getType() : ObjectType.COMPLEX_TYPE;
+        return ObjectTypes.getObjectTypeFromTypeQName(typeName);
     }
 }
