@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -203,6 +204,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         // Archetypes
         repoAddObjectFromFile(ARCHETYPE_TASK_RECONCILIATION_FILE, initResult);
 
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
+
         // User Templates
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);
@@ -361,6 +367,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         assertTrue(type.isInstance(object), message);
     }
 
+    @Override
     protected void setDefaultUserTemplate(String userTemplateOid)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
