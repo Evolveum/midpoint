@@ -234,7 +234,7 @@ public class ObjectOperationPolicyHelper {
 
         @Override
         protected boolean policyNotExcluded(ObjectType shadow, String markOid) {
-            return containsPolicyStatement(shadow, markOid, EXCLUDE);
+            return !containsPolicyStatement(shadow, markOid, EXCLUDE);
         }
 
         protected boolean containsPolicyStatement(@NotNull ObjectType shadow, @NotNull String markOid, @NotNull PolicyStatementTypeType policyType) {
