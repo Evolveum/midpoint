@@ -913,8 +913,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             List<ValueWithState> all = new ArrayList<>();
             getRealValuesAdded().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.ADDED)));
             getRealValuesDeleted().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.DELETED)));
-            getRealValuesModified().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.MODIFIED)));
-            getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
+            if (isReplace()) {
+                // We provide the information about modified values only if the delta is "REPLACE".
+                // The reason is that for ADD/DELETE deltas, all modifications should be covered by separate sub-item deltas.
+                getRealValuesModified().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.MODIFIED)));
+            }
+            //getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
             return all;
         }
 
