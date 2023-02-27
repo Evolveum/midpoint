@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -361,6 +362,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         assertTrue(type.isInstance(object), message);
     }
 
+    @Override
     protected void setDefaultUserTemplate(String userTemplateOid)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);

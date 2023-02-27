@@ -347,7 +347,7 @@ class ShadowSearchLikeOperation {
 
         // Fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
         // TODO we will eventually store the "protected" flag right in the repo shadow, so this code will be obsolete
-        ProvisioningUtil.setProtectedFlag(ctx, shadowBean, localBeans.expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, shadowBean, localBeans.expressionFactory, result);
 
         ProvisioningUtil.validateShadow(shadow, true);
 

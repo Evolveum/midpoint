@@ -94,6 +94,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getUpdater().commit(result);
                 return;
             }
+            // FIXME: Somewhere here we should validate preFocus
+
+
+
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
             setupLinkedOwnerAndSituation(completeCtx, change, result);
 
@@ -225,6 +229,19 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
             return true;
         }
+
+        if (syncCtx.isMarkedSkipSynchronization()) {
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for marked shadow %s, ignoring change from channel %s", shadow, channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .updateCoordinatesIfMissing();
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(PROTECTED);
+            return true;
+        }
+
 
         if (syncCtx.isProtected()) {
             String message = String.format(
