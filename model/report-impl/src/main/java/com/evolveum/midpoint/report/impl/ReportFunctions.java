@@ -38,6 +38,8 @@ import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder.getCurrentResult;
+import static com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder.getCurrentTask;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
@@ -558,7 +560,10 @@ public class ReportFunctions {
 
     public @NotNull <O extends ObjectType> ProcessedObject<O> getProcessedObject(
             @NotNull SimulationResultProcessedObjectType objectBean) throws SchemaException {
-        return model.parseProcessedObject(objectBean);
+        return model.parseProcessedObject(
+                objectBean,
+                Objects.requireNonNull(getCurrentTask(), "no current task"),
+                Objects.requireNonNull(getCurrentResult(), "no current operation result"));
     }
 
     public Collection<ProcessedObject.ProcessedObjectItemDelta<?, ?>> getProcessedObjectItemDeltas(

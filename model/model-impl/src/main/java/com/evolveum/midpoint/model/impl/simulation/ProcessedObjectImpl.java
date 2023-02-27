@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -53,9 +55,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -132,8 +131,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.internalState = internalState;
     }
 
-    @VisibleForTesting
-    public static <O extends ObjectType> ProcessedObjectImpl<O> parse(@NotNull SimulationResultProcessedObjectType bean)
+    public static <O extends ObjectType> @NotNull ProcessedObjectImpl<O> parse(@NotNull SimulationResultProcessedObjectType bean)
             throws SchemaException {
         Class<?> type = PrismContext.get().getSchemaRegistry().determineClassForTypeRequired(bean.getType());
         argCheck(ObjectType.class.isAssignableFrom(type), "Type is not an ObjectType: %s", type);
@@ -149,14 +147,43 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ParsedMetricValues.fromAll(bean.getMetricValue(), bean.getEventMarkRef()),
                 bean.isFocus(),
                 bean.getFocusRecordId(),
-                (O) bean.getBefore(),
-                (O) bean.getAfter(),
+                (O) fix(bean.getBefore()),
+                (O) fix(bean.getAfter()),
                 DeltaConvertor.createObjectDeltaNullable(bean.getDelta()),
                 InternalState.PARSED);
         obj.setRecordId(bean.getId());
         obj.setFocusRecordId(bean.getFocusRecordId());
         obj.setProjectionRecords(bean.getProjectionRecords());
         return obj;
+    }
+
+    /**
+     * Converts {@link PrismContainerValue} to {@link PrismObjectValue} based {@link ObjectType} as a workaround for MID-8522.
+     *
+     * TEMPORARY CODE
+     */
+    private static ObjectType fix(ObjectType objectable) {
+        if (objectable == null) {
+            return null;
+        }
+        PrismContainerValue<?> pcv = objectable.asPrismContainerValue();
+        if (pcv instanceof PrismObjectValue) {
+            return objectable;
+        }
+
+        PrismObjectValue<?> pov;
+        try {
+            pov = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(objectable.getClass())
+                    .instantiate()
+                    .createNewValue();
+            for (Item<?, ?> item : pcv.getItems()) {
+                pov.add(item.clone());
+            }
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when fixing " + objectable);
+        }
+        return (ObjectType) pov.asObjectable();
     }
 
     private void addComputedMetricValues(@NotNull List<SimulationProcessedObjectMetricValueType> newValues) {
@@ -830,6 +857,28 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return item != null ?
                 Set.copyOf(item.getValues()) :
                 Set.of();
+    }
+
+    @Override
+    public void applyDefinitions(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        if (!ShadowType.class.equals(type)) {
+            return;
+        }
+        ShadowType shadow = (ShadowType) getAfterOrBefore();
+        if (shadow == null) {
+            throw new IllegalStateException("No object? In: " + this);
+        }
+        if (delta != null && !delta.isEmpty()) {
+            ModelBeans.get().provisioningService.applyDefinition(delta, shadow, task, result);
+        }
+        if (before != null) {
+            ModelBeans.get().provisioningService.applyDefinition(before.asPrismObject(), task, result);
+        }
+        if (after != null) {
+            ModelBeans.get().provisioningService.applyDefinition(after.asPrismObject(), task, result);
+        }
     }
 
     class ProcessedObjectItemDeltaImpl<V extends PrismValue, D extends ItemDefinition<?>>

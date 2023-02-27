@@ -757,17 +757,17 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_TAG, "")
                 .assertValue(C_ITEM_CHANGED, "attributes/fullname")
                 .assertValue(C_VALUE_STATE, "ADDED")
-                //.assertValue(C_VALUE, "FIXME")
+                .assertValue(C_VALUE, "Jackie Sparrow")
                 .end()
                 .record(4)
                 .assertValue(C_ITEM_CHANGED, "attributes/fullname")
                 .assertValue(C_VALUE_STATE, "DELETED")
-                //.assertValue(C_VALUE, "FIXME")
+                .assertValue(C_VALUE, "Jack Sparrow")
                 .end()
                 .record(5)
                 .assertValue(C_ITEM_CHANGED, "attributes/location")
                 .assertValue(C_VALUE_STATE, "ADDED")
-                //.assertValue(C_VALUE, "FIXME")
+                .assertValue(C_VALUE, "Caribbean")
                 .end();
     }
 
