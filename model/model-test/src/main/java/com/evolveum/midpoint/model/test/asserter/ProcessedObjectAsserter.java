@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import com.evolveum.midpoint.test.TestObject;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+
+import java.util.function.Function;
 
 /**
  * Asserts prepositions about {@link ProcessedObject} instances.
@@ -72,6 +76,12 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
                 new ObjectDeltaAsserter<>(delta, this, "delta in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    @Experimental
+    public ProcessedObjectAsserter<O, RA> delta(
+            Function<ObjectDeltaAsserter<O, ProcessedObjectAsserter<O, RA>>, ObjectDeltaAsserter<O, ProcessedObjectAsserter<O, RA>>> function) {
+        return function.apply(delta()).end();
     }
 
     public PrismObjectAsserter<O, ProcessedObjectAsserter<O, RA>> objectBefore() {
