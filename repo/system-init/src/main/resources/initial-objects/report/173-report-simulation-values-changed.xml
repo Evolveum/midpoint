@@ -237,7 +237,7 @@
         </view>
         <parameter>
             <name>simulationResultRef</name>
-            <type>ObjectReferenceType</type>
+            <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
         </parameter>
         <parameter>
