@@ -8,6 +8,9 @@ package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.FocusIdentificationAuthenticationContext;
@@ -17,6 +20,7 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +68,12 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                     LOGGER.error("Unsupported authentication {}", authentication);
                     throw new AuthenticationServiceException("web.security.provider.unavailable");
                 }
-                FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, null);
+                ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
+                List<ModuleItemConfigurationType> itemsConfig = null;
+                if (moduleAuthentication instanceof FocusIdentificationModuleAuthentication) {
+                    itemsConfig = ((FocusIdentificationModuleAuthentication) moduleAuthentication).getModuleConfiguration();
+                }
+                FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, itemsConfig, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);
                 UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(),token.getCredentials());
                 pwdToken.setAuthenticated(false);

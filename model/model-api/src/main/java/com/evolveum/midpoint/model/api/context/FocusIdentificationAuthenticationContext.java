@@ -15,8 +15,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author skublik
@@ -25,11 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public class FocusIdentificationAuthenticationContext extends AbstractAuthenticationContext {
 
     private Map<ItemPath, String> values;
+    private List<ModuleItemConfigurationType> config;
 
     public FocusIdentificationAuthenticationContext(
-            Map<ItemPath, String> values, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
+            Map<ItemPath, String> values, Class<? extends FocusType> principalType, List<ModuleItemConfigurationType> config, List<ObjectReferenceType> requireAssignment) {
         super(null, principalType, requireAssignment);
         this.values = values;
+        this.config = config;
     }
 
     @Override
@@ -41,8 +47,17 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
     public ObjectQuery createFocusQuery() {
         List<ObjectFilter> filters = new ArrayList<>();
         for (Map.Entry<ItemPath, String> entry : values.entrySet()) {
-            ObjectFilter objectFilter = PrismContext.get().queryFor(getPrincipalType())
-            .item(entry.getKey()).eq(entry.getValue()).buildFilter();
+            ItemPath path = entry.getKey();
+            S_FilterExit matchingRuleEntry = PrismContext.get()
+                    .queryFor(getPrincipalType())
+                        .item(path)
+                        .eq(entry.getValue());
+
+            ModuleItemConfigurationType moduleItemConfigurationType = findConfigFor(path);
+            if (moduleItemConfigurationType != null && moduleItemConfigurationType.getMatchingRule() != null) {
+                matchingRuleEntry = ((S_MatchingRuleEntry) matchingRuleEntry).matching(moduleItemConfigurationType.getMatchingRule());
+            }
+            ObjectFilter objectFilter = matchingRuleEntry.buildFilter();
             filters.add(objectFilter);
         }
         OrFilter orFilter = PrismContext.get().queryFactory().createOr(filters);
@@ -50,5 +65,24 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
         ObjectQuery query = PrismContext.get().queryFor(getPrincipalType()).build();
         query.addFilter(orFilter);
         return query;
+    }
+
+    private ModuleItemConfigurationType findConfigFor(ItemPath path) {
+        if (config == null) {
+            return null;
+        }
+
+        for (ModuleItemConfigurationType itemConfig : config) {
+            ItemPathType configuredtPathType = itemConfig.getPath();
+            if (configuredtPathType == null) {
+                //TODO what to do in such a case?
+                continue;
+            }
+            ItemPath configuredPath = configuredtPathType.getItemPath();
+            if (configuredPath.equivalent(path)) {
+                return itemConfig;
+            }
+        }
+        return null;
     }
 }

@@ -177,6 +177,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         module.setType(this.getType());
         module.setPrefix(this.getPrefix());
         module.setFocusType(this.getFocusType());
+        module.setSufficient(this.isSufficient());
     }
 
     public void setInternalLogout(boolean internalLogout) {

@@ -511,7 +511,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="item" type="tns:ModuleItemConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The path to the user attribute which should be verified.
@@ -524,6 +524,41 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ModuleItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The path to the user attribute which should be verified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ModuleItemConfigurationType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="matchingRule" type="xsd:QName" a:maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Matching rule which should be used for this item while filtering or comparing
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ModuleItemConfigurationType.matchingRule</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later maybe we will need priority, mandatory, ... -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="LdapSearchAuthenticationModuleType">

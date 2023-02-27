@@ -60,6 +60,9 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        if (moduleType instanceof FocusIdentificationAuthenticationModuleType) {
+            moduleAuthentication.setModuleConfiguration(((FocusIdentificationAuthenticationModuleType) moduleType).getItem());
+        }
         return moduleAuthentication;
     }
 

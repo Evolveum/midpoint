@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -103,7 +104,10 @@ public class PageFocusIdentification extends PageAuthenticationBase {
                     getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
                     throw new RestartResponseException(PageError.class);
                 }
-                return module.getPath();
+                List<ModuleItemConfigurationType> itemConfigs = module.getItem();
+                return itemConfigs.stream()
+                        .map(config -> config.getPath())
+                        .collect(Collectors.toList());
             }
         };
     }
