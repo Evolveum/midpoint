@@ -33,10 +33,6 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
     private final boolean showOperationalItems;
     private boolean operationalItemsVisible;
 
-    public SimpleVisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
-        this(id, model, false, true);
-    }
-
     public SimpleVisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems, boolean advanced) {
         super(id, model);
 
@@ -61,7 +57,14 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
                 return operationalItemsVisible;
             }
         };
-        itemsTable.add(new VisibleBehaviour(() -> !model.getObject().getItems().isEmpty()));
+        itemsTable.add(new VisibleBehaviour(() -> {
+            VisualizationDto visualization = model.getObject();
+            if (visualization.hasNonOperationalItems()) {
+                return true;
+            }
+
+            return operationalItemsVisible && visualization.hasOperationalItems();
+        }));
         itemsTable.setOutputMarkupId(true);
         add(itemsTable);
 
@@ -101,7 +104,7 @@ public class SimpleVisualizationPanel extends BasePanel<VisualizationDto> {
             }
         };
         showOperationalItemsLink.setOutputMarkupId(true);
-        showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems && getModelObject().hasOperationalItems()));
+        showOperationalItemsLink.add(new VisibleBehaviour(() -> advanced && showOperationalItems && getModelObject().hasOperationalContent()));
         add(showOperationalItemsLink);
     }
 
