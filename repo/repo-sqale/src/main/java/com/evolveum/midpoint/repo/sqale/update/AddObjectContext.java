@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
+import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;

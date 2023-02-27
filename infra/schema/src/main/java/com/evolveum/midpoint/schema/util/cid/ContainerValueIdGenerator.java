@@ -1,10 +1,14 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.schema.util.cid;
+
+import java.util.*;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -14,18 +18,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
 /**
- * TEMPORARY CODE, shamelessly stolen from SqaleRepositoryService.
- *
  * Generator assigning missing IDs to PCVs of multi-value containers.
+ *
+ * Originally internal to "new repo" (sqale), now used also from the lens (clockwork) - when simulating the effect of deltas
+ * on the objects during execution of operations in simulation mode.
  */
-public class StolenContainerValueIdGenerator {
+public class ContainerValueIdGenerator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StolenContainerValueIdGenerator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerValueIdGenerator.class);
 
     private final PrismObject<? extends ObjectType> object;
     private final Set<Long> overwrittenIds = new HashSet<>(); // ids of PCV overwritten by ADD
@@ -35,7 +36,7 @@ public class StolenContainerValueIdGenerator {
 
     private int generated;
 
-    public <S extends ObjectType> StolenContainerValueIdGenerator(@NotNull PrismObject<S> object) {
+    public <S extends ObjectType> ContainerValueIdGenerator(@NotNull PrismObject<S> object) {
         this.object = object;
     }
 
@@ -55,7 +56,7 @@ public class StolenContainerValueIdGenerator {
      * Initializes the generator for modify object and checks that no previous CIDs are missing.
      * This is a critical step before calling {@link #processModification}.
      */
-    public StolenContainerValueIdGenerator forModifyObject(long containerIdSeq) throws SchemaException {
+    public ContainerValueIdGenerator forModifyObject(long containerIdSeq) throws SchemaException {
         checkExistingContainers(object);
         if (!pcvsWithoutId.isEmpty()) {
             LOGGER.warn("Generating missing container IDs in previously persisted prism object "
