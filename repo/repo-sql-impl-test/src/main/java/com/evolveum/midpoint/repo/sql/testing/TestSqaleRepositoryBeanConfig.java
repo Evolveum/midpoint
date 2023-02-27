@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,13 +26,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Test configuration for new repository, adding test query listener and database cleanup.
  */
 @Configuration
-@ConditionalOnExpression("#{midpointConfiguration.keyMatches("
-        + "'midpoint.repository.repositoryServiceFactoryClass',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
-        + "|| midpointConfiguration.keyMatches("
-        + "'midpoint.repository.type',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
-        + "}")
+@ConditionalOnExpression(
+        "#{midpointConfiguration.keyMatches('midpoint.repository.type', '(?i)s[qc]ale|native')}")
 @ComponentScan
 @Import(SqaleRepositoryBeanConfig.class)
 public class TestSqaleRepositoryBeanConfig {
