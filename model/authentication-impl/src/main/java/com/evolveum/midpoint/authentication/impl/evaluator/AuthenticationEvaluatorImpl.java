@@ -7,64 +7,47 @@
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -439,7 +422,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         int failedLogins;
-        if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
+        if (canEvaluateForModule(authentication)) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             return SecurityUtil.isOverFailedLockoutAttempts(((MidPointPrincipal) authentication.getPrincipal()).getFocus(),
                     AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()),
@@ -452,14 +435,20 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
     }
 
+    private boolean canEvaluateForModule(Authentication authentication) {
+        return authentication instanceof MidpointAuthentication
+                && authentication.getPrincipal() instanceof MidPointPrincipal
+                && ((MidpointAuthentication) authentication).getProcessingModuleAuthentication() != null;
+    }
+
     private boolean isLockoutExpired(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
         Duration lockoutDuration;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
+        if (canEvaluateForModule(authentication)) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             XMLGregorianCalendar lastFailedLoginTimestamp = SecurityUtil.getLockoutExpirationTimestampForAuthModule(
                     ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus(),
-                    mpAuthentication.getSequence().getIdentifier(),
+                    AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()),
                     mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier());
             XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, credentialsPolicy.getLockoutDuration());
             return clock.isPast(lockedUntilTimestamp);
@@ -494,15 +483,16 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (principal != null) {
             AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            AuthenticationAttemptDataType authAttemptData = null;
-            if (authentication instanceof MidpointAuthentication) {
-                String sequenceIdentifier = ((MidpointAuthentication) authentication).getSequence().getIdentifier();
-                String moduleIdentifier = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication().getModuleIdentifier();
+            AuthenticationAttemptDataType authAttemptData;
+            if (canEvaluateForModule(authentication)) {
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                String sequenceIdentifier = AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence());
+                String moduleIdentifier = mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier();
                 authAttemptData = AuthenticationEvaluatorUtil.findOrCreateAuthenticationAttemptData(behavior,
                         sequenceIdentifier, moduleIdentifier);
-                authAttemptData.setChannel(((MidpointAuthentication) authentication).getSequence().getChannel());
+                authAttemptData.setChannel(mpAuthentication.getSequence().getChannel());
                 recordModuleAuthenticationAttempt(principal, authAttemptData, connEnv, isSuccess);
-                updateAuthenticationWithPrincipal((MidpointAuthentication) authentication, principal);
+                updateAuthenticationWithPrincipal(mpAuthentication, principal);
             }
 
             if (isSuccess) {
