@@ -8,4 +8,7 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="0d4faf1c-2677-41a4-9026-e0319a335767">
     <name>tester</name>
+    <assignment>
+        <targetRef oid="fb5b9b3f-15b7-450c-a906-c61d0fe1ef60"/>
+    </assignment>
 </role>

@@ -8,4 +8,7 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="b9e47537-0d85-4a6c-aeb2-24d4c06db7a6">
     <name>admin</name>
+    <assignment>
+        <targetRef oid="fb5b9b3f-15b7-450c-a906-c61d0fe1ef60"/>
+    </assignment>
 </role>

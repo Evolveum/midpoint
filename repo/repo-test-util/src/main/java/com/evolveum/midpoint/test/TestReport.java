@@ -13,6 +13,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.assertj.core.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,9 +76,9 @@ public class TestReport extends TestObject<ReportType> {
      * @param test To provide access to necessary functionality. Temporary!
      */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result)
-            throws CommonException {
+            throws Exception {
+        super.init(test, task, result);
         this.test = test;
-        importObject(task, result);
     }
 
     /**
@@ -135,7 +137,13 @@ public class TestReport extends TestObject<ReportType> {
             }
 
             exportTask = TestTask.of(newTask, DEFAULT_TIMEOUT);
-            exportTask.init(test, test.getTestTask(), result);
+            try {
+                exportTask.init(test, test.getTestTask(), result);
+            } catch (CommonException | IOException | RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw SystemException.unexpected(e, "when initializing export task");
+            }
             exportTask.rerun(result);
             exportTask.reload(result);
 
