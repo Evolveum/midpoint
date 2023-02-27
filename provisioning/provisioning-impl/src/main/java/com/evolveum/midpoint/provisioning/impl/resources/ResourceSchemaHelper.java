@@ -374,7 +374,7 @@ class ResourceSchemaHelper {
             }
 
             for (ItemDelta<?,?> itemDelta : delta.getModifications()){
-                applyItemDefinition(itemDelta, connectorSpec, configurationContainerDef, result);
+                applyItemDefinition((ItemDelta) itemDelta, connectorSpec, configurationContainerDef, result);
             }
 
         } catch (Throwable t) {

@@ -73,7 +73,7 @@ public class ShadowCaretaker {
             throws SchemaException {
         for (ItemDelta<?, ?> itemDelta : modifications) {
             if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
-                applyAttributeDefinition(ctx, itemDelta);
+                applyAttributeDefinition(ctx, (ItemDelta) itemDelta);
             } else if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getPath())) {
                 if (itemDelta.isAdd()) {
                     for (PrismValue value : itemDelta.getValuesToAdd()) {
