@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,8 +19,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.PrismUtil;
-
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -38,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
@@ -270,7 +269,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     // returns null if the query is equivalent to NONE (TODO this is counter-intuitive, fix that)
     private ObjectQuery simplify(ObjectQuery query, OperationResult subResult) {
         ObjectFilter filter = query.getFilter();
-        filter = ObjectQueryUtil.simplify(filter, prismContext);
+        filter = ObjectQueryUtil.simplify(filter);
         if (filter instanceof NoneFilter) {
             subResult.recordSuccess();
             return null;
@@ -327,6 +326,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return executeQueryAttemptsNoSchemaException(query, "countContainers", type, "counting", result,
                 () -> 0,
                 (q) -> objectRetriever.countContainersAttempt(type, q, options, result));
+    }
+
+    @Override
+    public int countReferences(@Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+        throw new UnsupportedOperationException("Reference search/count is not supported in Generic repository");
+    }
+
+    @Override
+    public @NotNull SearchResultList<ObjectReferenceType> searchReferences(@NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+        throw new UnsupportedOperationException("Reference search/count is not supported in Generic repository");
     }
 
     private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative, Boolean strictlySequential) {
@@ -947,6 +958,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return rv;
     }
 
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) {
+        throw new UnsupportedOperationException("Reference search/count is not supported in Generic repository");
+    }
+
     private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {
         return query != null
                 && query.getPaging() != null
@@ -1421,6 +1441,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public boolean supports(@NotNull Class<? extends ObjectType> type) {
         return !SimulationResultType.class.equals(type)
-                && !TagType.class.equals(type);
+                && !MarkType.class.equals(type);
     }
 }

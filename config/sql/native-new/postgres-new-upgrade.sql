@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -171,10 +171,21 @@ $aa$);
 
 -- Simulations
 call apply_change(12, $aa$
-   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
-   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'TAG' AFTER 'SYSTEM_CONFIGURATION';
-   ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
-$aa$);
+    do $$
+        begin
+            -- Temporary code, to migrate from TagType to MarkType
+            if 'TAG'::name = any(enum_range(null::ObjectType)::name[]) then
+               ALTER TYPE ObjectType RENAME VALUE 'TAG' TO 'MARK';
+               ALTER TYPE ReferenceType RENAME VALUE 'PROCESSED_OBJECT_EVENT_TAG' TO 'PROCESSED_OBJECT_EVENT_MARK';
+            else
+               ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
+               ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PERSONA';
+            end if;
+            ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
+            ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
+        end
+    $$;
+$aa$, true); -- TODO remove forced before release
 
 call apply_change(13, $aa$
 -- TODO delete before release
@@ -182,6 +193,9 @@ DROP TABLE IF EXISTS m_simulation_result CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object_default CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object CASCADE;
 DROP TABLE IF EXISTS m_tag CASCADE;
+DROP TABLE IF EXISTS m_mark CASCADE;
+DROP TABLE IF EXISTS m_processed_object_event_tag;
+DROP TABLE IF EXISTS m_processed_object_event_mark;
 DROP TYPE IF EXISTS ObjectProcessingStateType;
 -- TODO end of the block
 
@@ -189,9 +203,14 @@ CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
         CHECK (objectType = 'SIMULATION_RESULT'),
-    partitioned boolean
+    partitioned boolean,
+    rootTaskRefTargetOid UUID,
+    rootTaskRefTargetType ObjectType,
+    rootTaskRefRelationId INTEGER REFERENCES m_uri(id),
+    startTimestamp TIMESTAMPTZ,
+    endTimestamp TIMESTAMPTZ
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_simulation_result
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
@@ -207,7 +226,7 @@ CREATE TABLE m_simulation_result_processed_object (
     -- Owner does not have to be the direct parent of the container.
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ownerOid UUID NOT NULL REFERENCES m_simulation_result(oid) ON DELETE CASCADE,
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
@@ -223,8 +242,10 @@ CREATE TABLE m_simulation_result_processed_object (
     fullObject BYTEA,
     objectBefore BYTEA,
     objectAfter BYTEA,
+    transactionId TEXT,
+    focusRecordId BIGINT,
 
-   PRIMARY KEY (ownerOid, cid)
+    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
 
 CREATE TABLE m_simulation_result_processed_object_default PARTITION OF m_simulation_result_processed_object DEFAULT;
@@ -268,21 +289,33 @@ CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulatio
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
 
-CREATE TABLE m_tag (
+CREATE TABLE m_mark (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('TAG') STORED
-        CHECK (objectType = 'TAG')
+    objectType ObjectType GENERATED ALWAYS AS ('MARK') STORED
+        CHECK (objectType = 'MARK')
 )
     INHERITS (m_assignment_holder);
 
-CREATE TRIGGER m_tag_oid_insert_tr BEFORE INSERT ON m_tag
+CREATE TRIGGER m_mark_oid_insert_tr BEFORE INSERT ON m_mark
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_tag_update_tr BEFORE UPDATE ON m_tag
+CREATE TRIGGER m_mark_update_tr BEFORE UPDATE ON m_mark
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_tag_oid_delete_tr AFTER DELETE ON m_tag
+CREATE TRIGGER m_mark_oid_delete_tr AFTER DELETE ON m_mark
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 
+CREATE TABLE m_processed_object_event_mark (
+  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
+  processedObjectCid INTEGER NOT NULL,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_MARK') STORED,
+  targetOid UUID NOT NULL, -- soft-references m_object
+  targetType ObjectType NOT NULL,
+  relationId INTEGER NOT NULL REFERENCES m_uri(id)
+
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_processed_object_event_mark_default PARTITION OF m_processed_object_event_mark DEFAULT;
 
 $aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
 

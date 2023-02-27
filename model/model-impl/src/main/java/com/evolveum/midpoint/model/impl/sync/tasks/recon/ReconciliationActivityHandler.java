@@ -150,7 +150,7 @@ public class ReconciliationActivityHandler
     }
 
     @VisibleForTesting
-    public ReconciliationResultListener getReconciliationResultListener() {
+    ReconciliationResultListener getReconciliationResultListener() {
         return reconciliationResultListener;
     }
 

@@ -841,11 +841,9 @@ public class TestUnix extends AbstractStoryTest {
 
         dummyAuditService.clear();
 
-        // WHEN
         when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -862,7 +860,7 @@ public class TestUnix extends AbstractStoryTest {
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
     }
@@ -2111,6 +2109,6 @@ public class TestUnix extends AbstractStoryTest {
 
     protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
         XMLGregorianCalendar attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
-        return MiscUtil.asLong(attributeValue);
+        return MiscUtil.asMillis(attributeValue);
     }
 }

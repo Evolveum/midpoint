@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,16 +8,12 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -129,12 +126,15 @@ public interface RepositoryService {
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
     String OP_GET_OBJECT = "getObject";
-    String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
     String OP_SEARCH_CONTAINERS = "searchContainers";
     String OP_COUNT_CONTAINERS = "countContainers";
+    String OP_SEARCH_REFERENCES = "searchReferences";
+    String OP_SEARCH_REFERENCES_ITERATIVE = "searchReferencesIterative";
+    String OP_SEARCH_REFERENCES_ITERATIVE_PAGE = "searchReferencesIterativePage";
+    String OP_COUNT_REFERENCES = "countReferences";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
     String OP_HAS_CONFLICT = "hasConflict";
@@ -153,7 +153,6 @@ public interface RepositoryService {
     String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT_DYNAMICALLY;
     String GET_VERSION = CLASS_NAME_WITH_DOT + OP_GET_VERSION;
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
-    String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + OP_SEARCH_SHADOW_OWNER;
     String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + OP_ADVANCE_SEQUENCE;
     String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE;
     String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
@@ -210,7 +209,7 @@ public interface RepositoryService {
      *
      * This operation should fail if such object already exists (if object with
      * the provided OID already exists).
-     * Overwrite is possible if {@link RepoAddOptions#overwrite} is true, but only
+     * Overwrite is possible if {@link RepoAddOptions#isOverwrite()} is true, but only
      * for the object of the same type.
      *
      * The operation may fail if provided OID is in an unusable format for the storage.
@@ -338,6 +337,12 @@ public interface RepositoryService {
      */
     @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
+
+    @Experimental
+    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet");
+    }
+
     // Counting/searching
 
     <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
@@ -345,10 +350,37 @@ public interface RepositoryService {
 
     /**
      * Search for "sub-object" structures, i.e. containers.
-     * Currently, only one type of search is available: certification case search.
      */
     <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+
+    /**
+     * Reference count - currently supporting roleMembershipRef and linkRef search.
+     * See {@link #searchReferences(ObjectQuery, Collection, OperationResult)} for more details.
+     *
+     * @param query mandatory query
+     */
+    int countReferences(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult);
+
+    /**
+     * Reference search - currently supporting roleMembershipRef and linkRef search.
+     * This returns reference objects extracted from the actual object(s) that own them,
+     * but selection of which (and cardinality of the result list) is based on a repository search.
+     *
+     * Query must not be null and its filter must be:
+     *
+     * * either a OWNER-BY filter,
+     * * or AND filter containing exactly one OWNER-BY filter and optionally one or more REF filters with empty path (self).
+     *
+     * @param query mandatory query with exactly one root OWNER-BY and additional REF filters
+     */
+    @NotNull SearchResultList<ObjectReferenceType> searchReferences(
+            @NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
      * <p>Search for objects in the repository.</p>
@@ -459,6 +491,22 @@ public interface RepositoryService {
             throws SchemaException;
 
     /**
+     * Executes iterative reference search using the provided `handler` to process each references.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
+
+    /**
      * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.
      * The `object` can either be an Org or any other object in which case all the targets
      * of its `parentOrgRefs` are tested.
@@ -527,6 +575,7 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong OID format
      * @deprecated TODO: we want to remove this in midScale
      */
+    @Deprecated
     default <F extends FocusType> PrismObject<F> searchShadowOwner(
             String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         ObjectQuery query = PrismContext.get()
@@ -591,8 +640,8 @@ public interface RepositoryService {
     /** Returns `true` if the given object type is supported. */
     boolean supports(@NotNull Class<? extends ObjectType> type);
 
-    default boolean supportsTags() {
-        return supports(TagType.class);
+    default boolean supportsMarks() {
+        return supports(MarkType.class);
     }
 
     /**

@@ -6,15 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +29,8 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
         implements PrismReferenceWrapper<R> {
 
     private ObjectFilter filter;
-    private Set<SerializableSupplier<AbstractSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
+    private Set<SearchItemType> predefinedSearchItems = new HashSet<>();
+//    private Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
     private boolean onlyForDeltaComputation;
 
     public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
@@ -90,14 +86,23 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
         return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName());
     }
 
-    @Override
-    public Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemFunctions() {
-        return specialItemFunctions;
+//    @Override
+//    public Set<SerializableSupplier<FilterableSearchItemWrapper>> getSpecialSearchItemFunctions() {
+//        return specialItemFunctions;
+//    }
+
+//    @Override
+//    public void setSpecialSearchItemFunctions(Set<SerializableSupplier<FilterableSearchItemWrapper>> functions) {
+//        this.specialItemFunctions = functions;
+//    }
+
+    public Set<SearchItemType> getPredefinedSearchItem() {
+        return predefinedSearchItems;
     }
 
     @Override
-    public void setSpecialSearchItemFunctions(Set<SerializableSupplier<AbstractSearchItemWrapper>> functions) {
-        this.specialItemFunctions = functions;
+    public void setPredefinedSearchItem(Set<SearchItemType> searchItems) {
+        this.predefinedSearchItems = searchItems;
     }
 
     @Override

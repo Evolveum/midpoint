@@ -1,11 +1,27 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
+
+import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
@@ -21,7 +37,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -30,24 +45,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 /**
- * Converts record ({@link Containerable}) to a semi-formatted row
- * ({@link ExportedReportDataRow} - basically, a string representation)
- * according to individual columns specifications.
+ * Converts record ({@link Containerable}, {@link Referencable} or later POJO) to a semi-formatted row
+ * ({@link ExportedReportDataRow} - basically, a string representation) according to individual columns specifications.
  *
  * Responsibilities:
  *
@@ -57,7 +57,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  *
  * Instantiated for each individual record.
  */
-class ColumnDataConverter<C extends Containerable> {
+class ColumnDataConverter<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ColumnDataConverter.class);
 
@@ -116,12 +116,16 @@ class ColumnDataConverter<C extends Containerable> {
         Collection<? extends PrismValue> dataValues;
         if (itemPath != null && !DefaultColumnUtils.isSpecialColumn(itemPath, record)) {
             dataValues = resolvePath(itemPath);
+        } else if (record instanceof Containerable) {
+            dataValues = List.of(((Containerable) record).asPrismContainerValue());
+        } else if (record instanceof Referencable) {
+            dataValues = List.of(((Referencable) record).asReferenceValue());
         } else {
-            dataValues = List.of(record.asPrismContainerValue());
+            throw new IllegalArgumentException("Unsupported type '" + record.getClass() + "' of record: " + record);
         }
 
         if (expression != null) {
-            dataValues = evaluateExportExpressionOverPrismValues(expression, dataValues);
+            dataValues = evaluateExportExpressionOverPrismValues(expression, dataValues, column);
         }
 
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
@@ -140,6 +144,9 @@ class ColumnDataConverter<C extends Containerable> {
      * @return List of values of the item found. (Or empty list of nothing was found.)
      */
     private @NotNull List<? extends PrismValue> resolvePath(ItemPath itemPath) {
+        if (itemPath.equivalent(PrismConstants.T_ID)) {
+            return getIdentifier();
+        }
         Item<?, ?> currentItem = null;
         Iterator<?> iterator = itemPath.getSegments().iterator();
         while (iterator.hasNext()) {
@@ -148,7 +155,14 @@ class ColumnDataConverter<C extends Containerable> {
                 continue;
             }
             if (currentItem == null) {
-                currentItem = record.asPrismContainerValue().findItem(name);
+                if (record instanceof Containerable) {
+                    currentItem = ((Containerable) record).asPrismContainerValue().findItem(name);
+// TODO: Not implemented yet, would we use paths with @/<targetItem> and ../<ownerItem> here?
+//  } else if (record instanceof Referencable) {
+//                    currentItem = ((Referencable) record).asReferenceValue().findItem(name);
+                } else {
+                    throw new IllegalArgumentException("Unsupported type '" + record.getClass() + "' of record: " + record);
+                }
             } else {
                 currentItem = (Item<?, ?>) currentItem.find(name);
             }
@@ -171,21 +185,44 @@ class ColumnDataConverter<C extends Containerable> {
         return currentItem != null ? currentItem.getValues() : List.of();
     }
 
+    @Experimental
+    private List<? extends PrismValue> getIdentifier() {
+        if (record instanceof Objectable) {
+            return toPropertyValues(((Objectable) record).getOid());
+        } else if (record instanceof Containerable) {
+            return toPropertyValues(((Containerable) record).asPrismContainerValue().getId());
+        } else {
+            return List.of();
+        }
+    }
+
+    private List<? extends PrismValue> toPropertyValues(Object realValue) {
+        if (realValue == null) {
+            return List.of();
+        } else {
+            return List.of(
+                    PrismContext.get().itemFactory().createPropertyValue(realValue));
+        }
+    }
+
     private List<String> prettyPrintValues(Collection<? extends PrismValue> values) {
         return values.stream()
                 .map(this::prettyPrintValue)
                 .collect(Collectors.toList());
     }
 
+    // TODO clean up this mess, and integrate with ValueDisplayUtil / PrettyPrinter / notification text formatter etc
     private String prettyPrintValue(PrismValue value) {
         if (value instanceof PrismPropertyValue) {
             Object realValue = ((PrismPropertyValue<?>) value).getRealValue();
             if (realValue == null) {
                 return "";
             }
+            // TODO why do we load the whole lookup table here, and not only the requested row (by key)?
+            //  Also, we probably could implement some caching for small lookup tables, couldn't we?
             PrismObject<LookupTableType> lookupTable = null;
             try {
-                lookupTable = loadLookupTable((PrismPropertyValue) value);
+                lookupTable = loadLookupTable((PrismPropertyValue<?>) value);
             } catch (SchemaException | ObjectNotFoundException e) {
                 LOGGER.error("Couldn't load lookupTable. Message: {}", e.getMessage());
             }
@@ -214,26 +251,87 @@ class ColumnDataConverter<C extends Containerable> {
                     LOGGER.error("Couldn't convert delta from ObjectDeltaOperationType to ObjectDeltaOperation {}", realValue);
                     return "";
                 }
-            } if (realValue instanceof ObjectType) {
+            }
+            if (realValue instanceof ObjectType) {
                 return ReportUtils.prettyPrintForReport((ObjectType) realValue, reportService.getLocalizationService());
             } else {
                 return ReportUtils.prettyPrintForReport(realValue);
             }
         } else if (value instanceof PrismReferenceValue) {
             return getObjectNameFromRef(value.getRealValue());
-        } if (value instanceof ObjectType) {
-            return ReportUtils.prettyPrintForReport((ObjectType) value, reportService.getLocalizationService());
-        } else {
-            return ReportUtils.prettyPrintForReport(value);
         }
+
+        if (value instanceof PrismObjectValue<?>) {
+            Objectable realValue = ((PrismObjectValue<?>) value).asObjectable();
+            if (realValue instanceof ObjectType) {
+                return ReportUtils.prettyPrintForReport((ObjectType) realValue, reportService.getLocalizationService());
+            }
+        }
+
+        if (value instanceof PrismContainerValue<?>) {
+            PrismContainerValue<?> pcv = ((PrismContainerValue<?>) value);
+            if (pcv.getCompileTimeClass() != null) {
+                Object realValue = pcv.getRealValue();
+                if (realValue instanceof AssignmentType) {
+                    return prettyPrintValue((AssignmentType) realValue);
+                }
+            }
+        }
+
+        return ReportUtils.prettyPrintForReport(value);
+    }
+
+    private String prettyPrintValue(@NotNull AssignmentType assignment) {
+        List<String> segments = new ArrayList<>();
+        segments.add("->");
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef != null) {
+            segments.add(getObjectNameFromRef(targetRef));
+        }
+        ConstructionType construction = assignment.getConstruction();
+        if (construction != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getObjectNameFromRef(construction.getResourceRef()));
+            sb.append(":");
+            sb.append(
+                    ReportUtils.prettyPrintForReport(
+                            Objects.requireNonNullElse(construction.getKind(), ShadowKindType.ACCOUNT)));
+            String intent = construction.getIntent();
+            if (intent != null) {
+                sb.append("/");
+                sb.append(intent);
+            }
+            segments.add(sb.toString());
+        }
+        ActivationType activation = assignment.getActivation();
+        if (activation != null) {
+            XMLGregorianCalendar from = activation.getValidFrom();
+            XMLGregorianCalendar to = activation.getValidTo();
+            ActivationStatusType status = activation.getAdministrativeStatus();
+            if (from != null || to != null) {
+                segments.add(
+                        ReportUtils.prettyPrintForReport(from) + "->" + ReportUtils.prettyPrintForReport(to));
+            }
+            if (status != null) {
+                segments.add(ReportUtils.prettyPrintForReport(status));
+            }
+        }
+        Long id = assignment.getId();
+        if (id != null) {
+            segments.add("[" + id + "]");
+        }
+        // TODO other parts of the assignment?
+        return String.join(" ", segments);
     }
 
     private String getObjectNameFromRef(Referencable ref) {
         if (ref == null) {
             return "";
         }
-        if (ref.getTargetName() != null && ref.getTargetName().getOrig() != null) {
-            return ref.getTargetName().getOrig();
+
+        PolyStringType targetName = ref.getTargetName();
+        if (targetName != null && targetName.getOrig() != null) {
+            return targetName.getOrig();
         }
         PrismObject<?> object = reportService.getObjectFromReference(ref, task, result);
 
@@ -249,7 +347,7 @@ class ColumnDataConverter<C extends Containerable> {
     }
 
     private Collection<? extends PrismValue> evaluateExportExpressionOverPrismValues(@NotNull ExpressionType expression,
-            @NotNull Collection<? extends PrismValue> prismValues) {
+            @NotNull Collection<? extends PrismValue> prismValues, @NotNull GuiObjectColumnType column) {
         Object input;
         if (prismValues.isEmpty()) {
             input = null;
@@ -261,10 +359,11 @@ class ColumnDataConverter<C extends Containerable> {
                     .map(PrismValue::getRealValue)
                     .collect(Collectors.toList());
         }
-        return evaluateExportExpressionOverRealValues(expression, input);
+        return evaluateExportExpressionOverRealValues(expression, input, column);
     }
 
-    private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(ExpressionType expression, Object input) {
+    private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(
+            ExpressionType expression, Object input, @NotNull GuiObjectColumnType column) {
         VariablesMap variables = new VariablesMap();
         variables.putAll(parameters);
         if (input == null) {
@@ -274,14 +373,14 @@ class ColumnDataConverter<C extends Containerable> {
         }
         try {
             return reportService.evaluateScript(report.asPrismObject(), expression, variables,
-                    "value for column (export)", task, result);
+                    "value for column '" + column.getName() + "' (export)", task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             return List.of();
         }
     }
 
-    private PrismObject<LookupTableType> loadLookupTable(PrismPropertyValue value)
+    private PrismObject<LookupTableType> loadLookupTable(PrismPropertyValue<?> value)
             throws SchemaException, ObjectNotFoundException {
         String lookupTableOid = getValueEnumerationRefOid(value);
         if (lookupTableOid == null) {
@@ -289,16 +388,16 @@ class ColumnDataConverter<C extends Containerable> {
         }
         Collection<SelectorOptions<GetOperationOptions>> options =
                 reportService.getSchemaService().getOperationOptionsBuilder()
-                .item(LookupTableType.F_ROW)
-                .retrieveQuery()
-                .asc(LookupTableRowType.F_LABEL)
-                .end()
-                .build();
-        return reportService.getRepositoryService().getObject(LookupTableType.class,
-                lookupTableOid, options, result);
+                        .item(LookupTableType.F_ROW)
+                        .retrieveQuery()
+                        .asc(LookupTableRowType.F_LABEL)
+                        .end()
+                        .build();
+        return reportService.getRepositoryService().getObject(
+                LookupTableType.class, lookupTableOid, options, result);
     }
 
-    private String getValueEnumerationRefOid(PrismPropertyValue value) {
+    private String getValueEnumerationRefOid(PrismPropertyValue<?> value) {
         if (value == null) {
             return null;
         }

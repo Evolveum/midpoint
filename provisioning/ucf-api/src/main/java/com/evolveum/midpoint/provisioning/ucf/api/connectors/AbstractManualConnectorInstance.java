@@ -67,6 +67,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
+
         OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
         String ticketIdentifier;
@@ -102,6 +104,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             UcfExecutionContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
 
@@ -143,6 +147,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             Collection<? extends ResourceAttribute<?>> identifiers,
             UcfExecutionContext ctx, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
+
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
 

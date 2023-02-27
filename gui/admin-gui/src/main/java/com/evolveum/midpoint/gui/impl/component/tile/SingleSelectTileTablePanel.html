@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure child="tilesContainer">
+        <div class="d-flex flex-column flex-grow-1">
+            <div class="card-header" wicket:id="header"/>
+            <div class="row justify-content-center pt-3 card-footer mx-0" wicket:id="tilesContainer"/>
+            <div class="d-flex card-header" wicket:id="footerContainer">
+                <div class="d-flex">
+                    <div wicket:id="buttonToolbar"/>
+                </div>
+                <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+
+    <div wicket:id="table"/>
+</wicket:panel>
+<wicket:fragment wicket:id="headerFragment">
+    <div class="d-flex">
+        <div class="mr-auto pr-4">
+            <div wicket:id="viewToggle"/>
+        </div>
+        <div class="ml-auto" wicket:id="panelHeader"/>
+    </div>
+</wicket:fragment>
+<wicket:fragment wicket:id="tilesFragment">
+    <div wicket:id="tiles" style="min-height: 250px;">
+        <div wicket:id="tile"/>
+    </div>
+</wicket:fragment>
+</html>

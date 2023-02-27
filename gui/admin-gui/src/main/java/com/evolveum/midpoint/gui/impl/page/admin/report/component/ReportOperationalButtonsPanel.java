@@ -302,8 +302,8 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         target.add(pageBase.getFeedbackPanel());
     }
 
-    private ReportType getReport() {
-        return getModelObject().getObject().asObjectable();
+    protected ReportType getReport() {
+        throw new UnsupportedOperationException("Override in the Page where it is used please.");
     }
 
     private boolean isCollectionReport() {

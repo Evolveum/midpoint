@@ -180,7 +180,7 @@ public class LensUtil {
     public static <F extends ObjectType, T> ObjectDelta<ShadowType> findAPrioriDelta(LensContext<F> context,
             LensProjectionContext projCtx) throws SchemaException {
         ObjectDelta<ShadowType> aPrioriDelta = null;
-        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
+        for (LensProjectionContext aProjCtx: context.findRelatedContexts(projCtx)) {
             ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // todo check this
             if (aProjDelta != null) {
                 if (aPrioriDelta == null) {
@@ -193,59 +193,6 @@ public class LensUtil {
         return aPrioriDelta;
     }
 
-    /**
-     * Returns a list of context that have equivalent key with the reference context. Ordered by "order" in the key.
-     *
-     * TODO move to {@link LensContext}?
-     */
-    static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
-            LensContext<F> context, LensProjectionContext refProjCtx) {
-        ProjectionContextKey refKey = refProjCtx.getKey();
-        if (refKey == null) {
-            return List.of();
-        }
-        Comparator<LensProjectionContext> orderComparator = (ctx1, ctx2) -> {
-            int order1 = ctx1.getKey().getOrder();
-            int order2 = ctx2.getKey().getOrder();
-            return Integer.compare(order1, order2);
-        };
-        return context.getProjectionContexts().stream()
-                .filter(aProjCtx -> refKey.equivalent(aProjCtx.getKey()))
-                .sorted(orderComparator)
-                .collect(Collectors.toList());
-    }
-
-    // TODO move to LensContext?
-    public static <F extends ObjectType> boolean hasLowerOrderContext(LensContext<F> context,
-            LensProjectionContext refProjCtx) {
-        ProjectionContextKey refKey = refProjCtx.getKey();
-        for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ProjectionContextKey aKey = aProjCtx.getKey();
-            if (refKey.equivalent(aKey) && (refKey.getOrder() > aKey.getOrder())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // TODO move to LensContext?
-    public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,
-            LensProjectionContext refProjCtx) {
-        int minOrder = -1;
-        LensProjectionContext foundCtx = null;
-        ProjectionContextKey refKey = refProjCtx.getKey();
-        for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ProjectionContextKey aKey = aProjCtx.getKey();
-            if (refKey.equivalent(aKey) && aKey.getOrder() < refKey.getOrder()) {
-                if (minOrder < 0 || aKey.getOrder() < minOrder) {
-                    minOrder = aKey.getOrder();
-                    foundCtx = aProjCtx;
-                }
-            }
-        }
-        return foundCtx;
-    }
-
     public static <T extends ObjectType, F extends ObjectType> void setContextOid(LensContext<F> context,
             LensElementContext<T> objectContext, String oid) {
         objectContext.setOid(oid);
@@ -255,12 +202,9 @@ public class LensUtil {
         }
         LensProjectionContext refProjCtx = (LensProjectionContext)objectContext;
         ProjectionContextKey refKey = refProjCtx.getKey();
-        if (refKey == null) {
-            return;
-        }
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
             ProjectionContextKey aKey = aProjCtx.getKey();
-            if (aKey != null && refKey.equivalent(aKey) && (refKey.getOrder() < aKey.getOrder())) {
+            if (refKey.equivalent(aKey) && refKey.getOrder() < aKey.getOrder()) {
                 aProjCtx.setOid(oid);
             }
         }
@@ -694,7 +638,7 @@ public class LensUtil {
         if (ctx.getObjectOld() == null) {
             return;
         }
-        Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+        Item<?, ?> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
         if (itemOld != null) {
             //noinspection unchecked
             itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +44,11 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedSituationTrigger evaluate(@NotNull JAXBElement<PolicySituationPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedSituationTrigger evaluate(
+            @NotNull JAXBElement<PolicySituationPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -56,14 +58,13 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
             // So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
             // "situation" constraint is present directly on it.
             if (rctx instanceof AssignmentPolicyRuleEvaluationContext
-                    && !((AssignmentPolicyRuleEvaluationContext) rctx).isDirect) {
+                    && !((AssignmentPolicyRuleEvaluationContext<?>) rctx).isDirect()) {
                 return null;
             }
 
             // Single pass only (for the time being)
             PolicySituationPolicyConstraintType situationConstraint = constraint.getValue();
-            Collection<EvaluatedPolicyRule> sourceRules =
-                    selectTriggeredRules(rctx, situationConstraint.getSituation());
+            Collection<EvaluatedPolicyRule> sourceRules = selectTriggeredRules(rctx, situationConstraint.getSituation());
             if (sourceRules.isEmpty()) {
                 return null;
             }
@@ -79,9 +80,13 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
         }
     }
 
-    private LocalizableMessage createMessage(Collection<EvaluatedPolicyRule> sourceRules,
-            JAXBElement<PolicySituationPolicyConstraintType>  constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createMessage(
+            Collection<EvaluatedPolicyRule> sourceRules,
+            JAXBElement<PolicySituationPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractMessages().stream())
@@ -97,9 +102,13 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private LocalizableMessage createShortMessage(Collection<EvaluatedPolicyRule> sourceRules,
-            JAXBElement<PolicySituationPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createShortMessage(
+            Collection<EvaluatedPolicyRule> sourceRules,
+            JAXBElement<PolicySituationPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractShortMessages().stream())
@@ -116,18 +125,17 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
     }
 
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
-            PolicyRuleEvaluationContext<AH> rctx, List<String> situations) {
+    private Collection<EvaluatedPolicyRule> selectTriggeredRules(PolicyRuleEvaluationContext<?> rctx, List<String> situations) {
         Collection<? extends EvaluatedPolicyRule> rules;
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<AH>) rctx).evaluatedAssignment;
+            EvaluatedAssignmentImpl<?> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<?>) rctx).evaluatedAssignment;
             // We consider all rules here, i.e. also those that are triggered on targets induced by this one.
             // Decision whether to trigger such rules lies on "primary" policy constraints. (E.g. approvals would
             // not trigger, whereas exclusions probably would.) Overall, our responsibility is simply to collect
             // all triggered rules.
             rules = evaluatedAssignment.getAllTargetsPolicyRules();
         } else {
-            rules = rctx.focusContext.getObjectPolicyRules();
+            rules = rctx.elementContext.getObjectPolicyRules();
         }
         return rules.stream()
                 .filter(r -> r.isTriggered() && situations.contains(r.getPolicySituation()))

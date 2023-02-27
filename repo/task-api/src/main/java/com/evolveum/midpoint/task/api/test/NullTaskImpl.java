@@ -7,28 +7,31 @@
 
 package com.evolveum.midpoint.task.api.test;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
 
 /**
  * DO NOT USE in production code. This is only for testing purposes: provides a no-op implementation of Task interface
@@ -771,19 +774,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    public SimulationTransaction setSimulationTransaction(SimulationTransaction context) {
+        return null;
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
-    }
-
-    @Override
-    public <O extends ObjectType> void onItemProcessed(
-            @Nullable O stateBefore,
-            @Nullable ObjectDelta<O> executedDelta,
-            @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull Collection<String> eventTags,
-            @NotNull OperationResult result) {
+    public @Nullable SimulationTransaction getSimulationTransaction() {
+        return null;
     }
 }

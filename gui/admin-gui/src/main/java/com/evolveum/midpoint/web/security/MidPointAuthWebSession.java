@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
@@ -68,10 +69,6 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         return roles;
     }
 
-    public static MidPointAuthWebSession getSession() {
-        return (MidPointAuthWebSession) Session.get();
-    }
-
     @Override
     public boolean authenticate(String username, String password) {
         return false;
@@ -112,7 +109,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("MidPointAuthWebSession\n");
-        DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent + 1);
         return sb.toString();
     }
 

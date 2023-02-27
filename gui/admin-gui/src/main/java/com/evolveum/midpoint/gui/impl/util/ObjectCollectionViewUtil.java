@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ObjectCollectionViewUtil {
 

@@ -6,49 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.search.DateSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -69,13 +34,45 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar
@@ -103,11 +100,11 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (displayModel == null || customColumn == null) {
             return null;
         }
-        return new ContainerableNameColumn<>(displayModel, WebComponentUtil.getPath(customColumn), expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel, null, customColumn, expression, getPageBase()) {
             @Override
-            protected IModel<String> getContainerName(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+            protected IModel<String> getContainerName(SelectableBean<AuditEventRecordType> selectableBean) {
                 return () -> {
-                    AuditEventRecordType record = unwrapModel(rowModel);
+                    AuditEventRecordType record = selectableBean == null ? null : selectableBean.getValue() ;
                     if (record == null) {
                         return null;
                     }
@@ -141,19 +138,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     @Override
-    protected Search<AuditEventRecordType> createSearch(Class<AuditEventRecordType> type) {
-        Search<AuditEventRecordType> search = SearchFactory.createSearch(type, getPageBase());
-
-        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
-                && !isCollectionViewPanelForWidget() && !isPreview()) {
-            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-        }
-        return search;
-    }
-
-    @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER;
     }
@@ -171,7 +155,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     @Override
     protected ISelectableDataProvider<SelectableBean<AuditEventRecordType>> createProvider() {
         PageStorage pageStorage = getPageStorage();
-        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<>(
+        SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                 AuditLogViewerPanel.this, getSearchModel(), null, false) {
 
             @Override
@@ -180,14 +164,14 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             }
 
             @Override
-            protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+            protected Integer countObjects(Class<AuditEventRecordType> type, ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
                     throws CommonException {
                 return getPageBase().getModelAuditService().countObjects(query, currentOptions, task, result);
             }
 
             @Override
-            protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+            protected List<AuditEventRecordType> searchObjects(Class<AuditEventRecordType> type, ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
                     throws CommonException {
                 return getPageBase().getModelAuditService().searchObjects(query, options, task, result);
@@ -219,15 +203,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     public List<AuditEventRecordType> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
     }
-
-    @Override
-    protected AuditEventRecordType getRowRealValue(SelectableBean<AuditEventRecordType> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
-    }
-
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();

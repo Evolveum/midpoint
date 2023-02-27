@@ -15,13 +15,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
@@ -81,12 +86,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
 
     /**
-     * Were there any deltas executed during the last call to {@link ChangeExecutor}?
-     *
-     * Used to determine whether the context should be rotten.
-     * (But currently only for focus context. Projections are treated in the original way.)
+     * Result of the last call to {@link ChangeExecutor} related to this element.
      */
-     private transient boolean anyDeltasExecuted;
+    transient ChangeExecutionResult<O> lastChangeExecutionResult;
 
     /**
      * Current iteration when computing values for the object.
@@ -107,6 +109,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Security policy related to this object. (It looks like it is currently filled-in only for focus.)
      */
     private transient SecurityPolicyType securityPolicy;
+
+    /** TODO */
+    transient ItemChangeApplicationModeConfiguration itemChangeApplicationModeConfiguration;
 
     /**
      * Everything related to policy rules evaluation and processing.
@@ -198,6 +203,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getOldObject();
     }
 
+    /** The best estimate how the object looked like before the simulated operation. (Tricky for projections.) */
+    public abstract PrismObject<O> getStateBeforeSimulatedOperation();
+
     @Override
     public PrismObject<O> getObjectCurrent() {
         return state.getCurrentObject();
@@ -256,6 +264,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getArchivedSecondaryDeltas();
     }
 
+    public ObjectDelta<O> getSummaryExecutedDelta() throws SchemaException {
+        List<ObjectDelta<O>> executedDeltasPlain = executedDeltas.stream()
+                .map(odo -> odo.getObjectDelta())
+                .collect(Collectors.toList());
+        return ObjectDeltaCollectionsUtil.summarize(executedDeltasPlain);
+    }
+
     public String getObjectReadVersion() {
         // Do NOT use version from object current.
         // Current object may be re-read, but the computation
@@ -282,18 +297,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Assumes that clockwork has not started yet.
      */
     public void setInitialObject(@NotNull PrismObject<O> object) {
-        setInitialObject(object, null);
-    }
-
-    /**
-     * Sets the value of an object that should be present on the clockwork start:
-     * both objectCurrent, and (if delta is not "add") also objectOld.
-     *
-     * Assumes that clockwork has not started yet.
-     */
-    private void setInitialObject(@NotNull PrismObject<O> object, @Nullable ObjectDelta<O> objectDelta) {
         lensContext.checkNotStarted("set initial object value", this);
-        state.setInitialObject(object, ObjectDelta.isAdd(objectDelta));
+        state.setInitialObject(object);
     }
 
     /**
@@ -505,12 +510,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return policyRulesContext.getObjectPolicyRules();
     }
 
-    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        policyRulesContext.addObjectPolicyRule(policyRule);
+    public void setObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+        policyRulesContext.clearObjectPolicyRules();
+        policyRulesContext.addObjectPolicyRules(policyRules);
     }
 
-    public void clearObjectPolicyRules() {
-        policyRulesContext.clearObjectPolicyRules();
+    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        policyRulesContext.addObjectPolicyRule(policyRule);
     }
 
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
@@ -606,16 +612,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return false;
     }
 
-    void clearAnyDeltasExecutedFlag() {
-        anyDeltasExecuted = false;
+    void clearLastChangeExecutionResult() {
+        lastChangeExecutionResult = null;
     }
 
-    public void setAnyDeltasExecutedFlag() {
-        anyDeltasExecuted = true;
+    public ChangeExecutionResult<O> setupLastChangeExecutionResult() {
+        stateCheck(
+                lastChangeExecutionResult == null,
+                "Last change execution result is already set in %s", this);
+        lastChangeExecutionResult = new ChangeExecutionResult<>();
+        return lastChangeExecutionResult;
     }
 
-    boolean getAnyDeltasExecutedFlag() {
-        return anyDeltasExecuted;
+    /** Updates the state to reflect that a delta was "executed" in simulation mode. */
+    public void simulateDeltaExecution(@NotNull ObjectDelta<O> delta) throws SchemaException {
+        state.simulateDeltaExecution(delta);
     }
     //endregion
 
@@ -630,6 +641,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public void rot() {
         setFresh(false);
+        lensContext.setFresh(false);
     }
 
     /**
@@ -645,6 +657,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     /**
      * Cleans up the contexts by removing some of the working state.
+     *
+     * TODO describe more precisely, see also {@link #rot()}, {@link LensFocusContext#updateDeltasAfterExecution()},
+     *  and {@link LensContext#updateAfterExecution()}
      */
     public abstract void cleanup();
     //endregion
@@ -726,11 +741,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return object.toDebugType();
     }
 
-    protected String getDebugDumpTitle() {
+    String getDebugDumpTitle() {
         return StringUtils.capitalize(getElementDesc());
     }
 
-    protected String getDebugDumpTitle(String suffix) {
+    String getDebugDumpTitle(String suffix) {
         return getDebugDumpTitle()+" "+suffix;
     }
 
@@ -752,7 +767,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         PrismObject<O> objectOld = state.getOldObject();
         if (objectOld != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, PrismContext.get()));
+                bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld));
             } else {
                 bean.setObjectOld(objectOld.asObjectable().clone());
             }
@@ -764,7 +779,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         PrismObject<O> objectNew = state.getNewObject();
         if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, PrismContext.get()));
+                bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew));
             } else {
                 bean.setObjectNew(objectNew.asObjectable().clone());
             }
@@ -876,7 +891,25 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    /** TODO */
-    abstract @NotNull Collection<String> getEventTags();
+    @Override
+    @NotNull
+    public Collection<String> getMatchingEventMarks() {
+        return policyRulesContext.getTriggeredEventMarks();
+    }
+
+    public @NotNull Collection<String> getAllConsideredEventMarks() {
+        return policyRulesContext.getAllConsideredEventMarks();
+    }
+
+    public @NotNull ItemChangeApplicationModeConfiguration getItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException {
+        if (itemChangeApplicationModeConfiguration == null) {
+            itemChangeApplicationModeConfiguration = createItemChangeApplicationModeConfiguration();
+        }
+        return itemChangeApplicationModeConfiguration;
+    }
+
+    abstract @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
+            throws SchemaException, ConfigurationException;
     //endregion
 }

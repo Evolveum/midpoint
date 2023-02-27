@@ -63,7 +63,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, AggregatedObjectProcessingListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -1002,8 +1002,12 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns the execution mode of this task. */
     @NotNull TaskExecutionMode getExecutionMode();
 
-    default boolean isPersistentExecution() {
-        return getExecutionMode().isPersistent();
+    default boolean isExecutionFullyPersistent() {
+        return getExecutionMode().isFullyPersistent();
+    }
+
+    default boolean areShadowChangesSimulated() {
+        return getExecutionMode().areShadowChangesSimulated();
     }
 
     default boolean isProductionConfiguration() {
@@ -1015,6 +1019,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return SimulationUtil.isVisible(mapping, getExecutionMode());
     }
 
+    /** Just a convenience method. */
+    default boolean canSee(ObjectType object) {
+        return SimulationUtil.isVisible(object, getExecutionMode());
+    }
+
     /**
      * Sets the execution mode of this task. Use with care - preferably only for new tasks.
      * Returns the original value.
@@ -1023,13 +1032,15 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     default void assertPersistentExecution(String message) {
         TaskExecutionMode executionMode = getExecutionMode();
-        if (!executionMode.isPersistent()) {
+        if (!executionMode.isFullyPersistent()) {
             throw new UnsupportedOperationException(message + " (mode: " + executionMode + ")");
         }
     }
 
-    void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+    /** Sets the current simulation transaction object. */
+    SimulationTransaction setSimulationTransaction(SimulationTransaction context);
 
-    void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+    /** Returns the current simulation transaction, if there is any. */
+    @Nullable SimulationTransaction getSimulationTransaction();
     //endregion
 }

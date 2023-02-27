@@ -4295,20 +4295,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="simulated" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Just a placeholder for the flag meaning "this shadow is a simulated one" (the term is not
-                                stable yet). Will certainly be removed and replaced before merging the branch to master!
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.7</a:since>
-                                <a:deprecatedSince>4.7</a:deprecatedSince>
-                                <a:deprecated>true</a:deprecated>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4931,6 +4917,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO The OCs mentioned in "auxiliaryObjectClass" are applied automatically to objects of this type.
+                  However, sometimes we need to be able to understand some attributes from aux OCs without enforcing these OCs
+                  on all objects of given type. So we'd need something like "optionalAuxiliaryObjectClass" property.
+                  (Discussed on December 16th, 2022.) -->
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

@@ -10,14 +10,14 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -88,11 +88,56 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
         }
     }
 
-    public boolean isProductionConfiguration() {
-        return !Boolean.FALSE.equals(bean.isProductionConfiguration());
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean shouldCreateSimulationResult() {
+        Boolean explicitValue = bean.isCreateSimulationResult();
+        if (explicitValue != null) {
+            return explicitValue;
+        }
+        return bean.getSimulationDefinition() != null;
     }
 
-    public boolean shouldCreateSimulationResult() {
-        return Boolean.TRUE.equals(bean.isCreateSimulationResult());
+    public SimulationDefinitionType getSimulationDefinition() {
+        return bean.getSimulationDefinition();
+    }
+
+    public @Nullable ConfigurationSpecificationType getConfigurationSpecification() {
+        return bean.getConfigurationToUse();
+    }
+
+    public TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
+        switch (mode) {
+            case FULL:
+                if (isProductionConfiguration()) {
+                    return TaskExecutionMode.PRODUCTION;
+                } else {
+                    throw new ConfigurationException("Full execution mode requires the use of production configuration");
+                }
+            case PREVIEW:
+                if (isProductionConfiguration()) {
+                    return TaskExecutionMode.SIMULATED_PRODUCTION;
+                } else {
+                    return TaskExecutionMode.SIMULATED_DEVELOPMENT;
+                }
+            case SHADOW_MANAGEMENT_PREVIEW:
+                if (isProductionConfiguration()) {
+                    return TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION;
+                } else {
+                    return TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT;
+                }
+            case DRY_RUN:
+            case NONE:
+            case BUCKET_ANALYSIS:
+                // These modes are treated in a special way - will be probably changed later
+                // It is also unclear whether to insist on production configuration here.
+                return TaskExecutionMode.PRODUCTION;
+            default:
+                throw new AssertionError(mode);
+
+        }
+    }
+
+    private boolean isProductionConfiguration() {
+        return ConfigurationSpecificationTypeUtil.isProductionConfiguration(bean.getConfigurationToUse());
     }
 }

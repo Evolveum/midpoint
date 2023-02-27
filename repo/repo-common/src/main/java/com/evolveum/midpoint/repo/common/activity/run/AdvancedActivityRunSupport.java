@@ -7,26 +7,32 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationImpl;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemPreprocessor;
 import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSource;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.SimulationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 
 /**
  * Advanced features needed for activity run, like
@@ -34,7 +40,8 @@ import java.util.Collection;
  * 1. calling `modelObjectResolver` for search/count operations,
  * 2. model-level processing of expressions in search queries,
  * 3. authorizations,
- * 4. resolving provisioning definitions in queries.
+ * 4. resolving provisioning definitions in queries,
+ * 5. managing simulation result objects.
  */
 public interface AdvancedActivityRunSupport {
 
@@ -71,9 +78,20 @@ public interface AdvancedActivityRunSupport {
      */
     <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 
-    /** Creates a simulation result into which the activity will store information about processed objects. */
-    @NotNull ObjectReferenceType createSimulationResult(OperationResult result);
+    /**
+     * Creates a simulation result into which the activity will store information about processed objects.
+     *
+     * The result will be open until the activity realization is done. The realization can span multiple tasks (for distributed
+     * activities) and multiple task runs (in the case of suspend/resume actions).
+     */
+    @NotNull SimulationResult createSimulationResult(
+            @Nullable SimulationDefinitionType definition,
+            @NotNull String rootTaskOid,
+            @Nullable ConfigurationSpecificationType configurationSpecification,
+            OperationResult result)
+            throws ConfigurationException;
 
-    /** TODO better name */
-    @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
+    /** Provides a {@link SimulationResult} for given simulation result OID. May involve repository get operation. */
+    @NotNull SimulationResult getSimulationResult(@NotNull String resultOid, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException;
 }

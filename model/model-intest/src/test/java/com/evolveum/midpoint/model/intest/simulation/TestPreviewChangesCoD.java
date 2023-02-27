@@ -17,7 +17,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.evolveum.midpoint.model.test.SimulationResult;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
+
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,24 +61,24 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_ORG =
-            new TestResource<>(TEST_DIR, "object-template-org.xml", "80d8bdb4-7288-41fe-a8a3-e39f1c9d2de3");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_ORG =
+            TestObject.file(TEST_DIR, "object-template-org.xml", "80d8bdb4-7288-41fe-a8a3-e39f1c9d2de3");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "object-template-user.xml", "fc5bfc7b-0612-450a-85d2-ab5cff7e4ed9");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "object-template-user.xml", "fc5bfc7b-0612-450a-85d2-ab5cff7e4ed9");
 
     private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(TEST_DIR, "resource-dummy.xml",
             "8dfeccc9-e144-4864-a692-e483f4b1873a", "resource-preview-changes-cod", TestPreviewChangesCoD::createAttributeDefinitions);
 
-    private static final TestResource<RoleType> ROLE_ORG =
-            new TestResource<>(TEST_DIR, "role-org.xml", "3d82a1af-0380-4368-b80a-b28a8c87b5bb");
+    private static final TestObject<RoleType> ROLE_ORG =
+            TestObject.file(TEST_DIR, "role-org.xml", "3d82a1af-0380-4368-b80a-b28a8c87b5bb");
 
-    private static final TestResource<OrgType> ORG_CHILD = new TestResource<>(TEST_DIR, "org-child.xml");
+    private static final TestObject<OrgType> ORG_CHILD = TestObject.file(TEST_DIR, "org-child.xml");
 
-    private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml");
+    private static final TestObject<UserType> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml");
 
-    private static final TestResource<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
-            new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
+    private static final TestObject<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
+            TestObject.file(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
 
     @SuppressWarnings("unchecked")
     private static final Class<? extends ObjectType>[] COLLECT_COUNT_TYPES = new Class[] { FocusType.class, ShadowType.class };
@@ -146,6 +148,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test110SimpleCreateOnDemandSimulation() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -155,16 +159,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = ORG_CHILD.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
@@ -217,6 +215,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test160CreateOnDemandForOrgAndRoleSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -226,16 +226,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = createAddDeltaForOrgWithRoleAssignment();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
@@ -252,6 +246,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      */
     @Test
     public void test200CreateOnDemandWithProvisioning() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -261,16 +257,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<UserType> delta = USER_BOB.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
-
-        and("there are simulation deltas");
-        simResult.assertNoExecutedNorAuditedDeltas();
-        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
-        displayCollection("simulated deltas", simulatedDeltas);
-        // TODO some asserts here
 
         and("there should be some secondary deltas in model context");
         ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one

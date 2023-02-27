@@ -63,8 +63,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH =
             ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
-    private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
-            ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
 
     @NotNull private final AbstractActivityRun<?, ?, WS> activityRun;
 
@@ -344,14 +342,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     @Override
     public @NotNull ComplexTypeDefinition getWorkStateComplexTypeDefinition() {
         return workStateComplexTypeDefinition;
-    }
-
-    public void setSimulationResultRef(ObjectReferenceType simResultRef) throws ActivityRunException {
-        setItemRealValues(SIMULATION_RESULT_REF_PATH, simResultRef);
-    }
-
-    public ObjectReferenceType getSimulationResultRef() {
-        return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
     }
     //endregion
 

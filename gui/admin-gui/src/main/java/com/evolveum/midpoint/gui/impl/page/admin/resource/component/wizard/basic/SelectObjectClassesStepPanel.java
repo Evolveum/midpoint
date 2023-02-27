@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -54,7 +55,7 @@ import java.util.*;
 /**
  * @author lskublik
  */
-public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceType, ResourceDetailsModel> {
+public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectObjectClassesStepPanel.class);
 
@@ -222,8 +223,8 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
             }
 
             @Override
-            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
-                super.onUpdateRow(target, table, rowModel, selected);
+            protected void onUpdateRow(Item<ICellPopulator<SelectableBean<ObjectClassWrapper>>> cellItem, AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
+                super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (Boolean.TRUE.equals(selected.getObject())) {
                     if (!selectedItems.getObject().containsKey(rowModel.getObject().getValue().getObjectClassName())) {
                         selectedItems.getObject().put(rowModel.getObject().getValue().getObjectClassName(), true);

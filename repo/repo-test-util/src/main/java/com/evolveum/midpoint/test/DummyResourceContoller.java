@@ -481,6 +481,16 @@ public class DummyResourceContoller extends AbstractResourceController {
         return new QName(NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
     }
 
+    public DummyObjectClass getAccountObjectClass()
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        return dummyResource.getAccountObjectClass();
+    }
+
+    public DummyObjectClass getGroupObjectClass()
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        return dummyResource.getGroupObjectClass();
+    }
+
     /**
      * Resets the blocking state, error simulation, etc.
      */

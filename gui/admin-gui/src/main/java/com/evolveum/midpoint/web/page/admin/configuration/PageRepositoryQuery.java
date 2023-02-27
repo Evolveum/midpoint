@@ -16,11 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -66,7 +65,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -460,19 +458,19 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
                 return;
             }
-            // TODO add containerable option too
-            //noinspection unchecked
+
             SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
             PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
             if (storage == null) {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
-
-            Search<?> search = storage.getSearch() != null ? storage.getSearch() :
-                    SearchFactory.createSearch(new SearchConfigurationWrapper<>((Class<? extends ObjectType>) request.getType(), PageRepositoryQuery.this), this);
-            search.setAdvancedQuery(filterAsString);
+            // TODO add containerable option too
+            Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(this).build();
+            search.addAllowedModelType(SearchBoxModeType.ADVANCED);
             search.setSearchMode(SearchBoxModeType.ADVANCED);
-            if (!search.isAdvancedQueryValid(getPrismContext())) {
+            search.setAdvancedQuery(filterAsString);
+
+            if (!search.isAdvancedQueryValid(PageRepositoryQuery.this)) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
                 target.add(getFeedbackPanel());

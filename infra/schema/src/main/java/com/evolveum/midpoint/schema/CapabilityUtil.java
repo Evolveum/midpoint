@@ -10,6 +10,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -454,5 +459,51 @@ public class CapabilityUtil {
 
     public static int size(CapabilityCollectionType capabilities) {
         return capabilities != null ? capabilities.asPrismContainerValue().size() : 0;
+    }
+
+    /**
+     * Gets a specific capability from resource/connectors/object-class.
+     *
+     * Notes:
+     *
+     * - Resource vs connector: The capability from specific connector is used only if it's enabled.
+     */
+    public static <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @NotNull Class<T> capabilityClass) {
+
+        if (objectDefinition instanceof ResourceObjectTypeDefinition) {
+            // TODO allow configured capabilities also for refined object classes
+            T inType = ((ResourceObjectTypeDefinition) objectDefinition).getConfiguredCapability(capabilityClass);
+            if (inType != null) {
+                return inType;
+            }
+        }
+
+        for (ConnectorInstanceSpecificationType additionalConnectorBean : resource.getAdditionalConnector()) {
+            T inConnector = getEnabledCapability(additionalConnectorBean, capabilityClass);
+            if (inConnector != null) {
+                return inConnector;
+            }
+        }
+
+        return getCapability(resource.getCapabilities(), capabilityClass);
+    }
+
+    /**
+     * Returns the additional connector capability - but only if it's enabled.
+     */
+    private static <T extends CapabilityType> T getEnabledCapability(
+            @NotNull ConnectorInstanceSpecificationType additionalConnectorSpecBean,
+            @NotNull Class<T> capabilityClass) {
+        T capability = getCapability(additionalConnectorSpecBean.getCapabilities(), capabilityClass);
+        return isCapabilityEnabled(capability) ? capability : null;
+    }
+
+    public static boolean isActivationStatusCapabilityEnabled(
+            @NotNull ResourceType resource, @Nullable ResourceObjectDefinition objectDefinition) {
+        return getEnabledActivationStatusStrict(
+                getCapability(resource, objectDefinition, ActivationCapabilityType.class)) != null;
     }
 }

@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.data;
 
 import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -18,12 +21,14 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
+import com.evolveum.midpoint.gui.api.factory.ContainerValueDataProviderFactory;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryAssignmentDataProviderType;
+
+import javax.xml.namespace.QName;
 
 @Component
 public class RepositoryAssignmentDataProviderFactory  implements ContainerValueDataProviderFactory<AssignmentType, RepositoryAssignmentDataProviderType>{
@@ -79,6 +84,17 @@ public class RepositoryAssignmentDataProviderFactory  implements ContainerValueD
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return customization.getCustomizeContentQuery();
+            }
+
+            @Override
+            protected QName determineTargetRefType() {
+                var targetRefDef = customization.getDefinition().findReferenceDefinition(AssignmentType.F_TARGET_REF);
+                QName targetType = targetRefDef.getTargetTypeName();
+                if (targetType != null && !Objects.equals(AssignmentHolderType.COMPLEX_TYPE, targetType)) {
+                    // target type was overriden
+                    return targetType;
+                }
+                return null;
             }
         };
         provider.setCompiledObjectCollectionView(collection);

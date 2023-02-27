@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
 import com.evolveum.midpoint.model.impl.lens.executor.ProjectionChangeExecution;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -43,23 +40,15 @@ public class ChangeExecutor {
     public static final String OPERATION_EXECUTE_PROJECTION = OPERATION_EXECUTE + ".projection";
     public static final String OPERATION_EXECUTE_DELTA = ChangeExecutor.class.getName() + ".executeDelta";
 
-    @Autowired private ModelBeans modelBeans;
-
-    /**
-     * Returns true if current wave has to be restarted, see {@link ObjectAlreadyExistsException} handling.
-     */
-    public <O extends ObjectType> boolean executeChanges(LensContext<O> context, Task task,
+    public <O extends ObjectType> void executeChanges(LensContext<O> context, Task task,
             OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
-
         try {
-
             executeFocusChanges(context, task, result);
-            return executeProjectionsChanges(context, task, result);
-
+            executeProjectionsChanges(context, task, result);
         } catch (Throwable t) {
             result.recordThrowableIfNeeded(t); // last resort: to avoid UNKNOWN subresults
             throw t;
@@ -79,32 +68,18 @@ public class ChangeExecutor {
         if (focusContext == null) {
             return;
         }
-
-        new FocusChangeExecution<>(context, focusContext, task, modelBeans)
+        new FocusChangeExecution<>(focusContext, task)
                 .execute(result);
     }
 
-    private <O extends ObjectType> boolean executeProjectionsChanges(LensContext<O> context, Task task, OperationResult result)
+    private <O extends ObjectType> void executeProjectionsChanges(LensContext<O> context, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
-        boolean restartRequested = false;
-
         for (LensProjectionContext projCtx : context.getProjectionContexts()) {
-
             context.checkAbortRequested();
-
-            ProjectionChangeExecution<O> execution = new ProjectionChangeExecution<>(context, projCtx, task, modelBeans);
-            execution.execute(result);
-
-            restartRequested = restartRequested || execution.isRestartRequested();
+            new ProjectionChangeExecution<O>(projCtx, task)
+                    .execute(result);
         }
-
-        LOGGER.trace("Restart requested = {}", restartRequested);
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (restartRequested && focusContext != null) {
-            focusContext.setFresh(false); // will run activation again (hopefully)
-        }
-        return restartRequested;
     }
 }

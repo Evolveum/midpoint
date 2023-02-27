@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType, ResourceType, ResourceDetailsModel> {
+        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-type-basic";
 

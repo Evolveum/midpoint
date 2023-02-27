@@ -47,7 +47,7 @@ public enum ProfilingLevel {
 
     public static ProfilingLevel fromLoggerLevelType(LoggingLevelType level) {
         if (level == null) {
-            return ProfilingLevel.OFF;
+            return null;
         }
 
         switch (level) {

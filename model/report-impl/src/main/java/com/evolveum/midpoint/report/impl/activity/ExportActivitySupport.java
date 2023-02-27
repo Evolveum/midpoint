@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,16 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
@@ -21,13 +26,14 @@ import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Contains common functionality for executions of export report-related activities.
@@ -42,8 +48,8 @@ public class ExportActivitySupport extends ReportActivitySupport {
         super(activityRun, reportService, resolver, workDefinition);
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
-        super.beforeExecution(result);
+    void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        super.beforeRun(result);
         setupSaveSupport();
     }
 
@@ -52,49 +58,67 @@ public class ExportActivitySupport extends ReportActivitySupport {
     }
 
     /**
-     * Save exported report to a file.
+     * Saves the data in the simple case: just dumping content of `dataWriter` to the output file.
      */
-    void saveReportFile(String aggregatedData,
+    void saveSimpleReportData(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        saveSupport.saveReportFile(aggregatedData, dataWriter, result);
+        saveSupport.saveSimpleReportData(dataWriter, result);
     }
 
-    void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            OperationResult result) throws CommonException {
-        saveSupport.saveReportFile(dataWriter, result);
+    /**
+     * Save exported report to a file. This is the variant for distributed reports that assumes we have the
+     * aggregated data as a String, plus pre-existing (empty) aggregated {@link ReportDataType} object.
+     */
+    void saveAggregatedReportData(
+            @NotNull String aggregatedData,
+            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull ObjectReferenceType aggregatedDataRef,
+            @NotNull OperationResult result) throws CommonException {
+        saveSupport.saveAggregatedReportData(aggregatedData, completingDataWriter, aggregatedDataRef, result);
     }
 
     /**
      * Search container objects for iterative task.
      */
-    public void searchRecordsIteratively(
-            Class<? extends Containerable> type,
+    public <T> void searchRecordsIteratively(
+            Class<T> type,
             ObjectQuery query,
-            ObjectHandler<Containerable> handler,
+            ObjectHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
         if (AuditEventRecordType.class.equals(type)) {
+            //noinspection unchecked
             modelAuditService.searchObjectsIterative(
                     query,
                     options,
-                    handler::handle,
+                    ((ObjectHandler<Containerable>) handler)::handle,
                     runningTask,
                     result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
+            //noinspection unchecked
             modelService.searchObjectsIterative(
                     objectType,
                     query,
-                    (object, lResult) -> handler.handle(object.asObjectable(), lResult),
+                    (object, lResult) -> ((ObjectHandler<Containerable>) handler).handle(object.asObjectable(), lResult),
                     options,
                     runningTask,
                     result);
-        } else {
-            // Temporary - until iterative search is available
+        } else if (Containerable.class.isAssignableFrom(type)) {
+            // TODO: Temporary - until iterative search is available
+            Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
             SearchResultList<? extends Containerable> values =
-                    modelService.searchContainers(type, query, options, runningTask, result);
-            values.forEach(value -> handler.handle(value, result));
+                    modelService.searchContainers(containerableType, query, options, runningTask, result);
+            //noinspection unchecked
+            values.forEach(value -> ((ObjectHandler<Containerable>) handler).handle(value, result));
+        } else if (Referencable.class.isAssignableFrom(type)) {
+            //noinspection unchecked
+            modelService.searchReferencesIterative(query,
+                    (value, lResult) -> ((ObjectHandler<ObjectReferenceType>) handler).handle(value, lResult),
+                    options, runningTask, result);
+        } else {
+            throw new UnsupportedOperationException("Unsupported object type for report: " + type);
         }
     }
 
@@ -102,7 +126,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
      * Count container objects for iterative task.
      * Temporary until will be implemented iterative search for audit records and containerable objects.
      */
-    public int countRecords(Class<? extends Containerable> type,
+    int countRecords(Class<?> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
@@ -111,8 +135,13 @@ public class ExportActivitySupport extends ReportActivitySupport {
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
             return or0(modelService.countObjects(objectType, query, options, runningTask, result));
+        } else if (Containerable.class.isAssignableFrom(type)) {
+            //noinspection unchecked
+            return or0(modelService.countContainers(((Class<? extends Containerable>) type), query, options, runningTask, result));
+        } else if (Referencable.class.isAssignableFrom(type)) {
+            return or0(modelService.countReferences(query, options, runningTask, result));
         } else {
-            return or0(modelService.countContainers(type, query, options, runningTask, result));
+            throw new UnsupportedOperationException("Unsupported object type for report: " + type);
         }
     }
 }

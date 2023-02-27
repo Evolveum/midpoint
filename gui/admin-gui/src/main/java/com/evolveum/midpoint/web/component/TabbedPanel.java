@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
@@ -28,8 +29,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.lang.Args;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
+import com.evolveum.midpoint.gui.api.model.CssIconModelProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author lazyman
@@ -49,6 +51,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected static final String ID_TITLE = "title";
     protected static final String ID_COUNT = "count";
     protected static final String ID_LINK = "link";
+    private static final String ID_ICON = "icon";
 
     private final IModel<List<T>> tabs;
     /**
@@ -66,13 +69,13 @@ public class TabbedPanel<T extends ITab> extends Panel {
     }
 
     public TabbedPanel(final String id, final List<T> tabs, IModel<Integer> model, @Nullable RightSideItemProvider rightSideItemProvider) {
-        this(id, new Model((Serializable) tabs), model, rightSideItemProvider);
+        this(id, Model.ofList(tabs), model, rightSideItemProvider);
     }
 
     /**
      * Constructor
      *
-     * @param id   component id
+     * @param id component id
      * @param tabs list of ITab objects used to represent tabs
      */
     public TabbedPanel(final String id, final IModel<List<T>> tabs) {
@@ -82,8 +85,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
     /**
      * Constructor
      *
-     * @param id    component id
-     * @param tabs  list of ITab objects used to represent tabs
+     * @param id component id
+     * @param tabs list of ITab objects used to represent tabs
      * @param model model holding the index of the selected tab
      */
     public TabbedPanel(final String id, final IModel<List<T>> tabs, IModel<Integer> model, RightSideItemProvider rightSideItemProvider) {
@@ -91,7 +94,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
         this.tabs = Args.notNull(tabs, "tabs");
 
-        final IModel<Integer> tabCount = new IModel<Integer>() {
+        final IModel<Integer> tabCount = new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -99,6 +102,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 return tabs.getObject().size();
             }
         };
+
+        add(AttributeModifier.prepend("class", "card card-primary card-outline card-outline-tabs"));
 
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
         tabsContainer.setOutputMarkupId(true);
@@ -123,7 +128,6 @@ public class TabbedPanel<T extends ITab> extends Panel {
         loop.setOutputMarkupId(true);
         loop.setOutputMarkupPlaceholderTag(true);
 
-
         tabsContainer.add(loop);
 
         WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
@@ -144,38 +148,33 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
         final WebMarkupContainer titleLink = newLink(ID_LINK, index);
         titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
-
-        titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
         titleLink.setOutputMarkupPlaceholderTag(true);
         titleLink.setOutputMarkupId(true);
         item.add(titleLink);
 
-        final IModel<String> countModel;
-        if (tab instanceof CountModelProvider) {
-            countModel = ((CountModelProvider)tab).getCountModel();
-        } else {
-            countModel = null;
+        IModel<String> iconCssClass = null;
+        if (tab instanceof CssIconModelProvider) {
+            iconCssClass = ((CssIconModelProvider) tab).getCssIconModel();
         }
-        Label countLabel = new Label(ID_COUNT, countModel);
-        countLabel.setVisible(countModel != null);
+        titleLink.add(newIcon(ID_ICON, iconCssClass));
+        titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
+
+        final IModel<String> count;
+        final IModel<String> countCssClass;
+        if (tab instanceof CountModelProvider) {
+            CountModelProvider cmp = (CountModelProvider) tab;
+            count = cmp.getCountModel();
+            countCssClass = cmp.getCountCssClassModel();
+        } else {
+            count = null;
+            countCssClass = null;
+        }
+
+        Label countLabel = new Label(ID_COUNT, count);
         countLabel.setOutputMarkupId(true);
         countLabel.setOutputMarkupPlaceholderTag(true);
-        countLabel.add(AttributeModifier.append("class", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (countModel == null) {
-                    return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-                }
-                String count = countModel.getObject();
-                if ("0".equals(count)) {
-                    return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-                } else {
-                    return GuiStyleConstants.CLASS_BADGE_ACTIVE;
-                }
-            }
-        }));
+        countLabel.add(AttributeModifier.append("class", () -> countCssClass != null ? countCssClass.getObject() : null));
+        countLabel.add(new VisibleBehaviour(() -> count != null));
         titleLink.add(countLabel);
     }
 
@@ -264,10 +263,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         super.onBeforeRender();
     }
 
-
     /**
      * @return the value of css class attribute that will be added to last tab. The default value is
-     *         <code>last</code>
+     * <code>last</code>
      */
     protected String getLastTabCssClass() {
         return "";
@@ -275,7 +273,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
     /**
      * @return the value of css class attribute that will be added to a div containing the tabs. The
-     *         default value is <code>tab-row</code>
+     * default value is <code>tab-row</code>
      */
     protected String getTabContainerCssClass() {
         return "tab-row";
@@ -283,7 +281,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
     /**
      * @return the value of css class attribute that will be added to selected tab. The default
-     *         value is <code>selected</code>
+     * value is <code>selected</code>
      */
     protected String getSelectedTabCssClass() {
         return "active";
@@ -296,13 +294,21 @@ public class TabbedPanel<T extends ITab> extends Panel {
         return tabs;
     }
 
+    protected Component newIcon(final String id, IModel<String> iconCssClass) {
+        Label label = new Label(id);
+        label.add(AttributeModifier.replace("class", iconCssClass));
+        label.add(new VisibleBehaviour(() -> iconCssClass != null && StringUtils.isNotEmpty(iconCssClass.getObject())));
+
+        return label;
+    }
+
     /**
      * Factory method for tab titles. Returned component can be anything that can attach to span
      * tags such as a fragment, panel, or a label
      *
-     * @param titleId    id of tiatle component
+     * @param titleId id of tiatle component
      * @param titleModel model containing tab title
-     * @param index      index of tab
+     * @param index index of tab
      * @return title component
      */
     protected Component newTitle(final String titleId, final IModel<?> titleModel, final int index) {
@@ -339,8 +345,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * </pre>
      *
      * @param linkId component id with which the link should be created
-     * @param index  index of the tab that should be activated when this link is clicked. See
-     *               {@link #setSelectedTab(int)}.
+     * @param index index of the tab that should be activated when this link is clicked. See
+     * {@link #setSelectedTab(int)}.
      * @return created link component
      */
     protected WebMarkupContainer newLink(final String linkId, final int index) {
@@ -482,7 +488,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
                     if (tabsList.size() <= index) {
                         return false;
                     }
-                    T tab = tabsList == null || tabsList.size() == 0 ? null :  tabs.getObject().get(index);
+
+                    T tab = tabs.getObject().get(index);
                     visible = tab != null && tab.isVisible();
                     if (tab != null) {
                         visibilities[index] = visible;
@@ -500,17 +507,18 @@ public class TabbedPanel<T extends ITab> extends Panel {
      *
      * @param index Index of new tab.
      */
-    protected void onTabChange(int index) {}
+    protected void onTabChange(int index) {
+    }
 
     @FunctionalInterface
     public interface RightSideItemProvider extends Serializable {
         Component createRightSideItem(String id);
     }
 
-    public void reloadCountLabels(AjaxRequestTarget target){
-        Loop tabbedPanel = ((Loop)get(ID_TABS_CONTAINER).get(ID_TABS));
+    public void reloadCountLabels(AjaxRequestTarget target) {
+        Loop tabbedPanel = ((Loop) get(ID_TABS_CONTAINER).get(ID_TABS));
         int tabsCount = tabbedPanel.getIterations();
-        for (int i = 0; i < tabsCount; i++){
+        for (int i = 0; i < tabsCount; i++) {
             Component countLabel = tabbedPanel.get(Integer.toString(i)).get(ID_LINK).get(ID_COUNT);
             if (countLabel != null) {
                 target.add(countLabel);

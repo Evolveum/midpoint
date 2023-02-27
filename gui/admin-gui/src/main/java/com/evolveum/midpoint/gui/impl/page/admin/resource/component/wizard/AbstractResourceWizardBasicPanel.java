@@ -39,9 +39,9 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
             onExitPerformedAfterValidate(target);
             return;
         }
-        OperationResult result = superHelper.onSaveResourcePerformed(target);
+        OperationResult result = superHelper.onSaveObjectPerformed(target);
         if (result != null && !result.isError()) {
-            WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
+            WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
             onExitPerformedAfterValidate(target);
         } else {
             target.add(getFeedback());
@@ -102,5 +102,10 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
 
     protected IModel<PrismContainerValueWrapper<C>> getValueModel() {
         return superHelper.getValueModel();
+    }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-8";
     }
 }

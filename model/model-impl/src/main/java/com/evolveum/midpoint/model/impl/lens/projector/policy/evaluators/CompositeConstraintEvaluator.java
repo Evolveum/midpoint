@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
 import java.util.List;
 
@@ -38,12 +38,26 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     private static final String OP_EVALUATE = CompositeConstraintEvaluator.class.getName() + ".evaluate";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private PolicyConstraintsEvaluator policyConstraintsEvaluator;
+
+    private static CompositeConstraintEvaluator instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static CompositeConstraintEvaluator get() {
+        return instance;
+    }
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(@NotNull JAXBElement<PolicyConstraintsType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedCompositeTrigger evaluate(
+            @NotNull JAXBElement<PolicyConstraintsType> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -53,8 +67,8 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
             boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
             assert isAnd || isOr || isNot;
-            List<EvaluatedPolicyRuleTrigger<?>> triggers = policyRuleProcessor
-                    .evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
+            List<EvaluatedPolicyRuleTrigger<?>> triggers =
+                    policyConstraintsEvaluator.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
             EvaluatedCompositeTrigger rv;
             if (isNot) {
                 if (triggers.isEmpty()) {

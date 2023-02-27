@@ -528,23 +528,4 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
                 correlation.getPerformerComment() :
                 Set.of();
     }
-
-    public ShadowAsserter<RA> assertSimulated() {
-        return assertSimulated(true);
-    }
-
-    public ShadowAsserter<RA> assertNotSimulated() {
-        return assertSimulated(false);
-    }
-
-    public ShadowAsserter<RA> assertSimulated(boolean expected) {
-        assertThat(isSimulated())
-                .as("shadow 'is simulated' status")
-                .isEqualTo(expected);
-        return this;
-    }
-
-    private boolean isSimulated() {
-        return ShadowUtil.isSimulated(getObjectable());
-    }
 }

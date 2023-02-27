@@ -8,11 +8,10 @@ package com.evolveum.midpoint.gui.api;
 
 /**
  * @author semancik
- *
  */
 public class GuiStyleConstants {
 
-    public static final String ICON_FAR_COPY="far fa-copy";
+    public static final String ICON_FAR_COPY = "far fa-copy";
     public static final String ICON_FAR_ADDRESS_CARD = "far fa-address-card";
     public static final String ICON_FAR_CLOCK = "far fa-clock";
     public static final String ICON_FA_BED = "fa fa-bed";
@@ -111,7 +110,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
     public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
     public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
-    public static final String CLASS_ICON_REQUEST_ACCESS ="fas fa-plus-circle";
+    public static final String CLASS_ICON_REQUEST_ACCESS = "fas fa-plus-circle";
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
@@ -279,4 +278,12 @@ public class GuiStyleConstants {
     public static final String CLASS_TRACING_BUTTON_ICON = "fa fa-stethoscope";
 
     public static final String CLASS_ICON_HISTORY = "fa fa-history";
+
+    public static final String CLASS_TODO_FIXME_NOT_YET_DEFINED = "fas fa-question-circle text-fuchsia";
+
+    public static final String CLASS_SIMULATION_RESULT = "fa-solid fa-flask";
+
+    public static final String CLASS_MARK = "fa-solid fa-tag";
+
+    public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
 }

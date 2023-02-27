@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItem
  * @author katka
  *
  */
-public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C>, SelectableRow {
+public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C>, SelectableRow<C> {
 
     String getDisplayName();
     String getHelpText();

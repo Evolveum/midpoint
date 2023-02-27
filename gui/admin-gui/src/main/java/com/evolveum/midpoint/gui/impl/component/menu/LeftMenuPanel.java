@@ -13,7 +13,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningRBAM;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -41,8 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningOld;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningSimple;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
@@ -183,7 +182,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        logo.add(new VisibleEnableBehaviour(() ->  !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
+        logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
         logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
@@ -314,6 +313,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createServerTasksItems());
         menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
+        menu.addMainMenuItem(createSimulationItems());
+        menu.addMainMenuItem(createAuditItems());
+
         return menu;
     }
 
@@ -393,11 +395,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
-        roleMenu.addMenuItem(new MenuItem("Role mining (old)", PageRoleMiningOld.class));
-        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
-        roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
-
-
         return roleMenu;
     }
 
@@ -486,8 +483,32 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem reportMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
         createBasicAssignmentHolderMenuItems(reportMenu, PageTypes.REPORT);
         reportMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
-        reportMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
         return reportMenu;
+    }
+
+    private MainMenuItem createAuditItems() {
+        return createMainMenuItem("PageAuditLogViewer.menuName", GuiStyleConstants.CLASS_AUDIT, PageAuditLogViewer.class);
+    }
+
+    private MainMenuItem createSimulationItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT);
+        menu.addMenuItem(new MenuItem("PageAdmin.menu.top.simulationResults.list", PageSimulationResults.class));
+
+        boolean editActive = classMatches(PageSimulationResult.class);
+        if (editActive) {
+            MenuItem edit = new MenuItem("PageAdmin.menu.top.simulationResults.view", PageSimulationResult.class);
+            edit.setDynamic(true);
+            menu.addMenuItem(edit);
+        }
+
+        return menu;
+    }
+
+    private MainMenuItem createMarkItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.marks", GuiStyleConstants.CLASS_MARK);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.MARK);
+
+        return menu;
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
@@ -496,6 +517,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
+        item.addMainMenuItem(createMarkItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());

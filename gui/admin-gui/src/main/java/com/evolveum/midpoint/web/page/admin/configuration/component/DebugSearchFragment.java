@@ -10,17 +10,12 @@ import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -32,7 +27,7 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
+                               IModel<Search> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
 
         initLayout(showAllItemsModel);

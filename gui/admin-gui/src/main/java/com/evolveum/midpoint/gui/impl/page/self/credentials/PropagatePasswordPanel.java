@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -274,8 +274,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
 
             @Override
-            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<PasswordAccountDto> rowModel, IModel<Boolean> selected) {
-                super.onUpdateRow(target, table, rowModel, selected);
+            protected void onUpdateRow(Item<ICellPopulator<PasswordAccountDto>> cellItem, AjaxRequestTarget target, DataTable table, IModel<PasswordAccountDto> rowModel, IModel<Boolean> selected) {
+                super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (rowModel.getObject().isMidpoint()) {
                     table.visitChildren(IsolatedCheckBoxPanel.class,
                             (IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>) (panel, iVisit) -> {

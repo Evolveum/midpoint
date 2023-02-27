@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 
 import java.util.Iterator;
 
-import com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgTreeProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.OrgTreeProvider;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

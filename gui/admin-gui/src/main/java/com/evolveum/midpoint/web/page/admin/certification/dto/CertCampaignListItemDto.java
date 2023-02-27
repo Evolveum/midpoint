@@ -37,7 +37,7 @@ public class CertCampaignListItemDto extends Selectable {
 
     private String deadlineAsString;
 
-    CertCampaignListItemDto(@NotNull AccessCertificationCampaignType campaign, PageBase page) {
+    public CertCampaignListItemDto(@NotNull AccessCertificationCampaignType campaign, PageBase page) {
         this.campaign = campaign;
         deadlineAsString = computeDeadlineAsString(page);
     }

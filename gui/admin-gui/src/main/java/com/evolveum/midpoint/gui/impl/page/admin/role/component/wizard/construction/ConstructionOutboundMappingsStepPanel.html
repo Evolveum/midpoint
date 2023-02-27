@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-11 p-0 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="card">
+        <div class="card-header py-2">
+            <div class="row">
+                <span>
+                    <i class="fa fa-arrow-right-from-bracket"></i>
+                    <span><wicket:message key="AttributeMappingsTableWizardPanel.outboundTable"/></span>
+                </span>
+            </div>
+        </div>
+        <div wicket:id="panel"/>
+    </div>
+</wicket:extend>
+</html>

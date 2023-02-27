@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,8 +33,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType> extends ChooseMemberPopup<O, ArchetypeType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseArchetypeMemberPopup(String id, RelationSearchItemConfigurationType relationConfig){
-        super(id, relationConfig, null); //todo
+    public ChooseArchetypeMemberPopup(String id, Search search){
+        super(id, search, null); //todo
     }
 
     @Override
@@ -46,7 +47,7 @@ public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType>
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, relationsConfig, getArchetypeRefList()){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, search, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override

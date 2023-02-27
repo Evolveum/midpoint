@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -20,21 +22,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author semancik
  */
-public class ObjectNameColumn<O extends ObjectType> extends ContainerableNameColumn<O> {
+public class ObjectNameColumn<O extends ObjectType> extends ContainerableNameColumn<SelectableBean<O>, O> {
 
     private static final long serialVersionUID = 1L;
 
     public ObjectNameColumn(IModel<String> displayModel) {
-        this(displayModel, null, null, null, true);
+        this(displayModel, null, null, null);
     }
 
-    public ObjectNameColumn(IModel<String> displayModel, ItemPath itemPath, ExpressionType expression, PageBase pageBase, boolean useDefaultPath) {
-        super(displayModel, useDefaultPath ? ObjectType.F_NAME : itemPath, expression, pageBase);
+    public ObjectNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression, PageBase pageBase) {
+        super(displayModel, ObjectType.F_NAME.getLocalPart(),  customColumn, expression, pageBase);
     }
 
     @Override
-    protected IModel<String> getContainerName(@NotNull IModel<SelectableBean<O>> rowModel) {
-        SelectableBean<O> selectableBean = rowModel.getObject();
+    protected IModel<String> getContainerName(@NotNull SelectableBean<O> selectableBean) {
         O value = selectableBean.getValue();
         return Model.of(value == null ? "" : WebComponentUtil.getName(value, true));
     }

@@ -9,17 +9,20 @@ package com.evolveum.midpoint.model.api.visualizer;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Name of a visualization or a visualization item.
- *
- * TODO reconsider this structure
  */
 public interface Name extends Serializable {
 
-    String getSimpleName();
-    String getDisplayName();
-    String getId();
-    String getDescription();
-    boolean namesAreResourceKeys();
+    LocalizableMessage getOverview();
 
+    LocalizableMessage getDisplayName();
+
+    LocalizableMessage getSimpleName();
+
+    LocalizableMessage getDescription();
+
+    String getId();
 }

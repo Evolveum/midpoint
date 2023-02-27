@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,13 +7,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -25,6 +20,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -202,9 +200,10 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
     private AssignmentEditorDtoType getType(AssignmentType assignment) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
-        if (targetRef.asReferenceValue().getObject() != null) {
+        PrismObject<? extends ObjectType> object = targetRef.asReferenceValue().getObject();
+        if (object != null) {
             // object assignment
-            return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
+            return AssignmentEditorDtoType.getType(object.getCompileTimeClass());
         } else if (assignment.getTargetRef() != null) {
             return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
         }
@@ -831,19 +830,6 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         return !defaultAssignmentConstraints.isAllowSameTarget() && !defaultAssignmentConstraints.isAllowSameRelation();
     }
 
-//    public void setDefaultRelation(){
-//        if (getTargetRef() == null){
-//            return;
-//        }
-//        if (!getAssignedRelationsList().contains(RelationTypes.MEMBER)){
-//            getTargetRef().setRelation(SchemaConstants.ORG_DEFAULT);
-//        }
-//        List<RelationTypes> availableRelations = getNotAssignedRelationsList();
-//        if (availableRelations.size() > 0){
-//            getTargetRef().setRelation(availableRelations.get(0).getRelation());
-//        }
-//    }
-
     public OtherPrivilegesLimitationType getPrivilegesLimitation() {
         return newAssignment.getLimitOtherPrivileges();
     }
@@ -855,25 +841,28 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof AssignmentEditorDto)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AssignmentEditorDto)) {
+            return false;
+        }
 
         AssignmentEditorDto that = (AssignmentEditorDto) o;
-
-        if (isOrgUnitManager != that.isOrgUnitManager) { return false; }
-        if (minimized != that.minimized) { return false; }
-        if (showEmpty != that.showEmpty) { return false; }
-        if (editable != that.editable) { return false; }
-        if (simpleView != that.simpleView) { return false; }
-        if (altName != null ? !altName.equals(that.altName) : that.altName != null) { return false; }
-        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) { return false; }
-        if (name != null ? !name.equals(that.name) : that.name != null) { return false; }
-        if (newAssignment != null ? !newAssignment.equals(that.newAssignment) : that.newAssignment != null) { return false; }
-        if (oldAssignment != null ? !oldAssignment.equals(that.oldAssignment) : that.oldAssignment != null) { return false; }
-        if (status != that.status) { return false; }
-        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) { return false; }
-        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) { return false; }
-        return type == that.type;
+        return type == that.type
+                && status == that.status
+                && minimized == that.minimized
+                && showEmpty == that.showEmpty
+                && editable == that.editable
+                && simpleView == that.simpleView
+                && Objects.equals(altName, that.altName)
+                && Objects.equals(attributes, that.attributes)
+                && Objects.equals(name, that.name)
+                && Objects.equals(newAssignment, that.newAssignment)
+                && Objects.equals(oldAssignment, that.oldAssignment)
+                && Objects.equals(isOrgUnitManager, that.isOrgUnitManager)
+                && Objects.equals(orgRef, that.orgRef)
+                && Objects.equals(tenantRef, that.tenantRef);
     }
 
     @Override

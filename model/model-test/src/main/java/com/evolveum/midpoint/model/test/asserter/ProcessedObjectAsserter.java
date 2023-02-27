@@ -11,11 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.test.AbstractTestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +25,7 @@ import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
  * Asserts prepositions about {@link ProcessedObject} instances.
@@ -64,16 +60,8 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     }
 
     @SafeVarargs
-    public final ProcessedObjectAsserter<O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        if (!getRepositoryService().supportsTags()) {
-            return this;
-        }
-        Set<String> expectedTagsOids = Arrays.stream(expectedTags)
-                .map(r -> r.oid)
-                .collect(Collectors.toSet());
-        assertThat(processedObject.getEventTags())
-                .as("event tags")
-                .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
+    public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
+        assertEventMarks(expected, processedObject.getMatchingEventMarks());
         return this;
     }
 

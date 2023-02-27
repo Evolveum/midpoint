@@ -104,4 +104,9 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractRe
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.subText");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-10";
+    }
 }

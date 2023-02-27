@@ -29,13 +29,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 
 import java.util.Collection;
 
 @Component
-public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType> implements PolicyConstraintEvaluator<T> {
+public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType>
+        implements PolicyConstraintEvaluator<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
@@ -43,7 +43,7 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
-    @NotNull <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
+    @NotNull String createStateKey(PolicyRuleEvaluationContext<?> rctx) {
         ModelState state = rctx.lensContext.getState();
 
         // TODO derive more precise information from executed deltas, if needed

@@ -10,34 +10,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
+import com.evolveum.midpoint.prism.Containerable;
+
+import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
+
+import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.TableTabbedPanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
+public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
     private static final String ID_TAB_TABLE = "tabTable";
 
@@ -45,7 +50,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
 
     public AttributeMappingsTableWizardPanel(
             String id,
-            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper,
+            WizardPanelHelper<P, ResourceDetailsModel> superHelper,
             WrapperContext.AttributeMappingType initialTab) {
         super(id, superHelper);
         this.initialTab = initialTab;
@@ -63,24 +68,13 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
         tabs.add(createInboundTableTab());
         tabs.add(createOutboundTableTab());
 
-        TableTabbedPanel<ITab> tabPanel = new TableTabbedPanel<>(ID_TAB_TABLE, tabs) {
+        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onAjaxUpdate(Optional<AjaxRequestTarget> optional) {
                 if (optional.isPresent()) {
                     AjaxRequestTarget target = optional.get();
                     target.add(getButtonsContainer());
                 }
-            }
-
-            @Override
-            protected String getIcon(int index) {
-                switch (index){
-                    case 0 :
-                        return "fa fa-arrow-right-to-bracket";
-                    case 1 :
-                        return "fa fa-arrow-right-from-bracket";
-                }
-                return super.getIcon(index);
             }
 
             @Override
@@ -103,12 +97,14 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
     }
 
     private ITab createInboundTableTab() {
-        return new AbstractTab(getPageBase().createStringResource(
-                "AttributeMappingsTableWizardPanel.inboundTable")) {
+        return new IconPanelTab(
+                getPageBase().createStringResource(
+                "AttributeMappingsTableWizardPanel.inboundTable"),
+                new VisibleBehaviour(() -> isInboundVisible())) {
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new InboundAttributeMappingsTable(panelId, getValueModel()) {
+            public WebMarkupContainer createPanel(String panelId) {
+                return new InboundAttributeMappingsTable<>(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -118,16 +114,27 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
                     }
                 };
             }
+
+            @Override
+            public IModel<String> getCssIconModel() {
+                return Model.of("fa fa-arrow-right-to-bracket");
+            }
         };
     }
 
+    protected boolean isInboundVisible() {
+        return true;
+    }
+
     private ITab createOutboundTableTab() {
-        return new AbstractTab(getPageBase().createStringResource(
-                "AttributeMappingsTableWizardPanel.outboundTable")) {
+        return new IconPanelTab(
+                getPageBase().createStringResource(
+                "AttributeMappingsTableWizardPanel.outboundTable"),
+                new VisibleBehaviour(() -> isOutboundVisible())) {
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new OutboundAttributeMappingsTable(panelId, getValueModel()) {
+            public WebMarkupContainer createPanel(String panelId) {
+                return new OutboundAttributeMappingsTable<>(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -137,7 +144,16 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
                     }
                 };
             }
+
+            @Override
+            public IModel<String> getCssIconModel() {
+                return Model.of("fa fa-arrow-right-from-bracket");
+            }
         };
+    }
+
+    protected boolean isOutboundVisible() {
+        return true;
     }
 
     public TabbedPanel<ITab> getTabPanel() {
@@ -190,9 +206,13 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
         return "AttributeMappingsTableWizardPanel.saveButton";
     }
 
-    protected abstract void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target);
+    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
 
-    protected abstract void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target);
+    }
+
+    protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+
+    }
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
@@ -207,5 +227,10 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
+    }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
     }
 }

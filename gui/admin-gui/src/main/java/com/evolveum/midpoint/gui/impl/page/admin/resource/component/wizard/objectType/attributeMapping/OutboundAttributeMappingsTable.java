@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,11 +42,11 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 /**
  * @author lskublik
  */
-public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTable {
+public abstract class OutboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
 
-    public OutboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    public OutboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
         super(id, valueModel);
     }
 
@@ -155,17 +156,30 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
             }
         });
 
-//        columns.add(new IconColumn<>(Model.of()) {
-//            @Override
-//            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-//                return new DisplayType().beginIcon().cssClass("fa fa-minus text-secondary").end();
-//            }
-//
-//            @Override
-//            public String getCssClass() {
-//                return "";
-//            }
-//        });
+        columns.add(new IconColumn<>(Model.of()) {
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                return new DisplayType().beginIcon().cssClass("fa fa-minus text-secondary").end();
+            }
+
+            @Override
+            public String getCssClass() {
+                return "";
+            }
+        });
+
+        columns.add(new PrismPropertyWrapperColumn(
+                mappingTypeDef,
+                MappingType.F_EXPRESSION,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()){
+
+            @Override
+            public String getCssClass() {
+                return "col-xl-2 col-lg-2 col-md-3";
+            }
+
+        });
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override

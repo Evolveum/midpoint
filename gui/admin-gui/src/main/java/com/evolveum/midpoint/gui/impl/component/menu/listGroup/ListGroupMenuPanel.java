@@ -7,16 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.component.menu.listGroup;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import java.io.Serializable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -25,6 +29,9 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_HEADER = "header";
+    private static final String ID_ICON = "icon";
+    private static final String ID_TITLE = "title";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
@@ -44,6 +51,24 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
     private void initLayout() {
         add(AttributeAppender.append("class", "list-group-menu"));
         setOutputMarkupId(true);
+
+        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        header.add(new VisibleBehaviour(() -> {
+            ListGroupMenu menu = getModelObject();
+            return menu.getTitle() != null || menu.getIconCss() != null;
+        }));
+        add(header);
+
+        WebComponent icon = new WebComponent(ID_ICON);
+        icon.add(new VisibleBehaviour(() -> getModelObject().getIconCss() != null));
+        icon.add(AttributeAppender.replace("class", () -> getModelObject().getIconCss()));
+        header.add(icon);
+
+        Label title = new Label(ID_TITLE, () -> {
+            String text = getModel().getObject().getTitle();
+            return getString(text);
+        });
+        header.add(title);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
 

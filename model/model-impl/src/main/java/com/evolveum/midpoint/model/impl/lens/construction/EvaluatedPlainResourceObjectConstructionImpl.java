@@ -11,16 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -65,19 +62,25 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (ResourceAttributeDefinition<?> refinedAttributeDefinition : objectDefinition.getAttributeDefinitions()) {
-            MappingType outboundMappingBean = refinedAttributeDefinition.getOutboundMappingBean();
+        for (ResourceAttributeDefinition<?> attributeDef : objectDefinition.getAttributeDefinitions()) {
+            MappingType outboundMappingBean = attributeDef.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
             }
-
-            if (refinedAttributeDefinition.getProcessing(LayerType.MODEL) == ItemProcessing.IGNORE) {
-                LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is ignored", refinedAttributeDefinition);
+            if (attributeDef.isIgnored(LayerType.MODEL)) {
+                LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is ignored", attributeDef);
+                continue;
+            }
+            if (!attributeDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
+                LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is not visible in current "
+                                + "execution mode", attributeDef);
                 continue;
             }
 
-            attributesToEvaluate.add(new AttributeEvaluation<>(constructionEvaluation, refinedAttributeDefinition,
-                    outboundMappingBean, OriginType.OUTBOUND, MappingKindType.OUTBOUND));
+            attributesToEvaluate.add(
+                    new AttributeEvaluation<>(
+                            constructionEvaluation, attributeDef, outboundMappingBean,
+                            OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
 
         return attributesToEvaluate;
@@ -93,8 +96,16 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
             if (outboundMappingBean == null) {
                 continue;
             }
-            associationsToEvaluate.add(new AssociationEvaluation<>(constructionEvaluation, associationDefinition,
-                    outboundMappingBean, OriginType.OUTBOUND, MappingKindType.OUTBOUND));
+            if (!associationDefinition.isVisible(constructionEvaluation.task.getExecutionMode())) {
+                LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
+                        + "execution mode", associationDefinition);
+                continue;
+            }
+
+            associationsToEvaluate.add(
+                    new AssociationEvaluation<>(
+                            constructionEvaluation, associationDefinition, outboundMappingBean,
+                            OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
         return associationsToEvaluate;
     }

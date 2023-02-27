@@ -24,15 +24,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -84,13 +82,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    @Override
-    protected Search createSearch(Class<O> type) {
-        String collectionName = isCollectionViewPanelForCompiledView() ?
-                WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
-        return SearchFactory.createSearch(type, collectionName, getPageBase());
-    }
-
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
@@ -111,7 +102,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+            protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
                 if (orderingSuplier == null) {
                     return super.createObjectOrderings(sortParam);
                 }
@@ -119,13 +110,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            public Set<? extends O> getSelected() {
+            public Set<O> getSelected() {
                 List<O> preselectedObjects = getPreselectedObjectList();
                 return preselectedObjects == null ? new HashSet<>() : new HashSet<>(preselectedObjects);
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
-        provider.setOptions(createOptions());
+        provider.setOptions(getOptions());
         return provider;
     }
 
@@ -159,7 +150,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         ItemPath itemPath = WebComponentUtil.getPath(customColumn);
 
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
-                itemPath, expression, getPageBase(), itemPath == null) {
+                customColumn, expression, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -181,15 +172,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
     }
-
-    @Override
-    protected O getRowRealValue(SelectableBean<O> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
-    }
-
     @Override
     protected IColumn<SelectableBean<O>, String> createIconColumn() {
         return ColumnUtils.createIconColumn(getPageBase());

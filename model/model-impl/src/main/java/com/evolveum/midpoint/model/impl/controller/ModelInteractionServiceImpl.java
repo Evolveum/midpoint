@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,6 +18,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
@@ -164,6 +166,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ContextLoader contextLoader;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
+    @Autowired private SimulationResultManager simulationResultManager;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -182,7 +185,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
-        if (executionMode.isPersistent()) {
+        if (executionMode.isFullyPersistent()) {
             LOGGER.warn("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
                     task.getName());
 
@@ -200,7 +203,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (options.getSimulationOptions() == null) {
             SimulationOptionsType simulation = new SimulationOptionsType();
 
-            SimulationOptionType option = task.isPersistentExecution() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
+            SimulationOptionType option = task.isExecutionFullyPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
             simulation.setCreateOnDemand(option);
             simulation.setSequence(option);
 
@@ -589,60 +592,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             result.recordFatalError(e);
             throw e;
         }
-
-//
-//        // Assignment decisions: processing #assign authorizations
-//        OrderConstraintsType orderConstraints = new OrderConstraintsType();
-//        orderConstraints.setOrder(assignmentOrder);
-//        List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
-//        orderConstraintsList.add(orderConstraints);
-//        try {
-//            ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-//                    AuthorizationPhaseType.REQUEST, targetType, focus, FilterCreationUtil.createAll(prismContext), null, orderConstraintsList, task, result);
-//            LOGGER.trace("assignableRoleSpec filter: {}", filter);
-//            spec.setFilter(filter);
-//            if (filter instanceof NoneFilter) {
-//                result.recordSuccess();
-//                spec.setNoRoleTypes();
-//                return spec;
-//            } else if (filter == null || filter instanceof AllFilter) {
-//                getGlobalAssignableRoleSpecification(spec, result);
-//                result.recordSuccess();
-//                return spec;
-//            } else if (filter instanceof OrFilter) {
-//                Collection<RoleSelectionSpecEntry> allRoleTypeDvals = new ArrayList<>();
-//                for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
-//                    Collection<RoleSelectionSpecEntry> roleTypeDvals =  getRoleSelectionSpecEntries(subfilter);
-//                    if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
-//                        // This branch of the OR clause does not have any constraint for roleType
-//                        // therefore all role types are possible (regardless of other branches, this is OR)
-//                        spec = new RoleSelectionSpecification();
-//                        spec.setFilter(filter);
-//                        getGlobalAssignableRoleSpecification(spec, result);
-//                        result.recordSuccess();
-//                        return spec;
-//                    } else {
-//                        allRoleTypeDvals.addAll(roleTypeDvals);
-//                    }
-//                }
-//                addRoleTypeSpecEntries(spec, allRoleTypeDvals, result);
-//            } else {
-//                Collection<RoleSelectionSpecEntry> roleTypeDvals = getRoleSelectionSpecEntries(filter);
-//                if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
-//                    getGlobalAssignableRoleSpecification(spec, result);
-//                    result.recordSuccess();
-//                    return spec;
-//                } else {
-//                    addRoleTypeSpecEntries(spec, roleTypeDvals, result);
-//                }
-//            }
-//            result.recordSuccess();
-//            return spec;
-//        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
-//            result.recordFatalError(e);
-//            throw e;
-//        }
-
     }
 
     @Override
@@ -915,11 +864,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return false;
         }
 
-        List<ItemDelta> modifications = new ArrayList<>();
-        modifications.addAll(secondaryDelta.getModifications());
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>(secondaryDelta.getModifications());
 
-        for (ItemDelta secondaryModification : modifications) {
-            ItemDefinition def = secondaryModification.getDefinition();
+        for (ItemDelta<?, ?> secondaryModification : modifications) {
+            ItemDefinition<?> def = secondaryModification.getDefinition();
             if (def != null && def.isOperational()) {
                 secondaryDelta.removeModification(secondaryModification);
             }
@@ -2036,7 +1984,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
+    public CollectionStats determineCollectionStats(
+            @NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         return collectionProcessor.determineCollectionStats(collectionView, task, result);
     }
@@ -2098,15 +2047,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
+    public <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
             QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
             Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
-        SearchSpec<C> searchSpec = new SearchSpec<>();
+        SearchSpec<T> searchSpec = new SearchSpec<>();
 
-        Class<C> type;
+        Class<T> type;
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         } else {
@@ -2159,9 +2108,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public List<? extends Serializable> searchObjectsFromCollection(
+            CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging,
+            VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
@@ -2181,11 +2133,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     query, options, task, result);
             return auditRecords.getList();
         } else if (ObjectType.class.isAssignableFrom(type)) {
+            //noinspection unchecked
             SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects(
                     (Class<ObjectType>) type, query, options, task, result);
-            List list = new ArrayList<Containerable>();
+            List<Containerable> list = new ArrayList<>();
             results.forEach(object -> list.add(object.asObjectable()));
             return list;
+        } else if (Referencable.class.isAssignableFrom(type)) {
+            return modelService.searchReferences(query, options, task, result);
         } else {
             SearchResultList<? extends Containerable> containers = modelService.searchContainers(
                     type, query, options, task, result);
@@ -2213,24 +2168,31 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return countObjectsFromCollectionByType(type, query, options, task, result);
     }
 
-    private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException {
         if (AuditEventRecordType.class.equals(type)) {
             return modelAuditService.countObjects(query, options, task, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
+            //noinspection unchecked
             return modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
+        } else if (Referencable.class.isAssignableFrom(type)) {
+            return modelService.countReferences(query, options, task, result);
         }
         return modelService.countContainers(type, query, options, task, result);
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> determineOptionsForSearch(CompiledObjectCollectionView compiledCollection, Collection<SelectorOptions<GetOperationOptions>> defaultOptions) {
+    private Collection<SelectorOptions<GetOperationOptions>> determineOptionsForSearch(
+            CompiledObjectCollectionView compiledCollection,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions) {
         if (compiledCollection.getOptions() == null) {
             return defaultOptions;
         }
         return compiledCollection.getOptions();
     }
 
-    private <C extends Containerable> Class<C> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+    private <T> Class<T> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
                 LOGGER.error("Type of objects is null");
@@ -2279,6 +2241,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         targetRef.setTargetTypeName(targetType);
         transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
         return transformed;
+    }
 
+    @Override
+    public PrismReferenceDefinition refDefinitionWithConcreteTargetRefType(PrismReferenceDefinition orig, QName targetType) {
+        var transformed = TransformableReferenceDefinition.of(orig);
+        transformed.setTargetTypeName(targetType);
+        return transformed;
+    }
+
+    @Override
+    public <X> X executeWithSimulationResult(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulationResultManager.SimulatedFunctionCall<X> functionCall) throws CommonException {
+        return simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, functionCall);
     }
 }

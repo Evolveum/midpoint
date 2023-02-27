@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,8 +37,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable, O extends ObjectType, ODM extends ObjectDetailsModels<O>>
-        extends AbstractWizardStepPanel<O, ODM> {
+public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable, ODM extends ObjectDetailsModels>
+        extends AbstractWizardStepPanel<ODM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueFormResourceWizardStepPanel.class);
     private static final String ID_VALUE = "value";
@@ -90,7 +92,8 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     protected void initLayout() {
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler(getVisibilityHandler()).build();
+                .visibilityHandler(getVisibilityHandler())
+                .mandatoryHandler(getMandatoryHandler()).build();
         settings.setConfig(getContainerConfiguration());
         VerticalFormPrismContainerValuePanel panel
                 = new VerticalFormPrismContainerValuePanel(ID_VALUE, getValueModel(), settings){
@@ -113,9 +116,14 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         add(panel);
     }
 
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return null;
+    }
+
     protected ContainerPanelConfigurationType getContainerConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
-                this.getDetailsModel().getObjectDetailsPageConfiguration().getObject(), getPanelType());
+                (GuiObjectDetailsPageType) this.getDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                getPanelType());
     }
 
     protected abstract String getPanelType();
@@ -130,6 +138,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
+        target.add(getFeedback());
         getValuePanel().visitChildren(
                 VerticalFormPrismPropertyValuePanel.class,
                 (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel) component).updateFeedbackPanel(target));

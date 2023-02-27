@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -315,20 +315,48 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow)
-            throws SchemaException {
-        boolean isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
-        LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
-        return isProtected;
+    public static boolean isAddShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getAdd().isEnabled();
     }
 
+    public static boolean isModifyShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
+    }
+
+    public static boolean isDeleteShadowEnabled(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
+    }
+
+    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            throws SchemaException {
+        throw new UnsupportedOperationException("Use operation policy");
+        //return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result);
+    }
+
+    private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(Collection<ResourceObjectPattern> protectedAccountPatterns,
+            ShadowType shadow, @NotNull OperationResult result) throws SchemaException {
+        if (shadow.getEffectiveOperationPolicy() != null) {
+            return shadow.getEffectiveOperationPolicy();
+        }
+        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
+                protectedAccountPatterns, shadow, result);
+        return shadow.getEffectiveOperationPolicy();
+    }
+
+    public static void setEffectiveProvisioningPolicy (
+            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
+                ctx.getProtectedAccountPatterns(factory, result), shadow, result);
+    }
+
+    @Deprecated
     public static void setProtectedFlag(
             ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow)) {
-            shadow.setProtectedObject(true);
-        }
+        setEffectiveProvisioningPolicy(ctx, shadow, factory, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {
@@ -447,29 +475,6 @@ public class ProvisioningUtil {
             LOGGER.warn("{}", m);
             //throw new IllegalStateException(m);        // use only for testing
         }
-    }
-
-    public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
-        return modifications.stream()
-                .filter(ProvisioningUtil::isResourceModification)
-                .collect(Collectors.toList());
-    }
-
-    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
-        QName firstPathName = modification.getPath().firstName();
-        return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
-    }
-
-    public static boolean isAttributeModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
-    }
-
-    public static boolean isNonAttributeResourceModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
-                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
-                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
-                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     public static Duration getGracePeriod(ProvisioningContext ctx) {

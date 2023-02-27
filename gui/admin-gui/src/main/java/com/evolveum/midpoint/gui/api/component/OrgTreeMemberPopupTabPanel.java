@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
@@ -27,8 +29,8 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    public OrgTreeMemberPopupTabPanel(String id, RelationSearchItemConfigurationType relationConfig, List<ObjectReferenceType> archetypeReferenceList){
-        super(id, relationConfig, archetypeReferenceList);
+    public OrgTreeMemberPopupTabPanel(String id, Search search, List<ObjectReferenceType> archetypeReferenceList){
+        super(id, search, archetypeReferenceList);
     }
 
     @Override

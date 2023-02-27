@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,19 +7,20 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -55,11 +56,21 @@ public class SqaleUtils {
         }
     }
 
-    public static @Nullable UUID oidToUUid(@Nullable String oid) {
+    @Nullable
+    public static UUID oidToUuid(@Nullable String oid) {
+        if (oid == null) {
+            return null;
+        }
+        return oidToUuidMandatory(oid);
+    }
+
+    @NotNull
+    public static UUID oidToUuidMandatory(@NotNull String oid) {
+        Objects.requireNonNull(oid, "OID must not be null");
         try {
-            return oid != null ? UUID.fromString(oid) : null;
+            return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
+            throw new IllegalArgumentException("Cannot convert OID '" + oid + "' to UUID", e);
         }
     }
 
@@ -73,7 +84,7 @@ public class SqaleUtils {
      * Fixes reference type if `null` and tries to use default from definition.
      * Use returned value.
      */
-    public static Referencable referenceWithTypeFixed(Referencable value) {
+    public static ObjectReferenceType referenceWithTypeFixed(ObjectReferenceType value) {
         if (value.getType() != null) {
             return value;
         }

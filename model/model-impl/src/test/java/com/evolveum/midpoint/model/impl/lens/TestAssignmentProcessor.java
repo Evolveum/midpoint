@@ -661,7 +661,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         displayValue("Policy rules", context.dumpAssignmentPolicyRules(3));
 
         EvaluatedAssignmentImpl<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
-        assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
+        assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getObjectPolicyRules().size());
         Collection<? extends EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 2, targetPolicyRules.size());
 
@@ -717,7 +717,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         displayValue("Policy rules", context.dumpAssignmentPolicyRules(3));
 
         EvaluatedAssignmentImpl<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
-        assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
+        assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getObjectPolicyRules().size());
         assertEquals("Wrong # of this target policy rules", 2, evaluatedAssignment.getThisTargetPolicyRules().size());
         Collection<? extends EvaluatedPolicyRule> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         assertEquals("Wrong # of target policy rules", 5, policyRules.size());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -995,33 +995,59 @@ public interface MidpointFunctions {
 
     OperationResult getCurrentResult(String operationName);
 
-    ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    ModelContext<?> unwrapModelContext(LensContextType lensContextType)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException;
 
     <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
 
     /**
-     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
      * {@link ActivationStatusType#ENABLED}.
      *
      * Not always precise - the original value may not be known.
-     *
-     * TODO what about creating projections?
      */
-    boolean isProjectionEnabled();
+    boolean isCurrentProjectionBeingEnabled();
 
     /**
-     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * Returns `true` if the current clockwork operation brings the projection into existence and being effectively enabled,
+     * i.e. with `administrativeState` set to `null` or {@link ActivationStatusType#ENABLED}.
+     * (So, previously the projection was either non-existent or effectively disabled.)
+     *
+     * Loads the full shadow if necessary.
+     */
+    boolean isCurrentProjectionActivated()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
      * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
      *
      * Not always precise - the original value may not be known.
      *
      * TODO what about deleting projections?
      */
-    boolean isProjectionDisabled();
+    boolean isCurrentProjectionBeingDisabled();
 
-    <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
+    /**
+     * Returns `true` if the current clockwork operation deletes the projection or effectively disables it,
+     * i.e. sets `administrativeState` {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
+     * (So, previously the projection existed and was effectively enabled.)
+     *
+     * Loads the full shadow if necessary.
+     */
+    boolean isCurrentProjectionDeactivated()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Returns `true` if `focus` has a `assignment` with `targetRef.OID` being equal to `targetOid`.
+     * No other conditions are checked (e.g. validity, assignment condition, lifecycle states, and so on).
+     */
+    <F extends FocusType> boolean isDirectlyAssigned(F focus, String targetOid);
 
     boolean isDirectlyAssigned(String targetOid);
 
@@ -1098,7 +1124,7 @@ public interface MidpointFunctions {
      * Returns a map from the translated xml attribute - value pairs.
      *
      * @param xml A string representation of xml formatted data.
-     * @throws SystemException when an xml stream exception occurs
+     * @throws SystemException when a xml stream exception occurs
      */
     Map<String, String> parseXmlToMap(String xml);
 
@@ -1176,14 +1202,16 @@ public interface MidpointFunctions {
             String templateTaskOid, Task opTask,
             OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+    String translate(String key, Objects... args);
+
     String translate(LocalizableMessage message);
 
     /**
      * Translates message parameter.
      *
-     * @param message
      * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
-     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()},
+     * if no locale available {@link Locale#getDefault()} will be used.
      * @return translated string
      */
     String translate(LocalizableMessage message, boolean useDefaultLocale);
@@ -1193,9 +1221,9 @@ public interface MidpointFunctions {
     /**
      * Translates message parameter.
      *
-     * @param message
      * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
-     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()},
+     * if no locale available {@link Locale#getDefault()} will be used.
      * @return translated string
      */
     String translate(LocalizableMessageType message, boolean useDefaultLocale);
@@ -1458,14 +1486,30 @@ public interface MidpointFunctions {
             @NotNull ItemPath itemPath);
 
     /**
-     * Returns true if the object (of FocusType) is effectively enabled.
-     * Assumes that the object underwent standard computation and the activation/effectiveStatus is set.
+     * Returns true if the object is effectively enabled.
      *
-     * As a convenience measure, if the object is not present, the method returns `false`.
+     * For convenience, if the object is not present, the method returns `false`.
+     * If the object is not a {@link FocusType}, the method returns `true` (as there is no activation there).
+     * For {@link FocusType} objects, it assumes that the object underwent standard computation and
+     * `activation/effectiveStatus` is set.
      *
      * If the `activation/effectiveStatus` is not present, the return value of the method is undefined.
      */
-    default boolean isEffectivelyEnabled(@Nullable FocusType focus) {
-        return FocusTypeUtil.getEffectiveStatus(focus) == ActivationStatusType.ENABLED;
+    default boolean isEffectivelyEnabled(@Nullable ObjectType object) {
+        return object != null
+                && (!(object instanceof FocusType)
+                || FocusTypeUtil.getEffectiveStatus((FocusType) object) == ActivationStatusType.ENABLED);
     }
+
+    /**
+     * Does the current clockwork operation bring the focus into existence and being effectively enabled?
+     * (So, previously it was either non-existent or effectively disabled.)
+     */
+    boolean isFocusActivated();
+
+    /**
+     * Does the current clockwork operation delete or effectively disable the focus?
+     * (So, previously it existed and was effectively enabled.)
+     */
+    boolean isFocusDeactivated();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,19 +13,12 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.io.*;
-import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-
-import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.util.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -37,20 +30,20 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -63,16 +56,27 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -86,11 +90,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -195,6 +199,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addArbitraryObjectCollectionAsParam("options", rawOptions)
                 .addParam("class", clazz)
                 .build();
+
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -500,103 +505,104 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         OP_LOGGER.trace("MODEL OP enter searchObjects({},{},{})", type.getSimpleName(), query, rawOptions);
 
-        OperationResult result = parentResult.subresult(SEARCH_OBJECTS)
+        OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS)
                 .addParam(OperationResult.PARAM_TYPE, type)
-                .addParam(OperationResult.PARAM_QUERY, query)
-                .build();
+                .addParam(OperationResult.PARAM_QUERY, query);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
-        ObjectManager searchProvider = getObjectManager(type, options);
-        result.addArbitraryObjectAsParam("searchProvider", searchProvider);
-
-        ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
-        if (isFilterNone(processedQuery, result)) {
-            return new SearchResultList<>(new ArrayList<>());
-        }
-
-        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
-        @NotNull SearchResultList<PrismObject<T>> list;
         try {
-            logQuery(processedQuery);
+            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
+            ObjectManager searchProvider = getObjectManager(type, options);
+            result.addArbitraryObjectAsParam("searchProvider", searchProvider);
+
+            ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
+            if (isFilterNone(processedQuery, result)) {
+                return new SearchResultList<>(new ArrayList<>());
+            }
+
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            @NotNull SearchResultList<PrismObject<T>> list;
             try {
-                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
-                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                logQuery(processedQuery);
+
+                try {
+                    if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
+                        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                    }
+                    switch (searchProvider) {
+                        case REPOSITORY:
+                            list = cacheRepositoryService.searchObjects(type, processedQuery, options, result);
+                            break;
+                        case PROVISIONING:
+                            list = provisioning.searchObjects(type, processedQuery, options, task, result);
+                            break;
+                        case TASK_MANAGER:
+                            list = taskManager.searchObjects(type, processedQuery, options, result);
+                            break;
+                        default:
+                            throw new AssertionError("Unexpected search provider: " + searchProvider);
+                    }
+                } catch (Exception e) {
+                    recordSearchException(e, searchProvider, result);
+                    throw e;
+                } finally {
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
                 }
-                switch (searchProvider) {
-                    case REPOSITORY:
-                        list = cacheRepositoryService.searchObjects(type, processedQuery, options, result);
-                        break;
-                    case PROVISIONING:
-                        list = provisioning.searchObjects(type, processedQuery, options, task, result);
-                        break;
-                    case TASK_MANAGER:
-                        list = taskManager.searchObjects(type, processedQuery, options, result);
-                        break;
-                    default:
-                        throw new AssertionError("Unexpected search provider: " + searchProvider);
+
+                LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
+
+                for (PrismObject<T> object : list) {
+                    if (hookRegistry != null) {
+                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+                            hook.invoke(object, options, task, result);
+                        }
+                    }
+                    executeResolveOptions(object.asObjectable(), options, task, result);
                 }
-            } catch (Exception e) {
-                recordSearchException(e, searchProvider, result);
+
+                // Post-processing objects that weren't handled by their correct provider (e.g. searching for ObjectType,
+                // and retrieving tasks, resources, shadows). Currently, only resources and shadows are handled in this way.
+                //
+                // TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
+                // TODO ... or consider abandoning this functionality altogether (it is more a hack than a serious design!)
+                if (searchProvider == ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
+                    for (PrismObject<T> object : list) {
+                        if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
+                            applyProvisioningDefinition(object, task, result);
+                        }
+                    }
+                }
+                // TODO Clone objects and the list lazily. Now we do the cloning just to fix MID-6825.
+                if (list.isImmutable()) {
+                    list = list.deepClone();
+                }
+                // better to use cache here (MID-4059)
+                schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
+
+            } catch (Throwable e) {
+                result.recordException(e);
                 throw e;
             } finally {
-                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+                exitModelMethod();
+            }
+            LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
+
+            // TODO: log errors
+
+            if (OP_LOGGER.isDebugEnabled()) {
+                OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, list.shortDump());
+            }
+            if (OP_LOGGER.isTraceEnabled()) {
+                OP_LOGGER.trace("MODEL OP exit searchObjects({},{},{}): {}\n{}", type.getSimpleName(), query, rawOptions, list.shortDump(),
+                        DebugUtil.debugDump(list.getList(), 1));
             }
 
-            LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
-
-            for (PrismObject<T> object : list) {
-                if (hookRegistry != null) {
-                    for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                        hook.invoke(object, options, task, result);
-                    }
-                }
-                executeResolveOptions(object.asObjectable(), options, task, result);
-            }
-
-            // Post-processing objects that weren't handled by their correct provider (e.g. searching for ObjectType,
-            // and retrieving tasks, resources, shadows). Currently, only resources and shadows are handled in this way.
-            //
-            // TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
-            // TODO ... or consider abandoning this functionality altogether (it is more a hack than a serious design!)
-            if (searchProvider == ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
-                for (PrismObject<T> object : list) {
-                    if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
-                        applyProvisioningDefinition(object, task, result);
-                    }
-                }
-            }
-            // TODO Clone objects and the list lazily. Now we do the cloning just to fix MID-6825.
-            if (list.isImmutable()) {
-                list = list.deepClone();
-            }
-            // better to use cache here (MID-4059)
-            schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
-
-        } catch (Throwable e) {
-            result.recordException(e);
-            throw e;
+            return list;
         } finally {
-            exitModelMethod();
             result.close();
             result.cleanup();
         }
-
-        LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
-
-        // TODO: log errors
-
-        if (OP_LOGGER.isDebugEnabled()) {
-            OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, list.shortDump());
-        }
-        if (OP_LOGGER.isTraceEnabled()) {
-            OP_LOGGER.trace("MODEL OP exit searchObjects({},{},{}): {}\n{}", type.getSimpleName(), query, rawOptions, list.shortDump(),
-                    DebugUtil.debugDump(list.getList(), 1));
-        }
-
-        return list;
     }
 
     /**
@@ -645,6 +651,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         final boolean isCertCase;
         final boolean isCaseMgmtWorkItem;
         final boolean isOperationExecution;
+        final boolean isProcessedObject;
         final ObjectManager manager;
         final ObjectQuery refinedQuery;
         private final boolean isAssignment;
@@ -658,10 +665,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
             isOperationExecution = OperationExecutionType.class.equals(type);
             isAssignment = AssignmentType.class.equals(type);
+            isProcessedObject = SimulationResultProcessedObjectType.class.equals(type);
 
-            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment) {
+            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment && !isProcessedObject) {
                 throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only "
-                        + "for AccessCertificationCaseType, CaseWorkItemType and AssignmentType classes");
+                        + "for AccessCertificationCaseType, CaseWorkItemType, SimulationResultProcessedObjectType and AssignmentType classes");
             }
 
             manager = ObjectManager.REPOSITORY;
@@ -686,69 +694,71 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ModelImplUtils.validatePaging(query.getPaging());
         }
 
-        final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
-        result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addParam(OperationResult.PARAM_QUERY, query);
+        OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS)
+                .addParam(OperationResult.PARAM_TYPE, type)
+                .addParam(OperationResult.PARAM_QUERY, query);
 
-        final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
-
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
-        query = ctx.refinedQuery;
-
-        if (isFilterNone(query, result)) {
-            return new SearchResultList<>(new ArrayList<>());
-        }
-
-        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
-        SearchResultList<T> list;
         try {
-            logQuery(query);
+            ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
 
+            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+            query = ctx.refinedQuery;
+
+            if (isFilterNone(query, result)) {
+                return new SearchResultList<>(new ArrayList<>());
+            }
+
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            SearchResultList<T> list;
             try {
-                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
-                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                logQuery(query);
+
+                try {
+                    if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
+                        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                    }
+                    //noinspection SwitchStatementWithTooFewBranches
+                    switch (ctx.manager) {
+                        case REPOSITORY:
+                            list = cacheRepositoryService.searchContainers(type, query, options, result);
+                            break;
+                        default:
+                            throw new IllegalStateException();
+                    }
+                } catch (SchemaException | RuntimeException e) {
+                    recordSearchException(e, ctx.manager, result);
+                    throw e;
+                } finally {
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
                 }
-                //noinspection SwitchStatementWithTooFewBranches
-                switch (ctx.manager) {
-                    case REPOSITORY:
-                        list = cacheRepositoryService.searchContainers(type, query, options, result);
-                        break;
-                    default:
-                        throw new IllegalStateException();
+
+                if (list == null) {
+                    list = new SearchResultList<>(new ArrayList<>());
                 }
-            } catch (SchemaException | RuntimeException e) {
-                recordSearchException(e, ctx.manager, result);
-                throw e;
+
+                for (T object : list) {
+                    // TODO implement read hook, if necessary
+                    executeResolveOptions(object, options, task, result);
+                }
             } finally {
-                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                result.close();
-                result.cleanup();
+                exitModelMethod();
             }
 
-            if (list == null) {
-                list = new SearchResultList<>(new ArrayList<>());
+            if (ctx.isCertCase) {
+                list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
+                        AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
+            } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment || ctx.isProcessedObject) {
+                // TODO implement security post processing for CaseWorkItems
+            } else {
+                throw new IllegalStateException();
             }
-
-            for (T object : list) {
-                // TODO implement read hook, if necessary
-                executeResolveOptions(object, options, task, result);
-            }
+            return list;
         } finally {
-            exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
-        if (ctx.isCertCase) {
-            list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
-                    AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment) {
-            // TODO implement security post processing for CaseWorkItems
-        } else {
-            throw new IllegalStateException();
-        }
-
-        return list;
     }
 
     @Override
@@ -760,31 +770,27 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
 
-        final OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS);
-        result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addParam(OperationResult.PARAM_QUERY, query);
+        OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS)
+                .addParam(OperationResult.PARAM_TYPE, type)
+                .addParam(OperationResult.PARAM_QUERY, query);
 
-        final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
-
-        final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-
-        query = ctx.refinedQuery;
-
-        if (isFilterNone(query, result)) {
-            return 0;
-        }
-
-        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
-        int count;
         try {
-            logQuery(query);
+            ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            query = ctx.refinedQuery;
 
+            if (isFilterNone(query, result)) {
+                return 0;
+            }
+
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
             try {
+                logQuery(query);
+
                 //noinspection SwitchStatementWithTooFewBranches
                 switch (ctx.manager) {
                     case REPOSITORY:
-                        count = cacheRepositoryService.countContainers(type, query, options, result);
-                        break;
+                        return cacheRepositoryService.countContainers(type, query, options, result);
                     default:
                         throw new IllegalStateException();
                 }
@@ -792,14 +798,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 recordSearchException(e, ctx.manager, result);
                 throw e;
             } finally {
-                result.close();
-                result.cleanup();
+                exitModelMethod();
             }
         } finally {
-            exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
-        return count;
     }
 
     // See MID-6323 in Jira
@@ -847,79 +851,82 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         OP_LOGGER.trace("MODEL OP enter searchObjectsIterative({},{},{})", type.getSimpleName(), query, rawOptions);
 
-        OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-        result.addParam(OperationResult.PARAM_QUERY, query);
+        OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS)
+                .addParam(OperationResult.PARAM_QUERY, query);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        ObjectManager searchProvider = getObjectManager(type, options);
-        result.addArbitraryObjectAsParam("searchProvider", searchProvider);
-
-        // see MID-6115
-        ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
-        if (isFilterNone(processedQuery, result)) {
-            LOGGER.trace("Skipping search because filter is NONE");
-            return null;
-        }
-
-        ResultHandler<T> internalHandler = (object, parentResult1) -> {
-            try {
-                object = object.cloneIfImmutable();
-                if (hookRegistry != null) {
-                    for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                        hook.invoke(object, options, task, parentResult1);
-                    }
-                }
-                executeResolveOptions(object.asObjectable(), options, task, parentResult1);
-                schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
-            } catch (CommonException ex) {
-                parentResult1.recordException(ex); // We should create a subresult for this
-                throw new SystemException(ex.getMessage(), ex);
-            }
-
-            OP_LOGGER.debug("MODEL OP handle searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, object);
-            if (OP_LOGGER.isTraceEnabled()) {
-                OP_LOGGER.trace("MODEL OP handle searchObjects({},{},{}):\n{}", type.getSimpleName(), query, rawOptions, object.debugDump(1));
-            }
-
-            return handler.handle(object, parentResult1);
-        };
-
-        SearchResultMetadata metadata;
         try {
-            enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
-            logQuery(processedQuery);
+            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            ObjectManager searchProvider = getObjectManager(type, options);
+            result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
-            switch (searchProvider) {
-                case REPOSITORY:
-                    metadata = cacheRepositoryService.searchObjectsIterative(
-                            type, processedQuery, internalHandler, options, true, result);
-                    break;
-                case PROVISIONING:
-                    metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
-                    break;
-                case TASK_MANAGER:
-                    metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
-                    break;
-                default:
-                    throw new AssertionError("Unexpected search provider: " + searchProvider);
+            // see MID-6115
+            ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
+            if (isFilterNone(processedQuery, result)) {
+                LOGGER.trace("Skipping search because filter is NONE");
+                return null;
             }
-        } catch (Exception e) {
-            recordSearchException(e, searchProvider, result);
-            throw e;
+
+            ResultHandler<T> internalHandler = (object, parentResult1) -> {
+                try {
+                    object = object.cloneIfImmutable();
+                    if (hookRegistry != null) {
+                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+                            hook.invoke(object, options, task, parentResult1);
+                        }
+                    }
+                    executeResolveOptions(object.asObjectable(), options, task, parentResult1);
+                    schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
+                } catch (CommonException ex) {
+                    parentResult1.recordException(ex); // We should create a subresult for this
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+
+                OP_LOGGER.debug("MODEL OP handle searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, object);
+                if (OP_LOGGER.isTraceEnabled()) {
+                    OP_LOGGER.trace("MODEL OP handle searchObjects({},{},{}):\n{}", type.getSimpleName(), query, rawOptions, object.debugDump(1));
+                }
+
+                return handler.handle(object, parentResult1);
+            };
+
+            SearchResultMetadata metadata;
+            try {
+                enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+                logQuery(processedQuery);
+
+                switch (searchProvider) {
+                    case REPOSITORY:
+                        metadata = cacheRepositoryService.searchObjectsIterative(
+                                type, processedQuery, internalHandler, options, true, result);
+                        break;
+                    case PROVISIONING:
+                        metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
+                        break;
+                    case TASK_MANAGER:
+                        metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
+                        break;
+                    default:
+                        throw new AssertionError("Unexpected search provider: " + searchProvider);
+                }
+            } catch (Exception e) {
+                recordSearchException(e, searchProvider, result);
+                throw e;
+            } finally {
+                exitModelMethodNoRepoCache();
+            }
+
+            // TODO: log errors
+
+            if (OP_LOGGER.isDebugEnabled()) {
+                OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, metadata);
+            }
+
+            return metadata;
         } finally {
-            exitModelMethodNoRepoCache();
             result.close();
             result.cleanup();
         }
-
-        // TODO: log errors
-
-        if (OP_LOGGER.isDebugEnabled()) {
-            OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, metadata);
-        }
-
-        return metadata;
     }
 
     private void recordSearchException(
@@ -1012,6 +1019,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
             focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
+
+            if (focus != null) {
+                try {
+                    focus = focus.cloneIfImmutable();
+                    schemaTransformer.applySchemasAndSecurity(focus, null, null, null, task, result);
+                } catch (SchemaException | SecurityViolationException | ConfigurationException
+                        | ObjectNotFoundException | CommunicationException ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+                            + " for account with oid {}", ex, shadowOid);
+                    result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+                            + shadowOid + "'.", ex);
+                    throw ex;
+                }
+            }
+
+            return focus;
         } catch (Throwable t) {
             LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
                     + " for account with oid {}", t, shadowOid);
@@ -1022,23 +1045,163 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.close();
             result.cleanup();
         }
-
-        if (focus != null) {
-            try {
-                focus = focus.cloneIfImmutable();
-                schemaTransformer.applySchemasAndSecurity(focus, null, null, null, task, result);
-            } catch (SchemaException | SecurityViolationException | ConfigurationException
-                    | ObjectNotFoundException | CommunicationException ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-                        + " for account with oid {}", ex, shadowOid);
-                result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-                        + shadowOid + "'.", ex);
-                throw ex;
-            }
-        }
-
-        return focus;
     }
+
+    // region search-references
+    @Override
+    public SearchResultList<ObjectReferenceType> searchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        ModelImplUtils.validatePaging(query.getPaging());
+
+        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            options = preProcessOptionsSecurity(options, task, operationResult);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+            if (isFilterNone(query, operationResult)) {
+                return new SearchResultList<>(new ArrayList<>());
+            }
+
+            SearchResultList<ObjectReferenceType> list;
+            // TODO caching and reference search are probably unknown territory at this moment.
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            try {
+                logQuery(query);
+
+                list = cacheRepositoryService.searchReferences(query, options, operationResult);
+            } catch (SchemaException | RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+
+            // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
+            return list;
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+
+    @Override
+    public Integer countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+
+        OperationResult operationResult = parentResult.createSubresult(COUNT_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            options = preProcessOptionsSecurity(options, task, operationResult);
+
+            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+
+            if (isFilterNone(query, operationResult)) {
+                return 0;
+            }
+
+            enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
+            try {
+                logQuery(query);
+
+                return cacheRepositoryService.countReferences(query, options, operationResult);
+            } catch (RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+
+    private ObjectQuery preProcessReferenceQuerySecurity(ObjectQuery query, Task task, OperationResult options) {
+        // TODO:
+        // 1. extract owner object type from OWNED-BY query (if it's a container type, follow up to the object type)
+        // 2. use it for securityEnforcer.preProcessObjectFilter()
+        // 3. add filters to the owned-by filter as necessary
+        return query;
+    }
+
+    @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+
+        Objects.requireNonNull(query, "Query must be provided for reference search");
+        Validate.notNull(parentResult, "Result type must not be null.");
+        OP_LOGGER.trace("MODEL OP enter searchReferencesIterative({}, {})", query, options);
+
+        ModelImplUtils.validatePaging(query.getPaging());
+        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            Collection<SelectorOptions<GetOperationOptions>> processedOptions =
+                    preProcessOptionsSecurity(options, task, operationResult);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(processedOptions);
+
+            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+            if (isFilterNone(processedQuery, operationResult)) {
+                LOGGER.trace("Skipping search because filter is NONE");
+                return null;
+            }
+
+            ObjectHandler<ObjectReferenceType> internalHandler = (ref, lResult) -> {
+                // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
+
+                PrismReferenceValue refValue = ref.asReferenceValue();
+                if (OP_LOGGER.isTraceEnabled()) {
+                    OP_LOGGER.trace("MODEL OP handle searchReferencesIterative({}, {}):\n{}",
+                            query, options, refValue.debugDump(1));
+                } else {
+                    OP_LOGGER.debug("MODEL OP handle searchReferencesIterative({}, {}): {}",
+                            query, options, refValue);
+                }
+
+                return handler.handle(ref, lResult);
+            };
+
+            SearchResultMetadata metadata;
+            try {
+                enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+                logQuery(processedQuery);
+
+                metadata = cacheRepositoryService.searchReferencesIterative(
+                        processedQuery, internalHandler, processedOptions, operationResult);
+            } catch (SchemaException | RuntimeException e) {
+                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                throw e;
+            } finally {
+                exitModelMethod();
+            }
+
+            return metadata;
+        } finally {
+            operationResult.close();
+            operationResult.cleanup();
+        }
+    }
+    // endregion
 
     @Override
     public OperationResult testResource(String resourceOid, Task task, OperationResult result)
@@ -1240,8 +1403,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throw e;
         } catch (IOException e) {
             LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
+        } finally {
+            result.close();
         }
-        result.computeStatus();
     }
 
     @Override
@@ -1554,19 +1718,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTasks"); // details filled in taskManager
-        boolean suspended;
         try {
-            suspended = taskManager.suspendTasks(taskOids, waitForStop, taskOperationResult);
+            boolean suspended = taskManager.suspendTasks(taskOids, waitForStop, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
+            return suspended;
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
-        return suspended;
     }
 
     @Override
@@ -1577,19 +1740,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTasks"); // details filled in taskManager
-        boolean suspended;
         try {
-            suspended = taskManager.suspendTask(taskOid, waitForStop, taskOperationResult);
+            boolean suspended = taskManager.suspendTask(taskOid, waitForStop, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
+
+            return suspended;
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
-        return suspended;
     }
 
     @Override
@@ -1600,19 +1763,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTaskTree"); // details filled in taskManager
-        boolean suspended;
         try {
-            suspended = taskManager.suspendTaskTree(taskOid, waitForStop, taskOperationResult);
+            boolean suspended = taskManager.suspendTaskTree(taskOid, waitForStop, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
+
+            return suspended;
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
-        return suspended;
     }
 
     @Override
@@ -1630,15 +1793,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             if (!taskOids.isEmpty()) {
                 taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, taskOperationResult);
             }
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -1655,15 +1818,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             if (indestructibleTaskOids.isEmpty() || !indestructibleTaskOids.contains(taskOid)) {
                 taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, taskOperationResult);
             }
+
+            postprocessTaskCollectionOperation(
+                    resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(
-                resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
     }
 
     private List<String> getIndestructibleTaskOids(
@@ -1693,15 +1856,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTasks"); // details filled in taskManager
         try {
             taskManager.resumeTasks(taskOids, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -1714,15 +1877,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTasks"); // details filled in taskManager
         try {
             taskManager.resumeTask(taskOid, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -1735,15 +1898,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTaskTree"); // details filled in taskManager
         try {
             taskManager.resumeTaskTree(coordinatorOid, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -1756,15 +1919,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "scheduleTasksNow"); // details filled in taskManager
         try {
             taskManager.scheduleTasksNow(taskOids, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -1777,15 +1940,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "scheduleTasksNow"); // details filled in taskManager
         try {
             taskManager.scheduleTaskNow(taskOid, taskOperationResult);
+
+            postprocessTaskCollectionOperation(resolvedTasks,
+                    AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
         } catch (Throwable t) {
             taskOperationResult.recordFatalError(t);
             throw t;
         } finally {
             taskOperationResult.close();
         }
-
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
@@ -2170,15 +2333,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<ObjectDeltaOperation<? extends ObjectType>> deltas =
                     objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
 
-            result.computeStatus();
             return deltas;
-
-        } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException |
+                ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException |
+                RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         } finally {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
+            result.close();
         }
     }
 
@@ -2271,7 +2435,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -2368,5 +2532,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type) {
         return cacheRepositoryService.supports(type);
+    }
+
+    @Override
+    public <O extends ObjectType> ProcessedObjectImpl<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean)
+            throws SchemaException {
+        //noinspection unchecked
+        PrismContainerValue<SimulationResultProcessedObjectType> pcv = bean.asPrismContainerValue();
+        Object existing = pcv.getUserData(ProcessedObjectImpl.KEY_PARSED);
+        if (existing != null) {
+            //noinspection unchecked
+            return (ProcessedObjectImpl<O>) existing;
+        }
+
+        ProcessedObjectImpl<O> parsed = ProcessedObjectImpl.parse(bean);
+        pcv.setUserData(ProcessedObjectImpl.KEY_PARSED, parsed);
+        return parsed;
     }
 }

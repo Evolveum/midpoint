@@ -8,11 +8,16 @@ package com.evolveum.midpoint.common;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.regex.Pattern;
+
 /**
  * @author Igor Farinic
  * @author Radovan Semancik
  */
 public class Utils {
+
+    private static final Pattern OID_PATTERN = Pattern.compile(
+            "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", Pattern.CASE_INSENSITIVE);
 
     public static String getPropertyName(String name) {
         if (null == name) {
@@ -52,5 +57,13 @@ public class Utils {
     public static boolean isValidXmlCodepoint(int cp) {
         return (cp == 0x0009 || cp == 0x000a || cp == 0x000d || (cp >= 0x0020 && cp <= 0xd7ff)
                 || (cp >= 0xe000 && cp <= 0xfffd) || (cp >= 0x10000 && cp <= 0x10FFFF));
+    }
+
+    public static boolean isPrismObjectOidValid(String oid) {
+        if (StringUtils.isEmpty(oid)) {
+            return false;
+        }
+
+        return OID_PATTERN.matcher(oid).matches();
     }
 }

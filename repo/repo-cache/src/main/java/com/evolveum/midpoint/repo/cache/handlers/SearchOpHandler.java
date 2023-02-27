@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,6 +17,7 @@ import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -28,10 +29,7 @@ import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObjectsTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Handler for searchObjects/searchObjectsIterative operations.
@@ -46,6 +44,9 @@ public class SearchOpHandler extends CachedOpHandler {
     private static final String OP_SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
     private static final String OP_COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     private static final String OP_COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
+    private static final String OP_SEARCH_REFERENCES = CLASS_NAME_WITH_DOT + "searchReferences";
+    private static final String OP_COUNT_REFERENCES = CLASS_NAME_WITH_DOT + "countReferences";
+    private static final String OP_SEARCH_REFERENCES_ITERATIVE = CLASS_NAME_WITH_DOT + "searchReferencesIterative";
 
     /**
      * Queries resulting in more objects will not be cached "as such" - although individual objects/versions can be cached.
@@ -337,7 +338,9 @@ public class SearchOpHandler extends CachedOpHandler {
         }
     }
 
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
         OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
@@ -368,6 +371,64 @@ public class SearchOpHandler extends CachedOpHandler {
         Long startTime = repoOpStart();
         try {
             return repositoryService.countContainers(type, query, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public SearchResultList<ObjectReferenceType> searchReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_SEARCH_REFERENCES)
+                .addParam("query", query)
+                .addArbitraryObjectAsParam("options", options)
+                .build();
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.searchReferences(query, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public int countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(OP_COUNT_REFERENCES)
+                .addParam("query", query)
+                .addArbitraryObjectCollectionAsParam("options", options)
+                .build();
+        MonitoringUtil.log("Cache: PASS countReferences ({})", false, ObjectReferenceType.class.getSimpleName());
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.countReferences(query, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_SEARCH_REFERENCES_ITERATIVE)
+                .addParam("query", query)
+                .addArbitraryObjectAsParam("options", options)
+                .build();
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.searchReferencesIterative(query, handler, options, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

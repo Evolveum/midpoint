@@ -43,7 +43,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 @Component
-public class AssignmentModificationConstraintEvaluator extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
+public class AssignmentModificationConstraintEvaluator
+        extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentModificationConstraintEvaluator.class);
 
@@ -52,9 +53,10 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
     private static final String OP_EVALUATE = AssignmentModificationConstraintEvaluator.class.getName() + ".evaluate";
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedModificationTrigger evaluate(
+    public <O extends ObjectType> EvaluatedModificationTrigger evaluate(
             @NotNull JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -65,8 +67,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
                 LOGGER.trace("Not an AssignmentPolicyRuleEvaluationContext: {}", rctx.getClass());
                 return null;
             }
-            AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-            if (!ctx.isDirect) {
+            AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
+            if (!ctx.isDirect()) {
                 LOGGER.trace("Assignment is indirect => not triggering");
                 return null;
             }
@@ -94,9 +96,11 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         }
     }
 
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+            JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage relationMessage = relation != null ?
@@ -168,12 +172,13 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         return false;
     }
 
-    private boolean operationMatches(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
+    private boolean operationMatches(
+            AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
         List<ChangeTypeType> operations = constraint.getOperation();
-        if (operations.isEmpty() ||
-                inPlus && operations.contains(ChangeTypeType.ADD) ||
-                inZero && operations.contains(ChangeTypeType.MODIFY) ||
-                inMinus && operations.contains(ChangeTypeType.DELETE)) {
+        if (operations.isEmpty()
+                || inPlus && operations.contains(ChangeTypeType.ADD)
+                || inZero && operations.contains(ChangeTypeType.MODIFY)
+                || inMinus && operations.contains(ChangeTypeType.DELETE)) {
             return true;
         } else {
             LOGGER.trace("Operation does not match. Configured operations: {}, real inPlus={}, inMinus={}, inZero={}.",
@@ -184,8 +189,9 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
     // TODO discriminate between primary and secondary changes (perhaps make it configurable)
     // Primary changes are "approvable", secondary ones are not.
-    private <AH extends AssignmentHolderType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
-            AssignmentPolicyRuleEvaluationContext<AH> ctx) throws SchemaException {
+    private <AH extends AssignmentHolderType> boolean pathsMatch(
+            AssignmentModificationPolicyConstraintType constraint, AssignmentPolicyRuleEvaluationContext<AH> ctx)
+            throws SchemaException {
 
         boolean exactMatch = isTrue(constraint.isExactPathMatch());
 

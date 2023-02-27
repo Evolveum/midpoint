@@ -34,7 +34,11 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
     }
 
     public QProcessedObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QProcessedObject.TABLE_NAME, DEFAULT_ALIAS_NAME,SimulationResultProcessedObjectType.class, QProcessedObject.class, repositoryContext);
+        super(QProcessedObject.TABLE_NAME,
+                DEFAULT_ALIAS_NAME,
+                SimulationResultProcessedObjectType.class,
+                QProcessedObject.class,
+                repositoryContext);
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -48,9 +52,10 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
         // addItemMapping(F_OBJECT_TYPE, ));
-
+        addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
-        addItemMapping(F_METRIC_IDENTIFIER, multiStringMapper(q -> q.metricIdentifiers));
+        addRefMapping(F_EVENT_MARK_REF, QProcessedObjectEventMarkReferenceMapping.init(repositoryContext));
+        addItemMapping(F_FOCUS_RECORD_ID, longMapper(q -> q.focusRecordId));
     }
 
     /*
@@ -85,8 +90,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     @Override
     protected PathSet fullObjectItemsToSkip() {
-        // Do not store full objects
-        return PathSet.of(F_BEFORE, F_AFTER);
+        // Do not store full objects (TEMPORARILY DISABLED because of the need to apply definitions in shadow deltas)
+        // return PathSet.of(F_BEFORE, F_AFTER);
+        return PathSet.empty();
     }
 
     @Override
@@ -94,18 +100,20 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
             JdbcSession jdbcSession) throws SchemaException {
         MProcessedObject row = initRowObject(object, ownerRow);
         //row.oid
-        row.oid = SqaleUtils.oidToUUid(object.getOid());
+        row.oid = SqaleUtils.oidToUuid(object.getOid());
         if (object.getName() != null) {
             row.nameOrig = object.getName().getOrig();
             row.nameNorm = object.getName().getNorm();
         }
         row.state = object.getState();
 
-        row.metricIdentifiers = stringsToArray(object.getMetricIdentifier());
         row.fullObject = createFullObject(object);
-
+        row.transactionId = object.getTransactionId();
+        row.focusRecordId = object.getFocusRecordId();
         // Before / After not serialized
         insert(row, jdbcSession);
+        // We store event marks
+        storeRefs(row, object.getEventMarkRef(), QProcessedObjectEventMarkReferenceMapping.getInstance(), jdbcSession);
         return row;
     }
 }

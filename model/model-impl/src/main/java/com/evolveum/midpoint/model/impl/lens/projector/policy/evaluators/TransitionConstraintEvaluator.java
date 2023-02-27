@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -22,7 +21,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
 
@@ -42,12 +41,15 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
     private static final String CONSTRAINT_KEY = "transition";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private PolicyConstraintsEvaluator policyConstraintsEvaluator;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(@NotNull JAXBElement<TransitionPolicyConstraintType> constraintElement,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> EvaluatedPolicyRuleTrigger<?> evaluate(
+            @NotNull JAXBElement<TransitionPolicyConstraintType> constraintElement,
+            @NotNull PolicyRuleEvaluationContext<O> rctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -74,16 +76,17 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
         }
     }
 
-    private <AH extends AssignmentHolderType> boolean evaluateState(TransitionPolicyConstraintType trans,
-            PolicyRuleEvaluationContext<AH> rctx, ObjectState state, Boolean expected,
+    private <O extends ObjectType> boolean evaluateState(
+            TransitionPolicyConstraintType trans,
+            PolicyRuleEvaluationContext<O> rctx, ObjectState state, Boolean expected,
             List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (expected == null) {
             return true;
         }
-        PolicyRuleEvaluationContext<AH> subContext = rctx.cloneWithStateConstraints(state);
-        List<EvaluatedPolicyRuleTrigger<?>> subTriggers = policyRuleProcessor
-                .evaluateConstraints(trans.getConstraints(), true, subContext, result);
+        PolicyRuleEvaluationContext<O> subContext = rctx.cloneWithStateConstraints(state);
+        List<EvaluatedPolicyRuleTrigger<?>> subTriggers =
+                policyConstraintsEvaluator.evaluateConstraints(trans.getConstraints(), true, subContext, result);
         triggers.addAll(subTriggers);
         boolean real = !subTriggers.isEmpty();
         return expected == real;

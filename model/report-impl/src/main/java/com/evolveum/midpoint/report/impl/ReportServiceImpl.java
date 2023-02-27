@@ -1,15 +1,20 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFoundCollection;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.expression.*;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
@@ -47,10 +52,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -244,7 +245,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         if (compiledCollection.getColumns().isEmpty()) {
-            Class<Containerable> type = resolveTypeForReport(compiledCollection);
+            Class<?> type = resolveTypeForReport(compiledCollection);
             getModelInteractionService().applyView(
                     compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
         }
@@ -288,7 +289,7 @@ public class ReportServiceImpl implements ReportService {
 
         if (compiledCollection.getColumns().isEmpty()) {
             if (useDefaultView) {
-                Class<Containerable> type = resolveTypeForReport(compiledCollection);
+                Class<?> type = resolveTypeForReport(compiledCollection);
                 getModelInteractionService().applyView(
                         compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
             } else {
@@ -298,13 +299,15 @@ public class ReportServiceImpl implements ReportService {
         return compiledCollection;
     }
 
-    public Class<Containerable> resolveTypeForReport(CompiledObjectCollectionView compiledCollection) {
+    public Class<?> resolveTypeForReport(CompiledObjectCollectionView compiledCollection) {
         QName type = compiledCollection.getContainerType();
         ComplexTypeDefinition def = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def != null) {
             Class<?> clazz = def.getCompileTimeClass();
-            if (clazz != null && Containerable.class.isAssignableFrom(clazz)) {
-                return (Class<Containerable>) clazz;
+            if (clazz != null &&
+                    (Containerable.class.isAssignableFrom(clazz)
+                            || ObjectReferenceType.class.isAssignableFrom(clazz))) {
+                return clazz;
             }
         }
         throw new IllegalArgumentException("Couldn't define type for QName " + type);
@@ -313,20 +316,22 @@ public class ReportServiceImpl implements ReportService {
     public <O extends ObjectType> PrismObject<O> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
         Class<O> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
-        if (ref.asReferenceValue().getObject() != null) {
-            return ref.asReferenceValue().getObject();
+        PrismObject<O> embedded = ref.asReferenceValue().getObject();
+        if (embedded != null) {
+            return embedded;
         }
 
         PrismObject<O> object = null;
         try {
-            object = getModelService().getObject(type, ref.getOid(), null, task, result.createSubresult("get ref object"));
+            object = getModelService().getObject(type, ref.getOid(), createAllowNotFoundCollection(), task, result);
         } catch (Exception e) {
             LOGGER.debug("Couldn't get object from objectRef " + ref, e);
         }
         return object;
     }
 
-    public VariablesMap evaluateSubreportParameters(
+    // FIXME this does not take "asRow" (joined) subreports into account
+    VariablesMap evaluateSubreports(
             PrismObject<ReportType> reportObject, VariablesMap variables, Task task, OperationResult result) {
         VariablesMap subreportVariable = new VariablesMap();
         if (reportObject == null) {
@@ -345,39 +350,36 @@ public class ReportServiceImpl implements ReportService {
         sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
 
         for (SubreportParameterType subreport : sortedSubreports) {
-            VariablesMap map = evaluateSubreportParameter(reportObject, variables, subreport, task, result);
-            subreportVariable.putAll(map);
+            subreportVariable.putAll(
+                    evaluateSubreport(reportObject, variables, subreport, task, result));
         }
 
         return subreportVariable;
     }
 
-    public VariablesMap evaluateSubreportParameter(PrismObject<ReportType> reportObject, VariablesMap variables, SubreportParameterType subreport, Task task, OperationResult result) {
-        VariablesMap map = new VariablesMap();
+    /** Returns zero- or single-entry map with the value of given (evaluated) sub-report parameter. */
+    public @NotNull VariablesMap evaluateSubreport(
+            PrismObject<ReportType> reportObject, VariablesMap variables, SubreportParameterType subReportDef,
+            Task task, OperationResult result) {
+        VariablesMap resultMap = new VariablesMap();
 
-        if (subreport.getExpression() == null || subreport.getName() == null) {
-            return map;
+        String name = subReportDef.getName();
+        ExpressionType expression = subReportDef.getExpression();
+        if (expression == null || name == null) {
+            LOGGER.warn("No expression or no name for sub-report in {}: {}", reportObject, subReportDef);
+            return resultMap;
         }
 
-        ExpressionType expression = subreport.getExpression();
         try {
-            Collection<? extends PrismValue> subreportParameter = evaluateScript(reportObject, expression, variables, "subreport parameter", task, result);
-            Class<?> subreportParameterClass;
-            if (subreport.getType() != null) {
-                subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
-            } else {
-                if (subreportParameter != null && !subreportParameter.isEmpty()) {
-                    subreportParameterClass = subreportParameter.iterator().next().getRealClass();
-                } else {
-                    subreportParameterClass = Object.class;
-                }
-            }
-            map.put(subreport.getName(), subreportParameter, subreportParameterClass);
+            Collection<? extends PrismValue> values =
+                    evaluateScript(
+                            reportObject, expression, variables, "subreport '" + name + '\'', task, result);
+            resultMap.put(name, TypedValue.of(values, subReportDef.getType()));
         } catch (Exception e) {
-            LOGGER.error("Couldn't execute expression " + expression, e);
+            LoggingUtils.logException(LOGGER, "Couldn't execute expression {} in {}", e, expression, reportObject);
         }
 
-        return map;
+        return resultMap;
     }
 
     public Clock getClock() {

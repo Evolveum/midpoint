@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.test;
+
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -16,6 +18,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCol
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType.F_ROLE_MANAGEMENT;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -71,14 +74,13 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
-import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
+import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -127,7 +129,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
@@ -154,7 +155,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  * @author Radovan Semancik
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest
-        implements ResourceTester, DummyTestResourceInitializer {
+        implements ResourceTester {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -231,6 +232,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+    private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
         dummyAuditService = DummyAuditService.getInstance();
@@ -259,6 +261,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
+
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -381,9 +386,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // TODO reconcile with TestResource.importObject method (they use similar but distinct model APIs)
-    protected void importObject(TestResource<?> testResource, Task task, OperationResult result) throws IOException {
+    protected void importObject(TestObject<?> testObject, Task task, OperationResult result) throws IOException {
         OperationResult subresult = result.createSubresult("importObject");
-        try (InputStream stream = testResource.getInputStream()) {
+        try (InputStream stream = testObject.getInputStream()) {
             modelService.importObjectsFromStream(
                     stream, PrismContext.LANG_XML, MiscSchemaUtil.getDefaultImportOptions(), task, subresult);
         }
@@ -3128,14 +3133,52 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
         account.asObjectable().setIntent(intent);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
-        );
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
 
         return userDelta;
+    }
+
+    protected ObjectDelta<UserType> createModifyUserAssignAccount(String userOid, String resourceOid)
+            throws SchemaException {
+        return createModifyUserAssignAccount(userOid, resourceOid, INTENT_DEFAULT);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected ObjectDelta<UserType> createModifyUserAssignAccount(String userOid, String resourceOid, @NotNull String intent)
+            throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(intent)))
+                .asObjectDelta(userOid);
+    }
+
+    /** Simplistic: expects the exact assignment being present (no variations). */
+    protected ObjectDelta<UserType> createModifyUserUnassignAccount(String userOid, String resourceOid)
+            throws SchemaException {
+        return createModifyUserUnassignAccount(userOid, resourceOid, INTENT_DEFAULT);
+    }
+
+    /** Simplistic: expects the exact assignment being present (no variations). */
+    @SuppressWarnings("SameParameterValue")
+    protected ObjectDelta<UserType> createModifyUserUnassignAccount(
+            String userOid, String resourceOid, @NotNull String intent)
+            throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(intent)))
+                .asObjectDelta(userOid);
     }
 
     protected ObjectDelta<UserType> createModifyUserDeleteDummyAccount(String userOid, String dummyResourceName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -3892,7 +3935,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
+    protected <T extends ObjectType> PrismObject<T> addObject(TestObject<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
@@ -3905,7 +3948,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Returns the object as originally parsed, to avoid race conditions regarding last start timestamp.
-    protected PrismObject<TaskType> addTask(TestResource<TaskType> resource, OperationResult result)
+    protected PrismObject<TaskType> addTask(TestObject<TaskType> resource, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, IOException {
         PrismObject<TaskType> taskBefore = resource.getFresh();
         taskManager.addTask(taskBefore, result);
@@ -3935,7 +3978,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(
-            TestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+            TestObject<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = testResource.getFresh();
@@ -5024,6 +5067,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .orElseThrow(() -> new IllegalStateException("No assignment to " + targetOid + " in " + focus));
     }
 
+    protected Optional<AssignmentType> findAssignmentByResource(PrismObject<? extends FocusType> focus, String resourceOid) {
+        return focus.asObjectable().getAssignment().stream()
+                .filter(a -> {
+                    ConstructionType construction = a.getConstruction();
+                    return construction != null && resourceOid.equals(getOid(construction.getResourceRef()));
+                }).findFirst();
+    }
+
+    protected AssignmentType findAssignmentByResourceRequired(PrismObject<? extends FocusType> focus, String resourceOid) {
+        return findAssignmentByResource(focus, resourceOid)
+                .orElseThrow(() -> new IllegalStateException("No assignment to " + resourceOid + " in " + focus));
+    }
+
     protected AssignmentType findInducementByTarget(String roleOid, String targetOid)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -5098,22 +5154,34 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return options != null ? options : executeOptions();
     }
 
-    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Collection<ObjectDelta<? extends ObjectType>> deltas = singleton(createAddAccountDelta(userOid, accountFile));
-        modelService.executeChanges(deltas, null, task, result);
+    protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result)
+            throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
+            SecurityViolationException {
+        modelService.executeChanges(
+                List.of(createAddAccountDelta(userOid, accountFile)), null, task, result);
     }
 
-    @NotNull
-    protected ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
             throws SchemaException, IOException {
-        PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+        return createAddAccountDelta(userOid, account);
+    }
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
-        accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-        userDelta.addModification(accountDelta);
-        return userDelta;
+    protected @NotNull ObjectDelta<UserType> createAddAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
+    }
+
+    protected @NotNull ObjectDelta<UserType> createDeleteAccountDelta(String userOid, PrismObject<ShadowType> account)
+            throws SchemaException {
+        return prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .delete(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                .asObjectDelta(userOid);
     }
 
     protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -6209,7 +6277,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
-        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
+        return assertModelContext(previewContext, "preview context");
+    }
+
+    protected <O extends ObjectType> ModelContextAsserter<O, Void> assertModelContext(ModelContext<O> modelContext, String desc) {
+        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(modelContext, desc);
         initializeAsserter(asserter);
         return asserter;
     }
@@ -6790,12 +6862,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return roleOid + ":" + id;
     }
 
+    protected void switchAccessesMetadata(Boolean value, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        executeChanges(prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
+                        .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
+    }
+
     public interface FunctionCall<X> {
         X execute() throws CommonException, IOException;
     }
 
     public interface ProcedureCall {
-        void execute() throws CommonException;
+        void execute() throws CommonException, IOException;
     }
 
     protected <X> X traced(FunctionCall<X> tracedCall)
@@ -6803,11 +6884,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    protected void traced(ProcedureCall tracedCall) throws CommonException {
+    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
         traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException {
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
         setGlobalTracingOverride(profile);
         try {
             tracedCall.execute();
@@ -6888,221 +6969,312 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /** Import a single or multiple accounts (or other kind of object) by creating a specialized task - or on foreground. */
-    protected ImportAccountsRequestBuilder importAccountsRequest() {
-        return new ImportAccountsRequestBuilder(this);
+    protected SynchronizationRequestBuilder importAccountsRequest() {
+        return new SynchronizationRequestBuilder(this);
+    }
+
+    /** Reconcile accounts (or other kind of object) by creating a specialized task. */
+    protected SynchronizationRequestBuilder reconcileAccountsRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingReconciliation();
     }
 
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
-     * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
-     * {@link SimulationResultManager} - if `simulationConfiguration` is present. (To be implemented.)
+     * Simulation deltas are stored in returned {@link TestSimulationResult} and optionally also in the storage provided by the
+     * {@link SimulationResultManager} - if `simulationDefinition` is present.
      */
-    private SimulationResult executeInProductionSimulationMode(
+    private TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationConfiguration, task, result);
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationDefinition, task, result);
     }
 
     /**
-     * As {@link #executeInProductionSimulationMode(Collection, SimulationResultType, Task, OperationResult)} but
+     * As {@link #executeInProductionSimulationMode(Collection, SimulationDefinitionType, Task, OperationResult)} but
      * in development simulation mode.
      */
-    protected SimulationResult executeInDevelopmentSimulationMode(
+    protected TestSimulationResult executeDeltasInDevelopmentSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationConfiguration, task, result);
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationDefinition, task, result);
     }
 
-    protected SimulationResult executeInSimulationMode(
+    protected TestSimulationResult executeWithSimulationResult(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull TaskExecutionMode mode,
-            @Nullable SimulationResultType simulationConfiguration,
+            @Nullable SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInSimulationMode(
+        assert isNativeRepository();
+        return executeWithSimulationResult(deltas, null, mode, simulationDefinition, task, result);
+    }
+
+    protected TestSimulationResult executeWithSimulationResult(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable ModelExecuteOptions options,
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        assert isNativeRepository();
+        return executeWithSimulationResult(
                 mode,
-                simulationConfiguration,
+                simulationDefinition,
                 task,
                 result,
                 (simResult) ->
                         modelService.executeChanges(
-                                deltas, null, task, List.of(simResult.contextRecordingListener()), result));
+                                deltas, options, task, List.of(simResult.contextRecordingListener()), result));
     }
 
     /** Convenience method */
-    protected SimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-        return executeInProductionSimulationMode(deltas, null, task, result);
+        assert isNativeRepository();
+        return executeInProductionSimulationMode(
+                deltas, simulationResultManager.defaultDefinition(), task, result);
     }
 
     /**
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
-    protected SimulationResult executeInProductionSimulationMode(
-            SimulationResultType simulationConfiguration, Task task, OperationResult result, ProcedureCall simulatedCall)
+    protected TestSimulationResult executeInProductionSimulationMode(
+            SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
-        return executeInSimulationMode(
+        assert isNativeRepository();
+        return executeWithSimulationResult(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
-                simulationConfiguration,
+                simulationDefinition,
                 task,
                 result,
                 (simResult) -> simulatedCall.execute());
     }
 
-    /** As {@link ProcedureCall} but has {@link SimulationResult} as a parameter. Currently for internal purposes. */
+    /** As {@link ProcedureCall} but has {@link TestSimulationResult} as a parameter. Currently for internal purposes. */
     public interface SimulatedProcedureCall {
-        void execute(SimulationResult simResult) throws CommonException;
+        void execute(TestSimulationResult simResult) throws CommonException, IOException;
     }
 
-    public SimulationResult executeInSimulationMode(
-            TaskExecutionMode mode,
-            SimulationResultType simulationConfiguration,
-            Task task,
-            OperationResult result,
-            SimulatedProcedureCall simulatedCall)
+    /**
+     * Something like this could be (maybe) provided for production code directly by {@link SimulationResultManager}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationDefinitionType simulationDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        String simulationResultOid;
-        AggregatedObjectProcessingListener simulationObjectProcessingListener;
-        if (simulationConfiguration != null) {
-            SimulationResultContext simulationResultContext =
-                    simulationResultManager.newSimulationResult(simulationConfiguration, result);
-            simulationResultOid = simulationResultContext.getResultOid();
-            simulationObjectProcessingListener = simulationResultContext.aggregatedObjectProcessingListener();
-        } else {
-            simulationResultOid = null;
-            simulationObjectProcessingListener = null;
-        }
+        assert isNativeRepository();
 
-        SimulationResult simulationResult = new SimulationResult(simulationResultOid);
-        AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
-        DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
-        TaskExecutionMode oldMode = task.setExecutionMode(mode);
-        try {
-            dummyAuditService.addEventListener(auditEventListener);
-            task.addObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.addObjectProcessingListener(simulationObjectProcessingListener);
+        Holder<TestSimulationResult> simulationResultHolder = new Holder<>();
+        simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, () -> {
+            TestSimulationResult testSimulationResult = new TestSimulationResult(
+                    Objects.requireNonNull(task.getSimulationTransaction())
+                            .getResultOid());
+            try {
+                simulatedCall.execute(testSimulationResult);
+            } catch (IOException e) {
+                throw SystemException.unexpected(e);
             }
-            simulatedCall.execute(simulationResult);
-        } finally {
-            task.removeObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.removeObjectProcessingListener(simulationObjectProcessingListener);
-            }
-            dummyAuditService.removeEventListener(auditEventListener);
-            task.setExecutionMode(oldMode);
-        }
-        return simulationResult;
+            simulationResultHolder.setValue(testSimulationResult);
+            return null;
+        });
+        return Objects.requireNonNull(
+                simulationResultHolder.getValue(),
+                "No simulation result after execution?");
     }
 
-    protected SimulationResultType getDefaultSimulationConfiguration() {
-        if (isNativeRepository()) {
-            return simulationResultManager.newConfiguration();
-        } else {
-            return null; // No simulation storage in old repo
-        }
+    /**
+     * Simplified version of {@link #executeWithSimulationResult(TaskExecutionMode, SimulationDefinitionType,
+     * Task, OperationResult, SimulatedProcedureCall)}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull ProcedureCall call)
+            throws CommonException, IOException {
+        return executeWithSimulationResult(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result,
+                (sr) -> call.execute());
     }
 
-    protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
+    /**
+     * Simplified version of {@link #executeWithSimulationResult(Collection, TaskExecutionMode, SimulationDefinitionType,
+     * Task, OperationResult)}.
+     */
+    public @NotNull TestSimulationResult executeWithSimulationResult(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
-                        .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
-        ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
-        return simulationResultManager
-                .newSimulationContext(simResultRef.getOid())
-                .getStoredDeltas(result);
+        return executeWithSimulationResult(
+                deltas,
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition(),
+                task, result);
     }
 
-    protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
+    protected @NotNull SimulationDefinitionType defaultSimulationDefinition() throws ConfigurationException {
+        return simulationResultManager.defaultDefinition();
+    }
+
+    /** Returns {@link TestSimulationResult} based on the information stored in the task (activity state containing result ref) */
+    protected @NotNull TestSimulationResult getTaskSimResult(String taskOid, OperationResult result)
             throws CommonException {
-        return SimulationResult.fromSimulationResultOid(
+        return TestSimulationResult.fromSimulationResultOid(
                 getTaskSimulationResultOid(taskOid, result));
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected @NotNull String getTaskSimulationResultOid(String taskOid, OperationResult result)
             throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        return getSimulationResultOid(task, ActivityPath.empty());
+    }
+
+    protected @NotNull String getSimulationResultOid(Task task, ActivityPath activityPath) {
         ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                Objects.requireNonNull(task.getActivityStateOrClone(activityPath))
                         .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        assertThat(simState).as("simulation state in " + task).isNotNull();
         ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        assertThat(simResultRef).as("simulation result ref in " + task).isNotNull();
         return Objects.requireNonNull(simResultRef.getOid(), "no OID in simulation result ref");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws SchemaException {
-        return assertProcessedObjects(simResult, (Boolean) null);
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws SchemaException {
-        return assertProcessedObjects(simResult, null, desc);
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(String taskOid, String desc) throws CommonException {
         return assertProcessedObjects(
-                simResult,
-                persistentOverride,
-                getProcessedObjectsDesc(simResult, persistentOverride));
-    }
-
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
-            SimulationResult simResult, Boolean persistentOverride, String desc)
-            throws SchemaException {
-        return assertProcessedObjects(
-                getProcessedObjects(simResult, persistentOverride),
+                getTaskSimResult(taskOid, getTestOperationResult()),
                 desc);
     }
 
-    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
-        OperationResult result = getTestOperationResult();
-        if (persistentOverride == null) {
-            return simResult.getProcessedObjects(result);
-        }
-        return simResult.getProcessedObjects(getTestOperationResult());
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjectsAfter(TestSimulationResult simResult) throws CommonException {
+        return assertProcessedObjects(simResult, "after")
+                .display();
     }
 
-    protected String getProcessedObjectsDesc(SimulationResult simResult, Boolean persistentOverride) {
-        boolean persistent;
-        if (persistentOverride != null) {
-            persistent = persistentOverride;
-        } else {
-            persistent = simResult.isPersistent();
-        }
-        if (persistent) {
-            return "processed objects in persistent storage";
-        } else {
-            return "processed objects in transient storage";
-        }
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult)
+            throws CommonException {
+        return assertProcessedObjects(simResult, "processed objects");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(Collection<ProcessedObject<?>> objects, String message) {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(TestSimulationResult simResult, String desc)
+            throws CommonException {
+        return assertProcessedObjects(
+                getProcessedObjects(simResult),
+                desc);
+    }
+
+    protected Collection<? extends ProcessedObject<?>> getProcessedObjects(TestSimulationResult simResult)
+            throws CommonException {
+        return simResult.getProcessedObjects(
+                getTestOperationResult());
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
+            Collection<? extends ProcessedObject<?>> objects, String message) {
         return initializeAsserter(
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    @Override
+    protected SimulationResultAsserter<Void> assertSimulationResultAfter(TestSimulationResult simResult)
+            throws SchemaException, ObjectNotFoundException {
+        return assertSimulationResult(simResult, "after")
+                .display();
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(String taskOid, String desc)
+            throws CommonException {
+        return assertSimulationResult(
+                getTaskSimResult(taskOid, getTestOperationResult()),
+                desc);
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(TestSimulationResult simResult, String desc)
+            throws SchemaException, ObjectNotFoundException {
+        return initializeAsserter(
+                SimulationResultAsserter.forResult(
+                        simResult.getSimulationResultBean(getTestOperationResult()), desc));
+    }
+
+    protected SimulationResultAsserter<Void> assertSimulationResult(SimulationResultType simResult, String desc) {
+        return initializeAsserter(
+                SimulationResultAsserter.forResult(simResult, desc));
+    }
+
     public <O extends ObjectType> PrismObject<O> getObject(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)
+            throws SchemaException {
+        return TestSimulationResult.fromSimulationResultOid(
+                findSimulationResultRequired(result).getOid());
+    }
+
+    /**
+     * Returns the input number if accesses metadata are enabled, otherwise returns 0.
+     * Usable for audit record count assertions depending on the state of accesses metadata.
+     */
+    protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
+        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
+    }
+
+    /**
+     * Provides a model-level objects creator.
+     *
+     * @see AbstractIntegrationTest#realRepoCreator()
+     */
+    private <O extends ObjectType> ObjectCreator.RealCreator<O> realModelCreator() {
+        return (o, result) -> addObject(o.asPrismObject(), getTestTask(), result);
+    }
+
+    protected <O extends ObjectType> ObjectCreatorBuilder<O> modelObjectCreatorFor(Class<O> type) {
+        return ObjectCreator.forType(type)
+                .withRealCreator(realModelCreator());
+    }
+
+    protected CsvAsserter<Void> assertCsv(List<String> lines, String message) {
+        CsvAsserter<Void> asserter = new CsvAsserter<>(lines, null, message);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
+    @Override
+    public SimpleObjectResolver getResourceReloader() {
+        return createSimpleModelObjectResolver();
+    }
+
+    // temporary
+    protected File findReportOutputFile(PrismObject<TaskType> reportTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return ReportTestUtil.findOutputFile(reportTask, createSimpleModelObjectResolver(), result);
+    }
+
+    // temporary
+    protected List<String> getLinesOfOutputFile(PrismObject<TaskType> reportTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, IOException {
+        return ReportTestUtil.getLinesOfOutputFile(reportTask, createSimpleModelObjectResolver(), result);
     }
 }

@@ -9,12 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.TemplateType;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.ResourceTemplate;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider.TemplateType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -38,7 +38,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -53,7 +52,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
 
 
-    private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
+    private LoadableDetachableModel<Search> searchModel;
 
     private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
@@ -72,11 +71,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         if (searchModel == null) {
             searchModel = new LoadableDetachableModel<>() {
                 @Override
-                protected Search<AssignmentHolderType> load() {
+                protected Search load() {
                     PageStorage storage = getStorage();
-                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(templateType.getObject().getType())) {
-                        Search<AssignmentHolderType> search
-                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
+                    TemplateType template = templateType.getObject();
+                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(template.getType())) {
+                        SearchBuilder searchBuilder = new SearchBuilder(template.getType())
+                                .modelServiceLocator(getPageBase());
+
+                        Search search = searchBuilder.build();
                         storage.setSearch(search);
                         return search;
                     }
@@ -98,7 +100,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         add(back);
 
         TileTablePanel<TemplateTile<ResourceTemplate>, TemplateTile<ResourceTemplate>> tileTable
-                = new TileTablePanel<>(ID_TILE_TABLE, createProvider()) {
+                = new TileTablePanel<>(ID_TILE_TABLE) {
 
             @Override
             protected Component createTile(String id, IModel<TemplateTile<ResourceTemplate>> model) {
@@ -118,6 +120,11 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             @Override
             protected Component createHeader(String id) {
                 return createSearchFragment(id);
+            }
+
+            @Override
+            protected ISortableDataProvider<TemplateTile<ResourceTemplate>, String> createProvider() {
+                return new ResourceTemplateProvider(this, searchModel, templateType);
             }
 
             @Override
@@ -151,12 +158,8 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         return fragment;
     }
 
-    private ISortableDataProvider createProvider() {
-        return new ResourceTemplateProvider(this, searchModel, templateType);
-    }
-
     private SearchPanel<AssignmentHolderType> initSearch() {
-        return new SearchPanel<>(ID_SEARCH, searchModel) {
+        return new SearchPanel<>(ID_SEARCH, (IModel) searchModel) {
 
             @Override
             public void searchPerformed(AjaxRequestTarget target) {

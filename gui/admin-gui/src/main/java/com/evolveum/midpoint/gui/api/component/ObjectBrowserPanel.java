@@ -12,25 +12,17 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -247,30 +239,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 return getPreselectedObjectList();
             }
 
-            @Override
-            protected Search createSearch(Class<O> type) {
-                String collectionName = isCollectionViewPanelForCompiledView() ?
-                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
-                return SearchFactory.createSearch(createSearchConfigWrapper(type, collectionName), getPageBase());
-//                Search search = super.createSearch(type);
-//                getSpecialSearchItemWrappers()
-//                        .forEach(function -> search.addSpecialItem(function.apply(search)));
-//                return search;
-            }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
-    }
-
-    private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
-        SearchConfigurationWrapper searchConfigWrapper = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
-        searchConfigWrapper.setCollectionViewName(collectionViewName);
-        searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
-        return searchConfigWrapper;
-    }
-
-    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-        return Collections.emptySet();
     }
 
     protected void addPerformed(AjaxRequestTarget target, QName type, List<O> selected) {

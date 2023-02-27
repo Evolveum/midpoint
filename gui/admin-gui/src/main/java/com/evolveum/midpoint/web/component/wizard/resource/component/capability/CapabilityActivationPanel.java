@@ -95,7 +95,7 @@ public class CapabilityActivationPanel extends BasePanel {
             new PropertyModel<>(getModel(), "capability.status.enableValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
-            protected StringResourceModel createEmptyItemPlaceholder(){
+            protected IModel<String> createEmptyItemPlaceholder(){
                 return createStringResource("capabilityActivationPanel.list.placeholder");
             }
         };
@@ -105,7 +105,7 @@ public class CapabilityActivationPanel extends BasePanel {
             new PropertyModel<>(getModel(), "capability.status.disableValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
-            protected StringResourceModel createEmptyItemPlaceholder(){
+            protected IModel<String> createEmptyItemPlaceholder(){
                 return createStringResource("capabilityActivationPanel.list.placeholder");
             }
         };
@@ -126,7 +126,7 @@ public class CapabilityActivationPanel extends BasePanel {
             new PropertyModel<>(getModel(), "capability.lockoutStatus.normalValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
-            protected StringResourceModel createEmptyItemPlaceholder() {
+            protected IModel<String> createEmptyItemPlaceholder() {
                 return createStringResource("capabilityActivationPanel.list.placeholder");
             }
         };
@@ -136,7 +136,7 @@ public class CapabilityActivationPanel extends BasePanel {
             new PropertyModel<>(getModel(), "capability.lockoutStatus.lockedValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
-            protected StringResourceModel createEmptyItemPlaceholder(){
+            protected IModel<String> createEmptyItemPlaceholder(){
                 return createStringResource("capabilityActivationPanel.list.placeholder");
             }
         };

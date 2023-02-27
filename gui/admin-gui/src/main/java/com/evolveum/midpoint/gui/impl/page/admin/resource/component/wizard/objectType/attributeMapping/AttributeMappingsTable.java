@@ -41,13 +41,13 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTable extends AbstractResourceWizardTable<MappingType, ResourceObjectTypeDefinitionType> {
+public abstract class AttributeMappingsTable<P extends Containerable> extends AbstractResourceWizardTable<MappingType, P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
 
     public AttributeMappingsTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+            IModel<PrismContainerValueWrapper<P>> valueModel) {
         super(id, valueModel, MappingType.class);
     }
 
@@ -121,7 +121,7 @@ public abstract class AttributeMappingsTable extends AbstractResourceWizardTable
         return new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerWrapper<MappingType> load() {
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = getValueModel().getObject();
+                PrismContainerValueWrapper<P> container = getValueModel().getObject();
                 ItemDefinition<?> def = container.getDefinition().findContainerDefinition(
                         ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, getPathBaseOnMappingType()));
                 try {
@@ -166,7 +166,7 @@ public abstract class AttributeMappingsTable extends AbstractResourceWizardTable
     }
 
     private void createVirtualItemInMapping(PrismContainerValueWrapper<MappingType> mapping) throws SchemaException {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = getValueModel().getObject();
+        PrismContainerValueWrapper<P> container = getValueModel().getObject();
 
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
                 ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
@@ -218,7 +218,7 @@ public abstract class AttributeMappingsTable extends AbstractResourceWizardTable
 
             @Override
             public String getCssClass() {
-                return "col-xl-3 col-lg-3 col-md-3";
+                return "col-xl-2 col-lg-2 col-md-2";
             }
         });
 

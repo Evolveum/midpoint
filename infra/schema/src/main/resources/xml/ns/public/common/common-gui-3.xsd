@@ -1546,9 +1546,11 @@
                     <xsd:documentation>
                         <p>
                             Used to distinguish for which operations are the configuration applicable (and so visible)
-                            If nothing specified, configuration will be applicable for both add and modify operations.
+                            If nothing specified, configuration will be applicable for both add and modify operations
+                            (and visible for example for panel in details menu).
                             When there is a need to restrict configuration applicability (and thus visibility) only
                             for e.g. modify object operation, applicableForOperation should be set to 'modify'.
+                            When we use wizard option, then we define visible only in some wizard panel.
                         </p>
                         <p>
                             Applicable for panel (ContainerPanelConfigurationType) configuration and objectCollectionView
@@ -2179,7 +2181,7 @@
             <xsd:element name="availableFilter" type="tns:AvailableFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The list of available (saved or predefined) filters
+                        The list of available (saved) filters
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchBoxConfigurationType.availableFilter</a:displayName>
@@ -2973,9 +2975,8 @@
                     <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
                         <!-- This may be part of ObjectType later. -->
                     </xsd:element>
-                    <!-- TODO: layout -->
-                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
-                    </xsd:element>
+                    <!-- TODO: viliam remove and find a way to make it backward compatible -->
+                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3006,6 +3007,26 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="WidgetType">
+        <!-- can't be abstract otherwise parser can't create proper JAVA classes -->
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO: viliam
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="widget" type="tns:WidgetType"/>
+
     <xsd:complexType name="DashboardWidgetType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3022,7 +3043,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:UserInterfaceFeatureType">
+            <xsd:extension base="tns:WidgetType">
                 <xsd:sequence>
                     <xsd:element name="data" type="tns:DashboardWidgetDataType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -3116,6 +3137,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3172,6 +3194,16 @@
                     <xsd:documentation>
                         Content of the widget will be based on data from a stored in widget.
                         This data can be changed asynchronously.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="metric">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="METRIC"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        TODO: viliam
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4462,14 +4494,14 @@
     <xsd:simpleType name="OperationTypeType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines when the activity will be executed.
+                Define type of operation.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="add">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The activity will be executed before the "main" operation.
+                        Define add operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ADD"/>
@@ -4479,7 +4511,7 @@
             <xsd:enumeration value="modify">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The activity will be executed after the "main" operation.
+                        Define modify operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MODIFY"/>

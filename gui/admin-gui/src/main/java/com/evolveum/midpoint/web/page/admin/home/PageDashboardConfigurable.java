@@ -9,9 +9,8 @@ package com.evolveum.midpoint.web.page.admin.home;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -111,13 +112,13 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
+        return new LoadableModel<>(false) {
 
             @Override
             public String load() {
-
-                if (dashboardModel.getObject().getDisplay() != null && dashboardModel.getObject().getDisplay().getLabel() != null) {
-                    return dashboardModel.getObject().getDisplay().getLabel().getOrig();
+                DisplayType display = dashboardModel.getObject().getDisplay();
+                if (display != null && display.getLabel() != null) {
+                    return display.getLabel().getOrig();
                 } else {
                     return dashboardModel.getObject().getName().getOrig();
                 }
@@ -147,40 +148,63 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private void initInfoBoxes() {
         add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
+
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                IModel<DashboardWidgetDto> widgetModel = loadWidgetData(item.getModel());
-
-                SmallBox box = new SmallBox(ID_WIDGET, () -> {
-                    DashboardWidgetDto widget = widgetModel.getObject();
-
-                    SmallBoxData data = new SmallBoxData();
-                    data.setTitle(widget.getNumberLabel());
-                    data.setDescription(widget.getMessage());
-                    data.setIcon(widget.getIconCssClass());
-
-                    return data;
-                }) {
-
-                    @Override
-                    protected boolean isLinkVisible() {
-                        return existLinkRef(item.getModelObject());
-                    }
-
-                    @Override
-                    protected void onClickLink(AjaxRequestTarget target) {
-                        navigateToPage(item.getModelObject());
-                    }
-                };
-                box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
-                box.add(AttributeAppender.append("style", () -> StringUtils.join(
-                        widgetModel.getObject().getStyleColor(),
-                        " ",
-                        widgetModel.getObject().getStyleCssStyle())));
-
-                item.add(box);
+                DashboardWidgetType dw = item.getModelObject();
+                DashboardWidgetSourceTypeType sourceType = dw.getData() != null ? dw.getData().getSourceType() : null;
+                if (DashboardWidgetSourceTypeType.METRIC == sourceType) {
+                    item.add(populateMetricWidget(ID_WIDGET, item.getModel()));
+                } else {
+                    item.add(populateDashboardWidget(ID_WIDGET, item.getModel()));
+                }
             }
         });
+    }
+
+    private Component populateMetricWidget(String id, IModel<DashboardWidgetType> model) {
+        MetricWidgetPanel widget = new MetricWidgetPanel(id, model) {
+
+            @Override
+            protected void onMoreInfoPerformed(AjaxRequestTarget target) {
+                // todo implement
+            }
+        };
+
+        return widget;
+    }
+
+    private Component populateDashboardWidget(String id, IModel<DashboardWidgetType> model) {
+        IModel<DashboardWidgetDto> widgetModel = loadWidgetData(model);
+
+        SmallBox box = new SmallBox(id, () -> {
+            DashboardWidgetDto widget = widgetModel.getObject();
+
+            SmallBoxData data = new SmallBoxData();
+            data.setTitle(widget.getNumberLabel());
+            data.setDescription(widget.getMessage());
+            data.setIcon(widget.getIconCssClass());
+
+            return data;
+        }) {
+
+            @Override
+            protected boolean isLinkVisible() {
+                return existLinkRef(model.getObject());
+            }
+
+            @Override
+            protected void onClickLink(AjaxRequestTarget target) {
+                navigateToPage(model.getObject());
+            }
+        };
+        box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(model.getObject().getVisibility())));
+        box.add(AttributeAppender.append("style", () -> StringUtils.join(
+                widgetModel.getObject().getStyleColor(),
+                " ",
+                widgetModel.getObject().getStyleCssStyle())));
+
+        return box;
     }
 
     private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {

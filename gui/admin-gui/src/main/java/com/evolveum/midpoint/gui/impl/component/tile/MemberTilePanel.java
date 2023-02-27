@@ -66,13 +66,15 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
     protected void initLayout() {
         super.initLayout();
 
-        getLogo().add(new AjaxEventBehavior("click") {
+        if (isSelectable()) {
+            getLogo().add(new AjaxEventBehavior("click") {
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                MemberTilePanel.this.onClick(target);
-            }
-        });
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    MemberTilePanel.this.onClick(target);
+                }
+            });
+        }
 
         add(AttributeAppender.append("class", "card catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active selectable" : null));
@@ -92,6 +94,7 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
                 onClick(target);
             }
         };
+        check.add(new VisibleBehaviour(this::isSelectable));
         add(check);
 
         DropdownButtonPanel menu = new DropdownButtonPanel(
@@ -156,6 +159,10 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
         Component unassign = createUnassignButton(ID_UNASSIGN);
         unassign.add(AttributeAppender.append("class", getCssForUnassignButton()));
         add(unassign);
+    }
+
+    protected boolean isSelectable() {
+        return true;
     }
 
     protected String getCssForUnassignButton() {

@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="d-flex flex-column align-items-center">
+        <h2 class="mb-3">
+            <wicket:message key="ChooseRelationPopup.text"/>
+        </h2>
+        <h5 class="text-center text-secondary">
+            <wicket:message key="ChooseRelationPopup.subText"/>
+        </h5>
+
+        <div wicket:id="panel"/>
+
+        <div class="ml-auto mt-3">
+            <a class="btn btn-outline-primary" wicket:id="cancelButton">
+                <i class="fa fa-xmark"/>
+                <span><wicket:message key="ChooseRelationPopup.button.cancel"/></span>
+            </a>
+            <a class="btn btn-success" wicket:id="selectButton">
+                <span><wicket:message key="ChooseRelationPopup.button.select"/></span>
+                <i class="fa fa-arrow-right"/>
+            </a>
+        </div>
+    </div>
+</wicket:panel>

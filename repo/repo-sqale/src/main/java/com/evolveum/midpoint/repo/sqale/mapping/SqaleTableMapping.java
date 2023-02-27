@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -16,17 +15,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.PathSet;
-
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -413,7 +410,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected void setReference(Referencable ref,
+    protected void setReference(ObjectReferenceType ref,
             Consumer<UUID> targetOidConsumer,
             Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
@@ -421,7 +418,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             if (ref.getType() == null) {
                 ref = SqaleUtils.referenceWithTypeFixed(ref);
             }
-            targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
+            targetOidConsumer.accept(SqaleUtils.oidToUuid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }

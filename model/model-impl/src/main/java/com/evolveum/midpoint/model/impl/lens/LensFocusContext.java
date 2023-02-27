@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +38,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
+
 /**
  * @author semancik
  *
@@ -48,6 +54,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      * (Note we do not currently provide this kind of flag on the projection contexts, because of not being
      * sure if deleted projection cannot be somehow "resurrected" during the processing. For focal objects nothing like
      * this should happen.)
+     *
+     * Used to clarify context (re)loading for deleted focus situations. See MID-4856.
      */
     protected boolean deleted;
 
@@ -145,6 +153,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         this.archetypes = archetypes;
     }
 
+    /** Precondition: context is "complete" i.e. {@link #archetypes} are filled in. */
+    public ObjectReferenceType getStructuralArchetypeRef() throws SchemaException {
+        return ObjectTypeUtil.createObjectRef(
+                ArchetypeTypeUtil.getStructuralArchetype(
+                        MiscUtil.stateNonNull(archetypes, () -> "Information about archetypes is not present")));
+    }
+
     public ObjectTemplateType getFocusTemplate() {
         return focusTemplate;
     }
@@ -155,6 +170,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void setExpandedFocusTemplate(ObjectTemplateType expandedFocusTemplate) {
         this.expandedFocusTemplate = expandedFocusTemplate;
+        identityManagementConfiguration = null;
+        indexingConfiguration = null;
+        itemChangeApplicationModeConfiguration = null;
     }
 
     public boolean isFocusTemplateSetExplicitly() {
@@ -175,6 +193,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             indexingConfiguration = IndexingConfigurationImpl.of(expandedFocusTemplate);
         }
         return indexingConfiguration;
+    }
+
+    @Override
+    @NotNull
+    ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration() throws ConfigurationException {
+        return ItemChangeApplicationModeConfiguration.of(expandedFocusTemplate);
     }
 
     public LifecycleStateModelType getLifecycleModel() {
@@ -241,12 +265,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 //        }
     }
 
-//    @Override
-//    public void reset() {
-//        super.reset();
-//        secondaryDeltas = new ObjectDeltaWaves<O>();
-//    }
-
     /**
      * Returns true if there is any change in organization membership.
      * I.e. in case that there is a change in parentOrgRef.
@@ -294,6 +312,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         sb.append(getDebugDumpTitle());
         if (!isFresh()) {
             sb.append(", NOT FRESH");
+        } else {
+            sb.append(", fresh");
         }
         if (deleted) {
             sb.append(", DELETED");
@@ -456,15 +476,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
                 result);
     }
 
-    /**
-     * Updates the state to reflect that a delta was executed.
-     *
-     * CURRENTLY CALLED ONLY FOR FOCUS. ASSUMES SUCCESSFUL EXECUTION.
-     */
-    void updateAfterExecution() throws SchemaException {
-        state.updateAfterExecution(lensContext.getTaskExecutionMode(), lensContext.getExecutionWave());
-    }
-
     boolean primaryItemDeltaExists(ItemPath path) {
         ObjectDelta<O> primaryDelta = getPrimaryDelta();
         return primaryDelta != null &&
@@ -475,9 +486,26 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         state.deleteEmptyPrimaryDelta();
     }
 
-    @Override
-    @NotNull
-    Collection<String> getEventTags() {
-        return policyRulesContext.getEventTags();
+    public @NotNull LensContext<O> getLensContext() {
+        //noinspection unchecked
+        return (LensContext<O>) lensContext;
+    }
+
+    void rotAfterExecution(boolean projectionsUpdated) {
+        if (hasExecutedDelta(lastChangeExecutionResult) || projectionsUpdated) {
+            LOGGER.debug("Context rot: focus context rotten because there were some (focus or projection) deltas executed");
+            rot(); // It is OK to refresh focus all the time there was any change. This is cheap.
+        }
+    }
+
+    void updateDeltasAfterExecution() {
+        state.updateDeltasAfterExecution(lensContext.getExecutionWave());
+    }
+
+    /**
+     * The "object old" represents the state "before operation" for focus objects precisely.
+     */
+    public PrismObject<O> getStateBeforeSimulatedOperation() {
+        return getObjectOld();
     }
 }

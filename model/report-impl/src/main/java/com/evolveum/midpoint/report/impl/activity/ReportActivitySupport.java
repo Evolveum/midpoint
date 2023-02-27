@@ -69,7 +69,7 @@ class ReportActivitySupport {
         modelService = reportService.getModelService();
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
+    void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         setupReportObject(result);
     }
 
@@ -92,7 +92,7 @@ class ReportActivitySupport {
         return ObjectTypeUtil.createObjectRef(getReport());
     }
 
-    public ReportParameterType getReportParameters() {
+    ReportParameterType getReportParameters() {
         return workDefinition.getReportParams();
     }
 

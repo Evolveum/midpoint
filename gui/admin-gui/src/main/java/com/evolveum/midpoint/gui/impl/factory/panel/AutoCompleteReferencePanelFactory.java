@@ -9,25 +9,14 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
-import com.evolveum.midpoint.web.component.search.ReferenceAutocomplete;
-import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPopupPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.gui.impl.component.search.panel.ReferenceAutocomplete;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +46,7 @@ public class AutoCompleteReferencePanelFactory
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName())
-                && ReportConstants.NS_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
+                && SchemaConstants.NS_REPORT_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
                 && wrapper.getParent() == null;
     }
 

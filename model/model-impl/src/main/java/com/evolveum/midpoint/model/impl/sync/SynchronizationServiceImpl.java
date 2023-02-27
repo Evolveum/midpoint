@@ -90,18 +90,24 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             SynchronizationContext<?> syncCtx = syncContextCreator.createSynchronizationContext(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
-                return; // sync metadata are saved by the above method
+                // sync metadata updates are prepared by the above method
+                syncCtx.getUpdater().commit(result);
+                return;
             }
+            // FIXME: Somewhere here we should validate preFocus
+
+
+
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
             setupLinkedOwnerAndSituation(completeCtx, change, result);
 
             completeCtx.recordSyncStartInTask();
             completeCtx.getUpdater()
-                    .updateAllSyncMetadata()
+                    .updateAllSyncMetadataRespectingMode()
                     .commit(result);
 
             boolean synchronizationFailure;
-            if (!completeCtx.isDryRun()) {
+            if (completeCtx.shouldExecuteSynchronizationActions()) {
                 synchronizationFailure =
                         new SynchronizationActionExecutor<>(completeCtx)
                                 .react(result);
@@ -110,7 +116,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 synchronizationFailure = false;
             }
 
-            if (completeCtx.isPersistentExecution() && !synchronizationFailure) {
+            if (completeCtx.isExecutionFullyPersistent() && !synchronizationFailure) {
                 completeCtx.getUpdater()
                         .updateFullSyncTimestamp(clock.currentTimeXMLGregorianCalendar())
                         .commit(result);
@@ -193,9 +199,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION the synchronization policy for %s (%s) on %s is not visible, ignoring change from channel %s",
                     shadow, objectClass, resource, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateAllSyncMetadata()
-                    .commit(result);
+            syncCtx.getUpdater().updateAllSyncMetadataRespectingMode();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
             return true;
@@ -208,9 +212,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION no applicable synchronization policy and/or type definition for %s (%s) on %s, "
                             + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .commit(result);
+            syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO should we really record this as full synchronization?
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY);
             return true;
@@ -222,12 +224,24 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .updateCoordinatesIfMissing()
-                    .commit(result);
+                    .updateCoordinatesIfMissing();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
             return true;
         }
+
+        if (syncCtx.isMarkedSkipSynchronization()) {
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for marked shadow %s, ignoring change from channel %s", shadow, channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .updateCoordinatesIfMissing();
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(PROTECTED);
+            return true;
+        }
+
 
         if (syncCtx.isProtected()) {
             String message = String.format(
@@ -235,8 +249,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .updateCoordinatesIfMissing()
-                    .commit(result);
+                    .updateCoordinatesIfMissing();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
             return true;
@@ -248,8 +261,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     shadow, shadow.getPolicySituation(), channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
-                    .updateAllSyncMetadata()
-                    .commit(result);
+                    .updateAllSyncMetadataRespectingMode();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
             return true;

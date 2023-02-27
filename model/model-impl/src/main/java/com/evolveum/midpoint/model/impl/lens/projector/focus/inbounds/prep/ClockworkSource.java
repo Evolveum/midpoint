@@ -100,6 +100,11 @@ class ClockworkSource extends MSource {
         LOGGER.trace("Starting determination if we should process inbound mappings. Full shadow: {}. A priori delta present: {}.",
                 projectionContext.isFullShadow(), aPrioriDelta != null);
 
+        if (projectionContext.isInboundSyncDisabled(context.result)) {
+            LOGGER.trace("Skipping processing of inbound mappings because shadow policy marked shadow inbound disabled.");
+            return false;
+        }
+
         if (projectionContext.isBroken()) {
             LOGGER.trace("Skipping processing of inbound mappings because the context is broken");
             return false;
@@ -181,10 +186,11 @@ class ClockworkSource extends MSource {
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
+            boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) throws SchemaException, ConfigurationException {
 
-        if (shouldBeMappingSkipped(itemDescription, ignored, limitations)) {
+        if (shouldBeMappingSkipped(itemDescription, executionModeVisible, ignored, limitations)) {
             return ProcessingMode.NONE;
         }
 

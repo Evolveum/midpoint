@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
+
+import static com.evolveum.midpoint.repo.sqale.SqaleUtils.oidToUuidMandatory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -54,10 +56,7 @@ import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
@@ -225,7 +224,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
             Class<Q> queryType, String oid) {
-        return selectObjectByOid(queryType, UUID.fromString(oid));
+        return selectObjectByOid(queryType, oidToUuidMandatory(oid));
     }
 
     protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
@@ -237,7 +236,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
             Class<Q> queryType, String oid) {
-        return selectNullableObjectByOid(queryType, UUID.fromString(oid));
+        return selectNullableObjectByOid(queryType, oidToUuidMandatory(oid));
     }
 
     protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
@@ -319,6 +318,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } else {
             assertThat(operationInfo).isNull();
         }
+    }
+
+    protected int operationRecordedCount(String opKind) {
+        Map<String, OperationPerformanceInformation> pmAllData =
+                getPerformanceMonitor()
+                        .getGlobalPerformanceInformation().getAllData();
+        OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
+        return operationInfo != null ? operationInfo.getInvocationCount() : 0;
     }
 
     /** Creates a reference with specified type and default relation. */
@@ -559,6 +566,27 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    @NotNull
+    protected final SearchResultList<ObjectReferenceType> searchReferences(
+            ObjectQuery query,
+            OperationResult operationResult,
+            Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
+            throws SchemaException {
+        displayQuery(query);
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositoryService.searchReferences(query, selectorOptions, operationResult);
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.dumpQueryBuffer());
+            }
+        }
+    }
+
     /** Displays the query in XML and Axiom form and checks its XML reparsability. */
     protected void displayQuery(@Nullable ObjectQuery query) throws SchemaException {
         display("QUERY: " + query);
@@ -567,10 +595,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
         String serializedQuery = null;
         try {
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("Serialized QUERY: " + serializedQuery);
+            QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+            serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                    queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+            display("Serialized QUERY: " + serializedQuery);
         } catch (Exception e) {
             display("Can not serialize query");
         }
@@ -584,9 +612,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
 
         // sanity check if it's re-parsable
-        if (serializedQuery !=  null) {
+        if (serializedQuery != null) {
             assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
+                    .isNotNull();
         }
     }
 

@@ -73,6 +73,10 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
 
     }
 
+    public IModel<T> getModel() {
+        return model;
+    }
+
     //    public void setValue(T value) {
 //        this.value = value;
 //    }

@@ -13,11 +13,15 @@ import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * Unit tests for Util class
@@ -54,5 +58,15 @@ public class UtilsTest extends AbstractUnitTest {
         String goodStr = Utils.cleanupUtf(badStr);
 
         System.out.println("Good: " + goodStr);
+    }
+
+    @Test
+    public void validateObjectOid() {
+        assertFalse(Utils.isPrismObjectOidValid(null));
+        assertFalse(Utils.isPrismObjectOidValid(""));
+        assertFalse(Utils.isPrismObjectOidValid(" "));
+
+        assertTrue(Utils.isPrismObjectOidValid(UUID.randomUUID().toString()));
+        assertTrue(Utils.isPrismObjectOidValid(UUID.randomUUID().toString().toUpperCase()));
     }
 }

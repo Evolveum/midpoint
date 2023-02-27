@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -126,7 +126,7 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     @Override
     public OperationExecutionType toSchemaObject(MOperationExecution row) {
-        return new OperationExecutionType(prismContext())
+        return new OperationExecutionType()
                 .status(row.status)
                 .recordType(row.recordType)
                 .initiatorRef(objectReference(row.initiatorRefTargetOid,
@@ -149,18 +149,20 @@ public class QOperationExecutionMapping<OR extends MObject>
                         .map(row -> Objects.requireNonNull(row.get(entityPath)).ownerOid)
                         .collect(Collectors.toSet());
 
-                // TODO do we need get options here as well? Is there a scenario where we load container
-                //  and define what to load for referenced/owner object?
-                QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
-                List<Tuple> result = jdbcSession.newQuery()
-                        .select(o.oid, o.fullObject)
-                        .from(o)
-                        .where(o.oid.in(ownerOids))
-                        .fetch();
-                for (Tuple row : result) {
-                    UUID oid = Objects.requireNonNull(row.get(o.oid));
-                    ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
-                    owners.put(oid, owner);
+                if (!ownerOids.isEmpty()) {
+                    // TODO do we need get options here as well? Is there a scenario where we load container
+                    //  and define what to load for referenced/owner object?
+                    QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
+                    List<Tuple> result = jdbcSession.newQuery()
+                            .select(o.oid, o.fullObject)
+                            .from(o)
+                            .where(o.oid.in(ownerOids))
+                            .fetch();
+                    for (Tuple row : result) {
+                        UUID oid = Objects.requireNonNull(row.get(o.oid));
+                        ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                        owners.put(oid, owner);
+                    }
                 }
             }
 

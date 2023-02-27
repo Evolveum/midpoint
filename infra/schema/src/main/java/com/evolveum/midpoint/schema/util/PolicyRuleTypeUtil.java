@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.util.HeteroComparator;
+import com.evolveum.midpoint.util.HeteroEqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -269,7 +269,7 @@ public class PolicyRuleTypeUtil {
 
     public static boolean triggerCollectionsEqual(Collection<EvaluatedPolicyRuleTriggerType> triggers,
             Collection<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked) {
-        HeteroComparator<EvaluatedPolicyRuleTriggerType, EvaluatedPolicyRuleTriggerType> comparator = (t1, t2) -> {
+        HeteroEqualsChecker<EvaluatedPolicyRuleTriggerType, EvaluatedPolicyRuleTriggerType> equalsChecker = (t1, t2) -> {
             if (!(t1 instanceof EvaluatedSituationTriggerType) || !(t2 instanceof EvaluatedSituationTriggerType)) {
                 return Objects.equals(t1, t2);
             }
@@ -287,7 +287,7 @@ public class PolicyRuleTypeUtil {
                     && Objects.equals(st1.getPresentationOrder(), st2.getPresentationOrder())
                     && MiscUtil.unorderedCollectionEquals(st1.getSourceRule(), st2.getSourceRule());
         };
-        return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
+        return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, equalsChecker);
     }
 
     public static List<PolicyActionType> getAllActions(PolicyActionsType actions) {
@@ -451,11 +451,19 @@ public class PolicyRuleTypeUtil {
      * Returns true if this policy rule can be applied to an object as a whole.
      */
     public static boolean isApplicableToObject(PolicyRuleType rule) {
-        if (rule.getEvaluationTarget() != null) {
-            return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.OBJECT;
+        PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
+        if (evaluationTarget != null) {
+            return evaluationTarget == PolicyRuleEvaluationTargetType.OBJECT;
         } else {
             return !hasAssignmentOnlyConstraint(rule);
         }
+    }
+
+    /**
+     * Returns true if this policy rule can be applied to a projection.
+     */
+    public static boolean isApplicableToProjection(PolicyRuleType rule) {
+        return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.PROJECTION;
     }
 
     private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
@@ -617,7 +625,8 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    public static void resolveConstraintReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
+    public static void resolveConstraintReferences(
+            List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
         LazyMapConstraintsResolver resolver =
                 new LazyMapConstraintsResolver(createConstraintsSupplier(rules), createConstraintsSupplier(otherRules));
         for (PolicyRuleType rule : rules) {

@@ -22,6 +22,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -59,10 +60,15 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        if (areMarksSupported()) {
+            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+        }
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
     }
 
+    @Override
     protected File getResourceDummyEmeraldFile() {
         return RESOURCE_DUMMY_EMERALD_FILE;
     }

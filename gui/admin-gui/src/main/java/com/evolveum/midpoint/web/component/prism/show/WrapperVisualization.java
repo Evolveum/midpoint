@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Artificial implementation of a visualization used to hold a list of deltas.
@@ -29,22 +29,13 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class WrapperVisualization implements Visualization {
 
-    private String displayNameKey;
-    private Object[] displayNameParameters;
+    private LocalizableMessage displayName;
+
     private List<? extends Visualization> partialVisualizations;
 
-    public WrapperVisualization(List<? extends Visualization> partialVisualizations, String displayNameKey, Object... displayNameParameters) {
+    public WrapperVisualization(LocalizableMessage displayName, List<? extends Visualization> partialVisualizations) {
+        this.displayName = displayName;
         this.partialVisualizations = partialVisualizations;
-        this.displayNameKey = displayNameKey;
-        this.displayNameParameters = displayNameParameters;
-    }
-
-    public String getDisplayNameKey() {
-        return displayNameKey;
-    }
-
-    public Object[] getDisplayNameParameters() {
-        return displayNameParameters;
     }
 
     @Override
@@ -52,13 +43,13 @@ public class WrapperVisualization implements Visualization {
         return new Name() {
 
             @Override
-            public String getSimpleName() {
-                return "";
+            public LocalizableMessage getSimpleName() {
+                return null;
             }
 
             @Override
-            public String getDisplayName() {
-                return null;
+            public LocalizableMessage getDisplayName() {
+                return displayName;
             }
 
             @Override
@@ -67,13 +58,13 @@ public class WrapperVisualization implements Visualization {
             }
 
             @Override
-            public String getDescription() {
+            public LocalizableMessage getDescription() {
                 return null;
             }
 
             @Override
-            public boolean namesAreResourceKeys() {
-                return false;
+            public LocalizableMessage getOverview() {
+                return null;
             }
         };
     }
@@ -165,17 +156,14 @@ public class WrapperVisualization implements Visualization {
 
         WrapperVisualization that = (WrapperVisualization) o;
 
-        if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null) {return false;}
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) {return false;}
+        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {return false;}
         return !(partialVisualizations != null ? !partialVisualizations.equals(that.partialVisualizations) : that.partialVisualizations != null);
 
     }
 
     @Override
     public int hashCode() {
-        int result = displayNameKey != null ? displayNameKey.hashCode() : 0;
-        result = 31 * result + (displayNameParameters != null ? Arrays.hashCode(displayNameParameters) : 0);
+        int result = displayName != null ? displayName.hashCode() : 0;
         result = 31 * result + (partialVisualizations != null ? partialVisualizations.hashCode() : 0);
         return result;
     }

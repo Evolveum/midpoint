@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -28,35 +28,42 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     public final boolean isAdded;
     public final boolean isKept;
     public final boolean isDeleted;
-    public final boolean isDirect;
-    public final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
+    public final DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
+    @NotNull private final LensFocusContext<AH> focusContext;
 
-    AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean isDirect, LensContext<AH> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
+    AssignmentPolicyRuleEvaluationContext(
+            @NotNull EvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            @NotNull LensFocusContext<AH> focusContext,
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+            Task task,
             RulesEvaluationContext globalCtx) {
-        this(policyRule, evaluatedAssignment, isDirect, context, evaluatedAssignmentTriple,
+        this(policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple,
                 task, ObjectState.AFTER, globalCtx);
     }
 
-    private AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean isDirect, LensContext<AH> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, ObjectState state,
+    private AssignmentPolicyRuleEvaluationContext(
+            @NotNull EvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            @NotNull LensFocusContext<AH> focusContext,
+            DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+            Task task,
+            ObjectState state,
             RulesEvaluationContext globalCtx) {
-        super(policyRule, context, task, globalCtx, state);
+        super(policyRule, focusContext, task, globalCtx, state);
         this.evaluatedAssignment = evaluatedAssignment;
         AssignmentOrigin origin = evaluatedAssignment.getOrigin();
         this.isAdded = origin.isBeingAdded();
         this.isKept = origin.isBeingKept();
         this.isDeleted = origin.isBeingDeleted();
-        this.isDirect = isDirect;
         this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
+        this.focusContext = focusContext;
     }
 
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
-        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, isDirect, lensContext, evaluatedAssignmentTriple, task, state,
-                globalCtx);
+        return new AssignmentPolicyRuleEvaluationContext<>(
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, state, globalCtx);
     }
 
     @Override
@@ -77,6 +84,10 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
         }
     }
 
+    public boolean isDirect() {
+        return policyRule.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
+    }
+
     @Override
     public String getShortDescription() {
         return evaluatedAssignment.getTarget() + " (" +
@@ -84,19 +95,23 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
                 (isDeleted ? "-":"") +
                 (isKept ? "0":"") +
                 ") " +
-                (isDirect ? "directly":"indirectly") +
-                " in " + ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
+                (isDirect() ? "directly":"indirectly") +
+                " in " + ObjectTypeUtil.toShortString(elementContext.getObjectAny()) + " / " + state;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> clone() {
-        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment,
-                isDirect, lensContext, evaluatedAssignmentTriple, task, globalCtx);
+        return new AssignmentPolicyRuleEvaluationContext<>(
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, globalCtx);
     }
 
     @Override
     public String toString() {
         return "AssignmentPolicyRuleEvaluationContext{" + getShortDescription() + "}";
+    }
+
+    public @NotNull LensFocusContext<AH> getFocusContext() {
+        return focusContext;
     }
 }

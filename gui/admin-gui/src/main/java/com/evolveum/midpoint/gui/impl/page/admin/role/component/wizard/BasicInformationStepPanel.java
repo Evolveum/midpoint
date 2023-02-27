@@ -13,13 +13,16 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.visit.ClassVisitFilter;
 
 /**
  * @author lskublik
@@ -30,9 +33,9 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageRole.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleType, FocusDetailsModels<RoleType>> {
+public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-basic";
+    public static final String PANEL_TYPE = "roleWizard-basic";
 
     public BasicInformationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);
@@ -43,6 +46,20 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleT
         getDetailsModel().getObjectWrapper().setShowEmpty(false, false);
         getDetailsModel().getObjectWrapper().getValues().forEach(valueWrapper -> valueWrapper.setShowEmpty(false));
         super.onInitialize();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        visitParents(Form.class, (form, visit) -> {
+            form.setMultiPart(true);
+            visit.stop();
+        }, new ClassVisitFilter(Form.class) {
+            @Override
+            public boolean visitObject(Object object) {
+                return super.visitObject(object) && "mainForm".equals(((Form)object).getId());
+            }
+        });
+        super.onBeforeRender();
     }
 
     protected String getPanelType() {
@@ -70,19 +87,9 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleT
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(ResourceType.F_NAME)) {
+        if (itemWrapper.getItemName().equals(RoleType.F_NAME)) {
             return true;
         }
         return itemWrapper.isMandatory();
     }
-
-    //    @Override
-//    protected ItemVisibilityHandler getVisibilityHandler() {
-//        return wrapper -> {
-//            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)) {
-//                return ItemVisibility.HIDDEN;
-//            }
-//            return ItemVisibility.AUTO;
-//        };
-//    }
 }

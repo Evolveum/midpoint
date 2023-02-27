@@ -109,7 +109,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         evaluated = true;
     }
 
-    protected void evaluateAttributes() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+    private void evaluateAttributes() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         for (AttributeEvaluation<AH> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
@@ -121,7 +121,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         }
     }
 
-    protected void evaluateAssociations() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+    private void evaluateAssociations() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         for (AssociationEvaluation<AH> associationEvaluation : evaluatedConstruction.getAssociationsToEvaluate(this)) {
@@ -133,23 +133,24 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         }
     }
 
-    void loadFullShadowIfNeeded(ItemEvaluation itemEvaluation) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    void loadFullShadowIfNeeded(ItemEvaluation<?, ?, ?, ?> itemEvaluation)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemEvaluation.getMappingBean());
         if (loadReason != null) {
             projectionOdo = evaluatedConstruction.loadFullShadow(loadReason, task, result);
         }
     }
 
-    private void updateNextRecompute(ItemEvaluation itemEvaluation) {
+    private void updateNextRecompute(ItemEvaluation<?, ?, ?, ?> itemEvaluation) {
         nextRecompute = NextRecompute.update(itemEvaluation.getEvaluatedMapping(), nextRecompute);
     }
 
-    public NextRecompute getNextRecompute() {
+    NextRecompute getNextRecompute() {
         return nextRecompute;
     }
 
-    public @Nullable ObjectDeltaObject<ShadowType> getProjectionOdo() {
+    @Nullable ObjectDeltaObject<ShadowType> getProjectionOdo() {
         return projectionOdo;
     }
 }

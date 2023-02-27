@@ -51,7 +51,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Takes care of updating the focus -> shadow links during change execution.
+ * Takes care of updating the focus <-> shadow links during change execution.
+ * (That includes `linkRef` and `synchronizationSituation`.)
  */
 class LinkUpdater<F extends FocusType> {
 
@@ -223,7 +224,7 @@ class LinkUpdater<F extends FocusType> {
         String channel = focusContext.getLensContext().getChannel();
         OperationResult result = parentResult.createSubresult(opName);
         try {
-            boolean real = task.isPersistentExecution();
+            boolean real = task.isExecutionFullyPersistent();
             if (real) {
                 repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
             }
@@ -424,12 +425,12 @@ class LinkUpdater<F extends FocusType> {
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             // We consider the shadow to be fully synchronized, as we are processing its owner in the clockwork now.
-            boolean fullSynchronization = projCtx.hasFullShadow() && task.isPersistentExecution();
+            boolean fullSynchronization = projCtx.hasFullShadow() && task.isExecutionFullyPersistent();
             List<ItemDelta<?, ?>> syncSituationDeltas =
                     SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
                             currentShadow.asObjectable(), newSituation, task.getChannel(), fullSynchronization, now);
 
-            boolean real = task.isPersistentExecution();
+            boolean real = task.isExecutionFullyPersistent();
             if (real) {
                 executeShadowDelta(syncSituationDeltas, result);
             }

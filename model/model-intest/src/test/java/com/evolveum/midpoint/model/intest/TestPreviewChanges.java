@@ -13,6 +13,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -43,6 +46,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_ACTIVATED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -55,6 +59,8 @@ import static org.testng.AssertJUnit.*;
 
 /**
  * Tests "preview changes" as well as a couple of unrelated features of {@link ModelInteractionService}.
+ *
+ * Some of the changes are also executed in simulation mode (new in 4.7).
  *
  * @author semancik
  */
@@ -87,11 +93,16 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        CommonInitialObjects.addMarks(this, initTask, initResult);
+
         RESOURCE_DUMMY_LEMON.initAndTest(this, initTask, initResult);
 
         // Elaine is in inconsistent state. Account attributes do not match the mappings.
         // We do not want that here, as it would add noise to preview operations.
         reconcileUser(USER_ELAINE_OID, initTask, initResult);
+
+        // Jack is not very consistent either. For example, the activation/effectiveStatus is not set.
+        recomputeUser(USER_JACK_OID, initTask, initResult);
 
         RESOURCE_SIMPLE.initAndTest(this, initTask, initResult);
     }
@@ -115,14 +126,16 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             }
         };
 
-        ObjectChecker<ModelContext<UserType>> checker = modelContext -> assertAddAccount(modelContext, false);
+        Checkers checkers = new Checkers(
+                modelContext -> assertAddAccount(modelContext, false),
+                simulationResult -> assertAddAccount(simulationResult));
 
-        modifyUserAddAccountImplicit(accountSource, checker);
-        modifyUserAddAccountExplicit(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSame(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqual(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
+        modifyUserAddAccountImplicit(accountSource, checkers);
+        modifyUserAddAccountExplicit(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitSame(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitEqual(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checkers);
         modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
         modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
     }
@@ -145,14 +158,16 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             }
         };
 
-        ObjectChecker<ModelContext<UserType>> checker = modelContext -> assertAddAccount(modelContext, true);
+        Checkers checkers = new Checkers(
+                modelContext -> assertAddAccount(modelContext, true),
+                simulationResult -> assertAddAccount(simulationResult));
 
-        modifyUserAddAccountImplicit(accountSource, checker);
-        modifyUserAddAccountExplicit(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSame(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqual(accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
+        modifyUserAddAccountImplicit(accountSource, checkers);
+        modifyUserAddAccountExplicit(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitSame(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitEqual(accountSource, checkers);
+        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checkers);
         modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
         modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
     }
@@ -160,7 +175,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     /** Adds an account by adding a `linkRef` with embedded shadow object. */
     private void modifyUserAddAccountImplicit(
             ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountImplicit");
         OperationResult result = task.getResult();
 
@@ -168,13 +183,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> userDelta = userLinkRefAddDelta(account);
         doPreview(
                 List.of(userDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /** Adds an account by providing explicit {@link ShadowType} `ADD` delta (along with the empty user delta). */
     private void modifyUserAddAccountExplicit(
-            ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            ObjectSource<PrismObject<ShadowType>> accountSource, Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountExplicit");
         OperationResult result = task.getResult();
 
@@ -183,15 +197,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> shadowDelta = shadowAddDelta(account);
         doPreview(
                 List.of(userDelta, shadowDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /**
      * Adds an account by adding a `linkRef` with the shadow object and providing the shadow `ADD` delta with the same object.
      */
     private void modifyUserAddAccountImplicitExplicitSame(
-            ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            ObjectSource<PrismObject<ShadowType>> accountSource, Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountImplicitExplicitSame");
         OperationResult result = task.getResult();
 
@@ -200,7 +213,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> shadowDelta = shadowAddDelta(account);
         doPreview(
                 List.of(userDelta, shadowDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /**
@@ -208,8 +221,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      * (In the reverse order - account delta first.)
      */
     private void modifyUserAddAccountImplicitExplicitSameReverse(
-            ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            ObjectSource<PrismObject<ShadowType>> accountSource, Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountImplicitExplicitSameReverse");
         OperationResult result = task.getResult();
 
@@ -218,15 +230,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> shadowDelta = shadowAddDelta(account);
         doPreview(
                 List.of(shadowDelta, userDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /**
      * Adds an account by adding a `linkRef` with the shadow object and providing the shadow `ADD` delta with the object clone.
      */
     private void modifyUserAddAccountImplicitExplicitEqual(
-            ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            ObjectSource<PrismObject<ShadowType>> accountSource, Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountImplicitExplicitEqual");
         OperationResult result = task.getResult();
 
@@ -235,7 +246,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> shadowDelta = shadowAddDelta(account);
         doPreview(
                 List.of(userDelta, shadowDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /**
@@ -243,8 +254,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      * (In the reverse order - account delta first.)
      */
     private void modifyUserAddAccountImplicitExplicitEqualReverse(
-            ObjectSource<PrismObject<ShadowType>> accountSource,
-            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
+            ObjectSource<PrismObject<ShadowType>> accountSource, Checkers checkers) throws Exception {
         Task task = createPlainTask("modifyUserAddAccountImplicitExplicitEqual");
         OperationResult result = task.getResult();
 
@@ -253,7 +263,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> shadowDelta = shadowAddDelta(account);
         doPreview(
                 List.of(shadowDelta, userDelta),
-                checker, task, result);
+                checkers, task, result);
     }
 
     /**
@@ -309,10 +319,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         return account.createAddDelta();
     }
 
-    private void doPreview(Collection<ObjectDelta<? extends ObjectType>> deltas,
-            ObjectChecker<ModelContext<UserType>> checker, Task task, OperationResult result)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void doPreview(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            Checkers checkers, Task task, OperationResult result)
+            throws CommonException {
         display("Input deltas: ", deltas);
 
         when("changes are previewed");
@@ -320,7 +330,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         then("the resulting context is OK");
         displayDumpable("Preview context", modelContext);
-        checker.check(modelContext);
+        checkers.ctxChecker.check(modelContext);
+
+        if (areMarksSupported()) {
+            when("changes are simulated");
+            var simResult = executeWithSimulationResult(deltas, task, result);
+
+            then("the result is OK");
+            checkers.simChecker.check(simResult);
+        }
 
         assertSuccess(result);
     }
@@ -387,6 +405,34 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
         IntegrationTestTools.assertAttribute(accountNew, dummyResourceCtl.getAttributeFullnameQName(), "Jack Sparrow");
+    }
+
+    private void assertAddAccount(TestSimulationResult simResult) {
+        try {
+            // @formatter:off
+            assertProcessedObjects(simResult, "after")
+                    .display()
+                    .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                        .assertEventMarks()
+                        .delta()
+                            .assertModifiedExclusive(
+                                    UserType.F_LINK_REF,
+                                    UserType.F_METADATA)
+                        .end()
+                    .end()
+                    .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                        .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                        .delta()
+                            .objectToAdd()
+                                .asShadow()
+                                    .assertKind(ShadowKindType.ACCOUNT)
+                                    .assertIntent("default")
+                                    .attributes()
+                                        .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
+            // @formatter:on
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 
     /** This is not a test for previewing changes, but about compiling a GUI profile. */
@@ -538,6 +584,29 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
 
         assertSerializable(modelContext);
+    }
+
+    /** Simulates adding an account (by simply creating a shadow). There should be no focus context in this case. */
+    @Test
+    public void test211JackAddAccountSimulated() throws Exception {
+        skipIfNotNativeRepository();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        ObjectDelta<ShadowType> delta =
+                shadowAddDelta(
+                        PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE));
+
+        when();
+        var simResult = executeWithSimulationResult(List.of(delta), task, result);
+
+        then();
+        assertProcessedObjects(simResult, "after")
+                .display()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find().end()
+                .assertSize(1);
     }
 
     /** Links an existing account by adding a `linkRef`. */
@@ -2108,5 +2177,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ShadowKindType.ACCOUNT);
         PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_INTENT), "default");
         PrismAsserts.assertReferenceAdd(sourceDelta, ShadowType.F_RESOURCE_REF, RESOURCE_SIMPLE.oid);
+    }
+
+    private static class Checkers {
+        final ObjectChecker<ModelContext<UserType>> ctxChecker;
+        final ObjectChecker<TestSimulationResult> simChecker;
+
+        Checkers(ObjectChecker<ModelContext<UserType>> ctxChecker, ObjectChecker<TestSimulationResult> simChecker) {
+            this.ctxChecker = ctxChecker;
+            this.simChecker = simChecker;
+        }
     }
 }

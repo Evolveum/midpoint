@@ -20,6 +20,7 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceOperationalStateManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -43,4 +44,5 @@ public class CommonBeans {
     @Autowired public ResourceOperationalStateManager operationalStateManager;
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public ShadowCaretaker shadowCaretaker;
+    @Autowired public ObjectOperationPolicyHelper shadowMarkManager;
 }

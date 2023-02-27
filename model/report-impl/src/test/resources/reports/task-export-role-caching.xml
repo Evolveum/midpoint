@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="0ff414b6-76c6-4d38-95e8-d2d34c7a11cb">
+    <name>export-role-caching</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+
+    <activity>
+        <work>
+            <reportExport>
+                <reportRef oid="oid"/>
+            </reportExport>
+        </work>
+        <!--
+        Each 10th result for reporting will produce tracing in report-impl/target/midpoint-home/trace
+        <reporting>
+            <tracing>
+                <interval>10</interval>
+                <tracingProfile>
+                    <name>performance</name>
+                    <displayName>Performance tracing</displayName>
+                    <visible>true</visible>
+                    <default>true</default>
+                    <fileNamePattern>performance-trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
+                    <createRepoObject>true</createRepoObject>
+                    <compressOutput>true</compressOutput>
+                    <collectLogEntries>true</collectLogEntries>
+                </tracingProfile>
+            </tracing>
+        </reporting>
+        -->
+    </activity>
+    <executionEnvironment>
+        <cachingProfile>task-role-cache</cachingProfile>
+    </executionEnvironment>
+</task>

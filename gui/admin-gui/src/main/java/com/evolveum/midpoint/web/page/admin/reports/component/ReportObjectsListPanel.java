@@ -1,11 +1,16 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.ReportExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -16,22 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -40,26 +35,21 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lskublik
  */
 
-public class ReportObjectsListPanel<C extends Containerable> extends ContainerableListPanel<C, SelectableBean<C>> {
+public class ReportObjectsListPanel<C extends Serializable> extends ContainerableListPanel<C, SelectableBean<C>> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ReportObjectsListPanel.class);
@@ -115,14 +105,6 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected C getRowRealValue(SelectableBean<C> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-        return rowModelObject.getValue();
-    }
-
-    @Override
     protected IColumn<SelectableBean<C>, String> createIconColumn() {
         return null;
     }
@@ -144,37 +126,36 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected ISelectableDataProvider<SelectableBean<C>> createProvider() {
-        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this, getSearchModel(), null, false) {
+        SelectableBeanDataProvider<C> provider = new SelectableBeanDataProvider<>(this, getSearchModel(), null, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-                    throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
-                QName qNameType = WebComponentUtil.containerClassToQName(getPrismContext(), type);
+            protected List<C> searchObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
+                QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {
                     variables.putAll(getSearchModel().getObject().getFilterVariables(getVariables(), getPageBase()));
                     processReferenceVariables(variables);
                 }
-                List<C> list = (List<C>) getModelInteractionService().searchObjectsFromCollection(getReport().getObjectCollection().getCollection(), qNameType, defaultOptions, query.getPaging(), variables, task, result);
+                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
 
+                List<C> list = (List<C>) getModelInteractionService().searchObjectsFromCollection(getReport().getObjectCollection().getCollection(), qNameType, defaultOptions, query.getPaging(), variables, task, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
                 }
-
-                List<SelectableBean<C>> data = new ArrayList<SelectableBean<C>>();
-                for (C object : list) {
-                    data.add(createDataObjectWrapper(object));
-                }
-                return data;
+                return list;
             }
 
             @Override
-            protected Integer countObjects(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
+            protected boolean match(C selectedValue, C foundValue) {
+                return false;
+            }
+
+            @Override
+            protected Integer countObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
                     throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                 Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
-                QName qNameType = WebComponentUtil.containerClassToQName(getPrismContext(), type);
+                QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {
                     variables.putAll(getSearchModel().getObject().getFilterVariables(getVariables(), getPageBase()));
@@ -184,7 +165,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
 
             @Override
-            protected boolean isUseObjectCounting() {
+            public boolean isUseObjectCounting() {
                 return !isDisableCounting();
             }
 
@@ -275,84 +256,10 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(createSearchConfigurationWrapper(type), false, getPageBase());
-    }
-
-    private SearchConfigurationWrapper<C> createSearchConfigurationWrapper(Class<C> type) {
-        SearchBoxConfigurationType searchBoxConfiguration = new SearchBoxConfigurationType();
-        searchBoxConfiguration.setDefaultMode(SearchBoxModeType.BASIC);
-        searchBoxConfiguration.getAllowedMode().add(SearchBoxModeType.BASIC);
-        searchBoxConfiguration.setAllowToConfigureSearchItems(false);
-        List<SearchItemType> searchItems = new ArrayList<>();
-
-        if (getReport().getObjectCollection() != null) {
-            List<SearchFilterParameterType> parameters = getReport().getObjectCollection().getParameter();
-            parameters.forEach(parameter -> {
-                SearchItemType searchItemType = new SearchItemType();
-                searchItemType.setParameter(parameter);
-                searchItemType.setVisibleByDefault(true);
-                if (parameter.getDisplay() != null) {
-                    if (parameter.getDisplay().getLabel() != null) {
-                        searchItemType.setDisplayName(parameter.getDisplay().getLabel());
-                    } else {
-                        searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
-                    }
-                    if (parameter.getDisplay().getHelp() != null) {
-                        searchItemType.setDescription(
-                                getPageBase().getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
-                    }
-                }
-                searchItems.add(searchItemType);
-            });
-            if (getReport().getObjectCollection().getCollection() != null) {
-                SearchFilterType filter = getReport().getObjectCollection().getCollection().getFilter();
-                if (filter != null) {
-                    try {
-                        ObjectFilter parsedFilter = getPrismContext().getQueryConverter().parseFilter(filter, type);
-                        if (parsedFilter instanceof AndFilter) {
-                            List<ObjectFilter> conditions = ((AndFilter) parsedFilter).getConditions();
-                            conditions.forEach(condition -> processFilterToSearchItem(searchItems, condition));
-                        }
-                    } catch (SchemaException e) {
-                        LOGGER.debug("Unable to parse filter, {} ", filter);
-                    }
-                }
-            }
-        }
-
-        SearchItemsType searchItemsType = new SearchItemsType();
-        searchItemsType.createSearchItemList().addAll(searchItems);
-        searchBoxConfiguration.setSearchItems(searchItemsType);
-
-        return new SearchConfigurationWrapper<>(type, searchBoxConfiguration, getPageBase());
-    }
-
-    private void processFilterToSearchItem(List<SearchItemType> searchItems, ObjectFilter filter) {
-        if (filter instanceof ValueFilterImpl && ((ValueFilterImpl<?, ?>) filter).getExpression() != null) {
-            ExpressionWrapper expression = ((ValueFilterImpl<?, ?>) filter).getExpression();
-            ExpressionType expressionType = (ExpressionType) expression.getExpression();
-            List<JAXBElement<?>> pathElement = ExpressionUtil.findAllEvaluatorsByName(expressionType, SchemaConstantsGenerated.C_PATH);
-            if (!pathElement.isEmpty()) {
-                ItemPathType path = (ItemPathType) pathElement.get(0).getValue();
-                if (path.getItemPath().startsWithVariable()) {
-                    VariableItemPathSegment variablePath = (VariableItemPathSegment) path.getItemPath().first();
-                    SearchItemType searchItem = getSearchItemByParameterName(searchItems, variablePath.getName().toString());
-                    if (searchItem != null) {
-                        searchItem.setPath(new ItemPathType(((ValueFilterImpl<?, ?>) filter).getPath()));
-                    }
-                }
-            }
-        }
-    }
-
-    private SearchItemType getSearchItemByParameterName(List<SearchItemType> searchItemList, String parameterName) {
-        Optional<SearchItemType> searchItemType = searchItemList.stream().filter(item -> item.getParameter() != null &&
-                StringUtils.isNotEmpty(item.getParameter().getName()) && item.getParameter().getName().equals(parameterName)).findFirst();
-        if (!searchItemType.isEmpty()) {
-            return searchItemType.get();
-        }
-        return null;
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setReportCollection(getReport().getObjectCollection());
+        return ctx;
     }
 
     @Override
@@ -405,32 +312,20 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected Collection evaluateExpression(C rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
-        Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
-        OperationResult result = task.getResult();
-        try {
-            VariablesMap variablesMap = new VariablesMap();
-            if (columnItem == null) {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
-            } else {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
-            }
-            processVariables(variablesMap);
-            if (!variablesMap.containsKey(ExpressionConstants.VAR_OBJECT)) {
-                variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.asPrismContainerValue().getDefinition());
+    protected IColumn<SelectableBean<C>, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new ReportExpressionColumn<>(columnDisplayModel, null, customColumn, expression, getPageBase()) {
 
+            @Override
+            protected void processReportSpecificVariables(VariablesMap variablesMap) {
+                ReportObjectsListPanel.this.processVariables(variablesMap);
             }
-            Object object = getPageBase().getReportManager().evaluateScript(getReport().asPrismObject(), expression, variablesMap, "evaluate column expression", task, result);
-            if (object instanceof Collection) {
-                return (Collection) object;
+
+            @Override
+            protected PrismObject<ReportType> getReport() {
+                return ReportObjectsListPanel.this.getReport().asPrismObject();
             }
-            return Collections.singletonList(object);
-        } catch (Exception e) {
-            LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
-            result.recomputeStatus();
-            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
-        }
+        };
+
     }
 
     public VariablesMap getReportVariables() {
@@ -461,11 +356,5 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     public void resetTable(AjaxRequestTarget target) {
         initView();
         super.resetTable(target);
-    }
-
-    @Override
-    protected String getStringValueForObject(ObjectType object) {
-        String displayName = super.getStringValueForObject(object);
-        return StringUtils.isEmpty(displayName) ? object.getOid() : displayName;
     }
 }

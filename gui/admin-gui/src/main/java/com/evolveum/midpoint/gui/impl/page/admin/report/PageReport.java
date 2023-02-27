@@ -99,6 +99,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         return new ReportOperationalButtonsPanel(id, wrapperModel) {
 
             @Override
+            protected ReportType getReport() {
+                return getReportWithAppliedChanges();
+            }
+
+            @Override
             protected void refresh(AjaxRequestTarget target) {
                 PageReport.this.refresh(target);
             }
@@ -147,7 +152,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         tableContainer.setOutputMarkupId(true);
         add(tableContainer);
 
-        ReportObjectsListPanel<?> reportTable = new ReportObjectsListPanel<>(ID_REPORT_TABLE, Model.of(getModelObjectType()));
+        ReportObjectsListPanel<?> reportTable = new ReportObjectsListPanel<>(ID_REPORT_TABLE, () -> getReportWithAppliedChanges());
         reportTable.setOutputMarkupId(true);
 
         WebMarkupContainer tableBox = new WebMarkupContainer(ID_TABLE_BOX);
@@ -156,6 +161,15 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         tableContainer.add(tableBox);
 
         tableBox.add(reportTable);
+    }
+
+    private ReportType getReportWithAppliedChanges() {
+        try {
+            return getModelWrapperObject().getObjectApplyDelta().asObjectable();
+        } catch (SchemaException e) {
+            LOGGER.debug("Cannot apply changes for report, returning original state");
+            return getModelWrapperObject().getObjectOld().asObjectable();
+        }
     }
 
     public void saveAndRunPerformed(AjaxRequestTarget target) {

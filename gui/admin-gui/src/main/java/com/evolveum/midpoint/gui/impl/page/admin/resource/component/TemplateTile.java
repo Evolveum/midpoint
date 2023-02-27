@@ -29,8 +29,6 @@ import java.util.List;
  */
 public class TemplateTile<T extends Serializable> extends Tile<T> {
 
-    private String description;
-
     private List<DisplayType> tags = new ArrayList<>();
 
     public TemplateTile(String icon, String title, T templateObject) {
@@ -38,12 +36,13 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
         setValue(templateObject);
     }
 
-    public String getDescription() {
-        return description;
+    public TemplateTile<T> description(String description) {
+        setDescription(description);
+        return this;
     }
 
-    public TemplateTile description(String description) {
-        this.description = description;
+    public TemplateTile<T> selected(boolean selected) {
+        setSelected(selected);
         return this;
     }
 
@@ -51,8 +50,13 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
         return tags;
     }
 
-    public TemplateTile addTag(DisplayType display) {
+    public TemplateTile<T> addTag(DisplayType display) {
         tags.add(display);
+        return this;
+    }
+
+    public TemplateTile<T> addTags(List<DisplayType> tags) {
+        this.tags.addAll(tags);
         return this;
     }
 
@@ -99,5 +103,13 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
         t.setSelected(object.isSelected());
 
         return t;
+    }
+
+    @Override
+    public TemplateTile<T> clone() {
+        return new TemplateTile<>(getIcon(), getTitle(), getValue())
+                .description(getDescription())
+                .selected(isSelected())
+                .addTags(getTags());
     }
 }

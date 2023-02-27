@@ -9,24 +9,26 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -60,17 +62,15 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
             return !hasValidReferenceValue(object);
         });
 
-        IModel<DisplayType> displayModel = (IModel) () -> {
-            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-            String cssClass = ObjectTypeGuiDescriptor.ERROR_ICON;
-            String title = null;
-            if (guiDescriptor != null) {
-                cssClass = guiDescriptor.getBlackIcon();
-                title = createStringResource(guiDescriptor.getLocalizationKey()).getObject();
-            }
-            return GuiDisplayTypeUtil.createDisplayType(cssClass, "", title);
-        };
-        final ImagePanel icon = new ImagePanel(ID_ICON, displayModel);
+        final IconComponent icon = new IconComponent(ID_ICON,
+                () -> {
+                    ObjectTypeGuiDescriptor descriptor = getObjectTypeDescriptor();
+                    return descriptor != null ? descriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                },
+                () -> {
+                    ObjectTypeGuiDescriptor descriptor = getObjectTypeDescriptor();
+                    return descriptor != null ? LocalizationUtil.translate(descriptor.getLocalizationKey()) : null;
+                });
         icon.add(visibleIfReference);
         add(icon);
 
@@ -78,20 +78,19 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         label.add(visibleIfNotReference);
         add(label);
 
-        final AjaxLinkPanel link = new AjaxLinkPanel(ID_LINK, new LabelModel()) {
+        final AjaxButton link = new AjaxButton(ID_LINK, new LabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
+                if (!(VisualizationItemValuePanel.this.getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
                     return;
                 }
-                PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
+                PrismReferenceValue refValue = (PrismReferenceValue) VisualizationItemValuePanel.this.getModelObject().getSourceValue();
                 if (refValue == null) {
                     return;
                 }
                 ObjectReferenceType ort = new ObjectReferenceType();
                 ort.setupReferenceValue(refValue);
                 WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
-
             }
         };
         link.add(visibleIfReference);
@@ -139,11 +138,17 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
             if (val == null) {
                 return null;
             }
-            if (val.getSourceValue() != null) {
-                if (val.getSourceValue() instanceof PrismReferenceValue) {
-                    return WebComponentUtil.getReferencedObjectDisplayNameAndName(((PrismReferenceValue) val.getSourceValue()).asReferencable(), true, getPageBase());
-                } else if (val.getSourceValue() instanceof Objectable) {
-                    WebComponentUtil.getDisplayNameOrName(((Objectable) val.getSourceValue()).asPrismObject());
+            PrismValue prismvalue = val.getSourceValue();
+            if (prismvalue != null) {
+                if (prismvalue instanceof PrismReferenceValue) {
+                    PrismReferenceValue ref = (PrismReferenceValue) prismvalue;
+                    if (ref.getOid() == null) {
+                        return LocalizationUtil.translate("VisualizationItemValue.undefinedOid");
+                    }
+
+                    return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), true, getPageBase());
+                } else if (prismvalue instanceof Objectable) {
+                    WebComponentUtil.getDisplayNameOrName(((Objectable) prismvalue).asPrismObject());
                 }
             }
             LocalizableMessage textValue = getModelObject().getText();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -121,9 +121,25 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public SearchResultMetadata searchReferencesIterative(
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        return searchOpHandler.searchReferencesIterative(query, handler, options, parentResult);
+    }
+
+    @Override
     public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchContainers(type, query, options, parentResult);
+    }
+
+    @Override
+    public @NotNull SearchResultList<ObjectReferenceType> searchReferences(@NotNull ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult)
+            throws SchemaException {
+        return searchOpHandler.searchReferences(query, options, parentResult);
     }
 
     @Override
@@ -138,6 +154,12 @@ public class RepositoryCache implements RepositoryService, Cache {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         return searchOpHandler.countContainers(type, query, options, parentResult);
     }
+
+    @Override
+    public int countReferences(@Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
+        return searchOpHandler.countReferences(query, options, parentResult);
+    }
     //endregion
 
     //region --- ADD, MODIFY, DELETE and other modifications -------------------------------------------------------
@@ -150,6 +172,7 @@ public class RepositoryCache implements RepositoryService, Cache {
         return modificationOpHandler.addObject(object, options, parentResult);
     }
 
+    @Override
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
             @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
@@ -195,6 +218,12 @@ public class RepositoryCache implements RepositoryService, Cache {
         // TODO implement properly, currently only to support tests, probably not used via cache in normal code
         return repositoryService.modifyObjectDynamically(
                 type, oid, getOptions, modificationsSupplier, modifyOptions, parentResult);
+    }
+
+    @Override
+    public ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid,
+            @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return repositoryService.deleteSimulatedProcessedObjects(oid, transactionId, parentResult);
     }
 
     @NotNull

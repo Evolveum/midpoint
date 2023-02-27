@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,12 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -66,7 +62,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author lazyman
  * @author Radovan Semancik
- *
  */
 public interface ModelService {
 
@@ -78,6 +73,8 @@ public interface ModelService {
     String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
+    String SEARCH_REFERENCES = CLASS_NAME_WITH_DOT + "searchReferences";
+    String COUNT_REFERENCES = CLASS_NAME_WITH_DOT + "countReferences";
     String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
     String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
     String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
@@ -337,7 +334,7 @@ public interface ModelService {
 
     /**
      * Search for "sub-object" structures, i.e. containers.
-     * Supported types are: AccessCertificationCaseType, CaseWorkItemType.
+     * Supported types are: AccessCertificationCaseType, CaseWorkItemType, OperationExecutionType and AssignmentType.
      */
     <T extends Containerable> SearchResultList<T> searchContainers(
             Class<T> type, ObjectQuery query,
@@ -347,6 +344,43 @@ public interface ModelService {
     <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    /**
+     * Reference search - currently supporting roleMembershipRef and linkRef search.
+     * This returns reference objects extracted from the actual object(s) that own them,
+     * but selection of which (and cardinality of the result list) is based on a repository search.
+     *
+     * Query must not be null and its filter must be:
+     *
+     * * either a OWNER-BY filter,
+     * * or AND filter containing exactly one OWNER-BY filter and optionally one or more REF filters with empty path (self).
+     *
+     * @param query mandatory query with exactly one root OWNER-BY and additional REF filters
+     */
+    SearchResultList<ObjectReferenceType> searchReferences(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
+
+    /**
+     * Reference count - currently supporting roleMembershipRef and linkRef search.
+     * See {@link #searchReferences(ObjectQuery, Collection, Task, OperationResult)} for more details.
+     *
+     * @param query mandatory query
+     */
+    Integer countReferences(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    /**
+     * Iterative version of {@link #searchReferences}.
+     */
+    SearchResultMetadata searchReferencesIterative(
+            @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
 
     /**
      * Search for objects in iterative fashion (using callback).
@@ -628,4 +662,7 @@ public interface ModelService {
 
     /** Returns `true` if the particular object type is supported by the current repository. */
     boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type);
+
+    @Experimental
+    <O extends ObjectType> ProcessedObject<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean) throws SchemaException;
 }

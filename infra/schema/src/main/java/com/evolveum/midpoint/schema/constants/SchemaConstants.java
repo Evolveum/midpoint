@@ -267,6 +267,7 @@ public abstract class SchemaConstants {
     public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
+    public static final String NS_REPORT_EXTENSION = NS_REPORT + "/extension-3";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
     public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow"; // TODO change to "case" or "cases"
 
@@ -665,4 +666,6 @@ public abstract class SchemaConstants {
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_NORMALIZED_DATA);
     public static final @NotNull ItemPath PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE =
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_DEFAULT_AUTHORITATIVE_SOURCE);
+
+    public static final String SIMULATION_RESULT_DEFAULT_TRANSACTION_ID = "default";
 }

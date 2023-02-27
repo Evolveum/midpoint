@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,14 +12,14 @@ import java.util.function.Function;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referencable> {
+public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<ObjectReferenceType> {
 
     private final UuidPath oidPath;
     private final EnumPath<MObjectType> typePath;
@@ -41,7 +41,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     }
 
     @Override
-    public void setValue(Referencable value) {
+    public void setValue(ObjectReferenceType value) {
         value = SqaleUtils.referenceWithTypeFixed(value);
         context.set(oidPath, UUID.fromString(value.getOid()));
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));

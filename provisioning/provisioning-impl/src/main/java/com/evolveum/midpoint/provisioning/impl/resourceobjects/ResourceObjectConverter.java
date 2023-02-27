@@ -11,7 +11,8 @@ import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isProtectedShadow;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isAddShadowEnabled;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isModifyShadowEnabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.*;
@@ -287,13 +288,15 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Adding resource object {}", shadow);
 
+            ctx.checkExecutionFullyPersistent();
+
             // We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
             // to propagate back to the calling code. Hence the clone.
             ShadowType shadowClone = shadow.clone();
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone)) {
+            if (!isAddShadowEnabled(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, result)) {
                 throw new SecurityViolationException("Cannot add protected shadow " + shadowClone);
             }
 
@@ -423,6 +426,8 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Deleting resource object {}", shadow);
 
+            ctx.checkExecutionFullyPersistent();
+
             checkForCapability(ctx, DeleteCapabilityType.class);
 
             Collection<? extends ResourceAttribute<?>> identifiers = getIdentifiers(ctx, shadow);
@@ -499,7 +504,7 @@ public class ResourceObjectConverter {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
-        if (isProtectedShadow(protectedPatterns, shadow)) {
+        if (!ProvisioningUtil.isDeleteShadowEnabled(protectedPatterns, shadow, result)) {
             // TODO remove this unnecessary logging statement (the error will be logged anyway)
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
@@ -557,7 +562,7 @@ public class ResourceObjectConverter {
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
-            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow)) {
+            if (!isModifyShadowEnabled(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow, result)) {
                 if (hasChangesOnResource(itemDeltas)) {
                     // TODO remove this unnecessary logging statement (the error will be logged anyway)
                     LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);
@@ -578,7 +583,7 @@ public class ResourceObjectConverter {
             for (ItemDelta<?, ?> modification: itemDeltas) {
                 ItemPath path = modification.getPath();
                 QName firstPathName = path.firstName();
-                if (ProvisioningUtil.isAttributeModification(firstPathName)) {
+                if (ShadowUtil.isAttributeModification(firstPathName)) {
                     hasResourceModification = true;
                     QName attrName = path.rest().firstNameOrFail();
                     ResourceAttributeDefinition<?> attrDef =
@@ -588,7 +593,7 @@ public class ResourceObjectConverter {
                         hasVolatilityTriggerModification = true;
                         break;
                     }
-                } else if (ProvisioningUtil.isNonAttributeResourceModification(firstPathName)) {
+                } else if (ShadowUtil.isNonAttributeResourceModification(firstPathName)) {
                     hasResourceModification = true;
                 }
             }
@@ -756,6 +761,8 @@ public class ResourceObjectConverter {
         } else {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
+
+        ctx.checkExecutionFullyPersistent();
 
         checkForCapability(ctx, UpdateCapabilityType.class);
 
@@ -1704,7 +1711,7 @@ public class ResourceObjectConverter {
         }
         ShadowType resourceObjectBean = resourceObject.asObjectable();
 
-        ProvisioningUtil.setProtectedFlag(ctx, resourceObjectBean, expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, expressionFactory, result);
 
         if (resourceObjectBean.isExists() == null) {
             resourceObjectBean.setExists(true);
@@ -1732,6 +1739,7 @@ public class ResourceObjectConverter {
         if (operations == null || operations.isEmpty()) {
             return;
         }
+        ctx.checkExecutionFullyPersistent();
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
         for (ExecuteProvisioningScriptOperation operation : operations) {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(

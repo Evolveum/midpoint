@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -371,6 +372,7 @@ public class ResourceManager {
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);
         try {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
+            ucfCtx.checkExecutionFullyPersistent();
             return connectorInstance.executeScript(scriptOperation, ucfCtx, result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
@@ -420,6 +422,6 @@ public class ResourceManager {
             @NotNull ResourceType resource,
             @Nullable ResourceObjectDefinition objectDefinition,
             @NotNull Class<T> operationCapabilityClass) {
-        return capabilitiesHelper.getCapability(resource, objectDefinition, operationCapabilityClass);
+        return CapabilityUtil.getCapability(resource, objectDefinition, operationCapabilityClass);
     }
 }

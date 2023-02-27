@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -103,4 +104,9 @@ public interface ModelServiceLocator {
     AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager();
 
     CorrelationService getCorrelationService();
+
+    /**
+     * Experimental, functionality will be probably later hidden behind {@link ModelInteractionService}
+     */
+    SimulationResultManager getSimulationResultManager();
 }

@@ -75,7 +75,7 @@ class OperationExecutionRecorderForClockwork {
 
     <F extends ObjectType> void recordOperationExecutions(LensContext<F> lensContext, Task task, OperationResult parentResult) {
 
-        if (!task.isPersistentExecution()) {
+        if (!task.isExecutionFullyPersistent()) {
             LOGGER.trace("Skipping operation execution recording, as we are in simulated execution mode");
             return;
         }

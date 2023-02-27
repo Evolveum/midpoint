@@ -23,7 +23,7 @@
 
                     def object = object as AuditEventRecordType
 
-                    return object.targetRef?.targetName == 'test140ExportAuditRecords'
+                    return basic.stringify(object.targetRef?.targetName) == 'test140ExportAuditRecords'
                 </code>
             </script>
         </condition>
@@ -32,22 +32,6 @@
             <type>string</type>
         </parameter>
         <view>
-            <column>
-                <name>timestamp</name>
-                <path>timestamp</path>
-                <display>
-                    <label>Timestamp</label>
-                </display>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                return object.timestamp
-                            </code>
-                        </script>
-                    </expression>
-                </export>
-            </column>
             <column>
                 <name>timestamp</name>
                 <path>timestamp</path>
@@ -72,20 +56,23 @@
                 <previousColumn>targetRef</previousColumn>
             </column>
             <column>
-                <name>deltaOperation</name>
+                <name>assignment</name>
                 <display>
-                    <label>Object delta</label>
+                    <label>Assignment</label>
                 </display>
                 <previousColumn>eventType</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                                import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType
+                                import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType
+                                import org.apache.commons.lang3.tuple.ImmutablePair
 
-                                def deltaOperation = deltaOperation as ObjectDeltaOperationType
+                                def assignment = assignment as ImmutablePair&lt; ModificationTypeType, AssignmentType&gt;
 
-                                return deltaOperation.objectName + '-' + deltaOperation.objectDelta.changeType
+                                return assignment.left.value() + ' - ' + assignment.right.targetRef.oid
                             </code>
                         </script>
                     </expression>
@@ -103,11 +90,77 @@
 
                         def object = object as AuditEventRecordType
 
-                        return object.delta()
+                        return object.delta
                     </code>
                 </script>
             </expression>
-            <asRow>true</asRow>
+            <order>10</order>
+            <use>leftJoin</use>
+        </subreport>
+        <subreport>
+            <name>objectDelta</name>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType
+
+                        def object = object as AuditEventRecordType
+                        def deltaOperation = deltaOperation as ObjectDeltaOperationType
+
+                        return deltaOperation.objectDelta
+                    </code>
+                </script>
+            </expression>
+            <order>20</order>
+            <use>leftJoin</use>
+        </subreport>
+        <subreport>
+            <name>assignment</name>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.prism.path.ItemPath
+                        import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType
+                        import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType
+                        import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType
+                        import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType
+                        import org.apache.commons.lang3.tuple.ImmutablePair
+
+                        def object = object as AuditEventRecordType
+                        def deltaOperation = deltaOperation as ObjectDeltaOperationType
+                        def objectDelta = objectDelta as ObjectDeltaType
+
+                        List&lt;ImmutablePair&gt; assignments = []
+
+                        ObjectType objectToAdd = objectDelta.objectToAdd
+                        if (objectToAdd instanceof AssignmentHolderType) {
+                            AssignmentHolderType holder = (AssignmentHolderType) objectToAdd
+                            holder.assignment.forEach { assignments.add(new ImmutablePair(ModificationTypeType.ADD, it))}
+                        }
+
+                        List&lt;ItemDeltaType&gt; itemDeltas = objectDelta.itemDelta.stream()
+                                .filter { it.path != null &amp;&amp; it.path.itemPath.equivalent(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT)) }
+                                .toList()
+
+                        itemDeltas.each { item ->
+                            item.value.each { value ->
+                                {
+                                    assignments.add(new ImmutablePair(item.modificationType, value.getParsedRealValue(AssignmentType.class)))
+                                }
+                            }
+                        }
+
+                        return assignments
+                    </code>
+                </script>
+            </expression>
+            <order>30</order>
+            <use>leftJoin</use>
         </subreport>
     </objectCollection>
 </report>

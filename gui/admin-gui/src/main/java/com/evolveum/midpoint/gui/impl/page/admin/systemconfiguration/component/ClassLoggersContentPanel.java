@@ -30,15 +30,12 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -71,19 +68,6 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanel<Class
                 SystemConfigurationType.F_LOGGING,
                 LoggingConfigurationType.F_CLASS_LOGGER
         ));
-    }
-
-    @Override
-    protected List<SearchItemDefinition> initSearchableItems(
-            PrismContainerDefinition<ClassLoggerConfigurationType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
-        SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_APPENDER, defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_PACKAGE, defs);
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
-        return defs;
     }
 
     @Override

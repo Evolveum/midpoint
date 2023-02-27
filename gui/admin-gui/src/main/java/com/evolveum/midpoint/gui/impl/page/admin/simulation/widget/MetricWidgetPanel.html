@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="p-3">
+        <div class="d-flex w-100">
+            <span class="text-truncate" wicket:id="title"/>
+        </div>
+        <div class="d-flex w-100 gap-2 mt-2">
+            <div class="d-flex flex-column flex-fill gap-1">
+                <div>
+                    <span wicket:id="trendBadge"/>
+                </div>
+                <h3 class="mb-0" wicket:id="value"/>
+                <small wicket:id="valueDescription" class="text-secondary"/>
+            </div>
+            <div class="d-flex align-items-end justify-content-end flex-fill">
+                <div wicket:id="icon" class="rounded p-1"/>
+                <div wicket:id="chartContainer" class="d-flex align-items-end justify-content-end flex-fill"/>
+            </div>
+        </div>
+    </div>
+    <a class="bg-green rounded-bottom text-center p-1" wicket:id="moreInfo" wicket:message="">
+        <span class="text-white"><wicket:message key="MetricWidgetPanel.open"/></span>
+        <i class="ml-1 fa-solid fa-circle-arrow-right text-white"></i>
+    </a>
+</wicket:panel>
+</body>
+</html>

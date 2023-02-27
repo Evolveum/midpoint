@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -154,7 +154,9 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     public final @NotNull <TQ extends FlexibleRelationalPathBase<TR>, TR>
     ItemRelationResolver<Q, R, TQ, TR> relationResolver(ItemPath path)
             throws QueryException {
-        QName itemName = ItemPath.isParent(path.first())
+        QName itemName = path.isEmpty()
+                ? PrismConstants.T_SELF
+                : ItemPath.isParent(path.first())
                 ? PrismConstants.T_PARENT
                 : ItemPath.isObjectReference(path.first())
                 ? PrismConstants.T_OBJECT_REFERENCE

@@ -20,10 +20,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMarks;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
@@ -40,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 //TODO remove in future
 public enum PageTypes {
 
-    USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class,  UserType.COMPLEX_TYPE),
+    USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class, UserType.COMPLEX_TYPE),
     ROLE("roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class, PageRole.class, RoleType.COMPLEX_TYPE),
     SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class, PageService.class, ServiceType.COMPLEX_TYPE),
     ORG("orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgs.class, PageOrg.class, OrgType.COMPLEX_TYPE),
@@ -51,7 +54,9 @@ public enum PageTypes {
     MESSAGE_TEMPLATES("messageTemplates", GuiStyleConstants.EVO_MESSAGE_TEMPLATE_TYPE_ICON, PageMessageTemplates.class, PageMessageTemplate.class, MessageTemplateType.COMPLEX_TYPE),
     OBJECT_COLLECTION("objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class, PageObjectCollection.class, ObjectCollectionType.COMPLEX_TYPE),
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
-    REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE);
+    REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE),
+    SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
+    MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

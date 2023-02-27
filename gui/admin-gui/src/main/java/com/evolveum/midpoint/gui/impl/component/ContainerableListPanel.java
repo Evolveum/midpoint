@@ -1,32 +1,30 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -35,53 +33,54 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
-import com.evolveum.midpoint.gui.impl.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.data.*;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -97,17 +96,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Abstract class for List panels with table.
  */
-public abstract class ContainerableListPanel<C extends Containerable, PO extends SelectableRow> extends BasePanel<C> {
+public abstract class ContainerableListPanel<C extends Serializable, PO extends SelectableRow> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
 
     private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
-    protected static final String OPERATION_EVALUATE_EXPRESSION = DOT_CLASS + "evaluateColumnExpression";
-    private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
-    //    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
     private final Class<C> defaultType;
@@ -167,80 +163,69 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    protected LoadableDetachableModel<Search<C>> createSearchModel() {
-        return new LoadableDetachableModel<>() {
+    private boolean isUseStorageSearch(Search search) {
+        if (search == null) {
+            return false;
+        }
+        if (search.isForceReload()) {
+            return false;
+        }
 
-            private static final long serialVersionUID = 1L;
+        String searchByName = getSearchByNameParameterValue();
+        return searchByName == null || !search.searchByNameEquals(searchByName);
+    }
+
+    private LoadableDetachableModel<Search<C>> createSearchModel() {
+        return new LoadableDetachableModel<>() {
 
             @Override
             public Search<C> load() {
-                Search<C> newSearch = createSearch(getType());
-
-                Search<C> search = null;
-                PageStorage storage = getPageStorage();
-                String searchByName = getSearchByNameParameterValue();
-                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
-                    search = storage.getSearch();
-                }
-
-                if (search == null || search.isTypeChanged() ||
-                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
-                    search = newSearch;
-//                    search.searchWasReload();
-                }
-
-                if (searchByName != null && !search.searchByNameEquals(searchByName)) {
-                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
-                        search.setFullText(searchByName);
-                    } else {
-                        for (AbstractSearchItemWrapper item : search.getItems()) {
-                            if (!(item instanceof PropertySearchItemWrapper)) {
-                                continue;
-                            }
-                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
-                                item.setValue(new SearchValue<>(searchByName));
-                            }
-                        }
-                    }
-                }
-
-                // todo this should not be here! Search model doesn't handle paging, only query. Paging is handled by table (which technically doesn't care about specific query)
-                if (isCollectionViewPanel()) {
-                    CompiledObjectCollectionView view = getObjectCollectionView();
-                    if (view == null) {
-                        getPageBase().redirectToNotFoundPage();
-                    }
-
-                    if (isCollectionViewPanelForWidget()) {
-                        search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
-                    }
-
-                    if (storage != null && view.getPaging() != null) {
-                        ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
-                        if (storage.getPaging() == null) {
-                            storage.setPaging(paging);
-                        }
-                        if (getTableId() != null && paging.getMaxSize() != null
-                                && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
-                            getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
-                        }
-                    }
-                }
-
-                if (storage != null) {
-                    storage.setSearch(search);
-                }
-                return search;
+                return loadSearchModel();
             }
         };
+    }
+
+    private Search<C> loadSearchModel() {
+        PageStorage storage = getPageStorage();
+        Search<C> search = loadSearch(storage);
+
+        if (storage != null && !isPreview()) {
+            storage.setSearch(search);
+        }
+        getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
+        return search;
+    }
+
+    private <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
+        Search<T> search = null;
+        if (storage != null) {
+            search = storage.getSearch();
+        }
+
+        if (!isUseStorageSearch(search)) {
+            search = createSearch();
+        }
+        return search;
     }
 
     protected String getSearchByNameParameterValue() {
         return null;
     }
 
-    protected Search<C> createSearch(Class<C> type) {
-        return SearchFactory.createSearch(type, getPageBase());
+    private Search createSearch() {
+        SearchBuilder searchBuilder = new SearchBuilder(getType())
+                .collectionView(getObjectCollectionView())
+                .modelServiceLocator(getPageBase())
+                .nameSearch(getSearchByNameParameterValue())
+                .isPreview(isPreview())
+                .isViewForDashboard(isCollectionViewPanelForWidget())
+                .additionalSearchContext(createAdditionalSearchContext());
+
+        return searchBuilder.build();
+    }
+
+    protected SearchContext createAdditionalSearchContext() {
+        return null;
     }
 
     private void initLayout() {
@@ -249,7 +234,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         itemTable.setOutputMarkupPlaceholderTag(true);
         add(itemTable);
 
-        itemTable.add(new VisibleBehaviour(() -> isListPanelVisible()));
+        itemTable.add(new VisibleBehaviour(this::isListPanelVisible));
         setOutputMarkupId(true);
 
     }
@@ -304,9 +289,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
                 }
-                return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
 
             @Override
@@ -359,7 +344,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
-
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
         }
 
@@ -436,7 +420,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
         PageStorage storage = getPageStorage();
         if (storage != null && storage.getSearch() != null) {
-            return storage.getSearch().getTypeClass();
+            return (Class<C>) storage.getSearch().getTypeClass();
         }
         return getDefaultType();
     }
@@ -571,14 +555,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
     }
 
-    protected PrismContainerDefinition<C> getContainerDefinitionForColumns() {
+    protected ItemDefinition<?> getContainerDefinitionForColumns() {
         return getPageBase().getPrismContext().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(getType());
+                .findItemDefinitionByCompileTimeClass(getType(), ItemDefinition.class);//ContainerDefinitionByCompileTimeClass(getType());
     }
 
     private boolean noItemDefinitionFor(ItemPath columnPath, GuiObjectColumnType customColumn) {
+        if (!(getContainerDefinitionForColumns() instanceof PrismContainerDefinition)) {
+            LOGGER.warn("Path expression is valid valid only for containerable tables, provided definition is {}", getContainerDefinitionForColumns());
+            return true;
+        }
+        PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
         if (columnPath != null) {
-            ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(columnPath);
+            ItemDefinition itemDefinition = containerDefinition.findItemDefinition(columnPath);
             if (itemDefinition == null) { // TODO check  && expression == null) {
                 LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
                 return true;
@@ -590,45 +579,15 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private IModel<String> createColumnDisplayModel(GuiObjectColumnType customColumn) {
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
-        String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
-        return StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
-                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
-                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
-                        createStringResource(getItemDisplayName(customColumn)) :
-                        Model.of(customColumn.getName())));
+        if (label != null) {
+            return createStringResource(label);
+        }
+
+        return createStringResource(getItemDisplayName(customColumn));
     }
 
     protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new AbstractExportableColumn<>(columnDisplayModel, getSortProperty(customColumn, expression)) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PO>> item,
-                    String componentId, IModel<PO> rowModel) {
-                IModel<?> model = getDataModel(rowModel);
-                if (model.getObject() instanceof Collection) {
-                    RepeatingView listItems = new RepeatingView(componentId);
-                    for (Object object : (Collection) model.getObject()) {
-                        listItems.add(new Label(listItems.newChildId(), () -> object));
-                    }
-                    item.add(listItems);
-                } else {
-                    item.add(new Label(componentId, model));
-                }
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<PO> rowModel) {
-                ItemPath columnPath = WebComponentUtil.getPath(customColumn);
-
-                return getExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
-            }
-
-            @Override
-            public String getCssClass() {
-                return customColumn.getDisplay() != null ? customColumn.getDisplay().getCssClass() : "";
-            }
-        };
+        return new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
     }
 
     private String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
@@ -649,7 +608,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return null;
         }
 
-        List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
+        Collection<ItemPath> searchablePaths = getSearchablePaths(getType());
 
         for (ItemPath searchablePath : searchablePaths) {
             if (searchablePath.size() > 1) {
@@ -665,206 +624,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    private List<ItemPath> getSearchablePaths(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> availablePaths = SearchFactory.getAvailableSearchableItems(type, modelServiceLocator);
-        if (CollectionUtils.isEmpty(availablePaths)) {
-            availablePaths = new ArrayList<>();
-        }
-        List<ItemPath> typePaths = new ArrayList<>(availablePaths);
-        return addSuperSearchablePaths(type, typePaths);
-    }
-
-    private List<ItemPath> addSuperSearchablePaths(Class<?> type, List<ItemPath> typePaths) {
-        Class<?> superClass = type.getSuperclass();
-        if (superClass == null) {
-            return typePaths;
-        }
-
-        List<ItemPath> superPaths = SearchFactory.getAvailableSearchableItems(superClass, getPageBase());
-        if (CollectionUtils.isNotEmpty(superPaths)) {
-            typePaths.addAll(superPaths);
-        }
-
-        return addSuperSearchablePaths(superClass, typePaths);
-    }
-
-    protected IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
-        return new ReadOnlyModel<>(() -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression));
-    }
-
-    public Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
-        C value = getRowRealValue(rowModel.getObject());
-        if (value == null) {
-            return Collections.singletonList("");
-        }
-        Item<?, ?> item = findItem(value, columnPath);
-
-        if (expression != null) {
-            Collection collection = evaluateExpression(value, item, expression, customColumn);
-            return getValuesString(collection, customColumn.getDisplayValue());
-        }
-        if (item != null) {
-            return evaluateItemValues(item, customColumn.getDisplayValue());
-        }
-
-        return Collections.singletonList("");
-    }
-
-    protected abstract C getRowRealValue(PO rowModelObject);
-
-    private Item<?, ?> findItem(C rowRealValue, ItemPath columnPath) {
-        if (columnPath != null && !columnPath.isEmpty()) {
-            return rowRealValue.asPrismContainerValue().findItem(columnPath);
-        }
-        return null;
-    }
-
-    protected Collection<String> evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
-        Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
-        OperationResult result = task.getResult();
-        try {
-            VariablesMap variablesMap = new VariablesMap();
-            variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
-            if (columnItem != null) {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
-            } else {
-                variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
-            }
-            return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
-                    MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                    task, result);
-        } catch (Exception e) {
-            LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
-            result.recomputeStatus();
-            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
-        }
-    }
-
-    private List<String> evaluateItemValues(Item<?, ?> item, DisplayValueType displayValue) {
-        return getValuesString(item, displayValue, loadLookupTable(item));
-
-    }
-
-    private List<String> getValuesString(Item<?, ?> item, DisplayValueType displayValue, PrismObject<LookupTableType> lookupTable) {
-        if (DisplayValueType.NUMBER.equals(displayValue)) {
-            String number;
-            //This is really ugly HACK FIXME TODO
-            if (item.getDefinition() != null && UserType.F_LINK_REF.equivalent(item.getDefinition().getItemName())) {
-                number = WebComponentUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
-            } else {
-                number = String.valueOf(item.getValues().size());
-            }
-            return Collections.singletonList(number);
-        }
-        return item.getValues().stream()
-                .filter(Objects::nonNull)
-                .map(itemValue -> getStringValue(itemValue, lookupTable))
-                .collect(Collectors.toList());
-    }
-
-    private List<String> getValuesString(Collection collection, DisplayValueType displayValue) {
-        if (collection == null) {
-            return null;
-        }
-        if (DisplayValueType.NUMBER.equals(displayValue)) {
-            return Collections.singletonList(String.valueOf(collection.size()));
-        }
-        return (List<String>) collection.stream()
-                .filter(Objects::nonNull)
-                .map(object -> getStringValue(object, null))
-                .collect(Collectors.toList());
-    }
-
-    // todo figure out how to improve this, looks horrible
-    private String getStringValue(Object object, PrismObject<LookupTableType> lookupTable) {
-        if (object == null) {
-            return "";
-        }
-
-        if (object instanceof PrismPropertyValue) {
-            PrismPropertyValue<?> prismPropertyValue = (PrismPropertyValue<?>) object;
-            if (lookupTable == null) {
-                if (prismPropertyValue.getValue() == null) {
-                    return "";
-                } else if (isPolyString(prismPropertyValue.getTypeName())) {
-                    return WebComponentUtil.getTranslatedPolyString((PolyString) prismPropertyValue.getValue());
-                } else if (prismPropertyValue.getValue() instanceof Enum) {
-                    object = prismPropertyValue.getValue();
-                } else if (prismPropertyValue.getValue() instanceof ObjectType) {
-                    object = prismPropertyValue.getValue();
-                } else {
-                    return String.valueOf(prismPropertyValue.getValue());
-                }
-            } else {
-
-                String lookupTableKey = prismPropertyValue.getValue().toString();
-                LookupTableType lookupTableObject = lookupTable.asObjectable();
-                String rowLabel = "";
-                for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()) {
-                    if (lookupTableRow.getKey().equals(lookupTableKey)) {
-                        return lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
-                    }
-                }
-                return rowLabel;
-            }
-        }
-
-        if (object instanceof Enum) {
-            return getPageBase().createStringResource((Enum) object).getString();
-        }
-        if (object instanceof ObjectType) {
-            return getStringValueForObject((ObjectType) object);
-        }
-        if (object instanceof PrismObject) {
-            return WebComponentUtil.getDisplayName((PrismObject) object);
-        }
-        if (object instanceof PrismObjectValue) {
-            return WebComponentUtil.getDisplayName(((PrismObjectValue) object).asPrismObject());
-        }
-        if (object instanceof PrismReferenceValue) {
-            return WebComponentUtil.getDisplayName(((PrismReferenceValue) object).getRealValue(), true);
-        }
-        if (object instanceof ObjectReferenceType) {
-            return WebComponentUtil.getDisplayName(((ObjectReferenceType) object));
-        }
-        return object.toString();
-    }
-
-    protected String getStringValueForObject(ObjectType object) {
-        return WebComponentUtil.getDisplayNameOrName(object.asPrismObject());
-    }
-
-    private boolean isPolyString(QName typeName) {
-        return QNameUtil.match(typeName, PolyStringType.COMPLEX_TYPE);
-    }
-
-    private PrismObject<LookupTableType> loadLookupTable(Item<?, ?> item) {
-        String lookupTableOid = getValueEnumerationRefOid(item);
-        if (lookupTableOid == null) {
-            return null;
-        }
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOOKUP_TABLE);
-        OperationResult result = task.getResult();
-
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
-        return WebModelServiceUtils.loadObject(LookupTableType.class,
-                lookupTableOid, options, getPageBase(), task, result);
-    }
-
-    private String getValueEnumerationRefOid(Item<?, ?> item) {
-        ItemDefinition<?> def = item.getDefinition();
-        if (def == null) {
-            return null;
-        }
-
-        PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
-        if (valueEnumerationRef == null) {
-            return null;
-        }
-
-        return valueEnumerationRef.getOid();
+    private Set<ItemPath> getSearchablePaths(Class<?> type) {
+        return new SearchableItemsDefinitions(type, getPageBase())
+                .additionalSearchContext(createAdditionalSearchContext())
+                .createAvailableSearchItems()
+                .keySet();
     }
 
     @NotNull
@@ -936,25 +700,25 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public abstract List<C> getSelectedRealObjects();
 
-    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-
-        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
-                && !getObjectCollectionView().getOptions().isEmpty()) {
-            return getObjectCollectionView().getOptions();
-        }
-
-        if (options == null) {
-            if (ResourceType.class.equals(getType())) {
-                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-            }
-        } else {
-            if (ResourceType.class.equals(getType())) {
-                GetOperationOptions root = SelectorOptions.findRootOptions(options);
-                root.setNoFetch(Boolean.TRUE);
-            }
-        }
-        return options;
-    }
+//    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
+//
+//        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
+//                && !getObjectCollectionView().getOptions().isEmpty()) {
+//            return getObjectCollectionView().getOptions();
+//        }
+//
+//        if (options == null) {
+//            if (ResourceType.class.equals(getType())) {
+//                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+//            }
+//        } else {
+//            if (ResourceType.class.equals(getType())) {
+//                GetOperationOptions root = SelectorOptions.findRootOptions(options);
+//                root.setNoFetch(Boolean.TRUE);
+//            }
+//        }
+//        return options;
+//    }
 
     protected List<C> getPreselectedObjectList() {
         return null;
@@ -988,7 +752,52 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected List<Component> createToolbarButtonsList(String idButton) {
-        return new ArrayList<>();
+        List<Component> buttonsList = new ArrayList<>();
+        buttonsList.add(createDownloadButton(idButton));
+        return buttonsList;
+    }
+
+    protected CsvDownloadButtonPanel createDownloadButton(String buttonId) {
+        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
+                isRawOrNoFetchOption(getOptions());
+        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DataTable<?, ?> getDataTable() {
+                return getTable().getDataTable();
+            }
+
+            @Override
+            protected String getFilename() {
+                return getType().getSimpleName() +
+                        "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            }
+
+        };
+        exportDataLink.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+            }
+        });
+        return exportDataLink;
+    }
+
+    private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (Boolean.TRUE.equals(option.getOptions().getRaw()) ||
+                    Boolean.TRUE.equals(option.getOptions().getNoFetch())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected String getStorageKey() {
@@ -1037,9 +846,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (view != null) {
             return view;
         }
-        String collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString();
+        String collectionName = WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase());
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
-                (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+                (WebComponentUtil.anyClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
 
     private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {
@@ -1053,16 +862,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (listViewType == null) {
             return null;
         }
-        Task task = getPageBase().createSimpleTask("Compile collection");
-        OperationResult result = task.getResult();
-        try {
-            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
-            getPageBase().getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
-        } catch (Throwable e) {
-            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
-            result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
-            getPageBase().showResult(result);
-        }
+        compiledCollectionViewFromPanelConfiguration = WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
         return compiledCollectionViewFromPanelConfiguration;
 
     }
@@ -1131,9 +931,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {
-        StringValue param = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
-
-        return param != null && param.toString() != null;
+        return WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase()) != null;
     }
 
     protected boolean isCollectionViewPanel() {
@@ -1147,7 +945,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private CompiledObjectCollectionView getCollectionViewForAllObject() {
-        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.containerClassToQName(getPrismContext(), getType()), null);
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.anyClassToQName(getPrismContext(), getType()), null);
     }
 
     protected ISelectableDataProvider getDataProvider() {
@@ -1161,7 +959,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
-        if (searchModel.getObject().isTypeChanged()) {
+        if (searchModel.getObject().isForceReload()) {
             resetTable(target);
         } else {
             saveSearchModel(getCurrentTablePaging());
@@ -1237,8 +1035,22 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private String getItemDisplayName(GuiObjectColumnType column) {
-        ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
-        return itemDefinition == null ? "" : itemDefinition.getDisplayName();
+        if (!(getContainerDefinitionForColumns() instanceof PrismContainerDefinition)) {
+            LOGGER.warn("Cannot determine item name, it is supported only for containerable tables, but the provided definition is {}", getContainerDefinitionForColumns());
+            return "";
+        }
+        PrismContainerDefinition<? extends Containerable> containerDefinition = (PrismContainerDefinition<? extends Containerable>) getContainerDefinitionForColumns();
+        ItemPath path = WebComponentUtil.getPath(column);
+        if (path == null) {
+            LOGGER.warn("Cannot get displayName for column {} because path is not defined", column);
+            return "";
+        }
+        ItemDefinition def = containerDefinition.findItemDefinition(path);
+        if (def == null) {
+            return "";
+        }
+
+        return def.getDisplayName() != null ? def.getDisplayName() : def.getItemName().getLocalPart();
     }
 
     public ObjectPaging getCurrentTablePaging() {
@@ -1348,12 +1160,13 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 && getObjectCollectionView().getPaging().getOrderBy() != null) {
             PagingType paging = getObjectCollectionView().getPaging();
             boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
-            ItemPath orderBy = paging.getOrderBy().getItemPath();
-            ItemName name = orderBy.lastName();
-            if (name == null) {
+            String orderPathString = getPrismContext().itemPathSerializer()
+                    .serializeStandalone(paging.getOrderBy().getItemPath());
+            if (orderPathString == null || orderPathString.length() == 0) {
                 return;
             }
-            ((SortableDataProvider) provider).setSort(new SortParam(name.getLocalPart(), ascending));
+            //noinspection unchecked
+            ((SortableDataProvider<PO, String>) provider).setSort(new SortParam<>(orderPathString, ascending));
         }
     }
 

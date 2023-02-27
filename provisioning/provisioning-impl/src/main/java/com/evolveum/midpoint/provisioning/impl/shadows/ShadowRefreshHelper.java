@@ -102,6 +102,14 @@ class ShadowRefreshHelper {
             throw SystemException.unexpected(e, "when refreshing provisioning indexes");
         }
 
+        if (!ctx.isExecutionFullyPersistent()) {
+            // Unlike other places related to the simulation mode, we do not throw an exception here. The shadow refresh may be
+            // invoked in various situations, and it is not sure that the caller(s) have full responsibility of these. Hence, we
+            // silently ignore these requests here.
+            LOGGER.trace("Skipping refresh of {} pending operations because the task is in simulation mode", repoShadow);
+            return new RefreshShadowOperation(repoShadow);
+        }
+
         RefreshShadowOperation refreshShadowOperation = processPendingOperations(ctx, repoShadow, options, task, result);
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -134,7 +142,7 @@ class ShadowRefreshHelper {
         }
 
         if (ctx.isInMaintenance()) {
-            LOGGER.trace("Skipping refresh of {} pending operations because resource is in the maintenance mode.", repoShadow);
+            LOGGER.trace("Skipping refresh of {} pending operations because resource is in the maintenance mode", repoShadow);
             return new RefreshShadowOperation(repoShadow);
         }
 
@@ -376,7 +384,7 @@ class ShadowRefreshHelper {
             List<PendingOperationType> sortedOperations,
             ProvisioningOperationOptions options,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException {
         OperationResult retryResult = new OperationResult(OP_REFRESH_RETRY);
         if (ShadowUtil.isDead(repoShadow)) {
             RefreshShadowOperation rso = new RefreshShadowOperation(repoShadow);

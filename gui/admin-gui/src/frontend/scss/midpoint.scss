@@ -29,10 +29,6 @@
 @import "rounded-icon";
 @import "tiles";
 @import "tables";
-@import "role-mining-rotated-header";
-@import "role-mining-static-header";
-@import "role-mining-static-header-name";
-@import "role-mining-static-row-header";
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -1091,23 +1087,25 @@ span.tree-content > table tr td:first-child {
 	margin: 10px;
 
 	.box-label {
-		border-bottom: 1px solid;
-		padding-top: 3px;
-    	padding-bottom: 3px;
-    	font-weight: bold;
+        display: flex;
+        align-items: baseline;
+        gap: .5rem;
+        padding: .5rem;
+
+        border-bottom: 1px solid;
+		font-weight: bold;
 
     	.process-label {
-
+          flex-grow: 1;
     	}
 
     	.process-outcome {
-    		float: right;
-    	}
 
+    	}
 	}
 
 	.box-content {
-		padding: 15px;
+		padding: 1.25rem;
 	}
 }
 
@@ -1224,8 +1222,13 @@ td .prism-property-value {
 }
 
 .card.card-outline,
+.card.card-outline-left,
 .card.card-outline-tabs {
   & .card-header .search-panel-form a {
+    border-top: 0 !important;
+  }
+
+  & > .card-header > .card-tools > a.btn.btn-tool {
     border-top: 0 !important;
   }
 }
@@ -1728,9 +1731,9 @@ th.debug-list-buttons {
   }
 }
 
-.conflict-item {
+.card-outline-left {
   @each $name, $color in $theme-colors {
-    &.conflict-item-#{$name} {
+    &.card-outline-left-#{$name} {
       border-left: 5px solid $color;
     }
   }
@@ -1777,37 +1780,23 @@ th.debug-list-buttons {
   }
 }
 
-.role-mining-rotated-header{
-  display:flex;	  display:flex;
-  justify-content:center;	  justify-content:center;
-  align-items:center;	  align-items:center;
-  transform: rotate(180deg);	  transform: rotate(180deg);
-  writing-mode: vertical-lr;	  writing-mode: vertical-lr;
-  width: 40px;	  width: 40px;
-  height: 150px;	  height: 150px;
-  border: 1px solid #f4f4f4;	  border: 1px solid #f4f4f4;
-}
+.assignmentPath {
+  list-style: none;
+  margin-bottom: 0px;
 
+  & > li {
 
-.role-mining-static-header {
-  width: 40px;
-  height: 150px;
-}
+    & + li {
+      margin-left: 10px;
 
-.role-mining-static-header-name {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transform: rotate(180deg);
-  writing-mode: revert;
-  width: 40px;
-  height: 150px;
-  border: 1px solid #f4f4f4;
-}
-
-.role-mining-static-row-header {
-  width: 150px;
-  height: 150px;
+      &::before {
+        color: $text-muted;
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f061";
+      }
+    }
+  }
 }
 
 @each $breakpoint in map-keys($grid-breakpoints) {
@@ -1816,6 +1805,20 @@ th.debug-list-buttons {
 
     .col#{$infix}-2\.4 {
       @include make-col(2.4, $grid-columns);
+    }
+  }
+}
+
+.simple-container {
+
+  & .simple-container-header {
+
+    padding: 0.75rem 0;
+
+    & .simple-container-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-bottom: 0.25rem;
     }
   }
 }

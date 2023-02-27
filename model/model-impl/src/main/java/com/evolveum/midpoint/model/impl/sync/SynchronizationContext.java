@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -30,11 +31,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -191,10 +194,18 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
+    public boolean isMarkedSkipSynchronization() {
+        var policy = shadowedResourceObject.getEffectiveOperationPolicy();
+        // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
+        // provisioning is skipped, so we need to ensure policy is computed.
+        if (policy == null) {
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, new OperationResult("markedSkipSynchronization"));
+        }
+        return !policy.getSynchronize().getInbound().isEnabled();
+    }
+
     public boolean isProtected() {
-        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())
-                || shadowedResourceObject.getPolicySituation().contains(
-                        SchemaConstants.MODEL_POLICY_SITUATION_PROTECTED_SHADOW); // TODO resolve this TEMPORARY code
+        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
     }
 
     /**
@@ -216,6 +227,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.correlationContext = correlationContext;
     }
 
+    @Override
     public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
         return MiscUtil.stateNonNull(resourceObjectDefinition, () -> "No object definition");
     }
@@ -267,10 +279,17 @@ public abstract class SynchronizationContext<F extends FocusType>
         return shadowedResourceObject;
     }
 
+    /** Normally should be non-null, but we are not sure enough to mark as NotNull. */
+    public String getShadowOid() {
+        return shadowedResourceObject.getOid();
+    }
+
+    @Override
     public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
         return resourceObjectDelta;
     }
 
+    @Override
     public @NotNull ResourceType getResource() {
         return resource;
     }
@@ -285,10 +304,12 @@ public abstract class SynchronizationContext<F extends FocusType>
         return (Class<F>) synchronizationPolicy.getFocusClass();
     }
 
+    @Override
     public @Nullable String getArchetypeOid() {
         return synchronizationPolicy != null ? synchronizationPolicy.getArchetypeOid() : null;
     }
 
+    @Override
     public @NotNull F getPreFocus() {
         if (preFocus != null) {
             return preFocus;
@@ -302,6 +323,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return preFocus;
     }
 
+    @Override
     public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
         //noinspection unchecked
         return (PrismObject<F>) preFocus.asPrismObject();
@@ -341,10 +363,12 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.correlatedOwner = correlatedFocus;
     }
 
+    @Override
     public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
     }
 
+    @Override
     public String getChannel() {
         return channel;
     }
@@ -353,6 +377,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return expressionProfile;
     }
 
+    @Override
     public @NotNull Task getTask() {
         return task;
     }
@@ -362,7 +387,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     @SuppressWarnings("SameParameterValue")
-    void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+    public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
@@ -444,6 +469,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return systemConfiguration;
     }
 
+    @Override
     public @NotNull ModelBeans getBeans() {
         return beans;
     }
@@ -454,6 +480,11 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public boolean isDryRun() {
         return executionMode == ExecutionModeType.DRY_RUN;
+    }
+
+    // TEMPORARY
+    boolean shouldExecuteSynchronizationActions() {
+        return !isDryRun() && !task.areShadowChangesSimulated();
     }
 
     boolean isFullMode() {
@@ -478,17 +509,12 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public abstract boolean isComplete();
 
-    boolean isPersistentExecution() {
-        return task.isPersistentExecution();
+    boolean isExecutionFullyPersistent() {
+        return task.isExecutionFullyPersistent();
     }
 
-    // TEMPORARY IMPLEMENTATION
     public boolean isVisible() {
-        if (task.isProductionConfiguration()) {
-            return SimulationUtil.isInProduction(resource, resourceObjectDefinition);
-        } else {
-            return true; // TODO
-        }
+        return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
     }
 
     /**

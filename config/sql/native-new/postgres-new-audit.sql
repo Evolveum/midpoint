@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -46,6 +46,7 @@ DO $$ BEGIN
         'FUNCTION_LIBRARY',
         'GENERIC_OBJECT',
         'LOOKUP_TABLE',
+        'MARK',
         'MESSAGE_TEMPLATE',
         'NODE',
         'OBJECT',
@@ -60,6 +61,7 @@ DO $$ BEGIN
         'SEQUENCE',
         'SERVICE',
         'SHADOW',
+        'SIMULATION_RESULT',
         'SYSTEM_CONFIGURATION',
         'TASK',
         'USER',
@@ -195,6 +197,11 @@ CREATE TABLE ma_audit_event_default PARTITION OF ma_audit_event DEFAULT;
 CREATE TABLE ma_audit_delta_default PARTITION OF ma_audit_delta DEFAULT;
 CREATE TABLE ma_audit_ref_default PARTITION OF ma_audit_ref DEFAULT;
 
+/*
+For info about what is and is not automatically created on the partition, see:
+https://www.postgresql.org/docs/13/sql-createtable.html (search for "PARTITION OF parent_table")
+In short, for our case PK and constraints are created automatically, but FK are not.
+*/
 ALTER TABLE ma_audit_delta_default ADD CONSTRAINT ma_audit_delta_default_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event_default (id, timestamp)
         ON DELETE CASCADE;
@@ -285,6 +292,11 @@ BEGIN
                 'CREATE TABLE %I PARTITION OF ma_audit_ref FOR VALUES FROM (%L) TO (%L);',
                     'ma_audit_ref_' || tableSuffix, dateFrom, dateTo);
 
+/*
+For info about what is and is not automatically created on the partition, see:
+https://www.postgresql.org/docs/13/sql-createtable.html (search for "PARTITION OF parent_table")
+In short, for our case PK and constraints are created automatically, but FK are not.
+*/
             EXECUTE format(
                 'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
                     ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
@@ -340,4 +352,4 @@ limit 50;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_audit_change(2, $$ SELECT 1 $$, true);
+call apply_audit_change(3, $$ SELECT 1 $$, true);

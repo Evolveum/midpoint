@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
@@ -125,7 +126,7 @@ public class CollectionProcessor {
         String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentType.getId());
 
         EvaluatedPolicyRuleImpl evaluatedPolicyRule =
-                new EvaluatedPolicyRuleImpl(policyRuleType.clone(), ruleId, assignmentPath, null);
+                new EvaluatedPolicyRuleImpl(policyRuleType.clone(), ruleId, assignmentPath, TargetType.OBJECT);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {
@@ -637,7 +638,7 @@ public class CollectionProcessor {
                 if (newSearchBoxConfig.getDefaultMode() == null) {
                     newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());
                 }
-                if (newSearchBoxConfig.getAllowedMode() == null) {
+                if (newSearchBoxConfig.getAllowedMode().isEmpty()) {
                     newSearchBoxConfig.getAllowedMode().addAll(oldSearchBoxConfig.getAllowedMode());
                 }
                 if (newSearchBoxConfig.getIndirectConfiguration() == null) {

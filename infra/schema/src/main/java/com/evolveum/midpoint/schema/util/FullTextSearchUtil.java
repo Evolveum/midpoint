@@ -10,14 +10,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -41,9 +39,12 @@ public class FullTextSearchUtil {
                 && !Boolean.FALSE.equals(config.isEnabled());
     }
 
-    public static boolean isEnabledFor(FullTextSearchConfigurationType config, Class<? extends ObjectType> clazz) {
+    public static boolean isEnabledFor(FullTextSearchConfigurationType config, Class<?> clazz) {
+        if (!ObjectType.class.isAssignableFrom(clazz)) {
+            return false;
+        }
         return isEnabled(config)
-                && !getFullTextSearchItemPaths(config, clazz).isEmpty();
+                && !getFullTextSearchItemPaths(config, (Class<? extends ObjectType>) clazz).isEmpty();
     }
 
     public static boolean isEnabledFor(FullTextSearchConfigurationType config, List<QName> types) {

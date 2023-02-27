@@ -13,6 +13,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
@@ -26,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends AssignmentHolderType>
         extends EvaluatedResourceObjectConstructionImpl<AH, AssignedResourceObjectConstruction<AH>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignedResourceObjectConstructionImpl.class);
 
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
@@ -43,7 +48,8 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException {
+    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+            throws SchemaException {
         List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
 
         for (ResourceAttributeDefinitionType attributeDefinitionBean : construction.getConstructionBean().getAttribute()) {
@@ -62,16 +68,22 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                 throw new SchemaException("No outbound section in definition of attribute " + attrName
                         + " in account construction in " + construction.getSource());
             }
-
-            ResourceAttributeDefinition<?> refinedAttributeDefinition = construction.findAttributeDefinition(attrName);
-            if (refinedAttributeDefinition == null) {
+            ResourceAttributeDefinition<?> attributeDef = construction.findAttributeDefinition(attrName);
+            if (attributeDef == null) {
                 throw new SchemaException("Attribute " + attrName + " not found in schema for resource object type "
                         + getKind() + "/" + getIntent() + ", " + construction.getResolvedResource().resource
                         + " as defined in " + construction.getSource(), attrName);
             }
+            if (!attributeDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
+                LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is not visible in current "
+                                + "execution mode", attributeDef);
+                continue;
+            }
 
-            attributesToEvaluate.add(new AttributeEvaluation<>(constructionEvaluation, refinedAttributeDefinition,
-                    outboundMappingBean, OriginType.ASSIGNMENTS, MappingKindType.CONSTRUCTION));
+            attributesToEvaluate.add(
+                    new AttributeEvaluation<>(
+                            constructionEvaluation, attributeDef, outboundMappingBean,
+                            OriginType.ASSIGNMENTS, MappingKindType.CONSTRUCTION));
         }
         return attributesToEvaluate;
     }
@@ -91,15 +103,21 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                 throw new SchemaException("No outbound section in definition of association " + assocName
                         + " in construction in " + construction.getSource());
             }
-
-            ResourceAssociationDefinition resourceAssociationDefinition = construction.findAssociationDefinition(assocName);
-            if (resourceAssociationDefinition == null) {
+            ResourceAssociationDefinition associationDef = construction.findAssociationDefinition(assocName);
+            if (associationDef == null) {
                 throw new SchemaException("Association " + assocName + " not found in schema for resource object type "
                         + getKind() + "/" + getIntent() + ", " + construction.getResolvedResource().resource
                         + " as defined in " + construction.getSource(), assocName);
             }
-            associationsToEvaluate.add(new AssociationEvaluation<>(constructionEvaluation, resourceAssociationDefinition,
-                    outboundMappingBean, OriginType.ASSIGNMENTS, MappingKindType.CONSTRUCTION));
+            if (!associationDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
+                LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
+                        + "execution mode", associationDef);
+                continue;
+            }
+            associationsToEvaluate.add(
+                    new AssociationEvaluation<>(
+                            constructionEvaluation, associationDef, outboundMappingBean,
+                            OriginType.ASSIGNMENTS, MappingKindType.CONSTRUCTION));
         }
         return associationsToEvaluate;
     }

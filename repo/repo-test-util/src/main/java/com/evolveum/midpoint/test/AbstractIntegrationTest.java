@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -140,7 +144,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @SuppressWarnings("SameParameterValue")
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
-        implements InfraTestMixin {
+        implements InfraTestMixin, DummyTestResourceInitializer {
 
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
@@ -474,20 +478,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    public <T extends ObjectType> PrismObject<T> repoAdd(AbstractTestResource<T> resource, OperationResult result)
+    public <T extends ObjectType> PrismObject<T> repoAdd(TestObject<T> resource, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         return repoAdd(resource, null, result);
     }
 
     public <T extends ObjectType> PrismObject<T> repoAdd(
-            AbstractTestResource<T> resource, RepoAddOptions options, OperationResult result)
+            TestObject<T> resource, RepoAddOptions options, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         PrismObject<T> object = resource.getFresh();
         repoAddObject(object, "from " + resource, options, result);
         return object;
     }
 
-    protected Task taskAdd(AbstractTestResource<TaskType> resource, OperationResult parentResult)
+    protected Task taskAdd(TestObject<TaskType> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         PrismObject<TaskType> task = resource.getFresh();
         String oid = taskManager.addTask(task, parentResult);
@@ -722,7 +726,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, String connectorType, OperationResult result)
+            TestObject<ResourceType> testResource, String connectorType, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResource(testResource, connectorType, false, result);
     }
@@ -734,7 +738,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
+            TestObject<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         return addResource(testResource, List.of(connectorType), overwrite, result);
     }
@@ -748,7 +752,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ResourceType> addResource(
-            TestResource<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
+            TestObject<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         logger.trace("addObjectFromFile: {}, connector types {}", testResource, connectorTypes);
         return addResourceFromObject(testResource.getFresh(), connectorTypes, overwrite, result);
@@ -1350,10 +1354,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrementMin, int expectedIncrementMax) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
+        LOGGER.debug("Increment for {}: {}, expected: {}-{}",
+                counter, actualIncrement, expectedIncrementMin, expectedIncrementMax);
         assertTrue(actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax,
                 "Unexpected increment in " + counter.getLabel() + ". Expected "
                         + expectedIncrementMin + "-" + expectedIncrementMax + " but was " + actualIncrement);
         lastCountMap.put(counter, currentCount);
+    }
+
+    protected void assertNoShadowFetchOperations() {
+        assertShadowFetchOperations(0);
+    }
+
+    protected void assertShadowFetchOperations(int expected) {
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, expected);
     }
 
     protected void rememberResourceCacheStats() {
@@ -3489,8 +3503,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 List<Task> pathToRootTask = task.getPathToRootTask(result);
                 if (TaskUtil.tasksToOids(pathToRootTask).contains(taskOid)) {
                     statusQueue.add(task);
-                } else {
-                    System.out.println("Missed update; waiting for " + taskOid + ", got " + task);
                 }
             } catch (SchemaException e) {
                 throw SystemException.unexpected(e);
@@ -4406,5 +4418,57 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         .add(situationUri)
                         .asItemDeltas(),
                 result);
+    }
+
+    public boolean areMarksSupported() {
+        return repositoryService.supportsMarks();
+    }
+
+    /** Useful when we don't know the result OID and want to find one - see */
+    protected void deleteAllSimulationResults(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assert repositoryService.isNative();
+        var allResults = repositoryService.searchObjects(SimulationResultType.class, null, null, result);
+        for (PrismObject<SimulationResultType> simulationResult : allResults) {
+            repositoryService.deleteObject(SimulationResultType.class, simulationResult.getOid(), result);
+        }
+    }
+
+    protected @NotNull SimulationResultType findSimulationResult(OperationResult result) throws SchemaException {
+        assert repositoryService.isNative();
+        List<PrismObject<SimulationResultType>> allResults =
+                repositoryService.searchObjects(SimulationResultType.class, null, null, result);
+        return asObjectable(
+                MiscUtil.extractSingleton(
+                        allResults,
+                        () -> new AssertionError("Multiple simulation results: " + allResults)));
+    }
+
+    protected @NotNull SimulationResultType findSimulationResultRequired(OperationResult result)
+            throws SchemaException {
+        assert repositoryService.isNative();
+        return MiscUtil.requireNonNull(
+                findSimulationResult(result),
+                () -> new AssertionError("no simulation result found"));
+    }
+
+    @Override
+    public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        throw new UnsupportedOperationException("'Init dummy resource' operation is not available here");
+    }
+
+    @Override
+    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        throw new UnsupportedOperationException("'Init dummy resource' operation is not available here");
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        throw new UnsupportedOperationException("'Test resource' operation is not available here");
+    }
+
+    @Override
+    public SimpleObjectResolver getResourceReloader() {
+        return RepoSimpleObjectResolver.get(); // overridden in higher-level tests
     }
 }

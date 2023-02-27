@@ -86,4 +86,9 @@ public abstract class AssociationsTableWizardPanel extends AbstractResourceWizar
     protected AssociationsTable getTable() {
         return (AssociationsTable) get(ID_TABLE);
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
+    }
 }

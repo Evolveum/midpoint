@@ -25,9 +25,12 @@
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
             <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+            <class name="com.evolveum.midpoint.model.intest.simulation.TestPreviewChangesCoD"/>
+            <class name="com.evolveum.midpoint.model.intest.simulation.TestPreviewSequences"/>
             <class name="com.evolveum.midpoint.model.intest.simulation.TestProductionSimulations"/>
             <class name="com.evolveum.midpoint.model.intest.simulation.TestDevelopmentSimulations"/>
             <class name="com.evolveum.midpoint.model.intest.simulation.TestRealExecution"/>
+            <class name="com.evolveum.midpoint.model.intest.simulation.TestSimulationTasksAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiConnectorResources"/>
@@ -89,6 +92,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestMemberRecompute"/>
             <class name="com.evolveum.midpoint.model.intest.TestIndexing"/>
             <class name="com.evolveum.midpoint.model.intest.TestIdentities"/>
+            <class name="com.evolveum.midpoint.model.intest.TestInitialObjects"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">
@@ -157,6 +161,7 @@
     <test name="Metadata" parallel="none" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestValueMetadata"/>
+            <class name="com.evolveum.midpoint.model.intest.TestAccessesValueMetadata"/>
         </classes>
     </test>
     <!--

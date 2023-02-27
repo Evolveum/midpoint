@@ -981,7 +981,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
-        displayValue("Bytes in", MiscUtil.binaryToHex(bytesIn));
+        displayValue("Bytes in", MiscUtil.bytesToHex(bytesIn));
 
         ItemName jpegPhotoQName = new ItemName(NS_RI, "jpegPhoto");
         PropertyDelta<byte[]> jpegPhotoDelta =
@@ -1016,7 +1016,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
         byte[] bytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 
-        displayValue("Bytes out", MiscUtil.binaryToHex(bytesOut));
+        displayValue("Bytes out", MiscUtil.bytesToHex(bytesOut));
 
         assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
         assertArrayEquals("Bytes do not match (shadow)", bytesIn, bytesOut);

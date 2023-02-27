@@ -414,7 +414,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 201);
 
         displayDumpable("Audit", getDummyAuditService());
-        getDummyAuditService().assertRecords(4);
+        getDummyAuditService().assertRecords(4 + accessesMetadataAuditOverhead(1));
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, UserType.class);
     }
@@ -472,7 +472,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 204);
 
         displayDumpable("Audit", getDummyAuditService());
-        getDummyAuditService().assertRecords(4);
+        getDummyAuditService().assertRecords(4 + accessesMetadataAuditOverhead(1));
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 
@@ -574,7 +574,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 201);
 
         displayDumpable("Audit", getDummyAuditService());
-        getDummyAuditService().assertRecords(4);
+        getDummyAuditService().assertRecords(4 + accessesMetadataAuditOverhead(1));
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, UserType.class);
     }

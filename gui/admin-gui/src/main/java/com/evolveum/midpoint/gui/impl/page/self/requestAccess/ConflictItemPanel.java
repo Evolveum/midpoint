@@ -18,11 +18,11 @@ import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.visualization.CardOutlineLeftPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -33,11 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ConflictItemPanel extends BasePanel<Conflict> {
+public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_BADGE = "badge";
     private static final String ID_LINK1 = "link1";
     private static final String ID_LINK2 = "link2";
     private static final String ID_MESSAGE = "message";
@@ -50,7 +49,6 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_OPTION1 = "option1";
     private static final String ID_OPTION2 = "option2";
     private static final String ID_FORM = "form";
-    private static final String ID_TITLE = "title";
 
     private IModel<ConflictItem> selectedOption;
 
@@ -93,21 +91,24 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         };
     }
 
-    private void initLayout() {
-        add(AttributeAppender.append("class", "card conflict-item"));
-        add(AttributeAppender.append("class", () -> {
+    @Override
+    protected IModel<String> createCardOutlineCssModel() {
+        return () -> {
             Conflict c = getModelObject();
             switch (c.getState()) {
                 case SKIPPED:
-                    return "conflict-item-secondary";
+                    return "card-outline-left-secondary";
                 case SOLVED:
-                    return "conflict-item-success";
+                    return "card-outline-left-success";
             }
 
-            return c.isWarning() ? "conflict-item-warning" : "conflict-item-danger";
-        }));
+            return c.isWarning() ? "card-outline-left-warning" : "card-outline-left-danger";
+        };
+    }
 
-        Label title = new Label(ID_TITLE, () -> {
+    @Override
+    protected @NotNull IModel<String> createTitleModel() {
+        return () -> {
             String poiName = WebComponentUtil.getName(getModelObject().getPersonOfInterest());
 
             String shortMsg = getModelObject().getShortMessage();
@@ -116,10 +117,12 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
             }
 
             return getString("ConflictItemPanel.defaultConflictTitle", poiName);
-        });
-        add(title);
+        };
+    }
 
-        BadgePanel badge = new BadgePanel(ID_BADGE, () -> {
+    @Override
+    protected @NotNull IModel<Badge> createBadgeModel() {
+        return () -> {
             Conflict c = getModelObject();
             Badge b = new Badge();
             b.setCssClass(c.isWarning() ? Badge.State.WARNING : Badge.State.DANGER);
@@ -128,9 +131,10 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
             b.setText(getString(key));
 
             return b;
-        });
-        add(badge);
+        };
+    }
 
+    private void initLayout() {
         AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getDisplayName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {

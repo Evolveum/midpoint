@@ -82,6 +82,12 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-api</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -195,6 +201,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
             <version>${project.version}</version>
@@ -257,6 +269,11 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

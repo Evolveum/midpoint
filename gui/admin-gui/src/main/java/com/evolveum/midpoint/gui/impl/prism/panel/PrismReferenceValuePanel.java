@@ -6,36 +6,30 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismReferencePanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
-
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.INullAcceptingValidator;
-
-import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class PrismReferenceValuePanel<R extends Referencable> extends PrismValuePanel<R, PrismReferenceWrapper<R>, PrismReferenceValueWrapperImpl<R>> {
 
@@ -78,8 +72,8 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
             }
 
             @Override
-            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-                return getParentWrapper().getSpecialSearchItemFunctions();
+            protected Set<SearchItemType> getSpecialSearchItem() {
+                return getParentWrapper().getPredefinedSearchItem();
             }
 
             @Override
@@ -110,7 +104,6 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
         };
 
-        panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
         return panel;
     }
 

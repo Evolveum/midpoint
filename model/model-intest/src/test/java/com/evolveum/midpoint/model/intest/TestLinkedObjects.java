@@ -663,7 +663,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("sword is switched to dummy archetype");
-        traced( () -> executeChanges(
+        executeChanges(
                 prismContext.deltaFor(ServiceType.class)
                         .item(ServiceType.F_ASSIGNMENT)
                         .delete(new AssignmentType()
@@ -671,7 +671,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
                         .add(new AssignmentType()
                                 .targetRef(ARCHETYPE_DUMMY.oid, ArchetypeType.COMPLEX_TYPE))
                         .asObjectDelta(SERVICE_SWORD.oid),
-                null, task, result) );
+                null, task, result);
 
         then();
         assertSuccess(result);
@@ -712,7 +712,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(user390, task, result);
 
         when("spoon is switched to 'device' archetype");
-        traced( () -> executeChanges(
+        executeChanges(
                 prismContext.deltaFor(ServiceType.class)
                         .item(ServiceType.F_ASSIGNMENT)
                         .delete(new AssignmentType()
@@ -720,7 +720,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
                         .add(new AssignmentType()
                                 .targetRef(ARCHETYPE_DEVICE.oid, ArchetypeType.COMPLEX_TYPE))
                         .asObjectDelta(spoon390.getOid()),
-                null, task, result) );
+                null, task, result);
 
         then();
         assertSuccess(result);

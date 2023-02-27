@@ -7,22 +7,25 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,7 +33,7 @@ import java.util.List;
  */
 public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-members";
+    public static final String PANEL_TYPE = "roleWizard-members";
     private static final String ID_TABLE = "table";
 
     public MembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {
@@ -45,9 +48,13 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
 
     private void initLayout() {
         AbstractRoleMemberPanel table = new AbstractRoleMemberPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
+
             @Override
-            protected List<QName> getSupportedRelations() {
-                return getSupportedMembersTabRelations();
+            protected void onInitialize() {
+                super.onInitialize();
+                getMemberTable().getTable().setShowAsCard(false);
+                getMemberTable().getTable().add(AttributeAppender.replace("class", ""));
+                getMemberTable().getTable().add(createRefreshBehaviour(getMemberTable().getObjectCollectionView()));
             }
 
             @Override
@@ -59,51 +66,19 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
 
             @Override
             protected List<Component> createToolbarButtonList(String buttonId, List defaultToolbarList) {
-                return List.of(createAssignButton(buttonId), createUnassignButton(buttonId));
+                return List.of(
+                        createAssignButton(buttonId),
+                        createUnassignButton(buttonId),
+                        createRefreshButton(buttonId),
+                        createPlayPauseButton(buttonId));
             }
 
             protected String getStorageKeyTabSuffix() {
                 return getConfiguration() == null ? PANEL_TYPE : super.getStorageKeyTabSuffix();
             }
-
             @Override
-            protected boolean isVisibleAdvanceSearchItem() {
-                return false;
-            }
-
-            @Override
-            protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
-                return List.of(UserType.COMPLEX_TYPE);
-            }
-
-            @Override
-            protected Class<UserType> getChoiceForAllTypes() {
-                return UserType.class;
-            }
-
-            @Override
-            protected SearchBoxConfigurationType getAdditionalPanelConfig() {
-                SearchBoxConfigurationType searchConfig = super.getAdditionalPanelConfig();
-                if (searchConfig == null) {
-                    searchConfig = new SearchBoxConfigurationType();
-                }
-
-                if (searchConfig.getObjectTypeConfiguration() == null) {
-                    ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
-                    objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-                    objTypeConfig.setDefaultValue(UserType.COMPLEX_TYPE);
-                    objTypeConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    searchConfig.setObjectTypeConfiguration(objTypeConfig);
-                }
-
-                if (searchConfig.getRelationConfiguration() == null && getSupportedRelations().size() == 1) {
-                    RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
-                    relationConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    relationConfig.getSupportedRelations().addAll(getSupportedRelations());
-                    relationConfig.setDefaultValue(getSupportedRelations().get(0));
-                    searchConfig.setRelationConfiguration(relationConfig);
-                }
-                return searchConfig;
+            protected CollectionPanelType getPanelType() {
+                return CollectionPanelType.MEMBER_WIZARD;
             }
 
             @Override
@@ -120,6 +95,28 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
                 button.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
                 button.showTitleAsLabel(true);
                 return button;
+            }
+
+            @Override
+            protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
+                showMessageWithoutLinkForTask(task, target);
+            }
+
+            @Override
+            protected WebMarkupContainer getFeedback() {
+                return MembersWizardPanel.this.getFeedback();
+            }
+
+            @Override
+            protected void unassignMembersPerformed(IModel rowModel, QName type, QueryScope scope, Collection relations, AjaxRequestTarget target) {
+                super.unassignMembersPerformed(rowModel, type, scope, relations, target);
+                target.add(getFeedback());
+            }
+
+            @Override
+            protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+                super.executeUnassign(object, relation, target);
+                target.add(getFeedback());
             }
         };
         table.setOutputMarkupId(true);
@@ -146,5 +143,10 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("MembersWizardPanel.subText");
+    }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
     }
 }

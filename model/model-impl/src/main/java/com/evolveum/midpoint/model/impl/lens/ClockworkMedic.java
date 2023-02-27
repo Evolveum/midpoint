@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOpt
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -155,10 +156,18 @@ public class ClockworkMedic {
     }
 
     @SuppressWarnings({ "rawtypes", "UnusedReturnValue" })
-    public boolean partialExecute(String componentName, ProjectorProcessor processor,
-            ProjectionAwareProcessorMethodRef method, Supplier<PartialProcessingTypeType> optionSupplier,
-            Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, String activityDescription,
-            XMLGregorianCalendar now, Task task, OperationResult parentResult)
+    public boolean partialExecute(
+            String componentName,
+            @Nullable ProjectorProcessor processor,
+            ProjectionAwareProcessorMethodRef method,
+            Supplier<PartialProcessingTypeType> optionSupplier,
+            Class<?> executingClass,
+            LensContext<?> context,
+            LensProjectionContext projectionContext,
+            String activityDescription,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
         if (shouldExecute(componentName, processor, context, projectionContext)) {
@@ -208,7 +217,11 @@ public class ClockworkMedic {
         }
     }
 
-    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) {
+    private boolean shouldExecute(
+            String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) {
+        if (processor == null) {
+            return true;
+        }
         ProcessorExecution processorExecution = processor.getClass().getAnnotation(ProcessorExecution.class);
         return processorExecution == null ||
                 focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
@@ -217,8 +230,8 @@ public class ClockworkMedic {
                         && projectionCurrentCheckPasses(componentName, projectionContext);
     }
 
-    private boolean focusPresenceAndTypeCheckPasses(String componentName, LensContext<?> context,
-            ProcessorExecution processorExecution) {
+    private boolean focusPresenceAndTypeCheckPasses(
+            String componentName, LensContext<?> context, ProcessorExecution processorExecution) {
         if (!processorExecution.focusRequired()) {
             // intentionally skipping focus type check
             return true;

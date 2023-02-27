@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,12 +11,11 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
  */
-public class RoleMembershipRefAsserter<R> extends ObjectReferenceAsserter<FocusType,R> {
+public class RoleMembershipRefAsserter<R> extends ObjectReferenceAsserter<FocusType, R> {
 
     public RoleMembershipRefAsserter(PrismReferenceValue refVal) {
         super(refVal, FocusType.class);
@@ -49,7 +48,8 @@ public class RoleMembershipRefAsserter<R> extends ObjectReferenceAsserter<FocusT
     }
 
     public ShadowAsserter<RoleMembershipRefAsserter<R>> shadow() {
-        ShadowAsserter<RoleMembershipRefAsserter<R>> asserter = new ShadowAsserter<>((PrismObject<ShadowType>)getRefVal().getObject(), this, "shadow in reference "+desc());
+        ShadowAsserter<RoleMembershipRefAsserter<R>> asserter =
+                new ShadowAsserter<>(getRefVal().getObject(), this, "shadow in reference " + desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -57,14 +57,13 @@ public class RoleMembershipRefAsserter<R> extends ObjectReferenceAsserter<FocusT
     @Override
     public FocusAsserter<FocusType, RoleMembershipRefAsserter<R>> target()
             throws ObjectNotFoundException, SchemaException {
-        return new FocusAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
+        return new FocusAsserter<>(getResolvedTarget(), this, "object resolved from " + desc());
     }
 
     @Override
     public FocusAsserter<FocusType, RoleMembershipRefAsserter<R>> resolveTarget()
             throws ObjectNotFoundException, SchemaException {
         PrismObject<FocusType> object = resolveTargetObject();
-        return new FocusAsserter<>(object, this, "object resolved from "+desc());
+        return new FocusAsserter<>(object, this, "object resolved from " + desc());
     }
-
 }

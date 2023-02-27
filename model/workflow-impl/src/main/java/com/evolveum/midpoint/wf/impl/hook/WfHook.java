@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.wf.impl.hook;
 
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WORKFLOWS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -20,35 +31,18 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
-import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
-
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WORKFLOWS;
-import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 /**
  * Provides an interface between the model and the workflow engine:
@@ -85,8 +79,8 @@ public class WfHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-            @NotNull OperationResult parentResult) {
+    public <O extends ObjectType> HookOperationMode invoke(
+            @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         // Generally this cannot be minor as we need the "task switched to background" flag.
         // But if the hook does nothing (returns FOREGROUND flag), we mark the result
         // as minor afterwards.
@@ -94,6 +88,11 @@ public class WfHook implements ChangeHook {
         result.addParam("task", task.toString());
         result.addArbitraryObjectAsContext("model state", context.getState());
         try {
+            if (context.isPreview() || context.isSimulation()) {
+                result.recordNotApplicable("preview/simulation mode");
+                return HookOperationMode.FOREGROUND;
+            }
+
             WfConfigurationType wfConfigurationType = configurationHelper.getWorkflowConfiguration(context, result);
             if (wfConfigurationType != null && Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
                 LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
@@ -130,7 +129,7 @@ public class WfHook implements ChangeHook {
     }
 
     @Override
-    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext<?> context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
     }
 
@@ -142,7 +141,7 @@ public class WfHook implements ChangeHook {
         try {
             List<ApprovalSchemaExecutionInformationType> preview =
                     approvalsManager.getApprovalSchemaPreview(context, task, result);
-            ((LensContext) context).addHookPreviewResults(WORKFLOW_HOOK_URI, preview);
+            ((LensContext<?>) context).addHookPreviewResults(WORKFLOW_HOOK_URI, preview);
         } catch (CommonException e) {
             // already recorded in the operation result, so no more processing is necessary
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't preview approvals", e);

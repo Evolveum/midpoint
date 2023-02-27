@@ -46,14 +46,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class Visualizer {
 
     private static final Trace LOGGER = TraceManager.getTrace(Visualizer.class);
+
     public static final String CLASS_DOT = Visualizer.class.getName() + ".";
 
     @Autowired
+    private List<VisualizationDescriptionHandler> descriptionHandlers;
+    @Autowired
     private PrismContext prismContext;
-
     @Autowired
     private ModelService modelService;
-
     @Autowired
     private Resolver resolver;
 
@@ -102,28 +103,9 @@ public class Visualizer {
         visualization.setSourceValue(object.getValue());
         visualization.setSourceDelta(null);
         visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
-        return visualization;
-    }
 
-    @SuppressWarnings("unused")
-    private VisualizationImpl visualize(PrismContainerValue<?> containerValue, VisualizationImpl owner, VisualizationContext context, Task task, OperationResult result) {
-        VisualizationImpl visualization = new VisualizationImpl(owner);
-        visualization.setChangeType(null);
-        NameImpl name = new NameImpl("id " + containerValue.getId());        // TODO
-        name.setNamesAreResourceKeys(false);
-        visualization.setName(name);
-        visualization.setSourceRelPath(EMPTY_PATH);
-        visualization.setSourceAbsPath(EMPTY_PATH);
-        if (containerValue.getComplexTypeDefinition() != null) {
-            // TEMPORARY!!!
-            PrismContainerDefinition<?> pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(containerValue.getComplexTypeDefinition().getTypeName());
-            visualization.setSourceDefinition(pcd);
-        } else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
-            visualization.setSourceDefinition(containerValue.getParent().getDefinition());
-        }
-        visualization.setSourceValue(containerValue);
-        visualization.setSourceDelta(null);
-        visualizeItems(visualization, containerValue.getItems(), false, context, task, result);
+        evaluateDescriptionHandlers(visualization, task, result);
+
         return visualization;
     }
 
@@ -298,6 +280,9 @@ public class Visualizer {
         } else {
             throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
         }
+
+        evaluateDescriptionHandlers(visualization, task, result);
+
         return visualization;
     }
 
@@ -310,6 +295,10 @@ public class Visualizer {
     }
 
     private PrismObject<? extends ObjectType> getObject(String oid, Class<? extends ObjectType> objectTypeClass, VisualizationContext context, Task task, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+
         PrismObject<? extends ObjectType> object = context.getCurrentObject(oid);
         if (object != null) {
             return object;
@@ -335,7 +324,9 @@ public class Visualizer {
         }
     }
 
-    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
+    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive,
+            VisualizationContext context, Task task, OperationResult result) {
+
         if (items == null) {
             return;
         }
@@ -362,12 +353,12 @@ public class Visualizer {
                 for (PrismContainerValue<?> pcv : pc.getValues()) {
                     if (separate) {
                         VisualizationImpl si = new VisualizationImpl(visualization);
+                        si.setChangeType(visualization.getChangeType());
                         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
-                        name.setId(name.getSimpleName());
+                        name.setId(item.getElementName().getLocalPart());
                         if (def != null) {
                             name.setDisplayName(def.getDisplayName());
                         }
-                        name.setNamesAreResourceKeys(true);
                         si.setName(name);
                         if (def != null) {
                             si.setOperational(def.isOperational());
@@ -379,10 +370,14 @@ public class Visualizer {
                         si.setSourceRelPath(ItemPath.create(item.getElementName()));
                         si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
+                        si.setSourceValue(pcv);
                         visualization.addPartialVisualization(si);
+
                         currentVisualization = si;
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
+
+                    evaluateDescriptionHandlers(currentVisualization, task, result);
                 }
             } else {
                 throw new IllegalStateException("Not a property nor reference nor container: " + item);
@@ -517,6 +512,16 @@ public class Visualizer {
         visualizeItems(visualization, value.getItems(), true, context, task, result);
 
         parentVisualization.addPartialVisualization(visualization);
+
+        evaluateDescriptionHandlers(visualization, task, result);
+    }
+
+    private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
+        for (VisualizationDescriptionHandler handler : descriptionHandlers) {
+            if (handler.match(visualization)) {
+                handler.apply(visualization, task, result);
+            }
+        }
     }
 
     private VisualizationImpl createContainerVisualization(ChangeType changeType, ItemPath containerPath, VisualizationImpl parentVisualization) {
@@ -547,7 +552,6 @@ public class Visualizer {
         if (visualizationDefinition != null) {
             name.setDisplayName(visualizationDefinition.getDisplayName());
         }
-        name.setNamesAreResourceKeys(true);            // TODO: ok?
         return name;
     }
 
@@ -624,6 +628,8 @@ public class Visualizer {
             }
         }
         visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
+
+        evaluateDescriptionHandlers(visualizationForItem, task, result);
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
@@ -802,7 +808,7 @@ public class Visualizer {
     }
 
     @SuppressWarnings("unchecked")
-    private <V extends PrismValue, D extends ItemDefinition> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
+    private <V extends PrismValue, D extends ItemDefinition<?>> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
             VisualizationImpl parent)
             throws SchemaException {
         String simpleName = itemDelta.getElementName() != null ? itemDelta.getElementName().getLocalPart() : "";
@@ -811,7 +817,6 @@ public class Visualizer {
             name.setDisplayName(itemDelta.getDefinition().getDisplayName());
         }
         name.setId(simpleName);
-        name.setNamesAreResourceKeys(true);
 
         VisualizationDeltaItemImpl si = new VisualizationDeltaItemImpl(name);
         si.setSourceDelta(itemDelta);
@@ -840,8 +845,7 @@ public class Visualizer {
             name.setDisplayName(def.getDisplayName());
             name.setDescription(def.getDocumentation());
         }
-        name.setId(name.getSimpleName());        // todo reconsider
-        name.setNamesAreResourceKeys(true);
+        name.setId(item.getElementName().getLocalPart());        // todo reconsider
         return name;
     }
 
@@ -937,7 +941,6 @@ public class Visualizer {
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }
-        name.setNamesAreResourceKeys(false);
         return name;
     }
 
@@ -950,7 +953,6 @@ public class Visualizer {
                 nv.setDisplayName(object.asObjectable().getName().getOrig());
             }
         }
-        nv.setNamesAreResourceKeys(false);
         return nv;
     }
 

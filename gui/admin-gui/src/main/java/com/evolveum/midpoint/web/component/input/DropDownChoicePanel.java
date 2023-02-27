@@ -79,6 +79,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
             }
         };
         input.setNullValid(allowNull);
+        input.setOutputMarkupId(true);
         add(input);
     }
 

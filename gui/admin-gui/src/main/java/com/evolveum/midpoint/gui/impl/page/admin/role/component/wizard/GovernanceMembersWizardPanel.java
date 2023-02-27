@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ import java.util.List;
  */
 public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "roleWizard-governance";
+    public static final String PANEL_TYPE = "roleWizard-governance";
     private static final String ID_TABLE = "table";
 
     public GovernanceMembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {
@@ -77,6 +78,11 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
             protected String getTileCssClasses() {
                 return "col-xs-5i col-sm-5i col-md-5i col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
             }
+
+            @Override
+            protected WebMarkupContainer getFeedback() {
+                return GovernanceMembersWizardPanel.this.getFeedback();
+            }
         };
         table.setOutputMarkupId(true);
 
@@ -102,5 +108,10 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("GovernanceMembersWizardPanel.subText");
+    }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
     }
 }

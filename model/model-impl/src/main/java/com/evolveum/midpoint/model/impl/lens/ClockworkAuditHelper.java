@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -64,8 +59,9 @@ public class ClockworkAuditHelper {
 
     // "overallResult" covers the whole clockwork run
     // while "result" is - most of the time - related to the current clockwork click
-    <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result,
-            OperationResult overallResult) throws SchemaException {
+    <F extends ObjectType> void audit(
+            LensContext<F> context, AuditEventStage stage, Task task, OperationResult result, OperationResult overallResult)
+            throws SchemaException {
         if (context.isLazyAuditRequest()) {
             if (stage == AuditEventStage.REQUEST) {
                 // We skip auditing here, we will do it before execution
@@ -103,7 +99,7 @@ public class ClockworkAuditHelper {
             LensContext<F> context, AuditEventStage stage, XMLGregorianCalendar timestamp,
             boolean alwaysAudit, Task task, OperationResult result, OperationResult overallResult) {
 
-        if (!task.isPersistentExecution()) {
+        if (!task.isExecutionFullyPersistent()) {
             // Or, should we record the simulation deltas here? It is better done at the end, because we have all deltas there,
             // so we can have one aggregated delta per object.
             LOGGER.trace("No persistent execution, no auditing");
@@ -360,54 +356,5 @@ public class ClockworkAuditHelper {
             }
         }
         auditRecord.setMessage(sb.toString());
-    }
-
-    /**
-     * Passes the simulation deltas to the appropriate listener.
-     *
-     * The code is here because of the similarity with auditing.
-     *
-     * Temporary code.
-     */
-    <F extends ObjectType> void submitSimulationDeltas(LensContext<F> context, Task task, OperationResult result)
-            throws SchemaException {
-        if (task.isPersistentExecution()) {
-            return;
-        }
-
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext != null) {
-            submitElementSimulationDelta(focusContext, task, result);
-        }
-        // We ignore duplicates stemming from higher-order contexts for now
-        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-            submitElementSimulationDelta(projectionContext, task, result);
-        }
-    }
-
-    /**
-     * Submits the information about the (summary) change computed.
-     *
-     * Limitations:
-     *
-     * - We ignore the fact that sometimes we don't have full shadow loaded. The deltas applied to "shadow-only" state
-     * may be misleading.
-     */
-    private <E extends ObjectType> void submitElementSimulationDelta(
-            LensElementContext<E> elementContext, Task task, OperationResult result) throws SchemaException {
-        task.onItemProcessed(
-                asObjectable(elementContext.getObjectOld()),
-                null, // maybe will be filled-in later
-                getSummaryExecutedDelta(elementContext),
-                elementContext.getEventTags(),
-                result);
-    }
-
-    private static <E extends ObjectType> ObjectDelta<E> getSummaryExecutedDelta(LensElementContext<E> elementContext)
-            throws SchemaException {
-        List<ObjectDelta<E>> executedDeltas = elementContext.getExecutedDeltas().stream()
-                .map(odo -> odo.getObjectDelta())
-                .collect(Collectors.toList());
-        return ObjectDeltaCollectionsUtil.summarize(executedDeltas);
     }
 }

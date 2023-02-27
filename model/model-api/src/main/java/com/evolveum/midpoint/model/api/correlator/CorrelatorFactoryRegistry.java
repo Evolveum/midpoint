@@ -11,13 +11,11 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
-
 /**
  * A registry of correlator factories.
+ *
+ * This method resides in model API module just because a custom code may need to register its own correlator
+ * and correlator factory.
  */
 public interface CorrelatorFactoryRegistry {
 
@@ -27,13 +25,4 @@ public interface CorrelatorFactoryRegistry {
      * @param name Name of the configuration item. Must be qualified.
      */
     void registerFactory(@NotNull QName name, @NotNull CorrelatorFactory<?, ?> factory);
-
-    /**
-     * Convenience method to look up a correlator factory based on the specific (typed) configuration,
-     * and then instantiate the correlator.
-     */
-    <CB extends AbstractCorrelatorType> @NotNull Correlator instantiateCorrelator(
-            @NotNull CorrelatorContext<CB> correlatorContext,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws ConfigurationException;
 }

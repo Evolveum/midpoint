@@ -17,6 +17,11 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
+
+import com.evolveum.midpoint.task.api.SimulationTransaction;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +36,6 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -64,13 +67,13 @@ public class Clockwork {
     private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 
     private static final String OP_RUN = Clockwork.class.getName() + ".run";
+    private static final String OP_WRITE_SIMULATION_DATA = Clockwork.class.getName() + ".writeSimulationData";
 
     @Autowired private Projector projector;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private EventDispatcher eventDispatcher;
     @Autowired private Tracer tracer;
-    @Autowired private PolicyRuleEnforcer policyRuleEnforcer;
-    @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private OperationExecutionRecorderForClockwork operationExecutionRecorder;
@@ -168,10 +171,25 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
-            beans.clockworkAuditHelper.submitSimulationDeltas(context, task, result);
+            writeFullSimulationData(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
+        }
+    }
+
+    private void writeFullSimulationData(LensContext<?> context, Task task, OperationResult parentResult) {
+        SimulationTransaction transactionContext = task.getSimulationTransaction();
+        if (!task.isExecutionFullyPersistent() && transactionContext != null) {
+            OperationResult result = parentResult.createMinorSubresult(OP_WRITE_SIMULATION_DATA);
+            try {
+                transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
+            }
         }
     }
 
@@ -320,8 +338,7 @@ public class Clockwork {
                 throw new SystemException("Unexpected execution conflict detected: " + e.getMessage(), e);
             }
             clockworkHookHelper.invokePreview(context, task, result);
-            policyRuleEnforcer.execute(context, result);
-            policyRuleSuspendTaskExecutor.execute(context, task, result);
+            policyRuleProcessor.enforce(context, result);
 
         } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
                 CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |

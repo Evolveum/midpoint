@@ -10,6 +10,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
+import com.evolveum.midpoint.web.component.data.column.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +36,6 @@ import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -48,15 +52,11 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -74,19 +74,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.*;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -245,43 +240,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected Search createSearch(Class<ShadowType> type) {
-                        Search search = SearchFactory.createProjectionsTabSearch(getPageBase());
-//                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
-//                        if (defaultDeadItem != null) {
-//                            defaultDeadItem.setVisible(false);
-//                        }
-//                        addDeadSearchItem(search);
-                        return search;
-                    }
-
-                    @Override
-                    protected List<SearchItemDefinition> initSearchableItems(
-                            PrismContainerDefinition<ShadowType> containerDef) {
-                        List<SearchItemDefinition> defs = new ArrayList<>();
-                        SearchFactory.addSearchRefDef(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
-                        return defs;
-                    }
-
-                    @Override
-                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef) {
-                        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-
-                        SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs, getPageBase());
-
-                        return defs;
-                    }
-
-                    @Override
                     protected MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(
                             ListItem<PrismContainerValueWrapper<ShadowType>> item) {
                         return FocusProjectionsPanel.this.getMultivalueContainerDetailsPanel(item);
+                    }
+
+                    @Override
+                    protected SearchContext createAdditionalSearchContext() {
+                        SearchContext ctx = new SearchContext();
+                        ctx.setPanelType(CollectionPanelType.PROJECTION_SHADOW);
+                        return ctx;
                     }
                 };
         add(multivalueContainerListPanel);
@@ -289,43 +257,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private IColumn<PrismContainerValueWrapper<ShadowType>, String> createProjectionNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        if (expression != null) {
-            return new AjaxLinkColumn<>(displayModel) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                    ItemPath itemPath = WebComponentUtil.getPath(customColumn);
-
-                    return new LoadableModel<>() {
-                        @Override
-                        protected String load() {
-                            Collection<String> evaluatedValues = getMultivalueContainerListPanel().loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-                            if (CollectionUtils.isEmpty(evaluatedValues)) {
-                                return "";
-                            }
-                            if (evaluatedValues.size() == 1) {
-                                return evaluatedValues.iterator().next();
-                            }
-                            return String.join(", ", evaluatedValues);
-                        }
-                    };
-                }
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                    getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-                    target.add(getPageBase().getFeedbackPanel());
-                }
-            };
-        }
-
-        IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
-        return new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()) {
-            private static final long serialVersionUID = 1L;
+        return new ContainerableNameColumn<>(displayModel, null, customColumn, expression, getPageBase()) {
 
             @Override
-            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+            protected IModel<String> getContainerName(PrismContainerValueWrapper<ShadowType> rowModel) {
+                ShadowType value = rowModel.getRealValue();
+                return Model.of(value == null ? "" : WebComponentUtil.getName(value, true));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel rowModel) {
                 getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
                 target.add(getPageBase().getFeedbackPanel());
             }
@@ -368,15 +309,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         }
         return dead;
-    }
-
-    private void addDeadSearchItem(Search search) {
-        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
-                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
-                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        //todo create dead search item for refactored search
-//        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
-//        search.addSpecialItem(deadShadowSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {

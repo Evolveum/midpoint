@@ -34,4 +34,5 @@
     <import resource="ctx-audit.xml"/>
     <import resource="ctx-security.xml"/>
     <import resource="ctx-notifications.xml"/>
+    <import resource="ctx-report.xml"/>
 </beans>

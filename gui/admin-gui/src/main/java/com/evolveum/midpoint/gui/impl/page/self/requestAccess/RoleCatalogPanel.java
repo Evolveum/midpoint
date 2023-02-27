@@ -11,14 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
-
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
-
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
-
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
-
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +23,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -52,9 +46,12 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -71,7 +68,7 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
@@ -109,7 +106,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private final PageBase page;
 
-    private IModel<Search<? extends ObjectType>> searchModel;
+    private IModel<Search> searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -316,7 +313,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         searchModel = new LoadableModel<>(false) {
 
             @Override
-            public Search<? extends ObjectType> getObject() {
+            public Search getObject() {
                 Search search = super.getObject();
 
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
@@ -331,9 +328,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            protected Search<? extends ObjectType> load() {
+            protected Search load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
-                return SearchFactory.createSearch(type, page);
+
+                SearchBuilder searchBuilder = new SearchBuilder(type)
+                        .modelServiceLocator(page);
+
+                return searchBuilder.build();
             }
         };
 
@@ -358,6 +359,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
+                // make sure menuModel was loaded
+                menuModel.getObject();
+
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
                 ObjectQuery query = catalogQuery.getQuery();
 
@@ -376,9 +380,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 .build();
         provider.setOptions(options);
 
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+                new TileTablePanel<>(ID_TILES, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+
+                    @Override
+                    protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
+                        return RoleCatalogPanel.this.createColumns();
+                    }
 
                     @Override
                     protected Component createHeader(String id) {
@@ -477,12 +485,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     }
 
                     @Override
+                    protected ISortableDataProvider createProvider() {
+                        return provider;
+                    }
+
+                    @Override
                     protected String getTileCssClasses() {
                         return "col-12 col-md-6 col-lg-4 col-xxl-2";
                     }
 
                     @Override
-                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
+                    protected IModel<Search> createSearchModel() {
                         return searchModel;
                     }
                 };
@@ -592,7 +605,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         Search search = searchModel.getObject();
         if (!Objects.equals(search.getTypeClass(), query.getType())) {
-            searchModel.setObject(SearchFactory.createSearch(query.getType(), page));
+            SearchBuilder searchBuilder = new SearchBuilder(query.getType())
+                    .modelServiceLocator(page);
+
+            searchModel.setObject(searchBuilder.build());
         }
 
         target.add(get(ID_TILES));

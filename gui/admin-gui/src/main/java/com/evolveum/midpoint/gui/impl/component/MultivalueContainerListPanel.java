@@ -10,20 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.web.component.*;
-
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,27 +19,31 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * @author skublik
@@ -71,57 +61,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     public MultivalueContainerListPanel(String id, Class<C> type, ContainerPanelConfigurationType config) {
         super(id, type, null, config);
     }
-
-    @Override
-    protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(createSearchConfigWrapper(type), getPageBase());
-    }
-
-    private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
-        SearchBoxConfigurationType maybeConfig = null;
-        if (getPanelConfiguration() != null && getPanelConfiguration().getListView() != null) {
-            maybeConfig = getPanelConfiguration().getListView().getSearchBoxConfiguration();
-        }
-
-
-        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(type, maybeConfig, getPageBase()) : new SearchConfigurationWrapper<C>(type, getPageBase());
-        CompiledObjectCollectionView collectionView = getObjectCollectionView();
-        if (objectCollectionRefExists(collectionView)) {
-            searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
-        }
-        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
-        if (items != null) {
-            searchConfigWrapper.getItemsList().addAll(items);
-        }
-        return searchConfigWrapper;
-    }
-
-    private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
+        private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
         return collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
                 && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE);
     }
 
-
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-    }
-
-    private ContainerTypeSearchItem<C> createTypeSearchItem(Class<C> type, PrismContainerDefinition<C> containerDefinition) {
-        return new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName()));
-    }
-
-    @Deprecated
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
-        return null;
-    }
-
-    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
-        return null;
-    }
-
-    protected ItemPath getDefaultSearchItem() {
-        return null;
     }
 
     @Override
@@ -315,15 +261,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
         return null;
-    }
-
-    @Override
-    protected C getRowRealValue(PrismContainerValueWrapper<C> rowModelObject) {
-        if (rowModelObject == null) {
-            return null;
-        }
-
-        return rowModelObject.getRealValue();
     }
 
     @Override

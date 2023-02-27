@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="846e4c54-cee5-4e45-b0cf-ce8914ecba54"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-outbound</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>outbound</icfi:instanceId>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+                <correlator/>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/locality</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>rum</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Arr!</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <tolerant>true</tolerant>
+            </attribute>
+
+            <association>
+                <ref>ri:group</ref>
+                <tolerant>false</tolerant>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+            <association>
+                <ref>ri:priv</ref>
+                <kind>entitlement</kind>
+                <intent>privilege</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:privileges</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Groupname</displayName>
+                <exclusiveStrong>true</exclusiveStrong>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <default>false</default>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+    </schemaHandling>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+        <caseIgnoreAttributeNames>true</caseIgnoreAttributeNames>
+    </consistency>
+</resource>

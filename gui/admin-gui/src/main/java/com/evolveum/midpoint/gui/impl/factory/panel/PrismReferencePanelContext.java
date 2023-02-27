@@ -6,12 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import java.util.Set;
-
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
@@ -31,8 +25,5 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
         return unwrapWrapperModel().getFilter();
     }
 
-    public Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItems() {
-        return unwrapWrapperModel().getSpecialSearchItemFunctions();
-    }
 
 }

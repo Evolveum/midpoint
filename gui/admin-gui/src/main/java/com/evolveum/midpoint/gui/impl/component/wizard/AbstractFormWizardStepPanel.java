@@ -26,8 +26,8 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractFormWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels<O>>
-        extends AbstractWizardStepPanel<O, ODM> {
+public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModels>
+        extends AbstractWizardStepPanel<ODM> {
 
     private static final String ID_FORM = "form";
 
@@ -93,7 +93,7 @@ public abstract class AbstractFormWizardStepPanel<O extends ObjectType, ODM exte
                 (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel<?>) component).updateFeedbackPanel(target));
     }
 
-    private VerticalFormPanel getVerticalForm() {
+    protected VerticalFormPanel getVerticalForm() {
         return (VerticalFormPanel) get(ID_FORM);
     }
 }

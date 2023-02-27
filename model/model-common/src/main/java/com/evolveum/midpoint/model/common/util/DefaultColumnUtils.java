@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -102,6 +102,21 @@ public class DefaultColumnUtils {
                 .put(MessageTemplateType.class, Arrays.asList(
                         new ColumnWrapper(MessageTemplateType.F_NAME),
                         new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
+                .put(MarkType.class, Arrays.asList(
+                        new ColumnWrapper(MarkType.F_NAME),
+                        new ColumnWrapper(ItemPath.create(MarkType.F_DISPLAY, DisplayType.F_LABEL)),
+                        new ColumnWrapper(MarkType.F_DESCRIPTION),
+                        new ColumnWrapper(ItemPath.create(MarkType.F_EVENT_MARK, EventMarkInformationType.F_DOMAIN)),
+                        new ColumnWrapper(ItemPath.create(MarkType.F_EVENT_MARK, EventMarkInformationType.F_ENABLED_BY_DEFAULT))))
+                .put(SimulationResultType.class, Arrays.asList(
+                        new ColumnWrapper(SimulationResultType.F_NAME),
+                        new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
+                        new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP)))
+                .put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_DELTA)))
                 .build();
     }
 
@@ -118,7 +133,7 @@ public class DefaultColumnUtils {
         return OBJECT_COLUMNS_DEF;
     }
 
-    public static <C extends Containerable> GuiObjectListViewType getDefaultView(Class<? extends C> type) {
+    public static GuiObjectListViewType getDefaultView(Class<?> type) {
         if (type == null) {
             return getDefaultObjectView();
         }
@@ -146,10 +161,28 @@ public class DefaultColumnUtils {
             return getDefaultAuditEventsView();
         } else if (MessageTemplateType.class.equals(type)) {
             return getDefaultMessageTemplateView();
+        } else if (SimulationResultType.class.equals(type)) {
+            return getSimulationResultView();
+        } else if (SimulationResultProcessedObjectType.class.equals(type)) {
+            return getDefaultSimulationResultProcessedObjectView();
+        } else if (MarkType.class.equals(type)) {
+            return getMarkView();
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
+    }
+
+    public static GuiObjectListViewType getMarkView() {
+        return getDefaultView(MarkType.COMPLEX_TYPE, "default-mark", MarkType.class);
+    }
+
+    public static GuiObjectListViewType getSimulationResultView() {
+        return getDefaultView(SimulationResultType.COMPLEX_TYPE, "default-simulation-result", SimulationResultType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultSimulationResultProcessedObjectView() {
+        return getDefaultView(SimulationResultProcessedObjectType.COMPLEX_TYPE, "default-simulation-result-processed-object", SimulationResultProcessedObjectType.class);
     }
 
     public static GuiObjectListViewType getDefaultAuditEventsView() {
@@ -200,8 +233,7 @@ public class DefaultColumnUtils {
         return getDefaultView(ObjectType.COMPLEX_TYPE, "default-object", ObjectType.class);
     }
 
-    private static <C extends Containerable> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends
-            C> type) {
+    private static <C extends Containerable> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends C> type) {
         GuiObjectListViewType view = new GuiObjectListViewType();
         view.setType(qname);
         view.setIdentifier(identifier);
@@ -241,14 +273,12 @@ public class DefaultColumnUtils {
     }
 
     public static String processSpecialColumn(
-            ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
-        return processSpecialColumn(itemPath, object.getRealValue(), localization);
-    }
-
-    public static String processSpecialColumn(
-            ItemPath itemPath, Containerable object, LocalizationService localization) {
+            ItemPath itemPath, Object object, LocalizationService localization) {
         if (itemPath == null) {
             return null;
+        }
+        if (object instanceof PrismValue) {
+            object = ((PrismValue) object).getRealValue();
         }
         if (object instanceof TaskType) {
             TaskType task = (TaskType) object;
@@ -297,7 +327,7 @@ public class DefaultColumnUtils {
         return null;
     }
 
-    public static boolean isSpecialColumn(ItemPath itemPath, Containerable value) {
+    public static boolean isSpecialColumn(ItemPath itemPath, Object value) {
         if (value == null || itemPath == null) {
             return false;
         }
@@ -317,7 +347,7 @@ public class DefaultColumnUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOption(
-            Class<Containerable> type, SchemaService schemaService) {
+            Class<?> type, SchemaService schemaService) {
         if (type == null) {
             return null;
         }
@@ -343,7 +373,7 @@ public class DefaultColumnUtils {
 
     private static class ColumnWrapper {
 
-        private ItemPath path;
+        private final ItemPath path;
         private String label = null;
         private boolean isSortable = false;
         private DisplayValueType displayValue = DisplayValueType.STRING;

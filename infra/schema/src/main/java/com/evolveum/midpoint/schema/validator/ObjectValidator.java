@@ -116,7 +116,7 @@ public class ObjectValidator {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void visitItem(Item<V,D> item, ValidationResult result) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void visitItem(Item<V,D> item, ValidationResult result) {
         if (item.isRaw()) {
             return;
         }
@@ -150,11 +150,11 @@ public class ObjectValidator {
 
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void warn(ValidationResult result, Item<V, D> item, String message) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void warn(ValidationResult result, Item<V, D> item, String message) {
         msg(result, OperationResultStatus.WARNING, item, message);
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void msg(ValidationResult result, OperationResultStatus status, Item<V, D> item, String message) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void msg(ValidationResult result, OperationResultStatus status, Item<V, D> item, String message) {
         ValidationItem resultItem = new ValidationItem();
         resultItem.setStatus(status);
         if (item != null) {

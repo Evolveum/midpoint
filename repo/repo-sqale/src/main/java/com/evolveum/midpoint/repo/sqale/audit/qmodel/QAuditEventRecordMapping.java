@@ -222,13 +222,13 @@ public class QAuditEventRecordMapping
 
         PrismReferenceValue attorney = record.getAttorneyRef();
         if (attorney != null) {
-            row.attorneyOid = SqaleUtils.oidToUUid(attorney.getOid());
+            row.attorneyOid = SqaleUtils.oidToUuid(attorney.getOid());
             row.attorneyName = attorney.getDescription();
         }
 
         PrismReferenceValue initiator = record.getInitiatorRef();
         if (initiator != null) {
-            row.initiatorOid = SqaleUtils.oidToUUid(initiator.getOid());
+            row.initiatorOid = SqaleUtils.oidToUuid(initiator.getOid());
             row.initiatorType = Objects.requireNonNullElse(
                     MObjectType.fromTypeQName(initiator.getTargetType()),
                     MObjectType.FOCUS);
@@ -246,18 +246,18 @@ public class QAuditEventRecordMapping
 
         PrismReferenceValue target = record.getTargetRef();
         if (target != null) {
-            row.targetOid = SqaleUtils.oidToUUid(target.getOid());
+            row.targetOid = SqaleUtils.oidToUuid(target.getOid());
             row.targetType = MObjectType.fromTypeQName(target.getTargetType());
             row.targetName = target.getDescription();
         }
         PrismReferenceValue targetOwner = record.getTargetOwnerRef();
         if (targetOwner != null) {
-            row.targetOwnerOid = SqaleUtils.oidToUUid(targetOwner.getOid());
+            row.targetOwnerOid = SqaleUtils.oidToUuid(targetOwner.getOid());
             row.targetOwnerType = MObjectType.fromTypeQName(targetOwner.getTargetType());
             row.targetOwnerName = targetOwner.getDescription();
         }
         row.taskIdentifier = record.getTaskIdentifier();
-        row.taskOid = SqaleUtils.oidToUUid(record.getTaskOid());
+        row.taskOid = SqaleUtils.oidToUuid(record.getTaskOid());
 
         row.resourceOids = stringsToArray(record.getResourceOids());
         Map<String, ?> properties = record.getProperties();
@@ -286,13 +286,13 @@ public class QAuditEventRecordMapping
 
         ObjectReferenceType attorney = record.getAttorneyRef();
         if (attorney != null) {
-            row.attorneyOid = SqaleUtils.oidToUUid(attorney.getOid());
+            row.attorneyOid = SqaleUtils.oidToUuid(attorney.getOid());
             row.attorneyName = attorney.getDescription();
         }
 
         ObjectReferenceType initiator = record.getInitiatorRef();
         if (initiator != null) {
-            row.initiatorOid = SqaleUtils.oidToUUid(initiator.getOid());
+            row.initiatorOid = SqaleUtils.oidToUuid(initiator.getOid());
             row.initiatorType = Objects.requireNonNullElse(
                     MObjectType.fromTypeQName(initiator.getType()),
                     MObjectType.FOCUS);
@@ -310,18 +310,18 @@ public class QAuditEventRecordMapping
 
         ObjectReferenceType target = record.getTargetRef();
         if (target != null) {
-            row.targetOid = SqaleUtils.oidToUUid(target.getOid());
+            row.targetOid = SqaleUtils.oidToUuid(target.getOid());
             row.targetType = MObjectType.fromTypeQName(target.getType());
             row.targetName = target.getDescription();
         }
         ObjectReferenceType targetOwner = record.getTargetOwnerRef();
         if (targetOwner != null) {
-            row.targetOwnerOid = SqaleUtils.oidToUUid(targetOwner.getOid());
+            row.targetOwnerOid = SqaleUtils.oidToUuid(targetOwner.getOid());
             row.targetOwnerType = MObjectType.fromTypeQName(targetOwner.getType());
             row.targetOwnerName = targetOwner.getDescription();
         }
         row.taskIdentifier = record.getTaskIdentifier();
-        row.taskOid = SqaleUtils.oidToUUid(record.getTaskOID());
+        row.taskOid = SqaleUtils.oidToUuid(record.getTaskOID());
 
         row.resourceOids = stringsToArray(record.getResourceOid());
 

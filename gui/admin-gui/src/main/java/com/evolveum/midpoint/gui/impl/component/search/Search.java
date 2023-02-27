@@ -9,33 +9,35 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class Search<C extends Containerable> implements Serializable, DebugDumpable {
+public class Search<T extends Serializable> implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
@@ -44,110 +46,149 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_FULL_TEXT = "fullText";
     public static final String F_TYPE = "type";
 
+    public static final String F_MODE = "defaultSearchBoxMode";
+    public static final String F_ALLOWED_MODES = "allowedModeList";
 
-    public enum PanelType {
-        DEFAULT,
-        MEMBER_PANEL,
+    public static final String F_OID_SEARCH = "oidSearchItemWrapper";
+    public static final String F_ADVANCED_SEARCH = "advancedQueryWrapper";
+    public static final String F_AXIOM_SEARCH = "axiomQueryWrapper";
+    public static final String F_FULLTEXT_SEARCH = "fulltextQueryWrapper";
+    public static final String F_BASIC_SEARCH = "basicQueryWrapper";
+
+    private ObjectTypeSearchItemWrapper type;
+    private SearchBoxModeType defaultSearchBoxMode;
+    private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
+    private AdvancedQueryWrapper advancedQueryWrapper;
+    private AxiomQueryWrapper axiomQueryWrapper;
+    private FulltextQueryWrapper fulltextQueryWrapper;
+    private BasicQueryWrapper basicQueryWrapper;
+    private OidSearchItemWrapper oidSearchItemWrapper;
+    private String collectionViewName;
+    private String collectionRefOid;
+
+    private List<AvailableFilterType> availableFilterTypes;
+
+    public String getCollectionViewName() {
+        return collectionViewName;
     }
 
-    private List<SearchBoxModeType> allowedSearchType = new ArrayList<>();
-
-    private String advancedQuery;
-    private String dslQuery;
-    private String advancedError;
-    private String fullText;
-
-    private SearchConfigurationWrapper searchConfigurationWrapper;
-    private PrismContainerDefinition<C> containerDefinitionOverride;
-
-    public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
-        this.searchConfigurationWrapper = searchConfigurationWrapper;
+    public void setCollectionViewName(String collectionViewName) {
+        this.collectionViewName = collectionViewName;
     }
 
-    public SearchConfigurationWrapper getSearchConfigurationWrapper() {
-        return searchConfigurationWrapper;
+    public String getCollectionRefOid() {
+        return collectionRefOid;
     }
 
-    public List<AbstractSearchItemWrapper> getItems() {
-        return searchConfigurationWrapper.getItemsList();
+    public void setCollectionRefOid(String collectionRefOid) {
+        this.collectionRefOid = collectionRefOid;
+    }
+
+    public Search(ObjectTypeSearchItemWrapper type, SearchBoxConfigurationType searchBoxConfigurationType) {
+
+        this.type = type;
+        this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
+        this.availableFilterTypes = searchBoxConfigurationType.getAvailableFilter();
+    }
+
+    public List<QName> getAllowedTypeList() {
+        return type.getAvailableValues();
+    }
+
+    void setAdvancedQueryWrapper(AdvancedQueryWrapper advancedQueryWrapper) {
+        this.advancedQueryWrapper = advancedQueryWrapper;
+    }
+
+    void setAxiomQueryWrapper(AxiomQueryWrapper axiomQueryWrapper) {
+        this.axiomQueryWrapper = axiomQueryWrapper;
+    }
+
+    void setSearchConfigurationWrapper(BasicQueryWrapper basicQueryWrapper) {
+        this.basicQueryWrapper = basicQueryWrapper;
+    }
+
+    void setFulltextQueryWrapper(FulltextQueryWrapper fulltextQueryWrapper) {
+        this.fulltextQueryWrapper = fulltextQueryWrapper;
+    }
+
+    public void setOidSearchItemWrapper(OidSearchItemWrapper oidSearchItemWrapper) {
+        this.oidSearchItemWrapper = oidSearchItemWrapper;
+    }
+
+    public List<FilterableSearchItemWrapper<?>> getItems() {
+        return basicQueryWrapper.getItemsList();
     }
 
     public SearchBoxModeType getSearchMode() {
-        return searchConfigurationWrapper.getDefaultSearchBoxMode();
+        return defaultSearchBoxMode;
     }
 
     public void setSearchMode(SearchBoxModeType searchMode) {
-        searchConfigurationWrapper.setDefaultSearchBoxMode(searchMode);
+        this.defaultSearchBoxMode = searchMode;
     }
 
     public boolean isFullTextSearchEnabled() {
-        return searchConfigurationWrapper.getAllowedModeList().contains(SearchBoxModeType.FULLTEXT);
+        return allowedModeList.contains(SearchBoxModeType.FULLTEXT);
     }
 
-    public boolean isAdvancedQueryValid(PrismContext ctx) {
-        try {
-            advancedError = null;
+    public List<SearchBoxModeType> getAllowedModeList() {
+        return allowedModeList;
+    }
 
-            createAdvancedObjectFilter(ctx);
-            return true;
-        } catch (Exception ex) {
-            advancedError = createErrorMessage(ex);
+    public void setAllowedModeList(List<SearchBoxModeType> allowedModeList) {
+        this.allowedModeList = allowedModeList;
+    }
+
+    public void addAllowedModelType(SearchBoxModeType allowedModeType) {
+        if (allowedModeList == null) {
+            allowedModeList = new ArrayList<>();
         }
-
-        return false;
+        allowedModeList.add(allowedModeType);
+    }
+    public boolean isAdvancedQueryValid(PageBase pageBase) {
+        createObjectQuery(pageBase);
+        return determineQueryWrapper().getAdvancedError() == null;
     }
 
     public String getAdvancedError() {
-        return advancedError;
+        return determineQueryWrapper().getAdvancedError();
     }
 
     public String getAdvancedQuery() {
-        return advancedQuery;
+        return advancedQueryWrapper.getAdvancedQuery();
     }
 
     public String getDslQuery() {
-        return dslQuery;
+        return axiomQueryWrapper.getDslQuery();
     }
 
     public void setDslQuery(String dslQuery) {
-        this.dslQuery = dslQuery;
+        axiomQueryWrapper = new AxiomQueryWrapper(null);
+        axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
-    private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
-        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
-        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-            if (StringUtils.isEmpty(advancedQuery)) {
-                return null;
-            }
-            SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-            return ctx.getQueryConverter().parseFilter(search, getTypeClass());
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-            if (StringUtils.isEmpty(dslQuery)) {
-                return null;
-            }
-            var parser = ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes());
-            if (containerDefinitionOverride  == null) {
-                return parser.parseFilter(getTypeClass(), dslQuery);
-            }
-            return parser.parseFilter(containerDefinitionOverride, dslQuery);
-        }
+//    private ObjectQuery createAdvancedObjectFilter(PageBase pageBase) throws SchemaException {
+//        SearchBoxModeType searchMode = getSearchMode();
+//        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
+//            return advancedQueryWrapper.createQuery(getTypeClass(), pageBase, null);
+//        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
+//            return axiomQueryWrapper.createQuery(getTypeClass(), pageBase, null);
+//        }
+//
+//        return null;
+//    }
 
-        return null;
-    }
-
-    public Class<C> getTypeClass() {
-        ObjectTypeSearchItemWrapper<C> objectTypeWrapper = findObjectTypeSearchItemWrapper();
+    public Class<T> getTypeClass() {
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
-            return (Class<C> )  ObjectType.class;
+            return (Class<T>) ObjectType.class;
         }
-        if (objectTypeWrapper != null) {
-            if (objectTypeWrapper.getValue().getValue() != null){
-                return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValue().getValue());
-            } else if (objectTypeWrapper.getValueForNull() != null) {
-                return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValueForNull());
-            }
+        if (type.getValue().getValue() != null){
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValue().getValue());
+        } else if (type.getValueForNull() != null) {
+            return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValueForNull());
         }
-        return searchConfigurationWrapper.getTypeClass();
+
+        return null; //should not happen
     }
 
     private String createErrorMessage(Exception ex) {
@@ -176,147 +217,170 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
-        ObjectQuery query;
-        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
-        if (SearchBoxModeType.OID.equals(getSearchMode())) {
-            query = createObjectQueryOid(pageBase);
-        } else {
-            query = createObjectTypeItemQuery(pageBase);
-            ObjectQuery searchTypeQuery = null;
-            if (SearchBoxModeType.ADVANCED.equals(searchMode) || SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-                searchTypeQuery = createObjectQueryAdvanced(pageBase);
-            } else if (SearchBoxModeType.FULLTEXT.equals(searchMode)) {
-                searchTypeQuery = createObjectQueryFullText(pageBase);
-            } else {
-                searchTypeQuery = createObjectQuerySimple(variables, pageBase);
-            }
-
-            query = mergeQueries(query, searchTypeQuery);
-            if (query == null) {
-                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-            }
-
-            ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
-            query = mergeQueries(query, archetypeQuery);
+        QueryWrapper queryWrapper = determineQueryWrapper();
+        if (queryWrapper == null) {
+            LOGGER.trace("Cannot create query, not supported search box mode: {}", getSearchMode());
+            return PrismContext.get().queryFactory().createQuery();
         }
+
+        ObjectQuery query = null;
+        try {
+            query = queryWrapper.createQuery(getTypeClass(), pageBase, variables);
+        } catch (Exception e) {
+            LOGGER.warn("Cannot create query: {}", e.getMessage(), e);
+            queryWrapper.setAdvancedError(createErrorMessage(e));
+        }
+//        if (query == null) {
+//            if (ObjectReferenceType.class.equals(getTypeClass())) {
+//                query = pageBase.getPrismContext().queryForReferenceOwnedBy(ObjectType.class, null).build();
+//            }
+//            query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) getTypeClass()).build();
+//        }
+
+        ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
+        query = mergeQueries(query, archetypeQuery);
+//        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
         return query;
     }
 
-    private ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {
-        try{
-            advancedError = null;
+    private QueryWrapper determineQueryWrapper() {
+        SearchBoxModeType searchMode = getSearchMode();
 
-            ObjectFilter filter = createAdvancedObjectFilter(pageBase.getPrismContext());
-            if (filter == null) {
-                return null;
-            }
-            @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
-            return query;
-        } catch (Exception ex) {
-            advancedError = createErrorMessage(ex);
+        switch (searchMode) {
+            case OID:
+                return oidSearchItemWrapper;
+            case ADVANCED:
+                return advancedQueryWrapper;
+            case AXIOM_QUERY:
+                return axiomQueryWrapper;
+            case FULLTEXT:
+                return fulltextQueryWrapper;
+            case BASIC:
+                return basicQueryWrapper;
         }
-
         return null;
     }
 
-    private ObjectQuery createObjectQueryFullText(PageBase pageBase) {
-        if (StringUtils.isEmpty(fullText)) {
-            return null;
-        }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass())
-                .fullText(fullText)
-                .build();
-        return query;
-    }
+//    private ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {
+//        try{
+//            advancedError = null;
+//
+//            ObjectQuery query = createAdvancedObjectFilter(pageBase);
+//            return query;
+//        } catch (Exception ex) {
+//            advancedError = createErrorMessage(ex);
+//        }
+//
+//        return null;
+//    }
 
-    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
-        OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
-        if (oidItem == null) {
-            return null;
-        }
-        if (StringUtils.isEmpty(oidItem.getValue().getValue())) {
-            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
-        }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
-                .id(oidItem.getValue().getValue())
-                .build();
-        return query;
-    }
+//    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
+//        OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
+//        if (oidItem == null) {
+//            return null;
+//        }
+//        if (StringUtils.isEmpty(oidItem.getValue().getValue())) {
+//            return pageBase.getPrismContext().queryFor(ObjectType.class).build();
+//        }
+//        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
+//                .id(oidItem.getValue().getValue())
+//                .build();
+//        return query;
+//    }
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof OidSearchItemWrapper) {
-                return (OidSearchItemWrapper) item;
-            }
-        }
-        return null;
+        return oidSearchItemWrapper;
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             if (item instanceof ObjectCollectionSearchItemWrapper) {
                 return (ObjectCollectionSearchItemWrapper) item;
             }
         }
         return null;
     }
-
-    public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                return (ObjectTypeSearchItemWrapper) item;
+    public AbstractRoleSearchItemWrapper findMemberSearchItem() {
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
+        for (FilterableSearchItemWrapper<?> item : items) {
+            if (item instanceof AbstractRoleSearchItemWrapper) {
+                return (AbstractRoleSearchItemWrapper) item;
             }
         }
         return null;
     }
 
-    private ObjectQuery createObjectTypeItemQuery(PageBase pageBase) {
-        ObjectQuery query;
-        if (getTypeClass() != null) {
-            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-        } else {
-            query = pageBase.getPrismContext().queryFactory().createQuery();
-        }
-        return query;
-    }
+//    private ObjectQuery createObjectTypeItemQuery() {
+//        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
+//        return query;
+//    }
 
     private ObjectQuery evaluateCollectionFilter(PageBase pageBase) {
-        CompiledObjectCollectionView view = null;
+
         OperationResult result = new OperationResult(OPERATION_EVALUATE_COLLECTION_FILTER);
         Task task = pageBase.createSimpleTask(OPERATION_EVALUATE_COLLECTION_FILTER);
-        ObjectFilter collectionFilter = null;
-        if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
-            view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
-            collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionViewName())) {
-            view = pageBase.getCompiledGuiProfile()
-                    .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
-                            searchConfigurationWrapper.getCollectionViewName());
-            collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionRefOid())) {
-            try {
-                PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
-                        searchConfigurationWrapper.getCollectionRefOid(), pageBase, task, result);
-                if (collection != null && collection.asObjectable().getFilter() != null) {
-                    collectionFilter = PrismContext.get().getQueryConverter().parseFilter(collection.asObjectable().getFilter(), getTypeClass());
-                }
-            } catch (SchemaException e) {
-                LOGGER.error("Failed to parse filter from object collection, oid {}, {}", searchConfigurationWrapper.getCollectionRefOid(), e.getStackTrace());
-                pageBase.error("Failed to parse filter from object collection, oid " + searchConfigurationWrapper.getCollectionRefOid());
-            }
-        }
+        ObjectFilter collectionFilter = getCollectionFilter(pageBase, task, result);
+
         if (collectionFilter == null) {
             return null;
         }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery();
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(collectionFilter, result, pageBase));
         return query;
 
+    }
+
+    private ObjectFilter getCollectionFilter(PageBase pageBase, Task task, OperationResult result) {
+
+        CompiledObjectCollectionView view = determineObjectCollectionView(pageBase);
+        if (view != null) {
+            return getCollectionFilterFromView(view);
+        }
+
+        if (StringUtils.isNotEmpty(getCollectionRefOid())) {
+            return parseFilterFromCollectionRef(getCollectionRefOid(), pageBase, task, result);
+        }
+        return null;
+    }
+
+    private CompiledObjectCollectionView determineObjectCollectionView(PageBase pageBase) {
+        ObjectCollectionSearchItemWrapper objectCollectionSearchItemWrapper = findObjectCollectionSearchItemWrapper();
+        if (objectCollectionSearchItemWrapper != null && objectCollectionSearchItemWrapper.getObjectCollectionView() != null) {
+            return objectCollectionSearchItemWrapper.getObjectCollectionView();
+        }
+        if (StringUtils.isNotEmpty(getCollectionViewName())) {
+            return pageBase.getCompiledGuiProfile()
+                    .findObjectCollectionView(WebComponentUtil.anyClassToQName(pageBase.getPrismContext(), getTypeClass()),
+                            getCollectionViewName());
+        }
+        return null;
+    }
+
+    private ObjectFilter getCollectionFilterFromView(CompiledObjectCollectionView view) {
+        return view != null ? view.getFilter() : null;
+    }
+
+    private ObjectFilter parseFilterFromCollectionRef(String collectionRefOid, PageBase pageBase, Task task, OperationResult result) {
+        try {
+            PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
+                    collectionRefOid, pageBase, task, result);
+            SearchFilterType filter = getFilterFromCollection(collection);
+            if (filter == null) {
+                return null;
+            }
+            return PrismContext.get().getQueryConverter().parseFilter(filter, (Class<? extends Containerable>) getTypeClass());
+        } catch (SchemaException e) {
+            LOGGER.error("Failed to parse filter from object collection, oid {}, {}", getCollectionRefOid(), e.getStackTrace());
+            pageBase.error("Failed to parse filter from object collection, oid " + getCollectionRefOid());
+        }
+        return null;
+    }
+
+    private SearchFilterType getFilterFromCollection(PrismObject<ObjectCollectionType> collection) {
+        return collection != null ? collection.asObjectable().getFilter() : null;
     }
 
     private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
@@ -330,57 +394,41 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return origQuery;
     }
 
-    private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
-        List<AbstractSearchItemWrapper> searchItems = getItems();
-        if (searchItems.isEmpty()) {
-            return null;
-        }
+//    private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
+//        List<FilterableSearchItemWrapper> searchItems = getItems();
+//        if (searchItems.isEmpty()) {
+//            return null;
+//        }
+//
+//        ObjectQuery query = null;
+//        if (query == null) {
+//            query = pageBase.getPrismContext().queryFactory().createQuery();
+//        }
+//        List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
+//        if (filters != null) {
+//            query.addFilter(pageBase.getPrismContext().queryFactory().createAnd(filters));
+//        }
+//        return query;
+//    }
 
-        ObjectQuery query = null;
-        if (query == null) {
-            if (getTypeClass() != null) {
-                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-            } else {
-                query = pageBase.getPrismContext().queryFactory().createQuery();
-            }
-        }
-        List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
-        if (filters != null) {
-            query.addFilter(pageBase.getPrismContext().queryFactory().createAnd(filters));
-        }
-        return query;
-    }
-
-    public List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, VariablesMap defaultVariables) {
-        List<ObjectFilter> conditions = new ArrayList<>();
-        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
-            return conditions;
-        }
-        boolean abstractRoleFilterCheck = false;
-        for (AbstractSearchItemWrapper item : getItems()) {
-            if (hasParameter(item) ||
-                    !item.isApplyFilter(getSearchMode()) ||
-                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
-                continue;
-            }
-            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
-            if (filter != null) {
-                conditions.add(filter);
-            }
-            if (item instanceof  AbstractRoleSearchItemWrapper) {
-                abstractRoleFilterCheck = true;
-            }
-        }
-        return conditions;
-    }
-
-    private boolean hasParameter(AbstractSearchItemWrapper<?> searchItemWrapper) {
-        return StringUtils.isNotEmpty(searchItemWrapper.getParameterName());
-    }
+//    public List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, VariablesMap defaultVariables) {
+//        List<ObjectFilter> conditions = new ArrayList<>();
+//        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
+//            return conditions;
+//        }
+//        for (FilterableSearchItemWrapper item : getItems()) {
+//
+//            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
+//            if (filter != null) {
+//                conditions.add(filter);
+//            }
+//        }
+//        return conditions;
+//    }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        List<AbstractSearchItemWrapper> items = getItems();
+        List<FilterableSearchItemWrapper<?>> items = getItems();
         items.forEach(item -> {
             if (StringUtils.isNotEmpty(item.getParameterName())) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
@@ -392,29 +440,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public void setAdvancedQuery(String advancedQuery) {
-        this.advancedQuery = advancedQuery;
+        advancedQueryWrapper = new AdvancedQueryWrapper(advancedQuery);
     }
 
     public String getFullText() {
-        return fullText;
+        return fulltextQueryWrapper.getFullText();
     }
 
     public void setFullText(String fullText) {
-        this.fullText = fullText;
-    }
-
-    public boolean allPropertyItemsPresent(List<AbstractSearchItemWrapper> items) {
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper)item).getPath() != null &&
-                    findPropertySearchItem(((PropertySearchItemWrapper<?>) item).getPath()) == null) {
-                return false;
-            }
-        }
-        return true;
+        fulltextQueryWrapper = new FulltextQueryWrapper(fullText);
     }
 
     public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
-        for (AbstractSearchItemWrapper searchItemWrapper : getItems()) {
+        for (FilterableSearchItemWrapper searchItemWrapper : getItems()) {
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;
             }
@@ -425,25 +463,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    public boolean isTypeChanged() {
-        ObjectTypeSearchItemWrapper item = getObjectTypeSearchItemWrapper();
-        return item != null ? item.isTypeChanged() : false;
-    }
-
-    public ObjectTypeSearchItemWrapper getObjectTypeSearchItemWrapper() {
-        for (AbstractSearchItemWrapper item : getItems()) {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                return (ObjectTypeSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
     public PropertySearchItemWrapper findPropertySearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
-        for (AbstractSearchItemWrapper searchItem : getItems()) {
+        for (FilterableSearchItemWrapper searchItem : getItems()) {
             if (!(searchItem instanceof PropertySearchItemWrapper)) {
                 continue;
             }
@@ -459,13 +483,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", basicQueryWrapper, indent + 2);
+        List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }
 
@@ -479,14 +501,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 '}';
     }
 
-    public void setContainerDefinition(PrismContainerDefinition<C> typeDefinitionForSearch) {
-        containerDefinitionOverride = typeDefinitionForSearch;
-    }
-
-    public PrismContainerDefinition<C> getContainerDefinitionOverride() {
-        return containerDefinitionOverride;
-    }
-
     public boolean searchByNameEquals(String nameValueToCompare) {
         String nameValue = null;
         if (SearchBoxModeType.BASIC.equals(getSearchMode())) {
@@ -498,4 +512,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return nameValueToCompare != null && nameValueToCompare.equals(nameValue);
     }
 
+    public boolean isForceReload() {
+        return type.isTypeChanged();
+    }
+
+    public List<AvailableFilterType> getAvailableFilterTypes() {
+        return availableFilterTypes;
+    }
 }

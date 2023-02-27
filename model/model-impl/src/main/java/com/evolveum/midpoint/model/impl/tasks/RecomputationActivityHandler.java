@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -109,24 +111,20 @@ public class RecomputationActivityHandler
         }
 
         @Override
+        public void beforeRun(OperationResult result) {
+            ensureNoDryRun();
+        }
+
+        @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException {
-            boolean simulate = isPreview();
-            String action = simulate ? "Simulated recomputation" : "Recomputation";
-
-            LOGGER.trace("{} of object {}", action, object);
-
             LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
                     object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
-            LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
+            LOGGER.trace("Recomputation of object {}: context:\n{}", object, syncContext.debugDumpLazily());
 
-            if (simulate) {
-                getActivityHandler().clockwork.previewChanges(syncContext, null, workerTask, result);
-            } else {
-                getActivityHandler().clockwork.run(syncContext, workerTask, result);
-            }
-            LOGGER.trace("{} of object {}: {}", action, object, result.getStatus());
+            getActivityHandler().clockwork.run(syncContext, workerTask, result);
+            LOGGER.trace("Recomputation of object {}: {}", object, result.getStatus());
             return true;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -50,7 +50,7 @@ public final class ClassicDashboardReportExportActivityRun
     /**
      * Map of controllers for objects searched based on widgets.
      */
-    private Map<String, DashboardWidgetHolder> mapOfWidgetsController;
+    private Map<String, DashboardWidgetHolder<Containerable>> mapOfWidgetsController;
 
     /**
      * Controller for widgets.
@@ -76,7 +76,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
         RunningTask task = getRunningTask();
-        support.beforeExecution(result);
+        support.beforeRun(result);
         @NotNull ReportType report = support.getReport();
 
         support.stateCheck(result);
@@ -94,8 +94,8 @@ public final class ClassicDashboardReportExportActivityRun
         for (DashboardWidgetType widget : widgets) {
             if (support.isWidgetTableVisible()) {
                 String widgetIdentifier = widget.getIdentifier();
-                ContainerableReportDataSource searchSpecificationHolder = new ContainerableReportDataSource(support);
-                DashboardExportController<Containerable> controller = new DashboardExportController(
+                PrismableReportDataSource<Containerable> searchSpecificationHolder = new PrismableReportDataSource<>(support);
+                DashboardExportController<Containerable> controller = new DashboardExportController<>(
                         searchSpecificationHolder,
                         dataWriter,
                         report,
@@ -106,7 +106,7 @@ public final class ClassicDashboardReportExportActivityRun
                 controller.initialize(task, result);
                 controller.beforeBucketExecution(1, result);
 
-                mapOfWidgetsController.put(widgetIdentifier, new DashboardWidgetHolder(searchSpecificationHolder, controller));
+                mapOfWidgetsController.put(widgetIdentifier, new DashboardWidgetHolder<>(searchSpecificationHolder, controller));
             }
         }
     }
@@ -119,7 +119,7 @@ public final class ClassicDashboardReportExportActivityRun
     @Override
     public Integer determineOverallSize(OperationResult result) throws CommonException {
         int expectedTotal = support.getDashboard().getWidget().size();
-        for (DashboardWidgetHolder holder : mapOfWidgetsController.values()) {
+        for (DashboardWidgetHolder<?> holder : mapOfWidgetsController.values()) {
             expectedTotal += support.countRecords(
                     holder.getSearchSpecificationHolder().getType(),
                     holder.getSearchSpecificationHolder().getQuery(),
@@ -166,17 +166,18 @@ public final class ClassicDashboardReportExportActivityRun
                     }
                 };
 
-                DashboardWidgetHolder holder = mapOfWidgetsController.get(widget.getIdentifier());
-                ContainerableReportDataSource searchSpecificationHolder = holder.getSearchSpecificationHolder();
+                DashboardWidgetHolder<Containerable> holder = mapOfWidgetsController.get(widget.getIdentifier());
+                PrismableReportDataSource<Containerable> searchSpecificationHolder = holder.getSearchSpecificationHolder();
                 searchSpecificationHolder.run(handler, gResult);
             }
         }
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request,
+    public boolean processItem(
+            @NotNull ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request,
             @NotNull RunningTask workerTask, OperationResult result)
-            throws CommonException, ActivityRunException {
+            throws CommonException {
 
         ExportDashboardReportLine<Containerable> item = request.getItem();
         getController(item)
@@ -189,14 +190,14 @@ public final class ClassicDashboardReportExportActivityRun
             //noinspection unchecked
             return (ExportController<C>) basicWidgetController;
         }
-        DashboardWidgetHolder holder = mapOfWidgetsController.get(item.getWidgetIdentifier());
+        DashboardWidgetHolder<?> holder = mapOfWidgetsController.get(item.getWidgetIdentifier());
         //noinspection unchecked
         return (ExportController<C>) holder.getController();
     }
 
     @Override
     public void afterRun(OperationResult result) throws CommonException {
-        support.saveReportFile(dataWriter, result);
+        support.saveSimpleReportData(dataWriter, result);
     }
 
     @Override

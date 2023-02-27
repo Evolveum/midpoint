@@ -40,8 +40,9 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         add(createChoiceFragment(createTablePanel(WrapperContext.AttributeMappingType.INBOUND)));
     }
 
-    protected AttributeMappingsTableWizardPanel createTablePanel(WrapperContext.AttributeMappingType initialTab) {
-        return new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getHelper(), initialTab) {
+    protected AttributeMappingsTableWizardPanel<ResourceObjectTypeDefinitionType> createTablePanel(
+            WrapperContext.AttributeMappingType initialTab) {
+        return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
             protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
@@ -107,7 +108,7 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeOutboundStepPanel(getAssignmentHolderModel(), valueModel) {
+        steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, WrapperContext.AttributeMappingType.OUTBOUND);
