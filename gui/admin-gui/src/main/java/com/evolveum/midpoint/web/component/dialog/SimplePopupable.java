@@ -15,7 +15,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class SimplePopupable extends BasePanel implements Popupable {
+public abstract class SimplePopupable<T> extends BasePanel<T> implements Popupable {
 
     private int width;
 
@@ -26,6 +26,13 @@ public abstract class SimplePopupable extends BasePanel implements Popupable {
     private String heightUnit = "px";
 
     private IModel<String> title;
+
+    public SimplePopupable(String id, IModel<T> model, int width, int height, IModel<String> title) {
+        super(id, model);
+        this.width = width;
+        this.height = height;
+        this.title = title;
+    }
 
     public SimplePopupable(String id, int width, int height, IModel<String> title) {
         super(id);

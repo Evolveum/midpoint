@@ -82,6 +82,6 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
 
         // 50 * 3 (normal) + 50 // 3 (direct assignments) + 3 (without metadata) + jack + header
         // (subscription footer is considered automatically later, do not count it here)
-        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 171, 7, null, null);
+        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 171, 8, null, null);
     }
 }

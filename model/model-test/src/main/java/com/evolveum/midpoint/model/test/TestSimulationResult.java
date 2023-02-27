@@ -19,6 +19,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -138,5 +141,9 @@ public class TestSimulationResult {
 
     public @NotNull String getSimulationResultOid() {
         return simulationResultOid;
+    }
+
+    public @NotNull ObjectReferenceType getSimulationResultRef() {
+        return ObjectTypeUtil.createObjectRef(simulationResultOid, ObjectTypes.SIMULATION_RESULT);
     }
 }

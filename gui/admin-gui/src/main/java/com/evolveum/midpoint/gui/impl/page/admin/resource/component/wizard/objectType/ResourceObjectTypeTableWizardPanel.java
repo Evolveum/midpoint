@@ -82,4 +82,9 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.text");
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-8";
+    }
 }

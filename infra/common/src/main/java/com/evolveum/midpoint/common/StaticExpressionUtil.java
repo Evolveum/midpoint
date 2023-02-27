@@ -103,7 +103,7 @@ public class StaticExpressionUtil {
         return prismContext.getSchemaRegistry().createAdHocDefinition(elementName, overallType, 0, maxOccurs);
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseValueElements(
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> Item<IV, ID> parseValueElements(
             Collection<?> valueElements, ID outputDefinition, String contextDescription) throws SchemaException {
         Item<IV, ID> output = null;
         for (Object valueElement : valueElements) {
@@ -156,7 +156,7 @@ public class StaticExpressionUtil {
         return (RawType) jaxbElement.getValue();
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> List<JAXBElement<RawType>> serializeValueElements(Item<IV, ID> item) throws SchemaException {
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> List<JAXBElement<RawType>> serializeValueElements(Item<IV, ID> item) throws SchemaException {
         if (item == null) {
             return null;
         }

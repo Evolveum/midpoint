@@ -17,7 +17,11 @@
         <div wicket:id="toggle"/>
     </div>
     <div class="card-body" wicket:id="body">
-        <div wicket:id="visualization"/>
+        <wicket:child/>
+
+        <wicket:container wicket:id="visualizations">
+            <div wicket:id="visualization"/>
+        </wicket:container>
     </div>
 </wicket:panel>
 </html>

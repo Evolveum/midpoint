@@ -9,6 +9,8 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
@@ -123,7 +125,8 @@ public final class ClassicCollectionReportExportActivityRun<T>
 
     @Override
     public boolean processItem(
-            @NotNull ItemProcessingRequest<T> request, @NotNull RunningTask workerTask, OperationResult result) {
+            @NotNull ItemProcessingRequest<T> request, @NotNull RunningTask workerTask, OperationResult result)
+            throws ConfigurationException {
         T record = request.getItem();
         controller.handleDataRecord(request.getSequentialNumber(), record, workerTask, result);
         return true;

@@ -11,18 +11,10 @@
         <view>
             <column>
                 <name>oid</name>
+                <path>#</path>
                 <display>
                     <label>Oid</label>
                 </display>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                return object.oid
-                            </code>
-                        </script>
-                    </expression>
-                </export>
             </column>
             <column>
                 <name>name</name>
@@ -41,9 +33,7 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                return assignment.targetRef
-                            </code>
+                            <code>assignment?.targetRef</code>
                         </script>
                     </expression>
                 </export>
@@ -59,13 +49,11 @@
                     <code>
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
 
-                        def object = object as UserType
-
-                        return object.assignment
+                        (object as UserType).assignment
                     </code>
                 </script>
             </expression>
-            <asRow>true</asRow>
+            <use>leftJoin</use>
         </subreport>
     </objectCollection>
 </report>

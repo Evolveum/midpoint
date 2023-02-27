@@ -50,6 +50,7 @@ import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -107,6 +108,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * @see ChangeExecutionResult#projectionRecomputationRequested
      */
+    @Experimental
     private boolean completed;
 
     /**
@@ -342,10 +344,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return DependencyProcessor.matches(this, dependency);
     }
 
+    @Override
     public ObjectDelta<ShadowType> getSyncDelta() {
         return syncDelta;
     }
 
+    @Override
     public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
         this.syncDelta = syncDelta;
         state.invalidate(); // sync delta is a parameter for adjuster
@@ -621,6 +625,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 || otherKey.getOrder() == key.getOrder();
     }
 
+    @Override
     public boolean isGone() {
         return key.isGone();
     }
@@ -641,6 +646,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+    @Override
     public boolean isAdd() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
             return true;
@@ -651,6 +657,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+    @Override
     public boolean isModify() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
             return true;
@@ -661,6 +668,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+    @Override
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
@@ -738,6 +746,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.active = isActive;
     }
 
+    @Override
     public Boolean isLegal() {
         return legal;
     }
@@ -766,6 +775,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+    @Override
     public boolean isExists() {
         return exists;
     }
@@ -782,6 +792,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
+    @Override
     public SynchronizationIntent getSynchronizationIntent() {
         return synchronizationIntent;
     }
@@ -790,6 +801,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.synchronizationIntent = synchronizationIntent;
     }
 
+    @Override
     public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
         return synchronizationPolicyDecision;
     }
@@ -820,6 +832,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.synchronizationSituationResolved = synchronizationSituationResolved;
     }
 
+    @Override
     public boolean isFullShadow() {
         return fullShadow;
     }
@@ -1014,6 +1027,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return null;
     }
 
+    @Override
     public Collection<ResourceObjectTypeDependencyType> getDependencies() throws SchemaException, ConfigurationException {
         if (dependencies == null) {
             ResourceObjectDefinition objectDefinition = getStructuralDefinitionIfNotBroken();
@@ -1951,6 +1965,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *  But it is not trivial to do so: there are many places where full shadow is (tried to be) loaded.
      *  And it is not always clear if we get the full shadow or not. So it is doable, but definitely not simple.
      */
+    @Override
     public PrismObject<ShadowType> getStateBeforeSimulatedOperation() {
         return state.getCurrentShadowBeforeSimulatedDeltaExecution();
     }
@@ -1969,5 +1984,37 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     boolean isProjectionRecomputationRequested() {
         return ChangeExecutionResult.isProjectionRecomputationRequested(lastChangeExecutionResult);
+    }
+
+    @Nullable
+    private ObjectOperationPolicyType operationPolicy(OperationResult result) {
+        if (getObjectNewOrCurrentOrOld() == null) {
+            return null;
+        }
+        return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
+    }
+
+    public boolean isMarkedReadOnly(OperationResult result) {
+        var policy = operationPolicy(result);
+        if (policy == null) {
+            return false;
+        }
+        return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
+    }
+
+    public boolean isInboundSyncDisabled(OperationResult result) {
+        var policy = operationPolicy(result);
+        if (policy == null) {
+            return false;
+        }
+        return !policy.getSynchronize().getInbound().isEnabled();
+    }
+
+    public boolean isOutboundSyncDisabled(OperationResult result) {
+        var policy = operationPolicy(result);
+        if (policy == null) {
+            return false;
+        }
+        return !policy.getSynchronize().getOutbound().isEnabled();
     }
 }

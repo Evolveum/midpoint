@@ -92,19 +92,11 @@ public class ScriptExpression {
         this.expressionProfile = expressionProfile;
     }
 
-    public ScriptExpressionProfile getScriptExpressionProfile() {
-        return scriptExpressionProfile;
-    }
-
-    public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 
-    public Function<Object, Object> getAdditionalConvertor() {
-        return additionalConvertor;
-    }
-
-    public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+    void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
         this.additionalConvertor = additionalConvertor;
     }
 
@@ -148,7 +140,7 @@ public class ScriptExpression {
                 .addContext("context", context.getContextDescription())
                 .build();
         if (result.isTracingNormal(ScriptEvaluationTraceType.class)) {
-            ScriptEvaluationTraceType trace = new ScriptEvaluationTraceType(prismContext);
+            ScriptEvaluationTraceType trace = new ScriptEvaluationTraceType();
             result.addTrace(trace);
             context.setTrace(trace);
             trace.setScriptExpressionEvaluator(context.getExpressionType());
@@ -210,6 +202,7 @@ public class ScriptExpression {
                 formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isTrace() {
         return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE);
     }

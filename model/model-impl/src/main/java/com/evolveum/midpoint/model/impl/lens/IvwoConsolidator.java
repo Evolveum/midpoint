@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author semancik
  */
-public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> implements AutoCloseable {
+public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>, I extends ItemValueWithOrigin<V,D>> implements AutoCloseable {
 
     private static final Trace LOGGER = TraceManager.getTrace(IvwoConsolidator.class);
 
@@ -229,7 +229,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         argCheck(builder.itemDefinition != null, "No definition for %s", itemPath);
 
         //noinspection unchecked
-        itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
+        itemDelta = (ItemDelta<V, D>) builder.itemDefinition.createEmptyDelta(itemPath);
 
         // Must be the last instruction here (to avoid leaving result open in case of an exception)
         result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
@@ -983,7 +983,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         } else if (itemDelta.isEmpty()) {
             return true;
         } else {
-            //noinspection unchecked
             Item<V,D> clonedItem = existingItem.clone();
             itemDelta.applyToMatchingPath(clonedItem);
             return !clonedItem.isEmpty();

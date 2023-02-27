@@ -1,22 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 
@@ -36,17 +34,10 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.util.MiscUtil;
-
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,18 +52,20 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -86,12 +79,17 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.messaging.MessageWrapper;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -101,9 +99,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -118,6 +114,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author semancik
  */
+@SuppressWarnings("unused")
 @Component
 public class MidpointFunctionsImpl implements MidpointFunctions {
 
@@ -226,7 +223,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         List<ProtectedStringType> passwords = new ArrayList<>();
-        for (ItemDelta itemDelta : delta.getModifications()) {
+        for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
             takePasswordsFromItemDelta(passwords, itemDelta);
         }
         LOGGER.trace("Found " + passwords.size() + " password change value(s)");
@@ -292,7 +289,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 continue;
             }
 
-            for (ItemDelta itemDelta : delta.getModifications()) {
+            for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
                 takePasswordsFromItemDelta(passwords, itemDelta);
             }
         }
@@ -402,7 +399,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ActivationStatusType statusNew = getAdministrativeStatus(objectNew);
         if (statusNew == null) {
             LOGGER.trace("Considering admin status changed (to '{}') for {}: No new value for admin status, probably we"
-                    + "don't have full shadow (and there is no change) or the activation is not supported at all",
+                            + "don't have full shadow (and there is no change) or the activation is not supported at all",
                     newState, projectionContext);
             return false;
         }
@@ -523,7 +520,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                         getFocusContextRequired().getObjectNew()));
     }
 
-    @NotNull private static <O extends ObjectType> LensFocusContext<O> getFocusContextRequired() {
+    @NotNull
+    private static <O extends ObjectType> LensFocusContext<O> getFocusContextRequired() {
         return (LensFocusContext<O>) ModelExpressionThreadLocalHolder.getLensContextRequired().getFocusContextRequired();
     }
 
@@ -1023,7 +1021,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 .allowNotFound(allowNotFound)
                 .build();
         return modelService.getObject(objectDefinition.getCompileTimeClass(), reference.getOid(), options,
-                getCurrentTask(), getCurrentResult())
+                        getCurrentTask(), getCurrentResult())
                 .asObjectable();
     }
 
@@ -1513,10 +1511,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                     }
                 }
             } catch (XMLStreamException e) {
-
-                StringBuilder error = new StringBuilder("Xml stream exception wile parsing xml string")
-                        .append(e.getLocalizedMessage());
-                throw new SystemException(error.toString());
+                throw new SystemException(
+                        "Xml stream exception wile parsing xml string" + e.getLocalizedMessage());
             }
         } else {
             LOGGER.trace("Input xml string null or empty.");
@@ -1695,7 +1691,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
-        return securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+        return securityContextManager.runPrivileged(new Producer<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -1865,8 +1861,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         List<ObjectDeltaType> deltasBeans = new ArrayList<>();
         for (ObjectDelta<?> delta : deltas) {
-            //noinspection unchecked
-            deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
+            deltasBeans.add(DeltaConvertor.toObjectDeltaType(delta));
         }
         return deltasBeans;
     }
@@ -1883,6 +1878,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionValues, getCurrentTask(), getCurrentResult());
+    }
+
+    @Override
+    public String translate(String key, Objects... args) {
+        return translate(new SingleLocalizableMessage(key, args, key));
     }
 
     @Override
@@ -1909,7 +1909,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), locale);
     }
 
-    @NotNull private Locale findProperLocale(boolean useDefaultLocale) {
+    @NotNull
+    private Locale findProperLocale(boolean useDefaultLocale) {
         if (useDefaultLocale) {
             return Locale.getDefault();
         }
@@ -2066,6 +2067,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // MID-5243
+
     /**
      * DEPRECATED use getArchetypes(object)
      */
@@ -2076,11 +2078,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 archetypeManager.determineArchetypes(object, getCurrentResult()));
     }
 
-    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException {
+    @NotNull
+    public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException {
         return archetypeManager.determineArchetypes(object, getCurrentResult());
     }
 
     // MID-5243
+
     /**
      * DEPRECATED use getArchetypeOids(object)
      */

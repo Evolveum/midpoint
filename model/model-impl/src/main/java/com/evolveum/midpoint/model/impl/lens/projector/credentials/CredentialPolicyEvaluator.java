@@ -422,7 +422,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         if (focusDelta == null) {
             return false;
         }
-        for (PartiallyResolvedDelta<PrismValue, ItemDefinition> partialDelta : focusDelta.findPartial(credentialsPath)) {
+        for (PartiallyResolvedDelta<?,?> partialDelta : focusDelta.findPartial(credentialsPath)) {
             LOGGER.trace("Residual delta:\n{}", partialDelta.debugDumpLazily());
             ItemPath residualPath = partialDelta.getResidualPath();
             if (ItemPath.isEmpty(residualPath)) {

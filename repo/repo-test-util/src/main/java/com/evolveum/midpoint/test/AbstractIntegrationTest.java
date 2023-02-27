@@ -144,7 +144,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @SuppressWarnings("SameParameterValue")
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
-        implements InfraTestMixin {
+        implements InfraTestMixin, DummyTestResourceInitializer {
 
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
@@ -4449,5 +4449,26 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return MiscUtil.requireNonNull(
                 findSimulationResult(result),
                 () -> new AssertionError("no simulation result found"));
+    }
+
+    @Override
+    public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        throw new UnsupportedOperationException("'Init dummy resource' operation is not available here");
+    }
+
+    @Override
+    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        throw new UnsupportedOperationException("'Init dummy resource' operation is not available here");
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        throw new UnsupportedOperationException("'Test resource' operation is not available here");
+    }
+
+    @Override
+    public SimpleObjectResolver getResourceReloader() {
+        return RepoSimpleObjectResolver.get(); // overridden in higher-level tests
     }
 }

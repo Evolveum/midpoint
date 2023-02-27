@@ -337,7 +337,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     }
 
     @Override
-    public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+    public <F extends FocusType, O extends ObjectType> PrismObject<F> resoloveOwner(PrismObject<O> object) {
         if (object == null || object.getOid() == null) {
             return null;
         }

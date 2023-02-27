@@ -86,15 +86,17 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
             // For no value/null we return empty list.
             List<V> evalPrismValues = new ArrayList<>();
             if (evalRawResult != null) {
-                //noinspection unchecked
                 if (evalRawResult instanceof Collection) {
+                    //noinspection unchecked,rawtypes
                     ((Collection)evalRawResult).forEach(rawResultValue -> {
-                        V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(rawResultValue);
-                        evalPrismValues.add(evalPrismValue);
+                        if (rawResultValue != null) {
+                            //noinspection unchecked
+                            evalPrismValues.add((V) toPrismValue(rawResultValue));
+                        }
                     });
                 } else {
-                    V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
-                    evalPrismValues.add(evalPrismValue);
+                    //noinspection unchecked
+                    evalPrismValues.add((V) toPrismValue(evalRawResult));
                 }
             }
             return evalPrismValues;
@@ -104,9 +106,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
 
         List<V> values = new ArrayList<>();
 
-        // TODO: what about PrismContainer and
-        // PrismReference? Shouldn't they be processed in the same way as
-        // PrismProperty?
+        // TODO: what about PrismContainer and PrismReference? Shouldn't they be processed in the same way as PrismProperty?
         if (evalRawResult instanceof Collection) {
             //noinspection rawtypes
             for (Object evalRawResultElement : (Collection) evalRawResult) {
@@ -130,6 +130,19 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         return values;
     }
 
+    // FIXME this should be some low-level utility method
+    private PrismValue toPrismValue(@NotNull Object realValue) {
+        if (realValue instanceof Objectable) {
+            return ((Objectable) realValue).asPrismObject().getValue();
+        } else if (realValue instanceof Containerable) {
+            return ((Containerable) realValue).asPrismContainerValue();
+        } else if (realValue instanceof Referencable) {
+            return ((Referencable) realValue).asReferenceValue();
+        } else {
+            return getPrismContext().itemFactory().createPropertyValue(realValue);
+        }
+    }
+
     @NotNull
     private <T> Class<T> determineJavaReturnType(ScriptExpressionEvaluationContext context) {
         QName xsdReturnType = context.getOutputDefinition().getTypeName();
@@ -148,12 +161,14 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         if (javaReturnType == null && (context.getOutputDefinition() instanceof PrismContainerDefinition<?>)) {
             // This is the case when we need a container, but we do not have compile-time class for that
             // E.g. this may be container in object extension (MID-5080)
+            //noinspection unchecked
             javaReturnType = (Class<T>) PrismContainerValue.class;
         }
 
         if (javaReturnType == null) {
             // TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
             //  ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
+            //noinspection unchecked
             javaReturnType = (Class<T>) String.class;
         }
         LOGGER.trace("expected return type: XSD={}, Java={}", xsdReturnType, javaReturnType);

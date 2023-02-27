@@ -49,11 +49,15 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * @author semancik
@@ -146,6 +150,14 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
+    protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
+            "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+
+
+    protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
+            "initial-objects/mark", "800-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED.value());
+
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
 
@@ -182,6 +194,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
             setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
         }
         repositoryService.addObject(shadowDaemon, null, initResult);
+
+        if(areMarksSupported()) {
+            repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(MARK_PROTECTED_SHADOW, initResult);
+        }
     }
 
     protected String getDummyConnectorType() {
@@ -205,6 +222,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return getIcfUid(shadowType.asPrismObject());
     }
 
+    @Override
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
         PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_UID_PATH);
         return icfUidAttr.getRealValue();

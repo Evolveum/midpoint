@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
-import static com.evolveum.midpoint.util.MiscUtil.sleepWatchfully;
-
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.component.dialog.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -82,10 +82,6 @@ import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -144,6 +140,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
 
+    private static final int DEFAULT_REFRESH_INTERVAL = 10;
+
+    private boolean isRefreshEnabled = true;
+
     static {
         TABLES_ID.put(RoleType.COMPLEX_TYPE, UserProfileStorage.TableId.ROLE_MEMBER_PANEL);
         TABLES_ID.put(ServiceType.COMPLEX_TYPE, UserProfileStorage.TableId.SERVICE_MEMBER_PANEL);
@@ -157,8 +157,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         AUTHORIZATIONS.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
         AUTHORIZATIONS.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
     }
-
-    private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     public AbstractRoleMemberPanel(String id, FocusDetailsModels<R> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -179,7 +177,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
         return (Class<AH>) UserType.class;
     }
-    protected  <AH extends AssignmentHolderType> void initMemberTable(Form<?> form) {
+
+    protected <AH extends AssignmentHolderType> void initMemberTable(Form<?> form) {
         WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
         memberContainer.setOutputMarkupId(true);
         memberContainer.setOutputMarkupPlaceholderTag(true);
@@ -300,7 +299,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         memberContainer.add(childrenListPanel);
     }
 
-    protected  <AH extends AssignmentHolderType> SearchContext getDefaultMemberSearchBoxConfig() {
+    protected <AH extends AssignmentHolderType> SearchContext getDefaultMemberSearchBoxConfig() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(getPanelType());
         return ctx;
@@ -367,7 +366,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         return relation;
     }
-    protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search search) {
+
+    protected <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search search) {
         if (noMemberSearchItemVisible(search)) {
             PrismContext prismContext = getPageBase().getPrismContext();
             return prismContext.queryFor((Class<? extends Containerable>) search.getTypeClass())
@@ -492,34 +492,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
-                        getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel(false)) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected R getAssignmentTargetRefObject() {
-                        return AbstractRoleMemberPanel.this.getModelObject();
-                    }
-
-                    @Override
-                    protected List<ObjectReferenceType> getArchetypeRefList() {
-                        return new ArrayList<>(); //todo
-                    }
-
-                    @Override
-                    protected boolean isOrgTreeVisible() {
-                        return true;
-                    }
-
-                    @Override
-                    protected Task executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query, @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-                        Task task = super.executeMemberOperation(targetObject, query, relation, type, target, pageBase);
-                        processTaskAfterOperation(task, target);
-                        return task;
-                    }
-                };
-                browser.setOutputMarkupId(true);
-                AbstractRoleMemberPanel.this.getPageBase().showMainPopup(browser, target);
+                AbstractRoleMemberPanel.this.getPageBase().showMainPopup(
+                        createAssignPopup(null),
+                        target);
             }
         };
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
@@ -527,32 +502,59 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return assignButton;
     }
 
+    protected Popupable createAssignPopup(QName stableRelation) {
+        ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
+                getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel(false)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected R getAssignmentTargetRefObject() {
+                return AbstractRoleMemberPanel.this.getModelObject();
+            }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList() {
+                return new ArrayList<>(); //todo
+            }
+
+            @Override
+            protected boolean isOrgTreeVisible() {
+                return true;
+            }
+
+            @Override
+            protected Task executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query, @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
+                Task task = super.executeMemberOperation(targetObject, query, relation, type, target, pageBase);
+                processTaskAfterOperation(task, target);
+                return task;
+            }
+
+            @Override
+            protected QName getRelationIfIsStable() {
+                return stableRelation;
+            }
+        };
+        browser.setOutputMarkupId(true);
+        return browser;
+    }
+
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
     }
 
-    protected void waitWhileTaskFinish(Task task, AjaxRequestTarget target) {
+    protected void showMessageWithoutLinkForTask(Task task, AjaxRequestTarget target) {
         getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
                 && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
 
-        AtomicReference<OperationResult> result = new AtomicReference<>();
-        long until = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
-        sleepWatchfully( until, 100, () -> {
-            try {
-                result.set(getPageBase().getTaskManager().getTaskWithResult(
-                        task.getOid(), new OperationResult("reload task")).getResult());
-            } catch (Throwable e) {
-                //ignore exception
-            }
-            return result.get() == null ? false : result.get().isInProgress();
-        });
-        if (!result.get().isSuccess() && !result.get().isInProgress()) {
-            getPageBase().showResult(result.get());
-        } else if (result.get().isInProgress()) {
+        if (!task.getResult().isInProgress()) {
             getPageBase().showResult(task.getResult());
         } else {
-            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
-            showedResult.setStatus(result.get().getStatus());
-            getPageBase().showResult(showedResult);
+            getPageBase().info(createStringResource(
+                    "AbstractRoleMemberPanel.message.info.created.task",
+                    task.getResult().getOperation())
+                    .getString());
+//            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
+//            showedResult.setStatus(task.getResult().getStatus());
+//            getPageBase().showResult(showedResult);
         }
 
         refreshTable(target);
@@ -560,7 +562,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
-        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
+        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UNASSIGN),
                 createStringResource("TreeTablePanel.menu.removeMembers")) {
 
             private static final long serialVersionUID = 1L;
@@ -957,6 +959,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
+        unassignMembersPerformed(rowModel, null, target);
+    }
+
+    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
 
@@ -967,7 +973,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     : createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel",
                     getSelectedObjectsCount());
 
-            executeSimpleUnassignedOperation(rowModel, confirmModel, target);
+            executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel");
 
@@ -1103,7 +1109,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         getPageBase().showMainPopup(dialog, target);
     }
 
-    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
+    protected void executeSimpleUnassignedOperation(
+            IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
         ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
 
             @Override
@@ -1125,7 +1132,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             public void yesPerformed(AjaxRequestTarget target) {
                 AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
                 if (object != null) {
-                    executeUnassign(object, target);
+                    executeUnassign(object, relation, target);
 
                 } else {
 
@@ -1182,8 +1189,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         refreshTable(target);
     }
 
-    protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
-        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object);
+    protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object, relation);
         OperationResult result = new OperationResult(
                 assignmentTypeList.size() == 1 ? OPERATION_UNASSIGN_OBJECT : OPERATION_UNASSIGN_OBJECTS);
         for (AssignmentType assignmentType : assignmentTypeList) {
@@ -1220,9 +1227,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return memberRef.getOid();
     }
 
-    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object) {
-        return object.getAssignment().stream().filter(
-                assignment -> assignment.getTargetRef().getOid().equals(getTargetOrganizationOid())).collect(Collectors.toList());
+    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object, QName relation) {
+        return object.getAssignment().stream()
+                .filter(
+                        assignment -> assignment.getTargetRef() != null
+                                && assignment.getTargetRef().getOid().equals(getTargetOrganizationOid())
+                                && (relation == null || QNameUtil.match(relation, assignment.getTargetRef().getRelation())))
+                .collect(Collectors.toList());
     }
 
     protected void createFocusMemberPerformed(AjaxRequestTarget target) {
@@ -1502,5 +1513,82 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     public R getModelObject() {
         return getObjectDetailsModels().getObjectType();
+    }
+
+    private boolean isRefreshEnabled() {
+        return Objects.requireNonNullElse(isRefreshEnabled, true);
+    }
+
+    private Duration getAutoRefreshInterval(CompiledObjectCollectionView view) {
+        if (view == null) {
+            return Duration.ofSeconds(DEFAULT_REFRESH_INTERVAL);
+        }
+
+        Integer autoRefreshInterval = view.getRefreshInterval();
+        return Duration.ofSeconds(
+                Objects.requireNonNullElse(
+                        autoRefreshInterval,
+                        DEFAULT_REFRESH_INTERVAL));
+    }
+
+    protected AjaxIconButton createRefreshButton(String buttonId) {
+        AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                createStringResource("MainObjectListPanel.refresh")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                refreshTable(target);
+            }
+        };
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        refreshIcon.showTitleAsLabel(true);
+        return refreshIcon;
+    }
+
+    protected AjaxIconButton createPlayPauseButton(String buttonId) {
+        AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
+                getRefreshPausePlayButtonTitleModel()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                isRefreshEnabled = !isRefreshEnabled;
+                refreshTable(target);
+            }
+        };
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        playPauseIcon.showTitleAsLabel(true);
+        return playPauseIcon;
+    }
+
+    private IModel<String> getRefreshPausePlayButtonModel() {
+        return () -> {
+            if (isRefreshEnabled()) {
+                return GuiStyleConstants.CLASS_PAUSE;
+            }
+
+            return GuiStyleConstants.CLASS_PLAY;
+        };
+    }
+
+    private IModel<String> getRefreshPausePlayButtonTitleModel() {
+        return () -> {
+            if (isRefreshEnabled()) {
+                return createStringResource("MainObjectListPanel.refresh.pause").getString();
+            }
+            return createStringResource("MainObjectListPanel.refresh.start").getString();
+        };
+    }
+
+    protected AjaxSelfUpdatingTimerBehavior createRefreshBehaviour(CompiledObjectCollectionView view) {
+        return new AjaxSelfUpdatingTimerBehavior(getAutoRefreshInterval(view)) {
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
     }
 }

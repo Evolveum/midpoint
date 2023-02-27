@@ -21,7 +21,7 @@ public class InfoTooltipBehavior extends TooltipBehavior {
 
         String cssClass = getCssClass();
         if (cssClass != null) {
-            component.add(AttributeModifier.replace("class", cssClass));
+            component.add(AttributeModifier.append("class", cssClass));
         }
     }
 

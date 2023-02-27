@@ -137,7 +137,7 @@ class ShadowedObjectConstruction {
 
         copyIgnored();
         mergeCredentials();
-        setProtectedFlag(result);
+        setEffectiveProvisioningPolicy(result);
 
         // exists, dead
         // This may seem strange, but always take exists and dead flags from the repository.
@@ -185,9 +185,9 @@ class ShadowedObjectConstruction {
         }
     }
 
-    private void setProtectedFlag(OperationResult result) throws SchemaException, ConfigurationException,
+    private void setEffectiveProvisioningPolicy(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setProtectedFlag(ctx, resultingShadowedObject, beans.expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, beans.expressionFactory, result);
     }
 
     /**

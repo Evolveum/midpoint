@@ -300,6 +300,16 @@ public class Projector {
                 return;
             }
 
+            if (projectionContext.isOutboundSyncDisabled(result)) {
+                recordSkipReason(result, "Skipping projection because it is has outbound sync disabled.");
+                return;
+            }
+            // Here we skip complete processing of shadow (no outbounds)
+            if (projectionContext.isMarkedReadOnly(result)) {
+                recordSkipReason(result, "Skipping projection because it is marked read-only.");
+                return;
+            }
+
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
                     projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
                 recordSkipReason(result,

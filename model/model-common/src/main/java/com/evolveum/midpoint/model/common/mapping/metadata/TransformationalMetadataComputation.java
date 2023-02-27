@@ -7,29 +7,28 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.mapping.AbstractMappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMapping;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSpecificationType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  *
@@ -84,7 +83,7 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
             if (dataValue != null) {
                 // TEMPORARY!!!
                 for (PrismContainerValue<Containerable> metadataValue : dataValue.getValueMetadata().getValues()) {
-                    Item<PrismValue, ItemDefinition> sourceItem = metadataValue.findItem(sourcePath);
+                    Item<?, ?> sourceItem = metadataValue.findItem(sourcePath);
                     if (sourceItem != null) {
                         values.addAll(CloneUtil.cloneCollectionMembers(sourceItem.getValues()));
                     }
@@ -122,10 +121,10 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
                     QName metadataSourceName = getSourceName(sourceDef, metadataSourcePath);
                     List<PrismValue> metadataSourceValues = new ArrayList<>();
                     for (PrismContainerValue<Containerable> metadataValue : inputDataValue.getValueMetadata().getValues()) {
-                        Item<PrismValue, ItemDefinition> sourceItem = metadataValue.findItem(metadataSourcePath);
+                        Item<?, ?> sourceItem = metadataValue.findItem(metadataSourcePath);
                         if (sourceItem != null) {
                             //noinspection unchecked
-                            metadataSourceValues.addAll(sourceItem.clone().getRealValues());
+                            metadataSourceValues.addAll((Collection<? extends PrismValue>) sourceItem.clone().getRealValues());
                         }
                     }
                     metadataSourceMap.put(metadataSourceName.getLocalPart(), metadataSourceValues);

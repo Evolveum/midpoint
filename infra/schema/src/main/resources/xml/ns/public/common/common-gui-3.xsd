@@ -1546,9 +1546,11 @@
                     <xsd:documentation>
                         <p>
                             Used to distinguish for which operations are the configuration applicable (and so visible)
-                            If nothing specified, configuration will be applicable for both add and modify operations.
+                            If nothing specified, configuration will be applicable for both add and modify operations
+                            (and visible for example for panel in details menu).
                             When there is a need to restrict configuration applicability (and thus visibility) only
                             for e.g. modify object operation, applicableForOperation should be set to 'modify'.
+                            When we use wizard option, then we define visible only in some wizard panel.
                         </p>
                         <p>
                             Applicable for panel (ContainerPanelConfigurationType) configuration and objectCollectionView
@@ -4492,14 +4494,14 @@
     <xsd:simpleType name="OperationTypeType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines when the activity will be executed.
+                Define type of operation.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="add">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The activity will be executed before the "main" operation.
+                        Define add operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ADD"/>
@@ -4509,7 +4511,7 @@
             <xsd:enumeration value="modify">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The activity will be executed after the "main" operation.
+                        Define modify operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MODIFY"/>

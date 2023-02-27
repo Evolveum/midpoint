@@ -875,7 +875,7 @@ public class ObjectTypeUtil {
             PrismContext prismContext) throws SchemaException {
         List<Item<?, ?>> extensionItems = new ArrayList<>();
         for (Map.Entry<QName, Object> entry : values.entrySet()) {
-            ItemDefinition<Item<PrismValue, ItemDefinition>> def = extensionDefinition != null
+            ItemDefinition<Item<PrismValue, ItemDefinition<?>>> def = extensionDefinition != null
                     ? extensionDefinition.findItemDefinition(ItemName.fromQName(entry.getKey()))
                     : null;
             if (def == null) {
@@ -885,7 +885,7 @@ public class ObjectTypeUtil {
                     throw new SchemaException("No definition of " + entry.getKey() + " in the extension");
                 }
             }
-            Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+            Item<PrismValue, ItemDefinition<?>> extensionItem = def.instantiate();
             if (entry.getValue() != null) {
                 if (entry.getValue() instanceof Collection) {
                     for (Object value : (Collection) entry.getValue()) {
@@ -900,7 +900,7 @@ public class ObjectTypeUtil {
         return extensionItems;
     }
 
-    private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value,
+    private static void addRealValue(Item<PrismValue, ItemDefinition<?>> extensionItem, Object value,
             PrismContext prismContext) throws SchemaException {
         if (value != null) {
             extensionItem.add(prismContext.itemFactory().createValue(value).clone());

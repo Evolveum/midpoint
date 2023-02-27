@@ -84,4 +84,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     protected boolean isValid(AjaxRequestTarget target) {
         return getTable().isValidFormComponents(target);
     }
+
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-11";
+    }
 }

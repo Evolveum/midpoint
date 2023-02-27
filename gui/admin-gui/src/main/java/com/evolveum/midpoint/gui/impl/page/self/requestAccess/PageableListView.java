@@ -34,14 +34,14 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
         setModel(new PageableListModel<>(provider, tableId) {
 
             @Override
-            protected LI createItem(SPI providerItem) {
+            protected List<LI> createItem(SPI providerItem) {
                 return PageableListView.this.createItem(providerItem);
             }
         });
     }
 
-    protected LI createItem(SPI providerItem) {
-        return (LI) providerItem;
+    protected List<LI> createItem(SPI providerItem) {
+        return List.of((LI) providerItem);
     }
 
     private PageableListModel getPageableModel() {
@@ -164,7 +164,7 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             List<LI> list = new ArrayList<>();
 
             Iterator<? extends SPI> iterator = provider.iterator(getCurrentPage() * getItemsPerPage(), getItemsPerPage());
-            iterator.forEachRemaining(i -> list.add(createItem(i)));
+            iterator.forEachRemaining(i -> list.addAll(createItem(i)));
 
             result = list;
 
@@ -176,8 +176,8 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             result = null;
         }
 
-        protected LI createItem(SPI providerItem) {
-            return (LI) providerItem;
+        protected List<LI> createItem(SPI providerItem) {
+            return List.of((LI) providerItem);
         }
     }
 }

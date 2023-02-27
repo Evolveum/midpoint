@@ -6,12 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -21,12 +15,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 public class ModelOperationStatusDto implements Serializable {
 
@@ -69,8 +70,10 @@ public class ModelOperationStatusDto implements Serializable {
             } catch (SchemaException | ExpressionEvaluationException e) {
                 throw new SystemException(e);        // TODO
             }
-            final WrapperVisualization primaryWrapper = new WrapperVisualization(primary,
-                    primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+
+            String key = primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne";
+
+            final WrapperVisualization primaryWrapper = new WrapperVisualization(new SingleLocalizableMessage(key, new Object[] { primaryDeltas.size() }), primary);
             primaryVisualizationDto = new VisualizationDto(primaryWrapper);
         }
     }

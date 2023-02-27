@@ -95,7 +95,7 @@
                 </script>
             </expression>
             <order>10</order>
-            <asRow>true</asRow>
+            <use>leftJoin</use>
         </subreport>
         <subreport>
             <name>objectDelta</name>
@@ -113,7 +113,7 @@
                 </script>
             </expression>
             <order>20</order>
-            <asRow>true</asRow>
+            <use>leftJoin</use>
         </subreport>
         <subreport>
             <name>assignment</name>
@@ -160,7 +160,7 @@
                 </script>
             </expression>
             <order>30</order>
-            <asRow>true</asRow>
+            <use>leftJoin</use>
         </subreport>
     </objectCollection>
 </report>

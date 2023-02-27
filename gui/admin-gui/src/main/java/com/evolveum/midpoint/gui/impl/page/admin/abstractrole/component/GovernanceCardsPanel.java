@@ -10,11 +10,14 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -26,23 +29,32 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
@@ -56,6 +68,11 @@ import java.util.stream.Collectors;
 public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractRoleMemberPanel<AR> {
 
     private static final String ID_TITLE = "title";
+    private static final String ID_TILES_FRAGMENT = "tilesFragment";
+    private static final String ID_RELATIONS_CONTAINER = "relationsContainer";
+    private static final String ID_RELATIONS = "relations";
+    private static final String ID_RELATION = "relation";
+    private static final String ID_NEW_MEMBER_TILE = "newMemberTile";
 
     private IModel<Search> searchModel;
 
@@ -146,15 +163,54 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         getTableId(getType())) {
 
                     @Override
+                    protected void onInitialize() {
+                        super.onInitialize();
+                        getTilesNavigation().add(new VisibleBehaviour(() -> getTilesModel().getObject().size() >= 20));
+                    }
+
+                    @Override
+                    protected Fragment createTilesContainer(String idTilesContainer, ISortableDataProvider<SelectableBean<FocusType>, String> provider, UserProfileStorage.TableId tableId) {
+                        Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, GovernanceCardsPanel.this);
+
+                        PageableListView tiles = createTilesPanel(ID_TILES, provider);
+                        tilesFragment.add(tiles);
+
+                        WebMarkupContainer relationContainer = createRelationTilesForAssignMembers();
+                        tilesFragment.add(relationContainer);
+
+                        WebMarkupContainer newMemberTile = createBaseTileForAssignMembers();
+                        tilesFragment.add(newMemberTile);
+
+                        tilesFragment.add(createRefreshBehaviour(getObjectCollectionView()));
+
+                        return tilesFragment;
+                    }
+
+                    @Override
+                    protected PageableListView createTilesPanel(String tilesId, ISortableDataProvider<SelectableBean<FocusType>, String> provider) {
+                        return new PageableListView<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>>(tilesId, provider, getTableId()) {
+
+                            @Override
+                            protected void populateItem(ListItem<TemplateTile<SelectableBean<FocusType>>> item) {
+                                item.add(AttributeAppender.append("class", () -> getTileCssClasses()));
+
+                                Component tile = createTile(ID_TILE, item.getModel());
+                                item.add(tile);
+                            }
+
+                            @Override
+                            protected List<TemplateTile<SelectableBean<FocusType>>> createItem(SelectableBean<FocusType> object) {
+                                return createTileObjects(createTileObject(object));
+                            }
+                        };
+                    }
+
+                    @Override
                     protected WebMarkupContainer createTilesButtonToolbar(String id) {
                         RepeatingView repView = new RepeatingView(id);
-                        AjaxIconButton assignButton = createAssignButton(repView.newChildId());
-                        assignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
-                        assignButton.showTitleAsLabel(true);
-                        repView.add(assignButton);
 
                         AjaxIconButton unassignButton = createUnassignButton(repView.newChildId());
-                        unassignButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
+                        unassignButton.add(AttributeAppender.replace("class", "btn btn-primary"));
                         unassignButton.showTitleAsLabel(true);
                         repView.add(unassignButton);
 
@@ -176,18 +232,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         menu.add(AttributeAppender.replace("class", "ml-2"));
                         repView.add(menu);
 
-                        return repView;
-                    }
+                        repView.add(createRefreshButton(repView.newChildId()));
+                        repView.add(createPlayPauseButton(repView.newChildId()));
 
-                    @Override
-                    protected TemplateTile<SelectableBean<FocusType>> createTileObject(SelectableBean<FocusType> object) {
-                        TemplateTile<SelectableBean<FocusType>> t = super.createTileObject(object);
-                        object.getValue().getAssignment().stream()
-                                .filter(assignment -> assignment.getTargetRef() != null
-                                        && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
-                                        && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE))
-                                .forEach(assignment -> t.addTag(WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getDisplay()));
-                        return t;
+                        return repView;
                     }
 
                     @Override
@@ -252,6 +300,97 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         memberContainer.add(tilesTable);
     }
 
+    private List<TemplateTile<SelectableBean<FocusType>>> createTileObjects(TemplateTile<SelectableBean<FocusType>> defaultTile) {
+
+        List<TemplateTile<SelectableBean<FocusType>>> ret = new ArrayList<>();
+
+        SelectableBean<FocusType> object = defaultTile.getValue();
+        List<AssignmentType> memberships = object.getValue().getAssignment().stream()
+                .filter(assignment -> assignment.getTargetRef() != null
+                        && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
+                        && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE))
+                .collect(Collectors.toList());
+        if (memberships.size() == 1) {
+            defaultTile.getValue().setCustomData(memberships.get(0).getTargetRef().getRelation());
+            ret.add(defaultTile);
+        } else {
+            for (AssignmentType assignmentType : memberships) {
+                TemplateTile<SelectableBean<FocusType>> newTile = defaultTile.clone();
+                SelectableBeanImpl newBean = new SelectableBeanImpl<>(
+                        ((SelectableBeanImpl)defaultTile.getValue()).getModel());
+                newBean.setCustomData(assignmentType.getTargetRef().getRelation());
+                newTile.setValue(newBean);
+                ret.add(newTile);
+            }
+        }
+        ret.stream().filter(tile -> tile.getValue().getCustomData() != null)
+                .forEach(tile -> tile.addTag(
+                        WebComponentUtil.getRelationDefinition(
+                                (QName)tile.getValue().getCustomData()).getDisplay()));
+
+        return ret;
+    }
+
+    private WebMarkupContainer createBaseTileForAssignMembers() {
+        WebMarkupContainer newMemberTile = new WebMarkupContainer(ID_NEW_MEMBER_TILE);
+        newMemberTile.add(new AjaxEventBehavior("click") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                List<QName> supportedRelations = getSupportedRelations();
+                Popupable choose;
+
+                if (supportedRelations.size() > 1) {
+                    choose = new ChooseRelationPopup(
+                            GovernanceCardsPanel.this.getPageBase().getMainPopupBodyId(),
+                            Model.ofList(getSupportedRelations())) {
+                        @Override
+                        protected void onSelectRelation(QName selectedRelation, AjaxRequestTarget target) {
+                            GovernanceCardsPanel.this.getPageBase().replaceMainPopup(
+                                    createAssignPopup(selectedRelation),
+                                    target);
+                        }
+
+                        @Override
+                        protected void customizeTilePanel(TilePanel tp) {
+                            tp.add(AttributeAppender.append("class", "card"));
+                            tp.add(AttributeAppender.append("style", "min-width:200px"));
+                        }
+                    };
+                    ((ChooseRelationPopup)choose).setOutputMarkupId(true);
+                } else {
+                    choose = createAssignPopup(null);
+                }
+                GovernanceCardsPanel.this.getPageBase().showMainPopup(choose, target);
+            }
+        });
+        newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+        return newMemberTile;
+    }
+
+    private WebMarkupContainer createRelationTilesForAssignMembers() {
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATIONS_CONTAINER);
+        relationContainer.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().isEmpty()));
+
+        ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
+            @Override
+            protected void populateItem(ListItem<QName> item) {
+                RelationTilePanel tilePanel = new RelationTilePanel(ID_RELATION, item.getModelObject()) {
+                    @Override
+                    protected void onChoose(QName relation, AjaxRequestTarget target) {
+                        GovernanceCardsPanel.this.getPageBase().showMainPopup(
+                                createAssignPopup(relation),
+                                target);
+                    }
+                };
+                item.add(tilePanel);
+                item.add(AttributeAppender.append("class", getTileCssClasses()));
+            }
+        };
+        relationContainer.add(relations);
+        return relationContainer;
+    }
+
     protected String getTileCssClasses() {
         return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
     }
@@ -270,7 +409,11 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
             @Override
             protected void onUnassign(AjaxRequestTarget target) {
-                unassignMembersPerformed(new PropertyModel<>(model, "value"), target);
+                Object data = model.getObject().getValue().getCustomData();
+                unassignMembersPerformed(
+                        new PropertyModel<>(model, "value"),
+                        data instanceof QName ? (QName)data : null,
+                        target);
             }
 
             @Override
@@ -354,9 +497,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     private void unselectAllPerformed(AjaxRequestTarget target) {
-        ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
+        ((SelectableBeanObjectDataProvider) getMemberTileTable().getProvider()).clearSelectedObjects();
         target.add(getMemberTileTable());
     }
+
     protected TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>> getMemberTileTable() {
         return (TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>>)
                 get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
@@ -384,24 +528,24 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     @Override
     protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-        waitWhileTaskFinish(task, target);
+        showMessageWithoutLinkForTask(task, target);
     }
 
     @Override
-    protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
-        super.unassignMembersPerformed(rowModel, target);
+    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+        super.unassignMembersPerformed(rowModel, relation, target);
         target.add(getFeedback());
     }
 
     @Override
-    protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
-        super.executeUnassign(object, target);
+    protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+        super.executeUnassign(object, relation, target);
         target.add(getFeedback());
     }
 
     @Override
-    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
-        super.executeSimpleUnassignedOperation(rowModel, confirmModel, target);
+    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
+        super.executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
         unselectAllPerformed(target);
     }
 }

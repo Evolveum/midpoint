@@ -15,14 +15,17 @@ import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -64,10 +67,11 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
-                    super.onUpdateRow(target, table, rowModel, selected);
+                protected void onUpdateRow(Item<ICellPopulator<SelectableBean<O>>> cellItem, AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
+                    super.onUpdateRow(cellItem, target, table, rowModel, selected);
                     updatePreselectedObjects(Arrays.asList(rowModel));
                     onUpdateCheckbox(target, Arrays.asList(rowModel), table);
+                    target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
                 }
 
                 @Override

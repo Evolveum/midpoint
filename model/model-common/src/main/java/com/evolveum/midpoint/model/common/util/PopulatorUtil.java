@@ -81,7 +81,7 @@ public class PopulatorUtil {
         return deltas;
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
             VariablesMap variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
             String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = populateItem.getExpression();
@@ -134,7 +134,7 @@ public class PopulatorUtil {
         }
 
         //noinspection unchecked
-        ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
+        ItemDelta<IV,ID> itemDelta = (ItemDelta<IV, ID>) propOutputDefinition.createEmptyDelta(targetPath);
         itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
 
         LOGGER.trace("Item delta:\n{}", itemDelta.debugDumpLazily(1));

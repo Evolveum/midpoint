@@ -14,12 +14,10 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -48,10 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class Visualizer {
 
     private static final Trace LOGGER = TraceManager.getTrace(Visualizer.class);
+
     public static final String CLASS_DOT = Visualizer.class.getName() + ".";
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private List<VisualizationDescriptionHandler> descriptionHandlers;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -60,8 +59,6 @@ public class Visualizer {
     private Resolver resolver;
 
     private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
-
-    private static final List<VisualizationDescriptionHandler> DESCRIPTION_HANDLERS = new ArrayList<>();
 
     static {
         DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
@@ -76,12 +73,6 @@ public class Visualizer {
                 ShadowType.F_RESOURCE_REF,
                 ShadowType.F_KIND,
                 ShadowType.F_INTENT));
-    }
-
-    @PostConstruct
-    public void init() {
-        Map<String, VisualizationDescriptionHandler> beans = applicationContext.getBeansOfType(VisualizationDescriptionHandler.class);
-        DESCRIPTION_HANDLERS.addAll(beans.values());
     }
 
     public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -304,6 +295,10 @@ public class Visualizer {
     }
 
     private PrismObject<? extends ObjectType> getObject(String oid, Class<? extends ObjectType> objectTypeClass, VisualizationContext context, Task task, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+
         PrismObject<? extends ObjectType> object = context.getCurrentObject(oid);
         if (object != null) {
             return object;
@@ -329,7 +324,9 @@ public class Visualizer {
         }
     }
 
-    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
+    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive,
+            VisualizationContext context, Task task, OperationResult result) {
+
         if (items == null) {
             return;
         }
@@ -356,12 +353,12 @@ public class Visualizer {
                 for (PrismContainerValue<?> pcv : pc.getValues()) {
                     if (separate) {
                         VisualizationImpl si = new VisualizationImpl(visualization);
+                        si.setChangeType(visualization.getChangeType());
                         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
-                        name.setId(name.getSimpleName());
+                        name.setId(item.getElementName().getLocalPart());
                         if (def != null) {
                             name.setDisplayName(def.getDisplayName());
                         }
-                        name.setNamesAreResourceKeys(true);
                         si.setName(name);
                         if (def != null) {
                             si.setOperational(def.isOperational());
@@ -373,13 +370,14 @@ public class Visualizer {
                         si.setSourceRelPath(ItemPath.create(item.getElementName()));
                         si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
+                        si.setSourceValue(pcv);
                         visualization.addPartialVisualization(si);
-
-                        evaluateDescriptionHandlers(si, task, result);
 
                         currentVisualization = si;
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
+
+                    evaluateDescriptionHandlers(currentVisualization, task, result);
                 }
             } else {
                 throw new IllegalStateException("Not a property nor reference nor container: " + item);
@@ -519,7 +517,7 @@ public class Visualizer {
     }
 
     private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
-        for (VisualizationDescriptionHandler handler : DESCRIPTION_HANDLERS) {
+        for (VisualizationDescriptionHandler handler : descriptionHandlers) {
             if (handler.match(visualization)) {
                 handler.apply(visualization, task, result);
             }
@@ -554,7 +552,6 @@ public class Visualizer {
         if (visualizationDefinition != null) {
             name.setDisplayName(visualizationDefinition.getDisplayName());
         }
-        name.setNamesAreResourceKeys(true);            // TODO: ok?
         return name;
     }
 
@@ -631,6 +628,8 @@ public class Visualizer {
             }
         }
         visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
+
+        evaluateDescriptionHandlers(visualizationForItem, task, result);
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
@@ -809,7 +808,7 @@ public class Visualizer {
     }
 
     @SuppressWarnings("unchecked")
-    private <V extends PrismValue, D extends ItemDefinition> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
+    private <V extends PrismValue, D extends ItemDefinition<?>> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
             VisualizationImpl parent)
             throws SchemaException {
         String simpleName = itemDelta.getElementName() != null ? itemDelta.getElementName().getLocalPart() : "";
@@ -818,7 +817,6 @@ public class Visualizer {
             name.setDisplayName(itemDelta.getDefinition().getDisplayName());
         }
         name.setId(simpleName);
-        name.setNamesAreResourceKeys(true);
 
         VisualizationDeltaItemImpl si = new VisualizationDeltaItemImpl(name);
         si.setSourceDelta(itemDelta);
@@ -847,8 +845,7 @@ public class Visualizer {
             name.setDisplayName(def.getDisplayName());
             name.setDescription(def.getDocumentation());
         }
-        name.setId(name.getSimpleName());        // todo reconsider
-        name.setNamesAreResourceKeys(true);
+        name.setId(item.getElementName().getLocalPart());        // todo reconsider
         return name;
     }
 
@@ -944,7 +941,6 @@ public class Visualizer {
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }
-        name.setNamesAreResourceKeys(false);
         return name;
     }
 
@@ -957,7 +953,6 @@ public class Visualizer {
                 nv.setDisplayName(object.asObjectable().getName().getOrig());
             }
         }
-        nv.setNamesAreResourceKeys(false);
         return nv;
     }
 

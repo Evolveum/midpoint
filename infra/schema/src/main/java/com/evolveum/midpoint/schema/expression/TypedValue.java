@@ -8,8 +8,15 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * Value and definition pair. E.g. used in expression variable maps.
@@ -82,6 +89,39 @@ public class TypedValue<T> implements ShortDumpable {
         this.value = value;
         this.definition = definition;
         this.typeClass = typeClass;
+    }
+
+    /**
+     * Creates a {@link TypedValue} with a collection of real values.
+     *
+     * Simple implementation (for now):
+     *
+     * . assumes the values have the same class;
+     * . does NOT unwrap the values into "real values", using them wrapped.
+     *
+     * (Moved here from `report-impl` module, can be improved later, if needed.)
+     *
+     * @param typeName Name of the type, if known
+     */
+    @Experimental
+    public static TypedValue<?> of(@NotNull Collection<? extends PrismValue> prismValues, @Nullable QName typeName) {
+        Class<?> clazz = typeName != null ? PrismContext.get().getSchemaRegistry().determineClassForType(typeName) : null;
+        if (clazz == null && !prismValues.isEmpty()) {
+            clazz = prismValues.iterator().next().getRealClass();
+        }
+        if (clazz == null) {
+            clazz = Object.class;
+        }
+        return new TypedValue<>(prismValues, clazz);
+    }
+
+    @Experimental
+    public static TypedValue<?> of(@Nullable Object value, @NotNull Class<?> defaultClass) {
+        if (value != null) {
+            return new TypedValue<>(value, value.getClass());
+        } else {
+            return new TypedValue<>(null, defaultClass);
+        }
     }
 
     public Object getValue() {

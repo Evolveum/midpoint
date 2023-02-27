@@ -125,7 +125,7 @@ abstract public class ValueMetadataComputation {
 
     // We assume there is only a single item corresponding to given path
     private void markValuesTransient(ItemPath path) {
-        Item<PrismValue, ItemDefinition> item = outputMetadata.findItem(path);
+        Item<?, ?> item = outputMetadata.findItem(path);
         if (item != null) {
             LOGGER.trace("Marking {} values of {} as transient", item.size(), path);
             item.getValues().forEach(value -> value.setTransient(true));

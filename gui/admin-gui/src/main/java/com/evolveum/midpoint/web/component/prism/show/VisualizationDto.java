@@ -14,10 +14,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VisualizationDto implements Serializable {
 
@@ -84,18 +85,18 @@ public class VisualizationDto implements Serializable {
         return items;
     }
 
-    public String getName(Component component) {
+    public String getName() {
         Name nameObject = visualization.getName();
         if (nameObject == null) {
-            return resolve("SceneDto.unnamed", true);
+            return LocalizationUtil.translate("SceneDto.unnamed");
         }
 
-        String displayName = nameObject.getDisplayName();
+        LocalizableMessage displayName = nameObject.getDisplayName();
         if (displayName == null) {
-            return resolve(nameObject.getSimpleName(), nameObject.namesAreResourceKeys());
+            return LocalizationUtil.translateMessage(nameObject.getSimpleName());
         }
 
-        String name = resolve(displayName, nameObject.namesAreResourceKeys());
+        String name = LocalizationUtil.translateMessage(displayName);
         ItemPath path = visualization.getSourceAbsPath();
         if (path != null && path.size() > 1) {
             name = name + " (" + path + ")";
@@ -104,15 +105,7 @@ public class VisualizationDto implements Serializable {
         return name;
     }
 
-    private String resolve(String name, boolean namesAreResourceKeys) {
-        if (!namesAreResourceKeys) {
-            return name;
-        }
-
-        return PageBase.createStringResourceStatic(name).getString();
-    }
-
-    public String getDescription(Component component) {
+    public String getDescription() {
         Name name = visualization.getName();
         if (name == null) {
             return "";
@@ -120,9 +113,12 @@ public class VisualizationDto implements Serializable {
         if (visualization.getSourceDefinition() != null && !(visualization.getSourceDefinition() instanceof PrismObjectDefinition)) {
             return "";
         }
-        if (name.getSimpleName() != null && !name.getSimpleName().equals(getName(component))) {
-            return "(" + name.getSimpleName() + ")";
+
+        String simpleName = LocalizationUtil.translateMessage(name.getSimpleName());
+        if (simpleName != null && !Objects.equals(simpleName, getName())) {
+            return "(" + simpleName + ")";
         }
+
         return "";
     }
 
@@ -159,9 +155,26 @@ public class VisualizationDto implements Serializable {
         this.sorted = sorted;
     }
 
-    // minimized is NOT included in equality check - because the VisualizationDto's are compared in order to determine
-    // whether they should be redrawn (i.e. their content is important, not the presentation)
+    public boolean hasOperationalItems() {
+        if (getVisualization().isOperational()) {
+            return true;
+        }
 
+        if (getItems().stream().anyMatch(i -> i.isOperational())) {
+            return true;
+        }
+
+        if (getPartialVisualizations().stream().anyMatch(v -> v.hasOperationalItems())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * minimized is NOT included in equality check - because the VisualizationDto's are compared in order to determine
+     * whether they should be redrawn (i.e. their content is important, not the presentation)
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {return true;}

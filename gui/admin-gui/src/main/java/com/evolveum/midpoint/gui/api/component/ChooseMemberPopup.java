@@ -164,10 +164,14 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     private void addOrReplaceTabPanels(Form form, AssignmentObjectRelation relationSpec) {
         tabs = createAssignmentTabs(relationSpec);
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
+        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel(ID_TABS_PANEL, tabs);
         tabPanel.add(new VisibleBehaviour(() -> !isCompositedButtonsPanelVisible));
         tabPanel.setOutputMarkupId(true);
         form.addOrReplace(tabPanel);
+    }
+
+    protected QName getRelationIfIsStable() {
+        return null;
     }
 
     protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
@@ -183,24 +187,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<UserType>(panelId, search, archetypeRefList){
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<UserType>>> rowModelList, DataTable dataTable){
-                        tabLabelPanelUpdate(target);
-                    }
-
-                    @Override
-                    protected ObjectTypes getObjectType(){
-                        return ObjectTypes.USER;
-                    }
-
-                    @Override
-                    protected T getAbstractRoleTypeObject(){
-                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
-                    }
-                };
+                return createMemberPopup(panelId, ObjectTypes.USER, archetypeRefList);
             }
 
             @Override
@@ -216,24 +203,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<RoleType>(panelId, search, archetypeRefList){
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<RoleType>>> rowModelList, DataTable dataTable){
-                        tabLabelPanelUpdate(target);
-                    }
-
-                    @Override
-                    protected ObjectTypes getObjectType(){
-                        return ObjectTypes.ROLE;
-                    }
-
-                    @Override
-                    protected T getAbstractRoleTypeObject(){
-                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
-                    }
-                };
+                return createMemberPopup(panelId, ObjectTypes.SERVICE, archetypeRefList);
             }
 
             @Override
@@ -250,31 +220,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<OrgType>(panelId, search, archetypeRefList){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<OrgType>>> rowModelList, DataTable dataTable){
-                                selectedOrgsListUpdate(rowModelList);
-                                tabLabelPanelUpdate(target);
-                            }
-
-                            @Override
-                            protected ObjectTypes getObjectType(){
-                                return ObjectTypes.ORG;
-                            }
-
-                            @Override
-                            protected T getAbstractRoleTypeObject(){
-                                return ChooseMemberPopup.this.getAssignmentTargetRefObject();
-                            }
-
-//                            @Override
-//                            protected List<OrgType> getPreselectedObjects(){
-//                                return selectedOrgsList;
-//                            }
-
-                        };
+                        return createMemberPopup(panelId, ObjectTypes.ORG, archetypeRefList);
                     }
 
                     @Override
@@ -327,25 +273,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<ServiceType>(panelId, search, archetypeRefList){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected T getAbstractRoleTypeObject(){
-                                return ChooseMemberPopup.this.getAssignmentTargetRefObject();
-                            }
-
-                            @Override
-                            protected ObjectTypes getObjectType(){
-                                return ObjectTypes.SERVICE;
-                            }
-
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<ServiceType>>> rowModelList, DataTable dataTable){
-                                tabLabelPanelUpdate(target);
-                            }
-
-                        };
+                        return createMemberPopup(panelId, ObjectTypes.SERVICE, archetypeRefList);
                     }
 
                     @Override
@@ -355,6 +283,43 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
         return tabs;
+    }
+
+    private WebMarkupContainer createMemberPopup(String panelId, ObjectTypes objectType, List<ObjectReferenceType> archetypeRefList) {
+        return new MemberPopupTabPanel(panelId, search, archetypeRefList){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectionPerformed(AjaxRequestTarget target, List rowModelList, DataTable dataTable) {
+                if (ObjectTypes.ORG.equals(objectType)) {
+                    selectedOrgsListUpdate(rowModelList);
+                }
+                tabLabelPanelUpdate(target);
+            }
+
+            @Override
+            protected ObjectTypes getObjectType(){
+                return objectType;
+            }
+
+            @Override
+            protected T getAbstractRoleTypeObject(){
+                return ChooseMemberPopup.this.getAssignmentTargetRefObject();
+            }
+
+            @Override
+            protected QName getDefaultRelation() {
+                return getRelationIfIsStable() != null ? getRelationIfIsStable() : super.getDefaultRelation();
+            }
+
+            @Override
+            protected boolean isVisibleParameterPanel() {
+                if (getRelationIfIsStable() == null) {
+                    super.isVisibleParameterPanel();
+                }
+                return false;
+            }
+        };
     }
 
     protected final List<QName> getAvailableObjectTypes(){
@@ -532,7 +497,25 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return RoleType.COMPLEX_TYPE;
     }
 
+    private List<QName> getSupportedRelations() {
+        AbstractRoleSearchItemWrapper memberSearchItem = search.findMemberSearchItem();
+        return memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
+    }
+
     public StringResourceModel getTitle(){
+        QName stableRelation = getRelationIfIsStable();
+        if (stableRelation == null) {
+            AbstractRoleSearchItemWrapper memberSearchItem = search.findMemberSearchItem();
+            List<QName> relations = memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
+            stableRelation = relations.stream().findFirst().orElse(null);
+        }
+        if (stableRelation != null) {
+            RelationDefinitionType def = WebComponentUtil.getRelationDefinition(stableRelation);
+            if (def != null) {
+                String label = GuiDisplayTypeUtil.getTranslatedLabel(def.getDisplay());
+                return createStringResource("ChooseMemberPopup.selectObjectWithRelation", label);
+            }
+        }
         return createStringResource("TypedAssignablePanel.selectObjects");
     }
 }

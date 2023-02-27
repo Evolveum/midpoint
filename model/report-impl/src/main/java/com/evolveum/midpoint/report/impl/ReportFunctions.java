@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -44,6 +47,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+@SuppressWarnings({ "WeakerAccess", "unused" }) // methods here are called from scripts
 public class ReportFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportFunctions.class);
@@ -552,4 +556,35 @@ public class ReportFunctions {
         return model.searchObjects(AccessCertificationCampaignType.class, query, options, task, task.getResult());
     }
 
+    public @NotNull <O extends ObjectType> ProcessedObject<O> getProcessedObject(
+            @NotNull SimulationResultProcessedObjectType objectBean) throws SchemaException {
+        return model.parseProcessedObject(objectBean);
+    }
+
+    public Collection<ProcessedObject.ProcessedObjectItemDelta<?, ?>> getProcessedObjectItemDeltas(
+            @NotNull SimulationResultProcessedObjectType objectBean,
+            @Nullable Object pathsToInclude,
+            @Nullable Object pathsToExclude,
+            @Nullable Boolean includeOperationalItems) throws SchemaException {
+        return getProcessedObject(objectBean)
+                .getItemDeltas(pathsToInclude, pathsToExclude, includeOperationalItems);
+    }
+
+    public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
+        return getRelatedAssignment(itemDelta, null);
+    }
+
+    public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta, Object value) {
+        if (itemDelta != null) {
+            AssignmentType fromDelta = itemDelta.getRelatedAssignment();
+            if (fromDelta != null) {
+                return fromDelta;
+            }
+        }
+        if (value instanceof AssignmentType) {
+            return (AssignmentType) value;
+        }
+
+        return null;
+    }
 }

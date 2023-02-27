@@ -441,6 +441,11 @@ public abstract class PageBase extends PageAdminLTE {
         return ModalDialog.CONTENT_ID;
     }
 
+    public void replaceMainPopup(Popupable popupable, AjaxRequestTarget target) {
+        target.appendJavaScript("$('.modal-backdrop').remove();");
+        showMainPopup(popupable, target);
+    }
+
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
         MainPopupDialog dialog = getMainPopup();
         dialog.getDialogComponent().add(AttributeModifier.replace("style",

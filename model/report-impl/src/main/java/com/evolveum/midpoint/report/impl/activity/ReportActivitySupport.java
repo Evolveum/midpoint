@@ -92,7 +92,7 @@ class ReportActivitySupport {
         return ObjectTypeUtil.createObjectRef(getReport());
     }
 
-    public ReportParameterType getReportParameters() {
+    ReportParameterType getReportParameters() {
         return workDefinition.getReportParams();
     }
 

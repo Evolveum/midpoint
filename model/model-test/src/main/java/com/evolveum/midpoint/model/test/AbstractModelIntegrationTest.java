@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,7 +155,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  * @author Radovan Semancik
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest
-        implements ResourceTester, DummyTestResourceInitializer {
+        implements ResourceTester {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -3131,14 +3133,52 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
         account.asObjectable().setIntent(intent);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
-        );
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
 
         return userDelta;
+    }
+
+    protected ObjectDelta<UserType> createModifyUserAssignAccount(String userOid, String resourceOid)
+            throws SchemaException {
+        return createModifyUserAssignAccount(userOid, resourceOid, INTENT_DEFAULT);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected ObjectDelta<UserType> createModifyUserAssignAccount(String userOid, String resourceOid, @NotNull String intent)
+            throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(intent)))
+                .asObjectDelta(userOid);
+    }
+
+    /** Simplistic: expects the exact assignment being present (no variations). */
+    protected ObjectDelta<UserType> createModifyUserUnassignAccount(String userOid, String resourceOid)
+            throws SchemaException {
+        return createModifyUserUnassignAccount(userOid, resourceOid, INTENT_DEFAULT);
+    }
+
+    /** Simplistic: expects the exact assignment being present (no variations). */
+    @SuppressWarnings("SameParameterValue")
+    protected ObjectDelta<UserType> createModifyUserUnassignAccount(
+            String userOid, String resourceOid, @NotNull String intent)
+            throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(intent)))
+                .asObjectDelta(userOid);
     }
 
     protected ObjectDelta<UserType> createModifyUserDeleteDummyAccount(String userOid, String dummyResourceName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -5040,6 +5080,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected AssignmentType findAssignmentByTargetRequired(PrismObject<? extends FocusType> focus, String targetOid) {
         return findAssignmentByTarget(focus, targetOid)
                 .orElseThrow(() -> new IllegalStateException("No assignment to " + targetOid + " in " + focus));
+    }
+
+    protected Optional<AssignmentType> findAssignmentByResource(PrismObject<? extends FocusType> focus, String resourceOid) {
+        return focus.asObjectable().getAssignment().stream()
+                .filter(a -> {
+                    ConstructionType construction = a.getConstruction();
+                    return construction != null && resourceOid.equals(getOid(construction.getResourceRef()));
+                }).findFirst();
+    }
+
+    protected AssignmentType findAssignmentByResourceRequired(PrismObject<? extends FocusType> focus, String resourceOid) {
+        return findAssignmentByResource(focus, resourceOid)
+                .orElseThrow(() -> new IllegalStateException("No assignment to " + resourceOid + " in " + focus));
     }
 
     protected AssignmentType findInducementByTarget(String roleOid, String targetOid)

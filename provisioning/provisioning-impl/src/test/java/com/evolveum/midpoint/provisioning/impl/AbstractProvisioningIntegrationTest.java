@@ -50,8 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public abstract class AbstractProvisioningIntegrationTest
-        extends AbstractIntegrationTest
-        implements DummyTestResourceInitializer {
+        extends AbstractIntegrationTest {
 
     public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
 

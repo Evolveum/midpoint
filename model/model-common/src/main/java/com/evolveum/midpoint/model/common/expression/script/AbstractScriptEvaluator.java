@@ -103,7 +103,8 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                         context.getExpressionType().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
 
                 //noinspection rawtypes
-                TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName,
+                TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(
+                        variableEntry.getValue(), variableName,
                         context.getObjectResolver(), context.getContextDescription(),
                         context.getExpressionType().getObjectVariableMode(),
                         valueVariableMode,
@@ -111,7 +112,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 
                 scriptVariableMap.put(variableName, variableTypedValue.getValue());
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
-                    ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType(prismContext);
+                    ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
                     variableTrace.setName(new QName(variableName));
                     Object clonedValue = cloneIfPossible(variableTypedValue.getValue());
                     variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(clonedValue, prismContext));
