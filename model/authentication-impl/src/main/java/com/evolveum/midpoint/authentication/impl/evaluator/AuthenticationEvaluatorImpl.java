@@ -12,6 +12,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.prism.impl.query.ObjectQueryImpl;
+
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -96,8 +100,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(),
-                authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -129,7 +132,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(), authnCtx.getPrincipalType(), false);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, false);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -208,7 +211,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
 
         PreAuthenticationContext preAuthenticationContext = new PreAuthenticationContext(username, FocusType.class, null);
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, preAuthenticationContext.createFocusQuery(), FocusType.class, true);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, (T) preAuthenticationContext, true);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -243,8 +246,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     @Override
     public <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AC authnCtx) {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.createFocusQuery(),
-                authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         // Authorizations
         if (hasNoneAuthorization(principal)) {
@@ -263,49 +265,50 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @NotNull
-    protected MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, ObjectQuery query, Class<? extends FocusType> clazz,
-            boolean supportsActivationCheck) {
-
-//        if (StringUtils.isBlank(query)) {
-//            recordAuthenticationFailure(query, connEnv, "no username");
-//            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
-//        }
-
+    protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
+        ObjectQuery query = authCtx.createFocusQuery();
+        String username = authCtx.getUsername();
         if (query == null) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "no username");
+            recordAuthenticationFailure(username, connEnv, "no username");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
+        if (query == null) {
+            recordAuthenticationFailure(username, connEnv, "no username");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+        }
+
+        Class<? extends FocusType> clazz = authCtx.getPrincipalType();
         MidPointPrincipal principal;
         try {
             principal = focusProfileService.getPrincipal(query, clazz);
         } catch (ObjectNotFoundException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "no focus");
+            recordAuthenticationFailure(username, connEnv, "no focus");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         } catch (SchemaException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "schema error");
+            recordAuthenticationFailure(username, connEnv, "schema error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (CommunicationException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "communication error");
+            recordAuthenticationFailure(username, connEnv, "communication error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ConfigurationException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "configuration error");
+            recordAuthenticationFailure(username, connEnv, "configuration error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (SecurityViolationException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "security violation");
+            recordAuthenticationFailure(username, connEnv, "security violation");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ExpressionEvaluationException e) {
-            recordAuthenticationFailure(query.debugDump(), connEnv, "expression error");
+            recordAuthenticationFailure(username, connEnv, "expression error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         }
 
         if (principal == null) {
-            recordAuthenticationBehavior(query.debugDump(), null, connEnv, "no focus", clazz, false);
+            recordAuthenticationBehavior(username, null, connEnv, "no focus", clazz, false);
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
-        if (supportsActivationCheck && !principal.isEnabled()) {
-            recordAuthenticationBehavior(query.debugDump(), principal, connEnv, "focus disabled", clazz, false);
+        if (supportActivationCheck && !principal.isEnabled()) {
+            recordAuthenticationBehavior(username, principal, connEnv, "focus disabled", clazz, false);
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;

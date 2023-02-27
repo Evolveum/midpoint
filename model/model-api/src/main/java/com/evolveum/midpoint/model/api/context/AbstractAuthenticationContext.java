@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 public abstract class AbstractAuthenticationContext {
@@ -57,11 +59,11 @@ public abstract class AbstractAuthenticationContext {
     public abstract Object getEnteredCredential();
 
     public ObjectQuery createFocusQuery() {
-        if (username != null) {
+        if (StringUtils.isNotBlank(username)) {
             PolyString usernamePoly = new PolyString(username);
             return ObjectQueryUtil.createNormNameQuery(usernamePoly, PrismContext.get());
         }
-        throw new UnsupportedOperationException("Username not specified, probably more concrete context should override this method");
+        return null;
     }
 
 }
