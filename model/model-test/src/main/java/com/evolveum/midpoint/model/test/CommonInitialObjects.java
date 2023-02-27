@@ -99,8 +99,8 @@ public interface CommonInitialObjects {
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
 
     TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
-            MARKS, "750-mark-protected-shadow.xml",
-            SystemObjectsType.MARK_PROTECTED_SHADOW.value());
+            MARKS, "800-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED.value());
 
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";

@@ -57,7 +57,7 @@ public class ObjectOperationPolicyHelper {
 
     }
 
-    private static final String MARK_PROTECTED_SHADOW_OID = SystemObjectsType.MARK_PROTECTED_SHADOW.value();
+    private static final String MARK_PROTECTED_SHADOW_OID = SystemObjectsType.MARK_PROTECTED.value();
 
     private static ObjectOperationPolicyHelper instance = null;
 

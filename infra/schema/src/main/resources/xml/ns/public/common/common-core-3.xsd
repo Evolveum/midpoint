@@ -15758,10 +15758,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000750">
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000800">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MARK_PROTECTED_SHADOW"/>
+                        <jaxb:typesafeEnumMember name="MARK_PROTECTED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

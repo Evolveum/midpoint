@@ -57,8 +57,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 
     protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
-            "initial-objects/mark", "750-mark-protected-shadow.xml",
-            SystemObjectsType.MARK_PROTECTED_SHADOW.value());
+            "initial-objects/mark", "800-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED.value());
 
     private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 

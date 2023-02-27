@@ -155,8 +155,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
 
     protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
-            "initial-objects/mark", "750-mark-protected-shadow.xml",
-            SystemObjectsType.MARK_PROTECTED_SHADOW.value());
+            "initial-objects/mark", "800-mark-protected-shadow.xml",
+            SystemObjectsType.MARK_PROTECTED.value());
 
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
