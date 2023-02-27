@@ -140,33 +140,33 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         };
         columns.add(accessColumn);
 
-        ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> sourceColumns = new ObjectReferenceColumn<>(createStringResource("Source"), "value") {
-            @Override
-            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ObjectReferenceType>> rowModel) {
-                return () -> {
-                    List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
-                    if (metadataValues == null) {
-                        return null;
-                    }
-                    List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
-                    for (ProvenanceMetadataType metadataType : metadataValues) {
-                        assignmentPaths.add(metadataType.getAssignmentPath());
-                    }
-
-                    List<ObjectReferenceType> refs = new ArrayList<>();
-                    for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
-                        List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
-                        if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
-                            continue;
-                        }
-                        AssignmentPathSegmentMetadataType sourceSegment = segments.get(0);
-                        refs.add(getReferenceWithResolvedName(sourceSegment.getTargetRef()));
-                    }
-                    return refs;
-                };
-            }
-        };
-        columns.add(sourceColumns);
+//        ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> sourceColumns = new ObjectReferenceColumn<>(createStringResource("Source"), "value") {
+//            @Override
+//            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ObjectReferenceType>> rowModel) {
+//                return () -> {
+//                    List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
+//                    if (metadataValues == null) {
+//                        return null;
+//                    }
+//                    List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
+//                    for (ProvenanceMetadataType metadataType : metadataValues) {
+//                        assignmentPaths.add(metadataType.getAssignmentPath());
+//                    }
+//
+//                    List<ObjectReferenceType> refs = new ArrayList<>();
+//                    for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
+//                        List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
+//                        if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
+//                            continue;
+//                        }
+//                        AssignmentPathSegmentMetadataType sourceSegment = segments.get(0);
+//                        refs.add(getReferenceWithResolvedName(sourceSegment.getTargetRef()));
+//                    }
+//                    return refs;
+//                };
+//            }
+//        };
+//        columns.add(sourceColumns);
 
 //        ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> immediateParent = new ObjectReferenceColumn<>(createStringResource("Immediate parent"), "value") {
 //            @Override
@@ -190,7 +190,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 //        };
 //        columns.add(immediateParent);
 
-        AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String> assignmentPath = new AbstractExportableColumn<>(createStringResource("Assignment path")) {
+        AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String> source = new AbstractExportableColumn<>(createStringResource("AllAccessListPanel.sourceColumnTitle")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectReferenceType>>> cellItem, String componentId, IModel<SelectableBean<ObjectReferenceType>> rowModel) {
@@ -214,7 +214,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 return () -> resolvedPaths(rowModel.getObject());
             }
         };
-        columns.add(assignmentPath);
+        columns.add(source);
 
         var why = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("Why")) {
             @Override

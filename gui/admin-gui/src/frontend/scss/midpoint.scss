@@ -1783,6 +1783,7 @@ th.debug-list-buttons {
 .assignmentPath {
   list-style: none;
   margin-bottom: 0px;
+  padding-left: 0px !important;
 
   & > li {
 
@@ -1794,8 +1795,13 @@ th.debug-list-buttons {
         font-family: "Font Awesome 5 Free";
         font-weight: 900;
         content: "\f061";
+        margin-right: 2px;
       }
     }
+  }
+
+  & > a {
+    margin-left: -20px;
   }
 }
 

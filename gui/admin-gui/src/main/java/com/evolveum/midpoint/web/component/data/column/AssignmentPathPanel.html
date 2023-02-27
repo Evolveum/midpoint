@@ -9,7 +9,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div wicket:id="paths">
-        <ul class="assignmentPath" wicket:id="path"/>
+        <ul class="assignmentPath d-flex flex-wrap mb-2">
+            <div class="assignmentPath" wicket:id="path"/>
+            <a wicket:id="detailedViewButton">
+                <i wicket:id="detailedViewIcon"/>
+            </a>
+        </ul>
     </div>
 </wicket:panel>
 </html>
