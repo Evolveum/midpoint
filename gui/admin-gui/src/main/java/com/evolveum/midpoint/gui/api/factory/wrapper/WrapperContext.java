@@ -72,6 +72,8 @@ public class WrapperContext {
     private AttributeMappingType attributeMappingType;
     private boolean configureMappingType;
 
+    private boolean isShowedByWizard;
+
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -232,22 +234,17 @@ public class WrapperContext {
 
     protected void collectVirtualContainers(@NotNull Collection<? extends ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
         for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
-            if(isIgnoredWizardPanel(panelConfig)) {
-                continue;
-            }
-            if (objectStatus == null || panelConfig.getApplicableForOperation() == null
-                    || (ItemStatus.NOT_CHANGED.equals(objectStatus)
-                        && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
-                    || (ItemStatus.ADDED.equals(objectStatus)
-                    && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))) {
+            if ((isShowedByWizard && OperationTypeType.WIZARD.equals(panelConfig.getApplicableForOperation()))
+                    || (!isShowedByWizard
+                        && (objectStatus == null || panelConfig.getApplicableForOperation() == null
+                            || (ItemStatus.NOT_CHANGED.equals(objectStatus)
+                                && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
+                            || (ItemStatus.ADDED.equals(objectStatus)
+                                && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))))) {
                 virtualContainers.addAll(panelConfig.getContainer());
                 collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
             }
         }
-    }
-
-    protected boolean isIgnoredWizardPanel(ContainerPanelConfigurationType panelConfig) {
-        return false;
     }
 
     public VirtualContainersSpecificationType findVirtualContainerConfiguration(ItemPath path) {
@@ -279,6 +276,14 @@ public class WrapperContext {
         return configureMappingType;
     }
 
+    public void setShowedByWizard(boolean showedByWizard) {
+        isShowedByWizard = showedByWizard;
+    }
+
+    public boolean isShowedByWizard() {
+        return isShowedByWizard;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -297,6 +302,7 @@ public class WrapperContext {
         ctx.setDetailsPageTypeConfiguration(detailsPageTypeConfiguration);
         ctx.setAttributeMappingType(attributeMappingType);
         ctx.setConfigureMappingType(configureMappingType);
+        ctx.setShowedByWizard(isShowedByWizard);
         return ctx;
     }
 }

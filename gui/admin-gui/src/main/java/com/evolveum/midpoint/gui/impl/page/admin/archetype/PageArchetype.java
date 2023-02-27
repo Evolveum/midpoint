@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
                         label = "PageArchetype.auth.user.label",
                         description = "PageArchetype.auth.archetype.description")
         })
-public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
+public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
 
     private static final long serialVersionUID = 1L;
 

@@ -31,7 +31,7 @@ import java.util.*;
 @PanelType(name = "roleWizard-access-application-role")
 @PanelInstance(identifier = "roleWizard-access-application-role",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.applicationRole", icon = "fa fa-list"),
         containerPath = "empty")
 public class AccessApplicationRoleStepPanel

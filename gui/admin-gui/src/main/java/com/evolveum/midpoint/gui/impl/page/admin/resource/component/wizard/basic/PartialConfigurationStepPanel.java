@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "rw-connectorConfiguration-partial")
 @PanelInstance(identifier = "rw-connectorConfiguration-partial",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(
                 label = "PageResource.wizard.step.configuration",
                 icon = "fa fa-cog"),

@@ -30,7 +30,7 @@ import org.apache.wicket.util.visit.ClassVisitFilter;
 @PanelType(name = "roleWizard-basic")
 @PanelInstance(identifier = "roleWizard-basic",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<FocusDetailsModels<RoleType>> {

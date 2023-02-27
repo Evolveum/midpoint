@@ -24,9 +24,11 @@
 
     <wicket:fragment wicket:id="headerFragment">
         <div class="d-flex">
-            <div class="mr-auto pr-4">
-                <div wicket:id="viewToggle"/>
-            </div>
+            <wicket:enclosure child="viewToggle">
+                <div class="mr-auto pr-4">
+                    <div wicket:id="viewToggle"/>
+                </div>
+            </wicket:enclosure>
             <div class="ml-auto" wicket:id="panelHeader"/>
         </div>
     </wicket:fragment>

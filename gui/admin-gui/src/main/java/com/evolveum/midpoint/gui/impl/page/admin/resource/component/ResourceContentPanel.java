@@ -162,6 +162,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
         topButtons.setOutputMarkupId(true);
 
+        initBasicConfigButton(topButtons);
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
@@ -363,6 +364,29 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         attrMappingButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(attrMappingButton);
+    }
+
+    private void initBasicConfigButton(RepeatingView topButtons) {
+        AjaxIconButton synchConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.BASIC.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.BASIC)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showResourceObjectTypeBasicWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        synchConfButton.setOutputMarkupId(true);
+        synchConfButton.showTitleAsLabel(true);
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        topButtons.add(synchConfButton);
     }
 
     private void initSychronizationButton(RepeatingView topButtons) {

@@ -27,7 +27,7 @@ import org.apache.wicket.model.IModel;
 @Experimental
 @PanelInstance(identifier = "rw-association",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associations", icon = "fa fa-shield"),
         expanded = true)
 public class AssociationStepPanel

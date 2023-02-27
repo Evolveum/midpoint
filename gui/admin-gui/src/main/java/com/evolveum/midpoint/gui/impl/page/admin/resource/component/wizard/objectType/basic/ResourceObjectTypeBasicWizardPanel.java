@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2022 Evolveum and contributors
+ * Copyright (C) 2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
@@ -13,11 +13,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceCredentialsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,42 +28,52 @@ import java.util.List;
  */
 
 @Experimental
-public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
+public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
-    public CredentialsWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
+    public ResourceObjectTypeBasicWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createCredentialsSteps(getValueModel())))));
+                new WizardModel(createBasicSteps(getValueModel())))));
     }
 
-    private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    private List<WizardStep> createBasicSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        PasswordStepPanel panel = new PasswordStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_CREDENTIALS,
-                                ResourceCredentialsDefinitionType.F_PASSWORD))) {
+
+        steps.add(new BasicSettingResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                CredentialsWizardPanel.this.onExitPerformed(target);
+                ResourceObjectTypeBasicWizardPanel.this.onExitPerformed(target);
             }
+        });
+
+        steps.add(new DelineationResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceObjectTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
+
+        steps.add(new FocusResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = CredentialsWizardPanel.this.onSavePerformed(target);
+                OperationResult result = ResourceObjectTypeBasicWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     onExitPerformed(target);
+                } else {
+                    target.add(getFeedback());
                 }
             }
-        };
-        panel.setOutputMarkupId(true);
-        steps.add(panel);
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceObjectTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         return steps;
     }

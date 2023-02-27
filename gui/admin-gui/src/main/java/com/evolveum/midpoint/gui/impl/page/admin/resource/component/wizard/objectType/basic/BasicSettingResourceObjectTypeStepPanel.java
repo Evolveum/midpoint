@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic;
 
 import org.apache.wicket.model.IModel;
 
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @PanelInstance(identifier = "rw-type-basic",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel
         extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
