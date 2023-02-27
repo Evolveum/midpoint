@@ -844,7 +844,7 @@
                        <xsd:annotation>
                             <xsd:documentation>
                                 Provisioning policy, which is applied to shadows, which have this tag assigned.
-                                
+
                                 If shadow have multiple tags with provisioning policy applied, the strongest effect is applied.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -18166,14 +18166,14 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="use" type="tns:SubreportUseType" minOccurs="0" default="embedded">
+                    <xsd:element name="resultHandling" type="tns:SubreportResultHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                How should be the values of subreport used with regard to the parent report row:
-                                embedded to it or joined with it. Mostly useful for subreports that produce more values.
+                                How should we handle the situations when the sub-report produces either multiple values,
+                                or no values at all?
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>SubreportParameterType.asRow</a:displayName>
+                                <a:displayName>SubreportParameterType.resultHandling</a:displayName>
                                 <a:since>4.7</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -18183,48 +18183,103 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:simpleType name="SubreportUseType">
+    <xsd:complexType name="SubreportResultHandlingType">
         <xsd:annotation>
             <xsd:documentation>
-                How is the result of a sub-report used.
+                How should we handle the situations when a sub-report produces either either multiple values, or no values at all?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="multipleValues" type="tns:MultipleSubreportResultValuesHandlingType" minOccurs="0"
+                    default="embedInParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should we handle the situations when a sub-report produces multiple values?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SubreportResultHandlingType.multipleValues</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="noValues" type="tns:NoSubreportResultValuesHandlingType" minOccurs="0" default="keepParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should we handle the situations when a sub-report produces no values?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SubreportResultHandlingType.noValues</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MultipleSubreportResultValuesHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should we handle the situations when a sub-report produces multiple values?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="embedded">
+            <xsd:enumeration value="embedInParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The value(s) of the sub-report are used within the parent result row.
+                        The values of the sub-report are used within the parent row. No row manipulation is done.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EMBEDDED"/>
+                        <jaxb:typesafeEnumMember name="EMBED_IN_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="leftJoin">
+            <xsd:enumeration value="splitParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
-                        producing N rows (if N > 0) or 1 row (if N = 0).
+                        The N > 1 value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
+                        producing N rows. In each of these rows the value of the respective element is provided as a variable
+                        named as specified in this subreport.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SPLIT_PARENT_ROW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
-                        In each generated row the value of the respective element is provided as a variable named
-                        as specified in this subreport. If N = 0, the value of this variable is null.
+    <xsd:simpleType name="NoSubreportResultValuesHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should we handle the situations when a sub-report produces no values?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="keepParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The parent row is kept intact. The respective variable (named after the subreport) is null.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="LEFT_JOIN"/>
+                        <jaxb:typesafeEnumMember name="KEEP_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="innerJoin">
+            <xsd:enumeration value="removeParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
-                        producing N rows. If N = 0, the parent row is eliminated.
+                        The parent row is removed. No further evaluation of subreports nor columns is done.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INNER_JOIN"/>
+                        <jaxb:typesafeEnumMember name="REMOVE_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20051,9 +20106,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- 
+            <!--
                  If false: (like protected)
-                 Inbound / outbound mapping changes are disabled 
+                 Inbound / outbound mapping changes are disabled
                  do not run clockwork (SynchronizationServiceImpl)
                  do not run inbounds
                  do not run outbounds
@@ -20065,5 +20120,5 @@
             <xsd:element name="delete" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
-    
+
 </xsd:schema>

@@ -664,5 +664,8 @@ public interface ModelService {
     boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type);
 
     @Experimental
-    <O extends ObjectType> ProcessedObject<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean) throws SchemaException;
+    <O extends ObjectType> ProcessedObject<O> parseProcessedObject(
+            @NotNull SimulationResultProcessedObjectType bean,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException;
 }

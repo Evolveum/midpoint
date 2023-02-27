@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.addParameter;
+import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.addParameters;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.assertj.core.util.Arrays;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +21,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.schema.util.ReportParameterTypeUtil.*;
 
 /**
  * A report that is to be used in tests.
@@ -73,10 +73,9 @@ public class TestReport extends TestObject<ReportType> {
      *
      * @param test To provide access to necessary functionality. Temporary!
      */
-    public void init(AbstractIntegrationTest test, Task task, OperationResult result)
-            throws CommonException {
+    public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
+        commonInit(test, task, result);
         this.test = test;
-        importObject(task, result);
     }
 
     /**

@@ -180,8 +180,7 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
         }
 
         public RecordAsserter assertValue(int column, String expected) {
-            assertThat(getValue(column)).as("value in col " + column + " in " + desc()).isEqualTo(expected);
-            return this;
+            return assertValue(column, a -> a.isEqualTo(expected));
         }
 
         public RecordAsserter assertValue(int column, Consumer<AbstractStringAssert<?>> assertConsumer) {

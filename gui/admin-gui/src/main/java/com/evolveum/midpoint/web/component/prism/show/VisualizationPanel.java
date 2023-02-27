@@ -236,18 +236,31 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 headerOnClickPerformed(target, VisualizationPanel.this.getModel());
             }
         };
-        minimize.add(new VisibleBehaviour(() -> !getModelObject().getVisualization().isEmpty()));
+        minimize.add(new VisibleBehaviour(() -> hasBodyContent()));
         headerPanel.add(minimize);
 
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
             VisualizationDto dto = getModelObject();
-            return !dto.isMinimized() && (!dto.getItems().isEmpty() || !dto.getPartialVisualizations().isEmpty());
+            if (dto.isMinimized()) {
+                return false;
+            }
+
+            return hasBodyContent();
         }));
         add(body);
 
         final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
         body.add(visualization);
+    }
+
+    private boolean hasBodyContent() {
+        VisualizationDto dto = getModelObject();
+        if (dto.hasNonOperationalContent()) {
+            return true;
+        }
+
+        return advanced && showOperationalItems && dto.hasOperationalContent();
     }
 
     protected boolean isExistingViewableObject() {

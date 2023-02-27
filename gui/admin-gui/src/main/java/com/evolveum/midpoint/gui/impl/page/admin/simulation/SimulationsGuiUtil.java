@@ -121,7 +121,7 @@ public class SimulationsGuiUtil {
             Task task = page.getPageTask();
             OperationResult result = task.getResult();
 
-            return page.getModelInteractionService().visualizeDelta(delta, task, result);
+            return page.getModelInteractionService().visualizeDelta(delta, true, false, task, result);
         } catch (SchemaException | ExpressionEvaluationException e) {
             LOGGER.debug("Couldn't convert and visualize delta", e);
 

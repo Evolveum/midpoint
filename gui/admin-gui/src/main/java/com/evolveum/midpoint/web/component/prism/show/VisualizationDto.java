@@ -155,20 +155,44 @@ public class VisualizationDto implements Serializable {
         this.sorted = sorted;
     }
 
-    public boolean hasOperationalItems() {
-        if (getVisualization().isOperational()) {
+    public boolean hasNonOperationalContent() {
+        if (getVisualization().isOperational()){
+            return false;
+        }
+
+        if (hasNonOperationalItems()) {
             return true;
         }
 
-        if (getItems().stream().anyMatch(i -> i.isOperational())) {
-            return true;
-        }
-
-        if (getPartialVisualizations().stream().anyMatch(v -> v.hasOperationalItems())) {
+        if (getPartialVisualizations().stream().anyMatch(v -> v.hasNonOperationalContent())) {
             return true;
         }
 
         return false;
+    }
+
+    public boolean hasOperationalContent() {
+        if (getVisualization().isOperational()) {
+            return true;
+        }
+
+        if (hasOperationalItems()) {
+            return true;
+        }
+
+        if (getPartialVisualizations().stream().anyMatch(v -> v.hasOperationalContent())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean hasNonOperationalItems() {
+        return getItems().stream().anyMatch(i -> !i.isOperational());
+    }
+
+    public boolean hasOperationalItems() {
+        return items.stream().anyMatch(VisualizationItemDto::isOperational);
     }
 
     /**

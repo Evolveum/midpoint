@@ -200,7 +200,16 @@ public class TestObject<T extends ObjectType> {
         return source + " (" + oid + ")";
     }
 
+    /**
+     * Normally we should throw {@link CommonException} only. But {@link DummyTestResource} throws
+     * all kinds of exceptions, hence {@link Exception} is declared here.
+     */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        commonInit(test, task, result);
+    }
+
+    void commonInit(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
+        test.registerTestObjectUsed(this);
         importObject(task, result);
     }
 

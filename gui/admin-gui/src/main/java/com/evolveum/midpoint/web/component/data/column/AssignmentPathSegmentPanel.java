@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -35,9 +37,23 @@ public class AssignmentPathSegmentPanel extends BasePanel<List<AssignmentPathSeg
         ListView<AssignmentPathSegmentMetadataType> segments = new ListView<>(ID_SEGMENTS, getModel()) {
             @Override
             protected void populateItem(ListItem<AssignmentPathSegmentMetadataType> listItem) {
-                listItem.add(new ObjectReferenceColumnPanel(ID_SEGMENT, () -> listItem.getModelObject().getTargetRef()));
+                ObjectReferenceColumnPanel segmentPanel = new ObjectReferenceColumnPanel(ID_SEGMENT, () -> listItem.getModelObject().getTargetRef());
+                listItem.add(segmentPanel);
+                listItem.add(new VisibleBehaviour(() -> isSegmentVisible(listItem.getModelObject())));
             }
         };
         add(segments);
+    }
+
+    protected boolean showAllSegments() {
+        return true;
+    }
+
+    private boolean isSegmentVisible(AssignmentPathSegmentMetadataType segment) {
+        return showAllSegments() || isSegmentFirst(segment);
+    }
+
+    private boolean isSegmentFirst(AssignmentPathSegmentMetadataType segment) {
+        return getModelObject().indexOf(segment) == 0;
     }
 }
