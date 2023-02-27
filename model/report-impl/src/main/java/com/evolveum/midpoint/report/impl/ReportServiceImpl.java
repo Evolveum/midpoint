@@ -90,6 +90,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
     @Autowired private ScriptingService scriptingService;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private ReportFunctions reportFunctions;
 
     @Autowired(required = false) private List<ReportOutputCreatedListener> reportOutputCreatedListeners;
 
@@ -144,7 +145,6 @@ public class ReportServiceImpl implements ReportService {
         FunctionLibrary midPointLib = new FunctionLibrary();
         midPointLib.setVariableName("report");
         midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, modelAuditService);
         midPointLib.setGenericFunctions(reportFunctions);
 
         Collection<FunctionLibrary> functions = new ArrayList<>(originalFunctions);
