@@ -38,13 +38,15 @@ public class TestCsvSimulationReport extends TestCsvReport {
             TestObject.file(TEST_DIR, "archetype-blue.xml", "75beee71-edaa-4737-8793-8dd66eb4babf"); // structural
     private static final TestObject<ArchetypeType> ARCHETYPE_MAGENTA =
             TestObject.file(TEST_DIR, "archetype-magenta.xml", "0a7b2a81-d682-4dd0-803d-d47cbee6cc96"); // auxiliary
-    private static final TestObject<ArchetypeType> ROLE_TESTER =
+    private static final TestObject<RoleType> METAROLE_FUNCTION =
+            TestObject.file(TEST_DIR, "metarole-function.xml", "");
+    private static final TestObject<RoleType> ROLE_TESTER =
             TestObject.file(TEST_DIR, "role-tester.xml", "0d4faf1c-2677-41a4-9026-e0319a335767");
-    private static final TestObject<ArchetypeType> ROLE_ADMIN =
+    private static final TestObject<RoleType> ROLE_ADMIN =
             TestObject.file(TEST_DIR, "role-admin.xml", "b9e47537-0d85-4a6c-aeb2-24d4c06db7a6");
-    private static final TestObject<ArchetypeType> ROLE_DEVELOPER =
+    private static final TestObject<RoleType> ROLE_DEVELOPER =
             TestObject.file(TEST_DIR, "role-developer.xml", "d9ed4375-b0af-4cea-ae53-f67ff1e0ca67");
-    private static final TestObject<ArchetypeType> ORG_HQ =
+    private static final TestObject<RoleType> ORG_HQ =
             TestObject.file(TEST_DIR, "org-hq.xml", "8692de4f-51b3-472f-9489-5a7bdc12e891");
 
     private static final int EXISTING_USERS = 10;
@@ -106,20 +108,27 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
+        RESOURCE_DUMMY_OUTBOUND.initAndTest(this, initTask, initResult);
+
+        // These do nothing, serving just to check whether simulation records carry the correct archetype information.
         ARCHETYPE_BLUE.init(this, initTask, initResult);
         ARCHETYPE_MAGENTA.init(this, initTask, initResult);
+
+        // Each role creates an account with appropriate group membership.
+        // Used to check assignment and associations deltas in simulation reports.
+        METAROLE_FUNCTION.init(this, initTask, initResult);
         ROLE_TESTER.init(this, initTask, initResult);
         ROLE_ADMIN.init(this, initTask, initResult);
         ROLE_DEVELOPER.init(this, initTask, initResult);
+
+        // Currently doing nothing, just to report on assignment orgRef.
         ORG_HQ.init(this, initTask, initResult);
 
         existingUsers = modelObjectCreatorFor(UserType.class)
                 .withObjectCount(EXISTING_USERS)
                 .withNamePattern("existing-%04d")
-                .withCustomizer((u, number) -> u.getAssignment().addAll(standardArchetypeAssignments()))
+                .withCustomizer((u, number) -> addStandardArchetypeAssignments(u))
                 .execute(initResult);
-
-        RESOURCE_DUMMY_OUTBOUND.initAndTest(this, initTask, initResult);
 
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
         REPORT_SIMULATION_OBJECTS_BY_MARKS.init(this, initTask, initResult);
@@ -127,12 +136,14 @@ public class TestCsvSimulationReport extends TestCsvReport {
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
     }
 
-    private static List<AssignmentType> standardArchetypeAssignments() {
-        return List.of(
-                new AssignmentType().targetRef(ARCHETYPE_BLUE.ref()),
+    private static void addStandardArchetypeAssignments(UserType u) {
+        u.getAssignment().add(
+                new AssignmentType().targetRef(ARCHETYPE_BLUE.ref()));
+        u.getAssignment().add(
                 new AssignmentType().targetRef(ARCHETYPE_MAGENTA.ref()));
     }
 
+    /** Checks the most simple "create user" scenario. */
     @Test
     public void test100CreateNewUsers() throws Exception {
         int users = 10;
@@ -146,7 +157,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 () -> modelObjectCreatorFor(UserType.class)
                         .withObjectCount(users)
                         .withNamePattern("new-%04d")
-                        .withCustomizer((u, number) -> u.getAssignment().addAll(standardArchetypeAssignments()))
+                        .withCustomizer((u, number) -> addStandardArchetypeAssignments(u))
                         .execute(result));
 
         then("simulation result is OK");
@@ -195,6 +206,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .end();
     }
 
+    /** Checks simple user modifications. */
     @Test
     public void test110DisableAndRenameUsers() throws Exception {
         Task task = getTestTask();
@@ -385,6 +397,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
     }
 
+    /** Checks whether account add ("link") operation is reported correctly. */
     @Test
     public void test120AddAccount() throws Exception {
         Task task = getTestTask();
@@ -461,6 +474,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_MARK, "Projection activated");
     }
 
+    /** Checks account deletion reporting. */
     @Test
     public void test130DeleteAccount() throws Exception {
         Task task = getTestTask();
@@ -543,6 +557,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertSuccess(result);
     }
 
+    /** Checks assignment creation + projection creation reporting. */
     @Test
     public void test140AssignAccount() throws Exception {
         Task task = getTestTask();
@@ -650,6 +665,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_MARK, "Projection activated");
     }
 
+    /** Checks reporting of account modifications. */
     @Test
     public void test150ModifyUserWithAssignedAccount() throws Exception {
         Task task = getTestTask();
@@ -767,6 +783,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .end();
     }
 
+    /** Checks reporting of assignment and entitlement modifications. */
     @Test
     public void test160ModifyAssignments() throws Exception {
         Task task = getTestTask();
@@ -796,8 +813,6 @@ public class TestCsvSimulationReport extends TestCsvReport {
         ItemPath pathTesterAssignment = ItemPath.create(UserType.F_ASSIGNMENT, testerAssignmentId, AssignmentType.F_ORG_REF);
         ItemPath pathDummyAssignment = ItemPath.create(
                 UserType.F_ASSIGNMENT, dummyAssignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-
-
 
         when("assignments are modified (simulated)");
         var simulationResult = executeWithSimulationResult(
@@ -838,7 +853,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_KIND, "Account")
                 .assertValue(C_INTENT, "default")
                 .assertValue(C_TAG, "")
-                .assertValue(C_STATE, "Deleted");
+                .assertValue(C_STATE, "Modified");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -857,7 +872,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withNumericColumns(C_ID)
                 .sortBy(C_ID, C_ITEM_CHANGED)
                 .display()
-                .assertRecords(5) // 3x assignment, 1x linkRef, 1x shadow
+                .assertRecords(4) // 3x user assignment, 1x shadow association
                 .record(0)
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_ITEM_CHANGED, "assignment")
@@ -886,13 +901,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_I_RELATED_ASSIGNMENT_INTENT, "")
                 .end()
                 .record(3)
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_ITEM_CHANGED, "linkRef")
-                .assertValue(C_I_RELATED_ASSIGNMENT, "")
-                .end()
-                .record(4)
                 .assertValue(C_TYPE, "ShadowType")
-                .assertValue(C_STATE, "Deleted")
+                .assertValue(C_ITEM_CHANGED, "association")
                 .end();
 
         when("value-level report is created (default)");
@@ -991,15 +1001,170 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_V_RELATED_ASSIGNMENT_INTENT, "")
                 .end()
                 .record(6)
-                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_ITEM_CHANGED, "linkRef")
+                .assertValue(C_ITEM_CHANGED, "association")
                 .assertValue(C_VALUE_STATE, "DELETED")
-                .assertValue(C_VALUE, userName)
+                .assertValue(C_VALUE, "group: admin")
                 .end()
                 .record(7)
                 .assertValue(C_TYPE, "ShadowType")
-                .assertValue(C_STATE, "Deleted")
+                .assertValue(C_STATE, "Modified")
+                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_VALUE_STATE, "UNCHANGED")
+                .assertValue(C_VALUE, "group: tester")
+                .end();
+    }
+
+    /** Checks handling of REPLACE deltas. */
+    @Test
+    public void test170ModifyUserUsingReplaceDeltas() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user");
+        String userName = getTestNameShort();
+        UserType user = new UserType()
+                .name(userName)
+                .fullName("Jack Sparrow")
+                .organization("org1")
+                .assignment(new AssignmentType().targetRef(ROLE_ADMIN.ref()));
+        addObject(user.asPrismObject(), task, result);
+        var userReloaded = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+
+        long adminAssignmentId = findAssignmentByTargetRequired(userReloaded, ROLE_ADMIN.oid).getId();
+
+        when("user is modified by REPLACE deltas (simulated)");
+        var simulationResult = executeWithSimulationResult(
+                List.of(deltaFor(UserType.class)
+                        .item(UserType.F_ORGANIZATION)
+                        .replace(PolyString.fromOrig("org2"))
+                        .item(UserType.F_ASSIGNMENT)
+                        .replaceRealValues(
+                                List.of(
+                                        new AssignmentType()
+                                                // This is not quite correct (we should not provide PCV IDs externally)
+                                                // but is meant to mislead the change determination algorithm
+                                                .id(adminAssignmentId)
+                                                .targetRef(ROLE_ADMIN.ref())
+                                                .activation(new ActivationType()
+                                                        .validFrom("2000-01-01+00:00")),
+                                        new AssignmentType().targetRef(ROLE_DEVELOPER.ref())))
+                        .asObjectDelta(user.getOid())),
+                task, result);
+        assertSuccess(result);
+
+        then("simulation result is OK");
+        assertProcessedObjects(simulationResult, "after")
+                .display();
+                //.assertSize(2);
+
+        when("object-level report is created");
+        var objectsLines = REPORT_SIMULATION_OBJECTS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(objectsLines, "after")
+                .assertRecords(2)
+                .record(0)
+                .assertValue(C_NAME, userName)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_STATE, "Modified")
+                .end()
+                .record(1)
+                .assertValue(C_NAME, userName)
+                .assertValue(C_TYPE, "ShadowType")
+                .assertValue(C_STATE, "Modified");
+
+        when("item-level report is created (default)");
+        var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(itemsLines1, "after")
+                .withNumericColumns(C_ID)
+                .sortBy(C_ID, C_ITEM_CHANGED)
+                .display()
+                .assertRecords(3)
+                .record(0)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "assignment")
+                .assertValue(C_OLD_VALUES, a -> a.contains("admin"))
+                .assertValue(C_NEW_VALUES,
+                        a -> a.contains("developer")
+                                .contains("admin")
+                                .contains("2000"))
+                .assertValue(C_VALUES_ADDED, a -> a.contains("developer"))
+                .assertValue(C_VALUES_DELETED, "")
+                .end()
+                .record(1)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "organization")
+                .assertValue(C_OLD_VALUES, "org1")
+                .assertValue(C_NEW_VALUES, "org2")
+                .assertValue(C_VALUES_ADDED, "org2")
+                .assertValue(C_VALUES_DELETED, "org1")
+                .end()
+                .record(2)
+                .assertValue(C_TYPE, "ShadowType")
+                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_OLD_VALUES, "group: admin")
+                .assertValue(C_NEW_VALUES,
+                        a -> a.contains("group: developer")
+                                .contains("group: admin"))
+                .assertValue(C_VALUES_ADDED, "group: developer")
+                .assertValue(C_VALUES_DELETED, "")
+                .end();
+
+        when("value-level report is created (default)");
+        var valuesLines = REPORT_SIMULATION_VALUES_CHANGED.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(valuesLines, "after")
+                .withNumericColumns(C_ID)
+                .sortBy(C_ID, C_ITEM_CHANGED, C_VALUE_STATE, C_VALUE)
+                .display()
+                .assertRecords(6)
+                .record(0)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "assignment")
+                .assertValue(C_VALUE_STATE, "ADDED")
+                .assertValue(C_VALUE, a -> a.contains("developer"))
+                .end()
+                .record(1)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "assignment")
+                .assertValue(C_VALUE_STATE, "MODIFIED")
+                .assertValue(C_VALUE, a -> a.contains("admin"))
+                // we have no "old"/"new" value here, so we cannot see what the change was
+                .end()
+                .record(2)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "organization")
+                .assertValue(C_VALUE_STATE, "ADDED")
+                .assertValue(C_VALUE, "org2")
+                .end()
+                .record(3)
+                .assertValue(C_TYPE, "UserType")
+                .assertValue(C_ITEM_CHANGED, "organization")
+                .assertValue(C_VALUE_STATE, "DELETED")
+                .assertValue(C_VALUE, "org1")
+                .end()
+                .record(4)
+                .assertValue(C_TYPE, "ShadowType")
+                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_VALUE_STATE, "ADDED")
+                .assertValue(C_VALUE, "group: developer")
+                .end()
+                .record(5)
+                .assertValue(C_TYPE, "ShadowType")
+                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_VALUE_STATE, "UNCHANGED")
+                .assertValue(C_VALUE, "group: admin")
                 .end();
     }
 }

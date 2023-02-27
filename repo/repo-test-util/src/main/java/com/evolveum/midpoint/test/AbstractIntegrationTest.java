@@ -47,6 +47,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -219,6 +220,28 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected boolean verbose = false;
 
     /**
+     * {@link TestObject} instances used by this test.
+     *
+     * This is an ugly hack that destroys the state of these objects when the test finishes.
+     *
+     * Reason: Currently, these objects are declared as "static final" on individual test classes.
+     * This is because of historic and convenience reasons: these objects evolved from old-style
+     * constants like "DUMMY_RESOURCE_RED_OID", and keeping they names uppercase ensures that they are
+     * clearly distinguishable from other objects). However, it is definitely NOT correct. They have
+     * mutable state, and (because are static) they are not GC'd, so all baggage, like {@link PrismContext}
+     * instances, are kept in the memory "forever".
+     *
+     * The clean solution is to stop using these objects as static ones. (More precisely, to split their
+     * "declaration" e.g. file name, OID, from their actual instantiation. The declaration is a pure constant,
+     * so it should be static and named in uppercase. The instantiation has a state, so it should not be static,
+     * and should be named accordingly.
+     *
+     * But until that's done, here's the hack: we will keep the instances of these objects here, and
+     * reset them before the test class instance is destroyed.
+     */
+    private final List<TestObject<?>> testObjectsUsed = new ArrayList<>();
+
+    /**
      * With TestNG+Spring we can use {@code PostConstruct} for class-wide initialization.
      * All test methods run on a single instance (unlike with JUnit).
      * Using {@code BeforeClass} is not good as the Spring wiring happens later.
@@ -270,6 +293,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         } finally {
             MidpointTestContextWithTask.destroy();
         }
+    }
+
+    @PreDestroy
+    public void resetTestObjectsUsed() {
+        testObjectsUsed.forEach(
+                TestObject::reset);
+    }
+
+    void registerTestObjectUsed(@NotNull TestObject<?> object) {
+        testObjectsUsed.add(object);
     }
 
     @Override
