@@ -12,6 +12,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -185,6 +186,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         // Lockout
         if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof MidpointAuthentication) {
+                ((MidpointAuthentication) auth).setOverLockoutMaxAttempts(true);
+            }
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password locked-out", authnCtx.getPrincipalType(), false);
             throw new LockedException("web.security.provider.locked");
         }
@@ -437,7 +442,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             return SecurityUtil.isOverFailedLockoutAttempts(((MidPointPrincipal) authentication.getPrincipal()).getFocus(),
-                    mpAuthentication.getSequence().getIdentifier(),
+                    AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()),
                     mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier(),
                     credentialsPolicy);
         } else {
@@ -452,10 +457,11 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication && authentication.getPrincipal() instanceof MidPointPrincipal) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            XMLGregorianCalendar lockedUntilTimestamp = SecurityUtil.getLockoutExpirationTimestampForAuthModule(
+            XMLGregorianCalendar lastFailedLoginTimestamp = SecurityUtil.getLockoutExpirationTimestampForAuthModule(
                     ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus(),
                     mpAuthentication.getSequence().getIdentifier(),
                     mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier());
+            XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, credentialsPolicy.getLockoutDuration());
             return clock.isPast(lockedUntilTimestamp);
         } else {
             //todo old code
@@ -496,6 +502,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
                         sequenceIdentifier, moduleIdentifier);
                 authAttemptData.setChannel(((MidpointAuthentication) authentication).getSequence().getChannel());
                 recordModuleAuthenticationAttempt(principal, authAttemptData, connEnv, isSuccess);
+                updateAuthenticationWithPrincipal((MidpointAuthentication) authentication, principal);
             }
 
             if (isSuccess) {
@@ -505,6 +512,14 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             }
         } else {
             recordAuthenticationFailure(username, connEnv, reason);
+        }
+    }
+
+    private void updateAuthenticationWithPrincipal(MidpointAuthentication authentication, MidPointPrincipal principal) {
+        Object authPrincipal = authentication.getPrincipal();
+        if (authPrincipal instanceof MidPointPrincipal && ((MidPointPrincipal) authPrincipal).getOid().equals(principal.getOid())) {
+            authentication.setPrincipal(principal);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
     }
 
@@ -528,6 +543,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             authAttemptData.setLockoutStatus(LockoutStatusType.NORMAL);
             authAttemptData.setLockoutExpirationTimestamp(null);
         }
+
 
         ActivationType activation = principal.getFocus().getActivation();
         //todo decide user lockout status

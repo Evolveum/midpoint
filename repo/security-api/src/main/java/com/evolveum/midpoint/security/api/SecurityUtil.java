@@ -462,7 +462,8 @@ public class SecurityUtil {
 
     public static XMLGregorianCalendar getLockoutExpirationTimestampForAuthModule(FocusType principal, String sequenceIdentifier, String moduleIdentifier) {
         AuthenticationAttemptDataType attemptData = findAuthAttemptDataForModule(principal, sequenceIdentifier, moduleIdentifier);
-        return attemptData != null ? attemptData.getLockoutExpirationTimestamp() : null;
+        LoginEventType lastFailedLogin = attemptData != null ? attemptData.getLastFailedAuthentication() : null;
+        return lastFailedLogin != null ? lastFailedLogin.getTimestamp() : null;
     }
 
     public static AuthenticationAttemptDataType findAuthAttemptDataForModule(FocusType principal, String sequenceIdentifier, String moduleIdentifier) {

@@ -18,6 +18,8 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

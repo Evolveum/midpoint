@@ -61,7 +61,9 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
                 } else {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
-                moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+                if (!mpAuthentication.isLast(moduleAuthentication)) {
+                    moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+                }
             }
 
 
