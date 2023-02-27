@@ -104,7 +104,9 @@
                     </code>
                 </script>
             </expression>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
     </objectCollection>
 </report>

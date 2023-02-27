@@ -274,7 +274,9 @@
                 </script>
             </expression>
             <order>10</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
         <subreport>
             <name>valueWithState</name>
@@ -289,10 +291,12 @@
                 </script>
             </expression>
             <order>20</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
         <subreport>
-            <!-- Special hack to eliminate rows with no details if requested so -->
+            <!-- Eliminates rows with no details - if requested so -->
             <name>detailsPresent</name>
             <type>xsd:boolean</type>
             <expression>
@@ -301,7 +305,9 @@
                 </script>
             </expression>
             <order>30</order>
-            <use>innerJoin</use>
+            <resultHandling>
+                <noValues>removeParentRow</noValues>
+            </resultHandling>
         </subreport>
         <subreport>
             <name>relatedAssignment</name>
@@ -312,7 +318,9 @@
                 </script>
             </expression>
             <order>40</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
     </objectCollection>
 </report>
