@@ -28,10 +28,16 @@
             <column>
                 <name>id</name>
                 <path>#</path>
+                <display>
+                    <label>ID</label>
+                </display>
             </column>
             <column>
                 <name>oid</name>
                 <path>oid</path>
+                <display>
+                    <label>OID</label>
+                </display>
                 <previousColumn>id</previousColumn>
             </column>
             <column>
