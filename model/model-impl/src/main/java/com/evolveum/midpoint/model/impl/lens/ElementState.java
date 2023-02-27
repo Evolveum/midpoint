@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -784,8 +785,8 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     }
 
     private boolean generateMissingContainerIds(PrismObject<O> currentObject) throws SchemaException {
-        StolenContainerValueIdGenerator generator = new StolenContainerValueIdGenerator(currentObject);
-        generator.generateForNewObject(); // temporary
+        ContainerValueIdGenerator generator = new ContainerValueIdGenerator(currentObject);
+        generator.generateForNewObject();
         return generator.getGenerated() > 0;
     }
 
