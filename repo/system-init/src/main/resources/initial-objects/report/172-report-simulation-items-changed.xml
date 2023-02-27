@@ -10,7 +10,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        oid="1d12a138-9763-4601-955b-ea32deff43df">
+        oid="00000000-0000-0000-0000-ea32deff43df">
     <name>Simulation report: Items changed</name>
     <objectCollection>
         <collection>

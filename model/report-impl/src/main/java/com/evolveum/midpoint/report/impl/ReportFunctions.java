@@ -566,6 +566,7 @@ public class ReportFunctions {
                 Objects.requireNonNull(getCurrentResult(), "no current operation result"));
     }
 
+    /** Returns the collection of (augmented) item deltas related to given "processed object" bean. */
     public Collection<ProcessedObject.ProcessedObjectItemDelta<?, ?>> getProcessedObjectItemDeltas(
             @NotNull SimulationResultProcessedObjectType objectBean,
             @Nullable Object pathsToInclude,

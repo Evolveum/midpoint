@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -22,7 +24,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Filters item deltas according to specified criteria.
  *
  * Currently in `schema` module (not in `prism` one), because I am not sure if it will be midPoint-specific or not.
+ *
+ * LIMITED FUNCTIONALITY. We are not able to see inside deltas. So, for example, when looking for
+ * `activation/administrativeStatus` property, and the whole `activation` container is added, the delta is not shown.
  */
+@Experimental
 public class ItemDeltaFilter {
 
     @NotNull private final PathSet pathsToInclude = new PathSet();

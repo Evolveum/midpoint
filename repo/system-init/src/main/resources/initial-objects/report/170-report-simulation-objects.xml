@@ -8,7 +8,7 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="89bd4f11-8add-4f52-97f9-286d76cea7c5">
+        oid="00000000-0000-0000-0000-286d76cea7c5">
     <name>Simulation report: Objects</name>
     <objectCollection>
         <collection>
