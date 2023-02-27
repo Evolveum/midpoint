@@ -114,9 +114,9 @@ public interface CommonInitialObjects {
             "00000000-0000-0000-0000-286d76cea7c5",
             List.of(PARAM_SIMULATION_RESULT_REF));
 
-    TestReport REPORT_SIMULATION_OBJECTS_BY_MARKS = TestReport.classPath(
+    TestReport REPORT_SIMULATION_OBJECTS_WITH_METRICS = TestReport.classPath(
             REPORTS,
-            "171-report-simulation-objects-by-marks.xml",
+            "171-report-simulation-objects-with-metrics.xml",
             "00000000-0000-0000-0000-616a5c5dbca8",
             List.of(PARAM_SIMULATION_RESULT_REF));
 

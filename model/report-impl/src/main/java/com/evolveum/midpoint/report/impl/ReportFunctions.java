@@ -576,6 +576,15 @@ public class ReportFunctions {
                 .getItemDeltas(pathsToInclude, pathsToExclude, includeOperationalItems);
     }
 
+    /** Returns the collection of metrics related to given "processed object" bean. */
+    public Collection<ProcessedObject.Metric> getProcessedObjectMetrics(
+            @NotNull SimulationResultProcessedObjectType objectBean,
+            @Nullable Boolean showEventMarks,
+            @Nullable Boolean showCustomMetrics) throws SchemaException {
+        return getProcessedObject(objectBean)
+                .getMetrics(showEventMarks, showCustomMetrics);
+    }
+
     public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
         return getRelatedAssignment(itemDelta, null);
     }

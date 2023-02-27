@@ -63,7 +63,17 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_INTENT = 7;
     private static final int C_TAG = 8;
     private static final int C_STATE = 9;
+
+    // Object-, item-, and value-level
     private static final int C_MARK = 10;
+
+    // Metrics
+    private static final int C_M_EVENT_MARK = 10;
+    private static final int C_M_CUSTOM_MARK = 11;
+    private static final int C_M_SELECTED = 12;
+    private static final int C_M_VALUE = 13;
+
+    // Item- and value-level
     private static final int C_ITEM_CHANGED = 11;
     // Item-level
     private static final int C_OLD_VALUES = 12;
@@ -131,7 +141,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(initResult);
 
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
-        REPORT_SIMULATION_OBJECTS_BY_MARKS.init(this, initTask, initResult);
+        REPORT_SIMULATION_OBJECTS_WITH_METRICS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
     }
@@ -187,22 +197,42 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValues(C_MARK, "Focus activated")
                 .end();
 
-        when("object-level report is created (by marks)");
-        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+        when("object-level report is created (by metrics)");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("it is OK");
-        assertCsv(byMarksLines, "after")
-                .sortBy(C_NAME)
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
-                .assertRecords(users)
-                .assertColumns(OBJECT_REPORT_COLUMNS)
-                .record(0)
-                .assertValue(C_NAME, "new-0000")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Focus activated")
+                .assertRecords(users * 2) // focus activated + special
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_NAME, "new-0000")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "0.0"))
+                .record(1,
+                        r -> r.assertValue(C_NAME, "new-0000")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "Focus activated")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(14,
+                        r -> r.assertValue(C_NAME, "new-0007")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "true") // selection expression
+                                .assertValue(C_M_VALUE, String.valueOf(7 * 3.14)))
                 .end();
     }
 
@@ -259,37 +289,72 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_STATE, "Modified")
                 .assertValues(C_MARK, "Focus renamed");
 
-        when("object-level report (by marks) is created");
-        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+        when("object-level report (by metrics) is created");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("CSV is OK");
-        assertCsv(byMarksLines, "after")
-                .sortBy(C_NAME, C_MARK)
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
-                .assertRecords((int) (EXISTING_USERS * 1.5))
-                .assertColumns(OBJECT_REPORT_COLUMNS)
-                .record(0)
-                .assertValue(C_OID, existingUsers.get(0).getOid())
-                .assertValue(C_NAME, "existing-0000-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus deactivated")
-                .end()
-                .record(1)
-                .assertValue(C_OID, existingUsers.get(0).getOid())
-                .assertValue(C_NAME, "existing-0000-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed")
-                .end()
-                .record(2)
-                .assertValue(C_OID, existingUsers.get(1).getOid())
-                .assertValue(C_NAME, "existing-0001-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed");
+                .assertRecords((int) (EXISTING_USERS * 3.5))
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "2"))
+                .record(1,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "0.0"))
+                .record(2,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "Focus deactivated")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(3,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "Focus renamed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(4,
+                        r -> r.assertValue(C_OID, existingUsers.get(1).getOid())
+                                .assertValue(C_NAME, "existing-0001-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(5,
+                        r -> r.assertValue(C_OID, existingUsers.get(1).getOid())
+                                .assertValue(C_NAME, "existing-0001-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "3.14"));
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -795,7 +860,6 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         long adminAssignmentId = findAssignmentByTargetRequired(userReloaded, ROLE_ADMIN.oid).getId();
         long testerAssignmentId = findAssignmentByTargetRequired(userReloaded, ROLE_TESTER.oid).getId();
-        long blueAssignmentId = findAssignmentByTargetRequired(userReloaded, ARCHETYPE_BLUE.oid).getId();
         long dummyAssignmentId = findAssignmentByResourceRequired(userReloaded, RESOURCE_DUMMY_OUTBOUND.oid).getId();
 
         ItemPath pathTesterAssignment = ItemPath.create(UserType.F_ASSIGNMENT, testerAssignmentId, AssignmentType.F_ORG_REF);
@@ -842,6 +906,53 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_INTENT, "default")
                 .assertValue(C_TAG, "")
                 .assertValue(C_STATE, "Modified");
+
+        when("object-level report (by metrics) is created");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
+                .display()
+                .assertRecords(8)
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_VALUE, "3"))
+                .record(1,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_VALUE, "0"))
+                .record(2,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Focus assignments changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(3,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Focus role membership changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(4,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "association-values-changed")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(5,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "attribute-modifications")
+                                .assertValue(C_M_VALUE, "0"))
+                .record(6,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(7,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Projection entitlement changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"));
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()

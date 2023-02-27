@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -76,9 +77,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      */
     @NotNull ObjectProcessingStateType getState();
 
-    /**
-     * TODO
-     */
+    /** Returns OIDs of matching event marks for this object. */
     @NotNull Collection<String> getMatchingEventMarks();
 
     /**
@@ -136,12 +135,53 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
             @Nullable Object pathsToInclude, @Nullable Object pathsToExclude, @Nullable Boolean includeOperationalItems);
 
     /**
+     * Returns the collection of {@link Metric} values for this object.
+     *
+     * @param showEventMarks Should we include mark-based metrics?
+     * @param showCustomMetrics Should we include custom metrics?
+     */
+    @NotNull Collection<Metric> getMetrics(@Nullable Boolean showEventMarks, @Nullable Boolean showCustomMetrics);
+
+    /**
      * Applies the definitions (currently, resource schema related to specific shadow) to the object(s) before/after,
      * and the delta.
      */
     void applyDefinitions(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException;
+
+    @SuppressWarnings("unused") // used by scripts
+    default boolean isAddition() {
+        return getState() == ObjectProcessingStateType.ADDED;
+    }
+
+    @SuppressWarnings("unused") // used by scripts
+    default boolean isModification() {
+        return getState() == ObjectProcessingStateType.MODIFIED;
+    }
+
+    @SuppressWarnings("unused") // used by scripts
+    default boolean isDeletion() {
+        return getState() == ObjectProcessingStateType.DELETED;
+    }
+
+    @SuppressWarnings("unused") // used by scripts
+    default boolean isNoChange() {
+        return getState() == ObjectProcessingStateType.UNMODIFIED;
+    }
+
+    @SuppressWarnings("unused") // used in scripts
+    boolean isFocus();
+
+    @SuppressWarnings("unused") // used in scripts
+    default boolean isOfFocusType() {
+        return FocusType.class.isAssignableFrom(getType());
+    }
+
+    @SuppressWarnings("unused") // used in scripts
+    default boolean isShadow() {
+        return ShadowType.class.isAssignableFrom(getType());
+    }
 
     /**
      * {@link ItemDelta} augmented with functionality needed to display it in a complex way, for example,
@@ -206,5 +246,21 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
         public enum State {
             UNCHANGED, ADDED, DELETED, MODIFIED
         }
+    }
+
+    /** Metric information, currently for reporting purposes. */
+    interface Metric extends Serializable {
+
+        /** Reference to event mark (for event mark based metrics). */
+        @Nullable ObjectReferenceType getEventMarkRef();
+
+        /** String identifier (for custom metrics). */
+        @Nullable String getId();
+
+        /** Is this object selected with regards to given metric? */
+        boolean isSelected();
+
+        /** Value of given metric for this object. */
+        BigDecimal getValue();
     }
 }

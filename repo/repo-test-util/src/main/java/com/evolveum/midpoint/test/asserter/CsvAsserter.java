@@ -11,7 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -168,6 +171,13 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
         var recordAsserter = new RecordAsserter(index, this, getDetails());
         copySetupTo(recordAsserter);
         return recordAsserter;
+    }
+
+    @Experimental
+    public CsvAsserter<RA> record(int index, Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        return function
+                .apply(record(index))
+                .end();
     }
 
     public class RecordAsserter extends AbstractAsserter<CsvAsserter<RA>> {

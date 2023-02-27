@@ -8,8 +8,9 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-0000-0000-0000-616a5c5dbca8">
-    <name>Simulation report: Objects (by marks)</name>
+    <name>Simulation report: Objects with metrics</name>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
@@ -76,11 +77,72 @@
             </column>
             <column>
                 <name>eventMark</name>
+                <display>
+                    <label>Event Mark</label>
+                </display>
                 <previousColumn>state</previousColumn>
                 <export>
                     <expression>
                         <script>
-                            <code>eventMarks</code>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric).eventMarkRef
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>customMarkId</name>
+                <display>
+                    <label>Custom Mark</label>
+                </display>
+                <previousColumn>eventMark</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric).id
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selected</name>
+                <display>
+                    <label>Selected</label>
+                </display>
+                <previousColumn>customMarkId</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric).selected
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>value</name>
+                <display>
+                    <label>Value</label>
+                </display>
+                <previousColumn>selected</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric).value
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -92,15 +154,26 @@
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
         </parameter>
+        <parameter>
+            <name>showEventMarks</name>
+            <type>xsd:boolean</type>
+        </parameter>
+        <parameter>
+            <name>showCustomMetrics</name>
+            <type>xsd:boolean</type>
+        </parameter>
         <subreport>
-            <name>eventMarks</name>
-            <type>c:ObjectReferenceType</type>
+            <name>metric</name>
+            <!-- Non-prism type of ProcessedObject.Metric -->
             <expression>
                 <script>
                     <code>
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
 
-                        (object as SimulationResultProcessedObjectType).eventMarkRef
+                        report.getProcessedObjectMetrics(
+                                object as SimulationResultProcessedObjectType,
+                                showEventMarks,
+                                showCustomMetrics)
                     </code>
                 </script>
             </expression>
