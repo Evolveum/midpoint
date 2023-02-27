@@ -6,20 +6,11 @@
  */
 package com.evolveum.midpoint.authentication.api.config;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -27,10 +18,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * wrapper for all authentication modules, basic authentication token
@@ -43,7 +40,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     /**
      * Configuration of sequence from xml
      */
-    private final AuthenticationSequenceType sequence;
+    private AuthenticationSequenceType sequence;
+    private Map<Class<?>, Object> sharedObjects;    //todo may be wrong place
+
 
     /**
      * Authentications for modules of sequence
@@ -69,6 +68,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+    public static final int NO_PROCESSING_MODULE_INDEX = -2;
+    public static final int NO_MODULE_FOUND_INDEX = -1;
+    private boolean merged = false;
+    private boolean overLockoutMaxAttempts = false;
+
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -86,6 +90,18 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public AuthenticationSequenceType getSequence() {
         return sequence;
+    }
+
+    public void setSequence(AuthenticationSequenceType sequence) {
+        this.sequence = sequence;
+    }
+
+    public Map<Class<?>, Object> getSharedObjects() {
+        return sharedObjects;
+    }
+
+    public void setSharedObjects(Map<Class<?>, Object> sharedObjects) {
+        this.sharedObjects = sharedObjects;
     }
 
     public AuthenticationChannel getAuthenticationChannel() {
@@ -113,10 +129,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
         this.authorities = authorities;
     }
-
-//    private List<AuthenticationSequenceModuleType> getModules() {
-//        return Collections.unmodifiableList(modules);
-//    }
 
     @Override
     public Object getCredentials() {
@@ -151,29 +163,144 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     @Override
     public boolean isAuthenticated() {
-        List<AuthModule> modules = getAuthModules();
+        List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         if (modules.isEmpty()) {
             return false;
         }
-        for (AuthModule module : modules) {
-            ModuleAuthentication authentication = getAuthenticationByName(module.getNameOfModule());
-            if (authentication == null) {
-                continue;
-            }
-            //TODO we will complete after supporting of full "necessity"
-            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(authentication.getNecessity())) {
-                if (AuthenticationModuleState.SUCCESSFULLY.equals(authentication.getState())) {
-                    return true;
-                }
-            }
 
+        if (shouldEvaluateAuthentication()) {
+            return allProcessedModulesWithNecessityAreSuccessful() && wasSuccessfullyProcessedOtherThanUnsufficientModules();
         }
-        return false;
+        return allAuthenticationModulesExist() && wasSuccessfullyProcessedOtherThanUnsufficientModules() && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
     }
 
-    public ModuleAuthentication getAuthenticationByName(String moduleName) {
+    private boolean wasSuccessfullyProcessedOtherThanUnsufficientModules() {
+        long sufficientModuleCount = getAuthentications().stream()
+                .filter(module -> AuthenticationModuleState.SUCCESSFULLY == module.getState())
+                .filter(module -> module.isSufficient())
+                .count();
+        return sufficientModuleCount > 0;
+    }
+
+    private boolean shouldEvaluateAuthentication() {
+        boolean successfulSufficientModuleFound = false;
+        List<ModuleAuthentication> modules = getAuthentications();
+        for (ModuleAuthentication module : modules) {
+            if (module.getNecessity() == AuthenticationSequenceModuleNecessityType.SUFFICIENT && module.getState() == AuthenticationModuleState.SUCCESSFULLY) {
+                successfulSufficientModuleFound = true;
+                break;
+            }
+        }
+        return successfulSufficientModuleFound;
+    }
+
+    private boolean allAuthenticationModulesExist() {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> getAuthenticationByIdentifier(m) != null);
+    }
+
+    private boolean getAuthenticationModuleNecessityDecision() {
+        return allModulesAreProcessed()
+                && ((allModulesNecessitySufficientOrOptional() && atLeastOneSuccessfulModuleExists())
+                     || (getRequisiteModulesDecision() && getRequiredModulesDecision() && lasModuleIsSufficientAndSuccessful()));
+    }
+
+    private boolean lasModuleIsSufficientAndSuccessful() {
+        List<ModuleAuthentication> module = getAuthentications();
+        ModuleAuthentication lastModule = module.get(module.size() - 1);
+        if (AuthenticationSequenceModuleNecessityType.SUFFICIENT == lastModule.getNecessity()) {
+            return lastModule.getState() == AuthenticationModuleState.SUCCESSFULLY;
+        }
+        return true;
+    }
+
+    private boolean allModulesNecessitySufficientOrOptional() {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> Arrays.asList(AuthenticationSequenceModuleNecessityType.SUFFICIENT, AuthenticationSequenceModuleNecessityType.OPTIONAL)
+                        .stream()
+                        .anyMatch(n -> n.equals(m.getNecessity())));
+    }
+
+    private boolean allModulesAreProcessed() {
+        return allModulesStateMatch(AuthenticationModuleState.SUCCESSFULLY, AuthenticationModuleState.FAILURE, AuthenticationModuleState.CALLED_OFF);
+    }
+
+    private boolean atLeastOneSuccessfulModuleExists() {
+        return sequence.getModule()
+                .stream()
+                .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
+    }
+
+    private boolean allModulesStateMatch(AuthenticationModuleState... states) {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> Arrays.stream(states).anyMatch(s -> s.equals(getAuthenticationByIdentifier(m).getState())));
+    }
+
+    private boolean getRequiredModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.REQUIRED.equals(m.getNecessity()))
+                || allRequiredModulesAreSuccessful();
+    }
+
+    private boolean getRequisiteModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.REQUISITE.equals(m.getNecessity()))
+                || allRequisiteModulesAreSuccessful();
+    }
+
+    private boolean allModulesAreSuccessful() {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
+    }
+
+    private boolean allProcessedModulesWithNecessityAreSuccessful() {
+        List<ModuleAuthentication> processedModules = getAuthentications();
+        List<ModuleAuthentication> requiredAndRequisiteModules = processedModules.stream()
+                .filter(processedModule -> isRequeredOrRequisiteOrSufficient(processedModule))
+                .collect(Collectors.toList());
+
+        long notSuccessfulRequiredAndRequisiteModules = requiredAndRequisiteModules.stream()
+                .filter(requiredAndRequisite -> requiredAndRequisite.getState() != AuthenticationModuleState.SUCCESSFULLY)
+                .count();
+        return notSuccessfulRequiredAndRequisiteModules == 0;
+    }
+
+    private boolean isRequeredOrRequisiteOrSufficient(ModuleAuthentication processedModule) {
+        return isNecesity(AuthenticationSequenceModuleNecessityType.REQUIRED, processedModule) ||
+                isNecesity(AuthenticationSequenceModuleNecessityType.REQUISITE, processedModule);
+    }
+    private boolean isNecesity(AuthenticationSequenceModuleNecessityType necessity, ModuleAuthentication processedModule) {
+         return necessity == processedModule.getNecessity();
+    }
+    private boolean allRequisiteModulesAreSuccessful() {
+        return !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUISITE);
+    }
+
+    private boolean allRequiredModulesAreSuccessful() {
+        return !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED);
+    }
+
+    public boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
+        List<AuthenticationSequenceModuleType> modules = sequence.getModule();
+        return modules.stream()
+                .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
+                        && (getAuthenticationByIdentifier(m) == null
+                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState())));
+    }
+
+    public ModuleAuthentication getAuthenticationByIdentifier(AuthenticationSequenceModuleType module) {
+        if (module == null) {
+            return null;
+        }
+        String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
         for (ModuleAuthentication authentication : getAuthentications()) {
-            if (authentication.getNameOfModule().equals(moduleName)) {
+            if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;
             }
         }
@@ -202,9 +329,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (authentication != null) {
             return getIndexOfModule(authentication);
         }
-        if (isAuthenticated()) {
-            return -2;
-        }
         int actualSize = getAuthentications().size();
         int endSize = getAuthModules().size();
         if (actualSize < endSize) {
@@ -213,27 +337,39 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             }
             return actualSize;
         }
-        return -1;
+        if (allModulesAreAuthenticated()) {
+            return NO_PROCESSING_MODULE_INDEX;
+        }
+        return NO_MODULE_FOUND_INDEX;
+    }
+
+    private boolean allModulesAreAuthenticated() {
+        int actualSize = getAuthentications().size();
+        int endSize = getAuthModules().size();
+        return actualSize == endSize && isAuthenticated();
     }
 
     public int getIndexOfModule(ModuleAuthentication authentication) {
         Validate.notNull(authentication);
 
         for (int i = 0; i < getAuthModules().size(); i++) {
-            if (getAuthModules().get(i).getNameOfModule().equals(authentication.getNameOfModule())) {
-                int indexOfModule = i;
-                //TODO presumption that necessity is sufficient
-                return indexOfModule;
+            AuthModule module = getAuthModules().get(i);
+            if (module.getModuleIdentifier().equals(authentication.getModuleIdentifier())) {
+                return i;
             }
         }
-        return -1;
+        return NO_MODULE_FOUND_INDEX;
     }
 
     public ModuleAuthentication getProcessingModuleAuthentication() {
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getState().equals(AuthenticationModuleState.LOGIN_PROCESSING)
                     || authentication.getState().equals(AuthenticationModuleState.LOGOUT_PROCESSING)) {
-                return authentication;
+                if (authentication.applicable()) {
+                    return authentication;
+                } else {
+                    authentication.setState(AuthenticationModuleState.CALLED_OFF);
+                }
             }
         }
         return null;
@@ -243,6 +379,23 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return !isAuthenticated()
                 && getProcessingModuleAuthentication() == null
                 && getAuthentications().size() == getAuthModules().size();
+    }
+
+    public boolean isMerged() {
+        return merged;
+    }
+
+    //TODO remove
+    public void setMerged(boolean merged) {
+        this.merged = merged;
+    }
+
+    public boolean isOverLockoutMaxAttempts() {
+        return overLockoutMaxAttempts;
+    }
+
+    public void setOverLockoutMaxAttempts(boolean overLockoutMaxAttempts) {
+        this.overLockoutMaxAttempts = overLockoutMaxAttempts;
     }
 
     @Override
@@ -255,7 +408,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public List<ModuleAuthentication> getParallelProcessingModules() {
         int indexOfProcessingModule = getIndexOfProcessingModule(false);
-        if (indexOfProcessingModule == -2) {
+        if (indexOfProcessingModule == NO_PROCESSING_MODULE_INDEX) {
             return new ArrayList<>();
         }
         return getParallelProcessingModules(indexOfProcessingModule);
@@ -298,13 +451,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
         String type = header.split(" ")[0];
         List<ModuleAuthentication> parallelProcessingModules = getParallelProcessingModules(actualIndex);
-        int resolvedIndex = -1;
+        int resolvedIndex = NO_MODULE_FOUND_INDEX;
         for (ModuleAuthentication parallelProcessingModule : parallelProcessingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcessingModule);
-            if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getNameOfModuleType()).equalsIgnoreCase(type)
-                    && resolvedIndex == -1) {
+            if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getModuleTypeName()).equalsIgnoreCase(type)
+                    && resolvedIndex == NO_MODULE_FOUND_INDEX) {
                 parallelProcessingModule.setState(AuthenticationModuleState.LOGIN_PROCESSING);
-                if (usedIndex != -1) {
+                if (usedIndex != NO_MODULE_FOUND_INDEX) {
                     resolvedIndex = usedIndex;
                 } else {
                     resolvedIndex = getAuthentications().size();
@@ -312,15 +465,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             } else {
                 parallelProcessingModule.setState(AuthenticationModuleState.FAILURE);
             }
-            if (usedIndex == -1) {
+            if (usedIndex == NO_MODULE_FOUND_INDEX) {
                 getAuthentications().add(parallelProcessingModule);
             } else {
                 getAuthentications().set(usedIndex, parallelProcessingModule);
             }
         }
-        if (resolvedIndex == -1) {
+        if (resolvedIndex == NO_MODULE_FOUND_INDEX) {
             throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
-                    + getSequence().getName() + "'");
+                    + getSequence().getIdentifier() + "'");
         }
         return resolvedIndex;
     }
@@ -330,7 +483,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return false;
         }
         int index = getIndexOfModule(moduleAuthentication);
-        if (index == -1) {
+        if (index == NO_MODULE_FOUND_INDEX) {
             return false;
         }
         if (index == getAuthModules().size() - 1) {
@@ -351,4 +504,45 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         }
         return false;
     }
+
+    public boolean hasSucceededAuthentication() {
+        return getAuthentications().stream().anyMatch(auth -> AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
+    }
+
+    public boolean wrongConfiguredSufficientModuleExists() {
+        AuthenticationSequenceModuleType sufficientModule = sequence.getModule().stream()
+                .filter(m -> AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(m.getNecessity())).findFirst().orElse(null);
+        return sufficientModule != null &&  !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED)
+                && sequence.getModule().stream().anyMatch(m -> m.getOrder() > sufficientModule.getOrder());
+    }
+
+    public boolean authenticationShouldBeAborted() {
+        return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(getProcessingModuleNecessity())
+                && AuthenticationModuleState.FAILURE.equals(getProcessingModuleState());
+    }
+
+    public AuthenticationSequenceModuleNecessityType getProcessingModuleNecessity() {
+        ModuleAuthentication authentication = getProcessingModuleAuthentication();
+        return authentication != null ? authentication.getNecessity() : null;
+    }
+
+    private boolean isProcessingModuleFailure() {
+        return AuthenticationModuleState.FAILURE.equals(getProcessingModuleState());
+    }
+
+
+    private AuthenticationModuleState getProcessingModuleState() {
+        ModuleAuthentication authentication = getProcessingModuleAuthentication();
+        return authentication != null ? authentication.getState() : null;
+    }
+
+    public SecurityPolicyType resolveSecurityPolicy() throws SchemaException {
+        SecurityPolicyType securityPolicy = null;
+        if (principal instanceof GuiProfiledPrincipal) {
+            GuiProfiledPrincipal guiProfiledPrincipal = (GuiProfiledPrincipal) principal;
+            securityPolicy = guiProfiledPrincipal.getApplicableSecurityPolicy();
+        }
+        return securityPolicy;
+    }
+
 }

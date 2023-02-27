@@ -104,11 +104,6 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
         repoAdd(ARCHETYPE_CORRELATION_CASE, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
-        }
-
         // User administrator
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);

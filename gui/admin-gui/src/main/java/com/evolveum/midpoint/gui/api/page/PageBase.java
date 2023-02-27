@@ -192,18 +192,6 @@ public abstract class PageBase extends PageAdminLTE {
         getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
-    public GuiProfiledPrincipal getPrincipal() {
-        return AuthUtil.getPrincipalUser();
-    }
-
-    public FocusType getPrincipalFocus() {
-        MidPointPrincipal principal = getPrincipal();
-        if (principal == null) {
-            return null;
-        }
-        return principal.getFocus();
-    }
-
     public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
         FocusType focusType = getPrincipalFocus();
         if (focusType == null) {
@@ -259,7 +247,7 @@ public abstract class PageBase extends PageAdminLTE {
                 target.add(PageBase.this);
             }
         };
-        mode.add(new VisibleBehaviour(() -> WebModelServiceUtils.isEnableExperimentalFeature(this)));
+        mode.add(new VisibleBehaviour(() ->  AuthUtil.getPrincipalUser() != null && WebModelServiceUtils.isEnableExperimentalFeature(this)));
         container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
@@ -659,9 +647,6 @@ public abstract class PageBase extends PageAdminLTE {
         }
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
-    }
 
     public String createPropertyModelExpression(String... components) {
         return StringUtils.join(components, ".");

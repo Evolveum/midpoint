@@ -22,12 +22,17 @@
                 <h1>midPoint</h1>
                 <p wicket:id="sequence"/>
             </div>
-            <div class="card-body login-card-body">
+            <div class="card-body login-card-body justify-content-between">
+                <h4 class="login-box-msg" wicket:id="panelTitle"></h4>
+                <p class="login-panel-description text-center" wicket:id="panelDescription"></p>
+
                 <wicket:child/>
 
-                <p class="mb-0">
-                    <a wicket:id="switchToDefaultSequence" class="text-center"/>
-                </p>
+                <wicket:enclosure child="switchToDefaultSequence">
+                    <p class="mb-0">
+                        <a wicket:id="switchToDefaultSequence" class="text-center"/>
+                    </p>
+                </wicket:enclosure>
             </div>
             <div class="card-footer login-footer" wicket:id="footerContainer">
                 <span class="pull-right hidden-xs" wicket:id="version">

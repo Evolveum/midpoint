@@ -1170,7 +1170,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         refreshTable(target);
     }
 
-    protected WebMarkupContainer getFeedback() {
+    protected Component getFeedback() {
         return getPageBase().getFeedbackPanel();
     }
 

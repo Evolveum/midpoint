@@ -10,6 +10,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -70,8 +72,9 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
     }
 
     private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
+        PageAdminLTE parentPage = WebComponentUtil.getPage(DynamicFieldGroupPanel.this, PageAdminLTE.class);
 
-        Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object[]) null));
+        Label header = new Label(ID_HEADER, getString(groupName, (Object[]) null));
         add(header);
 
         RepeatingView itemView = new RepeatingView(ID_PROPERTY);
@@ -80,7 +83,8 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         for (AbstractFormItemType formItem : formItems) {
 
             if (formItem instanceof FormFieldGroupType) {
-                DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+                DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(),
+                        formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, parentPage);
                 dynamicFieldGroupPanel.setOutputMarkupId(true);
                 itemView.add(dynamicFieldGroupPanel);
                 continue;
@@ -89,7 +93,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             ItemWrapper<?, ?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
             try {
-                Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
+                Panel panel = parentPage.initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
                 panel.setOutputMarkupId(true);
                 itemView.add(panel);
             } catch (SchemaException e) {
@@ -114,26 +118,26 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
     private ItemWrapper<?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
         ItemPath path = GuiImplUtil.getItemPath(formField);
         if (path == null) {
-            getSession().error("Bad form item definition. It has to contain reference to the real attribute");
-            LOGGER.error("Bad form item definition. It has to contain reference to the real attribute");
-            throw new RestartResponseException(getPageBase());
+            logErrorAndThrowException("Bad form item definition. It has to contain reference to the real attribute");
         }
 
-        ItemWrapper<?, ?> itemWrapper;
+        ItemWrapper<?, ?> itemWrapper = null;
         try {
             itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
         } catch (SchemaException e) {
-            getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
-            LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-            throw new RestartResponseException(getPageBase());
+            logErrorAndThrowException("Bad form item definition. No attribute with path: " + path + " was found");
         }
 
         if (itemWrapper == null) {
-            getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
-            LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-            throw new RestartResponseException(getPageBase());
+            logErrorAndThrowException("Bad form item definition. No attribute with path: " + path + " was found");
         }
         return itemWrapper;
+    }
+
+    private void logErrorAndThrowException(String errorMessage) {
+        getSession().error(errorMessage);
+        LOGGER.error(errorMessage);
+        throw new RestartResponseException(WebComponentUtil.getPage(DynamicFieldGroupPanel.this, PageAdminLTE.class));
     }
 
     private void applyFormDefinition(ItemWrapper<?, ?> itemWrapper, AbstractFormItemType formField) {

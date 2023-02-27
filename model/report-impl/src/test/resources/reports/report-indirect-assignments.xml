@@ -33,7 +33,9 @@
             -->
             <name>data</name>
             <order>1</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
             <expression>
                 <script>
                     <objectVariableMode>prismReference</objectVariableMode>

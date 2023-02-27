@@ -85,7 +85,7 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
             OidcResourceServerAuthenticationModuleType resourceServer, AuthenticationSequenceModuleType sequenceModule) {
         OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         moduleAuthentication.setRealm(resourceServer.getRealm());
         return moduleAuthentication;
     }

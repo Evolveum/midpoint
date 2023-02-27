@@ -50,7 +50,7 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
 
             @Override
             protected boolean isRequired() {
-                ItemMandatoryHandler handler = getSettings().getMandatoryHandler();
+                ItemMandatoryHandler handler = (getSettings() != null) ? getSettings().getMandatoryHandler() : null;
                 if (handler != null) {
                     return handler.isMandatory(getModelObject());
                 }

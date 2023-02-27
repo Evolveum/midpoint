@@ -89,7 +89,7 @@
         </view>
         <parameter>
             <name>simulationResultRef</name>
-            <type>ObjectReferenceType</type>
+            <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
         </parameter>
         <subreport>
@@ -104,7 +104,9 @@
                     </code>
                 </script>
             </expression>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
     </objectCollection>
 </report>

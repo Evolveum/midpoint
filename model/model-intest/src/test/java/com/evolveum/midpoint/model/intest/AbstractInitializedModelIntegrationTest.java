@@ -204,11 +204,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         // Archetypes
         repoAddObjectFromFile(ARCHETYPE_TASK_RECONCILIATION_FILE, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
-        }
-
         // User Templates
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);

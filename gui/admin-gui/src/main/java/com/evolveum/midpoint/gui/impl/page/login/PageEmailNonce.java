@@ -10,12 +10,19 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -47,8 +54,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -66,27 +71,29 @@ public class PageEmailNonce extends PageAuthenticationBase {
     private static final String ID_STATIC_LAYOUT = "staticLayout";
     private static final String ID_EMAIL = "email";
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_HINT_PANEL = "hintPanel";
+    private static final String ID_HINT_LABEL = "hintLabel";
     private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_SUBMIT = "submit";
-    private static final String ID_PASSWORD_RESET_SUBMITED = "resetPasswordInfo";
+    private static final String ID_BACK_BUTTON_LABEL = "backButtonLabel";
+    private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
+    private static final String ID_CONTINUE_RESET_PASSWORD = "continueResetPassword";
 
     private boolean submited;
-
+    private UserType user = null;
     public PageEmailNonce() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal != null) {
+            userIdentifierSubmitPerformed(null);
+            submited = true;
+
+//            throw new RestartResponseException(PageEmailNonce.class);
+        }
     }
+
 
     protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
-        form.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !submited;
-            }
-
-        });
+        form.add(new VisibleBehaviour(() -> !submited));
         add(form);
 
         initStaticLayout(form);
@@ -95,36 +102,15 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         initButtons(form);
 
-        MultiLineLabel label = new MultiLineLabel(ID_PASSWORD_RESET_SUBMITED,
-                createStringResource("PageForgotPassword.form.submited.message"));
-        add(label);
-        label.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return submited;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return submited;
-            }
-
-        });
-
     }
-
     private void initButtons(MidpointForm form) {
-
-        AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageForgetPassword.resetPassword")) {
+        AjaxSubmitButton submitUserIdentifier = new AjaxSubmitButton(ID_SUBMIT_IDENTIFIER, createStringResource("PageBase.button.submit")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                processResetPassword(target);
+                userIdentifierSubmitPerformed(target);
             }
 
             @Override
@@ -133,34 +119,65 @@ public class PageEmailNonce extends PageAuthenticationBase {
             }
 
         };
-        form.add(submit);
-        form.add(createBackButton(ID_BACK_BUTTON));
+        submitUserIdentifier.add(new VisibleBehaviour(() -> !submited));
+        form.add(submitUserIdentifier);
+
+        add(createBackButton(ID_BACK_BUTTON));
     }
 
-    private void processResetPassword(AjaxRequestTarget target) {
+    @Override
+    protected AjaxButton createBackButton(String id){
+        AjaxButton backButton = new AjaxButton(id) {
+            private static final long serialVersionUID = 1L;
 
-        UserType user = searchUser();
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed();
+            }
+        };
+        backButton.setOutputMarkupId(true);
 
+        Label backButtonLabel = new Label(ID_BACK_BUTTON_LABEL, createStringResource("PageEmailNonce.backButtonLabel"));
+        backButton.add(backButtonLabel);
+        return backButton;
+    }
+
+    private void userIdentifierSubmitPerformed(AjaxRequestTarget target) {
         if (user == null) {
-            getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
+            user = searchUser();
+            validateUserNotNullOrFail();
         }
         LOGGER.trace("Reset Password user: {}", user);
 
-        if (getFormRef() == null) {
+        continuePasswordReset(target);
+    }
+
+    private void continuePasswordReset(AjaxRequestTarget target) {
+        validateUserNotNullOrFail();
+        NonceCredentialsPolicyType noncePolicy = getMailNoncePolicy(user.asPrismObject());
+        if (noncePolicy == null) {
             LOGGER.debug("No policies for reset password defined");
             getSession().error(getString("pageForgetPassword.message.policy.not.found"));
             throw new RestartResponseException(PageEmailNonce.class);
         }
 
-        OperationResult result = saveUserNonce(user, getMailNoncePolicy(user.asPrismObject()));
+        OperationResult result = saveUserNonce(user, noncePolicy);
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             submited = true;
-            target.add(PageEmailNonce.this);
+            if (target != null) {
+                target.add(PageEmailNonce.this);
+            }
         } else {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
             throw new RestartResponseException(PageEmailNonce.this);
+        }
+    }
+
+    private void validateUserNotNullOrFail() {
+        if (user == null) {
+            getSession().error(getString("pageForgetPassword.message.user.not.found"));
+            throw new RestartResponseException(PageEmailNonce.class);
         }
     }
 
@@ -200,7 +217,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
         if (!(moduleAuthentication instanceof CredentialModuleAuthentication)
-                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getNameOfModuleType())) {
+                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getModuleTypeName())) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Bad type of module authentication, support only EmailNonceModuleAuthentication, but is "
                     + moduleAuthentication != null ? moduleAuthentication.getClass().getName() : null);
@@ -211,7 +228,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getNameOfModule() + " haven't define name of credential");
+            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getModuleIdentifier() + " haven't define name of credential");
             throw new RestartResponseException(PageEmailNonce.class);
         }
 
@@ -235,15 +252,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
         staticLayout.setOutputMarkupId(true);
-        staticLayout.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isDynamicForm();
-            }
-        });
+        staticLayout.add(new VisibleBehaviour(() -> !isDynamicForm()));
         form.add(staticLayout);
 
         RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_EMAIL, new Model<>());
@@ -256,6 +265,12 @@ public class PageEmailNonce extends PageAuthenticationBase {
         return (PageBase) getPage();
     }
 
+    @Override
+    protected boolean isDynamicFormVisible() {
+        return super.isDynamicFormVisible();
+    }
+
+    @Override
     protected ObjectQuery createStaticFormQuery() {
         RequiredTextField<String> emailTextFiled = getEmail();
         String email = emailTextFiled != null ? emailTextFiled.getModelObject() : null;
@@ -309,10 +324,10 @@ public class PageEmailNonce extends PageAuthenticationBase {
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        if (AuthUtil.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
+//        if (AuthUtil.getPrincipalUser() != null) {
+//            MidPointApplication app = getMidpointApplication();
+//            throw new RestartResponseException(app.getHomePage());
+//        }
     }
 
     private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
@@ -362,6 +377,29 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
 
         return getModelInteractionService().generateValue(policy, 24, false, user, "nonce generation", task, result);
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected String load() {
+                return createStringResource(submited ? "PageEmailNonce.checkYourMail" : "PageEmailNonce.identification").getString();
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected String load() {
+                return createStringResource(submited ? "PageForgotPassword.form.submited.message"
+                        : "PageEmailNonce.specifyMailDescription").getString();
+            }
+        };
     }
 
 }

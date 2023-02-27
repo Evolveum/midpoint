@@ -6,7 +6,17 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -134,12 +144,39 @@ public class BasePanel<T> extends Panel {
         return WebComponentUtil.getPageBase(this);
     }
 
+    /**
+     *  This method was created to be used instead of getPageBase after a big number of
+     *  the util methods moved to the PageAdminLTE. For now it is used only by the components on
+     *  the non-PageBase pages, in the future should be reviewed and refactored to be
+     *  more generally used
+     */
+    @Contract(pure = true)
+    public PageAdminLTE getParentPage() {
+        return WebComponentUtil.getPage(this, PageAdminLTE.class);
+    }
+
+    protected void showResult(OperationResult result) {
+        WebComponentUtil.getPage(this, PageAdminLTE.class).showResult(result);
+    }
+
+    public Component getFeedbackPanel() {
+        return WebComponentUtil.getPage(this, PageAdminLTE.class).getFeedbackPanel();
+    }
+
+    public GuiComponentRegistry getRegistry() {
+        return WebComponentUtil.getPage(this, PageAdminLTE.class).getRegistry();
+    }
+
+    public MidpointConfiguration getMidpointConfiguration() {
+        return WebComponentUtil.getPage(this, PageAdminLTE.class).getMidpointConfiguration();
+    }
+
     public PrismContext getPrismContext() {
-        return getPageBase().getPrismContext();
+        return WebComponentUtil.getPage(BasePanel.this, PageAdminLTE.class).getPrismContext();
     }
 
     public SchemaService getSchemaService() {
-        return getPageBase().getSchemaService();
+        return WebComponentUtil.getPage(BasePanel.this, PageAdminLTE.class).getSchemaService();
     }
 
     protected String createComponentPath(String... components) {

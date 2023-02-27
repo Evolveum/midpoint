@@ -1689,6 +1689,19 @@ span.yui-skin-sam {
   font-size: 13px;
 }
 
+.login-panel-control {
+  width: 100% !important;
+}
+
+.login-panel-description {
+  color: $text-muted;
+  font-size: 14px;
+}
+
+.login-panel-title {
+  font-weight: bold;
+}
+
 .info-box.activity-item-processing > .info-box-content > .progress-description {
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1783,6 +1796,7 @@ th.debug-list-buttons {
 .assignmentPath {
   list-style: none;
   margin-bottom: 0px;
+  padding-left: 0px !important;
 
   & > li {
 
@@ -1794,8 +1808,13 @@ th.debug-list-buttons {
         font-family: "Font Awesome 5 Free";
         font-weight: 900;
         content: "\f061";
+        margin-right: 2px;
       }
     }
+  }
+
+  & > a {
+    margin-left: -20px;
   }
 }
 

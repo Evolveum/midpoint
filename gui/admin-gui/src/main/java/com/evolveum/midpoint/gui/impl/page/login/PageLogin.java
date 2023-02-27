@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
@@ -49,7 +48,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
-    private static final String ID_FORGET_PASSWORD = "forgotPassword";
+    private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_FORM = "form";
@@ -94,7 +93,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
         String urlResetPass = getPasswordResetUrl(securityPolicy);
-        ExternalLink link = new ExternalLink(ID_FORGET_PASSWORD, urlResetPass);
+        ExternalLink link = new ExternalLink(ID_RESET_PASSWORD, urlResetPass);
 
         link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlResetPass)));
         add(link);
@@ -107,7 +106,10 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        }
         if (sequence == null) {
             return "";
         }
@@ -157,8 +159,11 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
-                securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
+                    securityPolicy.getAuthentication());
+        }
         if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null) {
             return "";
         }
@@ -183,8 +188,8 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     private boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
-        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getNameOfModuleType())
-                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getNameOfModuleType()));
+        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getModuleTypeName())
+                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
     }
 
     @Override
@@ -193,5 +198,13 @@ public class PageLogin extends AbstractPageLogin {
         super.onDetach();
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageLogin.loginToYourAccount");
+    }
 
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageLogin.enterAccountDetails");
+    }
 }

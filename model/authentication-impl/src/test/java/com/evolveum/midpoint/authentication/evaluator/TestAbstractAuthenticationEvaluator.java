@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluat
 
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 
@@ -185,6 +186,13 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             @Override
             public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz);
+                addFakeAuthorization(principal);
+                return principal;
+            }
+
+            @Override
+            public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(query, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }

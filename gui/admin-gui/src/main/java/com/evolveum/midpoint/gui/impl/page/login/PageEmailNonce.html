@@ -12,29 +12,25 @@
 <body>
 <wicket:extend>
     <form class="form-horizontal" action="ignore" wicket:id="mainForm">
-        <div class="form-group" wicket:id="staticLayout">
-            <label class="col-md-4 col-lg-4 control-label">
+        <div class="form-group mb-2 login-panel-control" wicket:id="staticLayout">
+            <label class="col-form-label">
                 <wicket:message key="PageForgetPassword.email"/>
             </label>
 
-            <div class="col-md-8 col-lg-8">
-                <input name="email" type="text" class="form-control form-control-sm focus-username"
-                        wicket:message="placeholder:PageForgetPassword.email" wicket:id="email">
-            </div>
+            <input name="email" type="text" class="form-control form-control-sm focus-username" wicket:id="email">
         </div>
 
-        <div wicket:id="dynamicLayout">
+        <div wicket:id="dynamicLayout" class="mb-2">
             <div wicket:id="dynamicForm"/>
         </div>
-
-        <div class="pull-right">
-            <a class="btn btn-default" wicket:id="back"><wicket:message key="PageBase.button.back"/></a>
-            <a class="btn btn-primary" wicket:id="submit"/>
-        </div>
+        <a class="btn btn-primary flex-wrap gap-2 justify-content-center login-panel-control" wicket:id="submitIdentifier">
+        </a>
     </form>
-    <div style="text-align: center">
-        <h2 wicket:id="resetPasswordInfo"></h2>
-    </div>
+
+    <a class="text-center login-panel-control mt-2" style="display: inline-block;" wicket:id="back">
+        <i class="fas fa-arrow-left mr-2"></i>
+        <span wicket:id="backButtonLabel"/>
+    </a>
 </wicket:extend>
 
 </body>

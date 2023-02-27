@@ -882,6 +882,9 @@ public class ColumnUtils {
             protected Map<DisplayType, Integer> getIconDisplayType(IModel<SelectableBean<CaseType>> rowModel) {
                 Map<DisplayType, Integer> map = new HashMap<>();
                 CaseType caseType = rowModel.getObject().getValue();
+                if (caseType == null) {
+                    return null;
+                }
                 if (ObjectTypeUtil.hasArchetypeRef(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
                     ObjectQuery queryFilter = pageBase.getPrismContext().queryFor(CaseType.class)
                             .item(CaseType.F_PARENT_REF)

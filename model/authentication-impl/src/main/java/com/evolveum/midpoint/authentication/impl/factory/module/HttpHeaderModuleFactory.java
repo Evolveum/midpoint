@@ -70,7 +70,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
             ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
         HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }
 }

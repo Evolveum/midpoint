@@ -12,13 +12,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BehaviorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -70,5 +68,20 @@ public class AuthenticationEvaluatorUtil {
             focus.getBehavior().setAuthentication(new AuthenticationBehavioralDataType());
         }
         return focus.getBehavior().getAuthentication();
+    }
+
+    public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptData(@NotNull AuthenticationBehavioralDataType behavioralData,
+            String sequenceIdentifier, String moduleIdentifier) {
+        for (AuthenticationAttemptDataType attemptData : behavioralData.getAuthenticationAttempt()) {
+            if (attemptData.getSequenceIdentifier() != null && attemptData.getSequenceIdentifier().equals(sequenceIdentifier)
+                    && attemptData.getModuleIdentifier() != null && attemptData.getModuleIdentifier().equals(moduleIdentifier)) {
+                return attemptData;
+            }
+        }
+        AuthenticationAttemptDataType data = new AuthenticationAttemptDataType();
+        data.setSequenceIdentifier(sequenceIdentifier);
+        data.setModuleIdentifier(moduleIdentifier);
+        behavioralData.getAuthenticationAttempt().add(data);
+        return data;
     }
 }

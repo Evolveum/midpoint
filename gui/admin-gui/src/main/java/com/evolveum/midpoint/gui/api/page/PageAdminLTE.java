@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import org.apache.commons.lang3.StringUtils;
@@ -840,7 +841,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         result = scriptResult;
 
-        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        OpResult opResult = OpResult.getOpResult((PageAdminLTE) getPage(), result);
         opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
@@ -968,6 +969,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         throw new RestartResponseException(notFound);
     }
 
+    public GuiProfiledPrincipal getPrincipal() {
+        return AuthUtil.getPrincipalUser();
+    }
+
+    public FocusType getPrincipalFocus() {
+        MidPointPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return null;
+        }
+        return principal.getFocus();
+    }
+
     //Used by subclasses
     public void addFeedbackPanel() {
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
@@ -981,8 +994,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         feedbackContainer.add(feedbackList);
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    public Component getFeedbackPanel() {
+        return get(ID_FEEDBACK_CONTAINER);
     }
 
     public SessionStorage getSessionStorage() {

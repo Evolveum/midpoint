@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -33,8 +30,8 @@ public class ClassLoggerDescriptionHandler implements VisualizationDescriptionHa
 
     @Override
     public boolean match(VisualizationImpl visualization) {
-        PrismContainerValue value = visualization.getSourceValue();
-        if (value == null || value.getPath() == null) {
+        PrismContainerValue<?> value = visualization.getSourceValue();
+        if (value == null) {
             return false;
         }
 
@@ -43,7 +40,7 @@ public class ClassLoggerDescriptionHandler implements VisualizationDescriptionHa
 
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
-        PrismContainerValue value = visualization.getSourceValue();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         ChangeType changeType = visualization.getChangeType();
 
         ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType) value.asContainerable();

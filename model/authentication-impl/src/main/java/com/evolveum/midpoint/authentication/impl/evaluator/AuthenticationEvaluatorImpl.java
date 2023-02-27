@@ -7,56 +7,51 @@
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.prism.impl.query.ObjectQueryImpl;
+
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -105,8 +100,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
-                authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -138,7 +132,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), authnCtx.getPrincipalType(), false);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, false);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -178,6 +172,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         // Lockout
         if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof MidpointAuthentication) {
+                ((MidpointAuthentication) auth).setOverLockoutMaxAttempts(true);
+            }
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password locked-out", authnCtx.getPrincipalType(), false);
             throw new LockedException("web.security.provider.locked");
         }
@@ -212,7 +210,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throws AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, username, FocusType.class, true);
+        PreAuthenticationContext preAuthenticationContext = new PreAuthenticationContext(username, FocusType.class, null);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, (T) preAuthenticationContext, true);
 
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
@@ -245,10 +244,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, PreAuthenticationContext authnCtx) {
+    public <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AC authnCtx) {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
-                authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         // Authorizations
         if (hasNoneAuthorization(principal)) {
@@ -267,45 +265,50 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @NotNull
-    protected MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, Class<? extends FocusType> clazz,
-            boolean supportsActivationCheck) {
-
-        if (StringUtils.isBlank(enteredUsername)) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "no username");
+    protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
+        ObjectQuery query = authCtx.createFocusQuery();
+        String username = authCtx.getUsername();
+        if (query == null) {
+            recordAuthenticationFailure(username, connEnv, "no username");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
+        if (query == null) {
+            recordAuthenticationFailure(username, connEnv, "no username");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+        }
+
+        Class<? extends FocusType> clazz = authCtx.getPrincipalType();
         MidPointPrincipal principal;
         try {
-            principal = focusProfileService.getPrincipal(enteredUsername, clazz);
+            principal = focusProfileService.getPrincipal(query, clazz);
         } catch (ObjectNotFoundException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "no focus");
+            recordAuthenticationFailure(username, connEnv, "no focus");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         } catch (SchemaException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
+            recordAuthenticationFailure(username, connEnv, "schema error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (CommunicationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "communication error");
+            recordAuthenticationFailure(username, connEnv, "communication error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ConfigurationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "configuration error");
+            recordAuthenticationFailure(username, connEnv, "configuration error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (SecurityViolationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "security violation");
+            recordAuthenticationFailure(username, connEnv, "security violation");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         } catch (ExpressionEvaluationException e) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "expression error");
+            recordAuthenticationFailure(username, connEnv, "expression error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
         }
 
-
         if (principal == null) {
-            recordAuthenticationBehavior(enteredUsername, null, connEnv, "no focus", clazz, false);
+            recordAuthenticationBehavior(username, null, connEnv, "no focus", clazz, false);
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
-        if (supportsActivationCheck && !principal.isEnabled()) {
-            recordAuthenticationBehavior(enteredUsername, principal, connEnv, "focus disabled", clazz, false);
+        if (supportActivationCheck && !principal.isEnabled()) {
+            recordAuthenticationBehavior(username, principal, connEnv, "focus disabled", clazz, false);
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;
@@ -398,23 +401,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
     }
 
-    protected String getDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
-        String decryptedPassword;
-        if (protectedString.getEncryptedDataType() != null) {
-            try {
-                decryptedPassword = protector.decryptString(protectedString);
-            } catch (EncryptionException e) {
-                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
-                throw new AuthenticationServiceException("web.security.provider.unavailable", e);
-            }
-        } else {
-            LOGGER.warn("Authenticating user based on clear value. Please check objects, "
-                    + "this should not happen. Protected string should be encrypted.");
-            decryptedPassword = protectedString.getClearValue();
-        }
-        return decryptedPassword;
-    }
-
     private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
         String decryptedPassword;
         if (protectedString.getEncryptedDataType() != null) {
@@ -437,30 +423,144 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
-        int failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
-        return isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        int failedLogins;
+        if (canEvaluateForModule(authentication)) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            return SecurityUtil.isOverFailedLockoutAttempts(((MidPointPrincipal) authentication.getPrincipal()).getFocus(),
+                    AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()),
+                    mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier(),
+                    credentialsPolicy);
+        } else {
+            //todo old code
+            failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
+            return SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
+        }
     }
 
-    private boolean isOverFailedLockoutAttempts(int failedLogins, CredentialPolicyType credentialsPolicy) {
-        return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
-                credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
+    private boolean canEvaluateForModule(Authentication authentication) {
+        return authentication instanceof MidpointAuthentication
+                && authentication.getPrincipal() instanceof MidPointPrincipal
+                && ((MidpointAuthentication) authentication).getProcessingModuleAuthentication() != null;
     }
 
     private boolean isLockoutExpired(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
-        Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-        if (lockoutDuration == null) {
-            return false;
+        Duration lockoutDuration;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (canEvaluateForModule(authentication)) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            XMLGregorianCalendar lastFailedLoginTimestamp = SecurityUtil.getLockoutExpirationTimestampForAuthModule(
+                    ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocus(),
+                    AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()),
+                    mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier());
+            XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, credentialsPolicy.getLockoutDuration());
+            return clock.isPast(lockedUntilTimestamp);
+        } else {
+            //todo old code
+            lockoutDuration = credentialsPolicy.getLockoutDuration();
+            if (lockoutDuration == null) {
+                return false;
+            }
+            LoginEventType lastFailedLogin = credentialsType.getLastFailedLogin();
+            if (lastFailedLogin == null) {
+                return true;
+            }
+            XMLGregorianCalendar lastFailedLoginTimestamp = lastFailedLogin.getTimestamp();
+            if (lastFailedLoginTimestamp == null) {
+                return true;
+            }
+            XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, lockoutDuration);
+            return clock.isPast(lockedUntilTimestamp);
         }
-        LoginEventType lastFailedLogin = credentialsType.getLastFailedLogin();
-        if (lastFailedLogin == null) {
-            return true;
+    }
+
+    public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+            String reason, Class<? extends FocusType> focusType, boolean isSuccess) {
+        if (principal == null && focusType != null) {
+            try {
+                principal = focusProfileService.getPrincipal(username, focusType);
+            } catch (Exception e) {
+                //ignore if non-exist
+            }
         }
-        XMLGregorianCalendar lastFailedLoginTimestamp = lastFailedLogin.getTimestamp();
-        if (lastFailedLoginTimestamp == null) {
-            return true;
+        if (principal != null) {
+            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AuthenticationAttemptDataType authAttemptData;
+            if (canEvaluateForModule(authentication)) {
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                String sequenceIdentifier = AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence());
+                String moduleIdentifier = mpAuthentication.getProcessingModuleAuthentication().getModuleIdentifier();
+                authAttemptData = AuthenticationEvaluatorUtil.findOrCreateAuthenticationAttemptData(behavior,
+                        sequenceIdentifier, moduleIdentifier);
+                authAttemptData.setChannel(mpAuthentication.getSequence().getChannel());
+                recordModuleAuthenticationAttempt(principal, authAttemptData, connEnv, isSuccess);
+                updateAuthenticationWithPrincipal(mpAuthentication, principal);
+            }
+
+            if (isSuccess) {
+                recordPasswordAuthenticationSuccess(principal, connEnv, behavior, true);
+            } else {
+                recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason, true);
+            }
+        } else {
+            recordAuthenticationFailure(username, connEnv, reason);
         }
-        XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, lockoutDuration);
-        return clock.isPast(lockedUntilTimestamp);
+    }
+
+    private void updateAuthenticationWithPrincipal(MidpointAuthentication authentication, MidPointPrincipal principal) {
+        Object authPrincipal = authentication.getPrincipal();
+        if (authPrincipal instanceof MidPointPrincipal && ((MidPointPrincipal) authPrincipal).getOid().equals(principal.getOid())) {
+            authentication.setPrincipal(principal);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+    }
+
+    private void recordModuleAuthenticationAttempt(@NotNull MidPointPrincipal principal, @NotNull AuthenticationAttemptDataType authAttemptData,
+            @NotNull ConnectionEnvironment connEnv, boolean isSuccess) {
+        FocusType focusBefore = principal.getFocus().clone();
+        processFailedAttempts(authAttemptData, isSuccess);
+
+        boolean successLoginAfterFail = false;
+        LoginEventType event = new LoginEventType();
+        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+        event.setFrom(connEnv.getRemoteHostAddress());
+
+        if (isSuccess) {
+            authAttemptData.setLastSuccessfulAuthentication(event);
+        } else {
+            authAttemptData.setLastFailedAuthentication(event);
+        }
+        LockoutStatusType oldLockoutStatus = authAttemptData.getLockoutStatus();
+        if (LockoutStatusType.LOCKED.equals(oldLockoutStatus) && isSuccess) {
+            authAttemptData.setLockoutStatus(LockoutStatusType.NORMAL);
+            authAttemptData.setLockoutExpirationTimestamp(null);
+        }
+
+
+        ActivationType activation = principal.getFocus().getActivation();
+        //todo decide user lockout status
+
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
+    }
+
+    private void processFailedAttempts(AuthenticationAttemptDataType authAttemptData, boolean isSuccess) {
+        Integer failedLogins = authAttemptData.getFailedAttempts();
+        if (isSuccess) {
+            if (failedLogins != null && failedLogins > 0) {
+                authAttemptData.setFailedAttempts(0);
+//                successLoginAfterFail = true;  ????
+            }
+        } else {
+            if (failedLogins == null) {
+                authAttemptData.setFailedAttempts(1);
+            } else {
+                authAttemptData.setFailedAttempts(authAttemptData.getFailedAttempts() + 1);
+            }
+        }
+
     }
 
     protected void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
@@ -500,27 +600,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
     }
 
-    public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            String reason, Class<? extends FocusType> focusType, boolean isSuccess) {
-        if (principal == null && focusType != null) {
-            try {
-                principal = focusProfileService.getPrincipal(username, focusType);
-            } catch (Exception e) {
-                //ignore if non-exist
-            }
-        }
-        if (principal != null) {
-            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
-            if (isSuccess) {
-                recordPasswordAuthenticationSuccess(principal, connEnv, behavior, true);
-            } else {
-                recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason, true);
-            }
-        } else {
-            recordAuthenticationFailure(username, connEnv, reason);
-        }
-    }
-
     private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
             @NotNull AuthenticationBehavioralDataType behavioralData, CredentialPolicyType credentialsPolicy, String reason, boolean audit) {
         FocusType focusAfter = principal.getFocus();
@@ -557,7 +636,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         behavioralData.setLastFailedLogin(event);
 
-        if (isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
+        if (SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
             ActivationType activation = focusAfter.getActivation();
             if (activation == null) {
                 activation = new ActivationType();

@@ -57,7 +57,7 @@ public class OidcBearerTokenAuthenticationFilter extends HttpAuthenticationFilte
     }
 
     @Override
-    protected @NotNull String getNameOfModule() {
+    protected @NotNull String getModuleIdentifier() {
         return AuthenticationModuleNameConstants.OIDC;
     }
 

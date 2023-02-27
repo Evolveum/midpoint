@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
-import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPropertyPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -20,7 +20,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar
  */
-public class VerticalFormPasswordPropertyPanel extends PasswordPropertyPanel {
+public class VerticalFormPasswordPropertyPanel extends ProtectedStringPropertyPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";

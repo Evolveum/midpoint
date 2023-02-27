@@ -8,11 +8,14 @@ package com.evolveum.midpoint.model.impl.security;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +60,8 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private ArchetypeManager archetypeManager;
+
 
     @Override
     public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
@@ -141,13 +146,17 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(focus, task, result);
-        if (focusSecurityPolicy != null) {
-            traceSecurityPolicy(focusSecurityPolicy, focus);
-            return focusSecurityPolicy;
+        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
+        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
+        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromOrgs, globalSecurityPolicy);  //sec policy from org overrides global sec policy
+        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
+        mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, mergedSecurityPolicy);  //sec policy from archetypes overrides sec policy from org
+
+        if (mergedSecurityPolicy != null) {
+            traceSecurityPolicy(mergedSecurityPolicy, focus);
+            return mergedSecurityPolicy;
         }
 
-        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
         if (globalSecurityPolicy != null) {
             traceSecurityPolicy(globalSecurityPolicy, focus);
             return globalSecurityPolicy;
@@ -156,7 +165,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
-    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> focus, Task task,
+    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(focus,
                 o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
@@ -168,6 +177,306 @@ public class SecurityHelper implements ModelAuditRecorder {
         } else {
             return null;
         }
+    }
+
+    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
+            OperationResult result) throws SchemaException {
+        PrismObject<SecurityPolicyType> archetypeSecurityPolicy = searchSecurityPolicyFromArchetype(focus,
+                "security policy", task, result);
+        LOGGER.trace("Found archetype security policy: {}", archetypeSecurityPolicy);
+        if (archetypeSecurityPolicy != null) {
+            SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();
+            postProcessSecurityPolicy(securityPolicyType, task, result);
+            return securityPolicyType;
+        } else {
+            return null;
+        }
+    }
+
+    private <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
+            String shortDesc, Task task, OperationResult result) throws SchemaException {
+        if (object == null) {
+            LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
+            return null;
+        }
+        ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypeManager.determineArchetypes(object.asObjectable(), result));
+        if (structuralArchetype == null) {
+            return null;
+        }
+        PrismObject<SecurityPolicyType> securityPolicy = null;
+        ObjectReferenceType securityPolicyRef = structuralArchetype.getSecurityPolicyRef();
+        if (securityPolicyRef != null) {
+            try {
+                securityPolicy = objectResolver.resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
+            } catch (ObjectNotFoundException ex) {
+                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
+                return null;
+            }
+        }
+
+        return mergeSecurityPolicyWithSuperArchetype(structuralArchetype, securityPolicy, task, result);
+    }
+
+    private PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
+            Task task, OperationResult result) {
+        ArchetypeType superArchetype = null;
+        try {
+            superArchetype = archetype.getSuperArchetypeRef() != null ?
+                    objectResolver.resolve(archetype.getSuperArchetypeRef(), ArchetypeType.class, null, "resolving super archetype ref", task, result)
+                    : null;
+        } catch (Exception ex) {
+            LOGGER.warn("Cannot resolve super archetype reference for archetype {}, oid {}", archetype.getName(), archetype.getOid());
+            return securityPolicy;
+        }
+        if (superArchetype == null) {
+            return securityPolicy;
+        }
+        SecurityPolicyType superArchetypeSecurityPolicy = null;
+        try {
+            superArchetypeSecurityPolicy = superArchetype.getSecurityPolicyRef() != null ?
+                    objectResolver.resolve(superArchetype.getSecurityPolicyRef(), SecurityPolicyType.class, null, "resolving security policy ref", task, result)
+                    : null;
+        } catch (Exception ex) {
+            LOGGER.warn("Cannot resolve security policy reference for archetype {}, oid {}", superArchetype.getName(), superArchetype.getOid());
+            return securityPolicy;
+        }
+        if (superArchetypeSecurityPolicy == null) {
+            return securityPolicy;
+        }
+        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy.asPrismObject());
+        return mergeSecurityPolicyWithSuperArchetype(superArchetype, mergedSecurityPolicy, task, result);
+    }
+
+    private SecurityPolicyType mergeSecurityPolicies(SecurityPolicyType lowLevelSecurityPolicy,
+            SecurityPolicyType topLevelSecurityPolicy) {
+        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
+            return null;
+        }
+        if (topLevelSecurityPolicy == null) {
+            return lowLevelSecurityPolicy.cloneWithoutId();
+        }
+        if (lowLevelSecurityPolicy == null) {
+            return topLevelSecurityPolicy.cloneWithoutId();
+        }
+        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
+        return mergedSecurityPolicy != null ? mergedSecurityPolicy.asObjectable() : null;
+    }
+
+    /**
+     *
+     * @param lowLevelSecurityPolicy    means the security policy referenced from child archetype
+     * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
+     * @return
+     */
+    private PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
+            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
+        //todo for now probably only authentication and credentialsReset merge is needed (may be name this method
+        // as "mergeAuthentications" then)
+        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
+            return null;
+        }
+        if (topLevelSecurityPolicy == null) {
+            return lowLevelSecurityPolicy.clone();
+        }
+        if (lowLevelSecurityPolicy == null) {
+            return topLevelSecurityPolicy.clone();
+        }
+        SecurityPolicyType mergedSecurityPolicy = lowLevelSecurityPolicy.asObjectable().cloneWithoutId();
+        AuthenticationsPolicyType mergedAuthentication = mergeSecurityPolicyAuthentication(lowLevelSecurityPolicy.asObjectable().getAuthentication(),
+                topLevelSecurityPolicy.asObjectable().getAuthentication());
+        mergedSecurityPolicy.setAuthentication(mergedAuthentication);
+        mergedSecurityPolicy.setCredentials(mergeCredentialsPolicy(lowLevelSecurityPolicy.asObjectable().getCredentials(),
+                topLevelSecurityPolicy.asObjectable().getCredentials()));
+        mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.asObjectable().getCredentialsReset(),
+                topLevelSecurityPolicy.asObjectable().getCredentialsReset()));
+        return mergedSecurityPolicy.asPrismObject();
+    }
+
+    private AuthenticationsPolicyType mergeSecurityPolicyAuthentication(AuthenticationsPolicyType lowLevelAuthentication, AuthenticationsPolicyType topLevelAuthentication) {
+        if (lowLevelAuthentication == null && topLevelAuthentication == null) {
+            return null;
+        }
+        if (lowLevelAuthentication == null) {
+            return topLevelAuthentication.cloneWithoutId();
+        }
+        if (topLevelAuthentication == null) {
+            return lowLevelAuthentication.cloneWithoutId();
+        }
+        AuthenticationsPolicyType mergedAuthentication = lowLevelAuthentication.cloneWithoutId();
+        mergeAuthenticationModules(mergedAuthentication, topLevelAuthentication.getModules());
+        mergeSequences(mergedAuthentication, topLevelAuthentication.getSequence());
+        if (CollectionUtils.isEmpty(mergedAuthentication.getIgnoredLocalPath())) {
+            mergedAuthentication.getIgnoredLocalPath().addAll(topLevelAuthentication.getIgnoredLocalPath());
+        } else {
+            mergedAuthentication.getIgnoredLocalPath().addAll(CollectionUtils.union(mergedAuthentication.getIgnoredLocalPath(), topLevelAuthentication.getIgnoredLocalPath()));
+        }
+        return mergedAuthentication;
+    }
+
+    private void mergeAuthenticationModules(AuthenticationsPolicyType mergedAuthentication, AuthenticationModulesType modules) {
+        if (modules == null) {
+            return;
+        }
+        if (mergedAuthentication.getModules() == null) {
+            mergedAuthentication.setModules(modules);
+            return;
+        }
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpBasic(), modules.getHttpBasic());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpHeader(), modules.getHttpHeader());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpSecQ(), modules.getHttpSecQ());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLdap(), modules.getLdap());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLoginForm(), modules.getLoginForm());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getMailNonce(), modules.getMailNonce());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOidc(), modules.getOidc());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOther(), modules.getOther());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSaml2(), modules.getSaml2());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSecurityQuestionsForm(), modules.getSecurityQuestionsForm());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getAttributeVerification(), modules.getAttributeVerification());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHint(), modules.getHint());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getFocusIdentification(), modules.getFocusIdentification());
+    }
+
+    private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProcess) {
+        if (CollectionUtils.isEmpty(listToProcess)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(mergedList)) {
+            listToProcess.forEach(i -> mergedList.add((AM) i.cloneWithoutId()));
+            return;
+        }
+        listToProcess.forEach(itemToProcess -> {
+            boolean exist = false;
+            for (AM item : mergedList) {
+                String itemIdentifier = StringUtils.isNotEmpty(item.getIdentifier()) ? item.getIdentifier() : item.getName();
+                String itemToProcessIdentifier = StringUtils.isNotEmpty(itemToProcess.getIdentifier()) ?
+                        itemToProcess.getIdentifier() : itemToProcess.getName();
+                if (itemIdentifier != null && StringUtils.equals(itemIdentifier, itemToProcessIdentifier)) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                mergedList.add(itemToProcess.cloneWithoutId());
+            }
+        });
+    }
+
+    private void mergeSequences(AuthenticationsPolicyType mergedAuthentication, List<AuthenticationSequenceType> sequences) {
+        if (CollectionUtils.isEmpty(sequences)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(mergedAuthentication.getSequence())) {
+            sequences.forEach(s -> mergedAuthentication.getSequence().add(s.cloneWithoutId()));
+            return;
+        }
+        sequences.forEach(sequenceToProcess -> {
+            boolean exist = false;
+            for (AuthenticationSequenceType sequence : mergedAuthentication.getSequence()) {
+                if (sequencesIdentifiersMatch(sequence, sequenceToProcess)) {
+                    mergeSequence(sequence, sequenceToProcess);
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                mergedAuthentication.getSequence().add(sequenceToProcess.cloneWithoutId());
+            }
+        });
+    }
+
+    private void mergeSequence(AuthenticationSequenceType sequence, AuthenticationSequenceType sequenceToProcess) {
+        if (sequence == null || sequenceToProcess == null || !sequencesIdentifiersMatch(sequence, sequenceToProcess)) {
+            return;
+        }
+        if (sequence.getChannel() == null) {
+            sequence.setChannel(sequenceToProcess.getChannel());
+        }
+        if (StringUtils.isEmpty(sequence.getDescription())) {
+            sequence.setDescription(sequenceToProcess.getDescription());
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getModule())) {
+            if (CollectionUtils.isEmpty(sequence.getModule())) {
+                sequenceToProcess.getModule().forEach(m -> sequence.getModule().add(m.cloneWithoutId()));
+            } else {
+                sequenceToProcess.getModule().forEach(sequenceModule -> {
+                    if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) == null) {
+                        sequence.getModule().add(sequenceModule.cloneWithoutId());
+                    }
+                });
+            }
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getNodeGroup()) && CollectionUtils.isEmpty(sequence.getNodeGroup())) {
+            sequence.getNodeGroup().addAll(sequenceToProcess.getNodeGroup());
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getRequireAssignmentTarget())
+                && CollectionUtils.isEmpty(sequence.getRequireAssignmentTarget())) {
+            sequence.getRequireAssignmentTarget().addAll(sequenceToProcess.getRequireAssignmentTarget());
+        }
+    }
+
+    private boolean sequencesIdentifiersMatch(AuthenticationSequenceType sequence1, AuthenticationSequenceType sequence2) {
+        String identifier1 = StringUtils.isNotEmpty(sequence1.getIdentifier()) ? sequence1.getIdentifier() : sequence1.getName();
+        String identifier2 = StringUtils.isNotEmpty(sequence2.getIdentifier()) ? sequence2.getIdentifier() : sequence2.getName();
+        return identifier1 != null && StringUtils.equals(identifier1, identifier2);
+    }
+
+    private AuthenticationSequenceModuleType findSequenceModuleByIdentifier(List<AuthenticationSequenceModuleType> sequenceModules,
+            AuthenticationSequenceModuleType moduleToFind) {
+        if (CollectionUtils.isEmpty(sequenceModules) || moduleToFind == null || StringUtils.isEmpty(moduleToFind.getIdentifier())) {
+            return null;
+        }
+        for (AuthenticationSequenceModuleType module : sequenceModules) {
+            if (moduleToFind.getIdentifier().equals(module.getIdentifier())) {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    private CredentialsPolicyType mergeCredentialsPolicy(CredentialsPolicyType lowLevelCredentialsPolicy, CredentialsPolicyType topLevelCredentialsPolicy) {
+        if (lowLevelCredentialsPolicy == null && topLevelCredentialsPolicy == null) {
+            return null;
+        }
+        if (lowLevelCredentialsPolicy == null) {
+            return topLevelCredentialsPolicy.cloneWithoutId();
+        }
+        CredentialsPolicyType mergedPolicy = new CredentialsPolicyType();
+        if (lowLevelCredentialsPolicy.getPassword() != null) {
+            mergedPolicy.setPassword(lowLevelCredentialsPolicy.getPassword().cloneWithoutId());
+        } else if (topLevelCredentialsPolicy.getPassword() != null) {
+            mergedPolicy.setPassword(topLevelCredentialsPolicy.getPassword().cloneWithoutId());
+        }
+        if (lowLevelCredentialsPolicy.getSecurityQuestions() != null) {
+            mergedPolicy.setSecurityQuestions(lowLevelCredentialsPolicy.getSecurityQuestions().cloneWithoutId());
+        } else if (topLevelCredentialsPolicy.getSecurityQuestions() != null) {
+            mergedPolicy.setSecurityQuestions(topLevelCredentialsPolicy.getSecurityQuestions().cloneWithoutId());
+        }
+        if (CollectionUtils.isNotEmpty(lowLevelCredentialsPolicy.getNonce())) {
+            lowLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.cloneWithoutId()));
+        } else if (topLevelCredentialsPolicy.getNonce() != null) {
+            topLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.cloneWithoutId()));
+        }
+        if (lowLevelCredentialsPolicy.getAttributeVerification() != null) {
+            mergedPolicy.setAttributeVerification(lowLevelCredentialsPolicy.getAttributeVerification().cloneWithoutId());
+        } else if (topLevelCredentialsPolicy.getAttributeVerification() != null) {
+            mergedPolicy.setAttributeVerification(topLevelCredentialsPolicy.getAttributeVerification().cloneWithoutId());
+        }
+        if (lowLevelCredentialsPolicy.getDefault() != null) {
+            mergedPolicy.setDefault(lowLevelCredentialsPolicy.getDefault().cloneWithoutId());
+        } else if (topLevelCredentialsPolicy.getDefault() != null) {
+            mergedPolicy.setDefault(topLevelCredentialsPolicy.getDefault().cloneWithoutId());
+        }
+        return mergedPolicy;
+    }
+
+    private CredentialsResetPolicyType mergeCredentialsReset(CredentialsResetPolicyType lowLevelCredentialsReset, CredentialsResetPolicyType topLevelCredentialsReset) {
+        if (lowLevelCredentialsReset == null && topLevelCredentialsReset == null) {
+            return null;
+        }
+        //todo do we want to merge credentials reset attributes separately? e.g. if identifiers are the same, then merge every
+        //single attribute with the rule that lowLevelCredentialsReset attribute overrides topLevelCredentialsReset attribute
+        return lowLevelCredentialsReset != null ? lowLevelCredentialsReset.cloneWithoutId() : topLevelCredentialsReset.cloneWithoutId();
     }
 
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,

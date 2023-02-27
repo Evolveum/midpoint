@@ -62,7 +62,7 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter<Abst
     }
 
     @Override
-    protected @NotNull String getNameOfModule() {
+    protected @NotNull String getModuleIdentifier() {
         return AuthenticationModuleNameConstants.HTTP_BASIC;
     }
 }

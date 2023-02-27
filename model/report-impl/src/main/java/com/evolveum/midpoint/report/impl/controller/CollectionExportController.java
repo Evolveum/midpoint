@@ -8,8 +8,6 @@ package com.evolveum.midpoint.report.impl.controller;
 
 import static com.evolveum.midpoint.report.impl.controller.GenericSupport.evaluateCondition;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportUseType.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -327,30 +325,46 @@ public class CollectionExportController<R> implements ExportController<R> {
                     getSingleTypedValue(
                             ReportBeans.get().reportService.evaluateSubreport(
                                     report.asPrismObject(), variables, subreportDef, workerTask, result));
-            SubreportUseType use = Objects.requireNonNullElse(subreportDef.getUse(), EMBEDDED);
-            if (use == EMBEDDED) {
-                variables.put(subReportName, subReportResultTyped);
-                evaluateFromSubreport(index + 1, result);
-                variables.remove(subReportName);
-            } else {
-                stateCheck(
-                        use == INNER_JOIN || use == LEFT_JOIN,
-                        "Unsupported use value for %s: %s", subReportName, use);
-                List<?> subReportValues = getAsList(subReportResultTyped);
-                for (Object subReportValue : subReportValues) {
-                    variables.put(
-                            subReportName,
-                            TypedValue.of(getRealValue(subReportValue), Object.class));
-                    evaluateFromSubreport(index + 1, result);
-                    variables.remove(subReportName);
-                }
-                if (subReportValues.isEmpty() && use == LEFT_JOIN) {
-                    // Null is the best alternative to represent "no element" generated from the joined subreport.
+            List<?> subReportValues = getAsList(subReportResultTyped);
+
+            if (subReportValues.isEmpty()) {
+                if (shouldRemoveParentIfNoValues(subreportDef)) {
+                    // Doing nothing
+                } else {
+                    // Null is the best alternative to represent "no element" generated from the subreport.
                     variables.put(subReportName, null, Object.class);
                     evaluateFromSubreport(index + 1, result);
                     variables.remove(subReportName);
                 }
+            } else {
+                // 1-N values are present
+                if (shouldSplitParentOnMultipleValues(subreportDef)) {
+                    // We do this iteration also for single-value collection because the downstream expressions expect the value,
+                    // not the single-valued collection.
+                    for (Object subReportValue : subReportValues) {
+                        variables.put(
+                                subReportName,
+                                TypedValue.of(getRealValue(subReportValue), Object.class));
+                        evaluateFromSubreport(index + 1, result);
+                        variables.remove(subReportName);
+                    }
+                } else {
+                    // Using the result "as is"
+                    variables.put(subReportName, subReportResultTyped);
+                    evaluateFromSubreport(index + 1, result);
+                    variables.remove(subReportName);
+                }
             }
+        }
+
+        private boolean shouldRemoveParentIfNoValues(SubreportParameterType definition) {
+            SubreportResultHandlingType handling = definition.getResultHandling();
+            return handling != null && handling.getNoValues() == NoSubreportResultValuesHandlingType.REMOVE_PARENT_ROW;
+        }
+
+        private boolean shouldSplitParentOnMultipleValues(SubreportParameterType definition) {
+            SubreportResultHandlingType handling = definition.getResultHandling();
+            return handling != null && handling.getMultipleValues() == MultipleSubreportResultValuesHandlingType.SPLIT_PARENT_ROW;
         }
 
         // Quite a hackery, for now. Should be reconsidered some day.

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
@@ -22,6 +24,8 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -44,6 +48,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEQUENCE = "sequence";
+    private static final String ID_PANEL_TITLE = "panelTitle";
+    private static final String ID_PANEL_DESCRIPTION = "panelDescription";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
 
     public AbstractPageLogin(PageParameters parameters) {
@@ -70,10 +76,25 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initModels();
         initLayout();
     }
 
+    protected void initModels() {
+    }
+
     private void initLayout() {
+        Label panelTitle = new Label(ID_PANEL_TITLE, getLoginPanelTitleModel());
+        panelTitle.setOutputMarkupId(true);
+        panelTitle.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelTitleModel().getObject())));
+        add(panelTitle);
+
+        Label panelDescription = new Label(ID_PANEL_DESCRIPTION, getLoginPanelDescriptionModel());
+        panelDescription.setOutputMarkupId(true);
+        panelDescription.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelDescriptionModel().getObject())));
+        add(panelDescription);
+
+
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
@@ -95,6 +116,14 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         add(new LocaleTextPanel("locale"));
     }
 
+    protected IModel<String> getLoginPanelTitleModel() {
+        return Model.of();
+    }
+
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return Model.of();
+    }
+
     private String getSequenceName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
@@ -103,11 +132,15 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             if (sequence != null && sequence.getChannel() != null
                     && !Boolean.TRUE.equals(sequence.getChannel().isDefault())
                     && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(sequence.getChannel().getChannelId())) {
-                return sequence.getDisplayName() != null ? sequence.getDisplayName() : sequence.getName();
+                return sequence.getDisplayName() != null ? sequence.getDisplayName() : getSequenceIdentifier(sequence);
             }
         }
 
         return null;
+    }
+
+    private String getSequenceIdentifier(AuthenticationSequenceType seq) {
+        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 
     protected abstract void initCustomLayout();
@@ -144,7 +177,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        confirmUserPrincipal();
+        confirmAuthentication();
     }
 
     @Override
@@ -152,11 +185,28 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         super.onAfterRender();
     }
 
-    protected void confirmUserPrincipal() {
-        if (AuthUtil.getPrincipalUser() != null) {
+    protected void confirmAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean loginPageForAnotherModule = false;
+        if (authentication instanceof MidpointAuthentication) {
+            PageDescriptor descriptor = getClass().getAnnotation(PageDescriptor.class);
+            if (descriptor != null && !descriptor.authModule().isEmpty()) {
+                ModuleAuthentication module = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
+                if (module != null) {
+                    loginPageForAnotherModule = !module.getModuleTypeName().equals(descriptor.authModule());
+                }
+            }
+        }
+
+        if (authentication.isAuthenticated() || loginPageForAnotherModule) {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }
+    }
+
+    protected void cancelPerformed() {
+        setResponsePage(getMidpointApplication().getHomePage());
     }
 
 }

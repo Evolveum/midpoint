@@ -108,7 +108,7 @@ public class WebModelServiceUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageAdminLTE page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }

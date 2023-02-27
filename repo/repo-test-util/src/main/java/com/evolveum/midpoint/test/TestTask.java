@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -76,8 +75,8 @@ public class TestTask extends TestObject<TaskType> {
      * @param test To provide access to necessary functionality. Temporary!
      */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
+        commonInit(test, task, result);
         this.test = test;
-        importObject(task, result);
     }
 
     /**

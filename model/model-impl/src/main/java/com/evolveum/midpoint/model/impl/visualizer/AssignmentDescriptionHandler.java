@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
@@ -31,10 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class AssignmentDescriptionHandler implements VisualizationDescriptionHandler {
 
+    @Autowired
+    private Resolver resolver;
+
     @Override
     public boolean match(VisualizationImpl visualization) {
-        PrismContainerValue value = visualization.getSourceValue();
-        if (value == null || value.getPath() == null) {
+        PrismContainerValue<?> value = visualization.getSourceValue();
+        if (value == null) {
             return false;
         }
 
@@ -43,7 +47,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
-        PrismContainerValue value = visualization.getSourceValue();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         ChangeType changeType = visualization.getChangeType();
 
         AssignmentType a = (AssignmentType) value.asContainerable();
@@ -55,10 +59,12 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
+        String targetName = resolver.resolveReferenceName(targetRef, true, task, result);
+
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
                         new SingleLocalizableMessage("ObjectTypes." + ot.name()),
-                        targetRef.getTargetName() != null ? targetRef.getTargetName() : targetRef.getOid(),
+                        targetName,
                         changeType == ADD ? "assigned" : "unassigned"
                 }, (String) null));
     }

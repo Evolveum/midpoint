@@ -1681,7 +1681,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throw new SchemaException(localizableMessage);
         }
 
-        if (!resetMethod.equals(resetPolicyType.getName())) {
+        if (!credentialsResetPolicyMatch(resetPolicyType, resetMethod)) {
             LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad method.").key("execute.reset.credential.bad.method").build();
             response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
             throw new SchemaException(localizableMessage);
@@ -1739,6 +1739,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 
         return response;
+    }
+
+    private boolean credentialsResetPolicyMatch(CredentialsResetPolicyType policy, String identifier) {
+        return StringUtils.equals(policy.getIdentifier(), identifier) || StringUtils.equals(policy.getName(), identifier);
     }
 
     @Override

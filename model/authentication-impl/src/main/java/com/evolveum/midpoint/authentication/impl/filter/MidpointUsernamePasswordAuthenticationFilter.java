@@ -34,7 +34,6 @@ public class MidpointUsernamePasswordAuthenticationFilter extends UsernamePasswo
 //        }
 
         getRememberMeServices().loginFail(request, response);
-
         getFailureHandler().onAuthenticationFailure(request, response, failed);
     }
 

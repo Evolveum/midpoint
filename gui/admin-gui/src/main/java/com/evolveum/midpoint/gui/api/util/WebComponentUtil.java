@@ -1387,7 +1387,7 @@ public final class WebComponentUtil {
 
         if (def.getDisplayName() != null) {
             StringResourceModel nameModel = PageBase.createStringResourceStatic(def.getDisplayName());
-            if (StringUtils.isNotEmpty(nameModel.getString()) && !def.getDisplayName().equals(nameModel.getString())) {
+            if (StringUtils.isNotEmpty(nameModel.getString())) {
                 return nameModel.getString();
             }
         }
@@ -2472,9 +2472,13 @@ public final class WebComponentUtil {
     }
 
     public static PageBase getPageBase(Component component) {
+        return getPage(component, PageBase.class);
+    }
+
+    public static <P extends PageAdminLTE> P getPage(Component component, Class<P> pageClass) {
         Page page = component.getPage();
-        if (page instanceof PageBase) {
-            return (PageBase) page;
+        if (pageClass.isAssignableFrom(page.getClass())) {
+            return (P) page;
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
         }
@@ -3494,6 +3498,18 @@ public final class WebComponentUtil {
                                 + "event.die();"
                                 + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
                                 + "}")));
+            }
+        };
+    }
+
+    public static Behavior getBlurOnEnterKeyDownBehavior() {
+        return new Behavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.target.blur();}")));
             }
         };
     }
@@ -5121,20 +5137,52 @@ public final class WebComponentUtil {
         return pageBase.getCompiledGuiProfile().findObjectCollectionView(type, null);
     }
 
-    public static CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus, PageBase pagebase, Task task) {
+    public static CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus, PageAdminLTE parentPage, Task task) {
         LOGGER.debug("Getting credentials policy");
         CredentialsPolicyType credentialsPolicyType = null;
         try {
-            credentialsPolicyType = pagebase.getModelInteractionService().getCredentialsPolicy(focus, task, task.getResult());
+            credentialsPolicyType = parentPage.getModelInteractionService().getCredentialsPolicy(focus, task, task.getResult());
             task.getResult().recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
             task.getResult().recordFatalError(
-                    pagebase.createStringResource("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()).getString(), ex);
+                    parentPage.createStringResource("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()).getString(), ex);
         } finally {
             task.getResult().computeStatus();
         }
         return credentialsPolicyType;
+    }
+
+    public static  <F extends FocusType> ValuePolicyType getPasswordValuePolicy(CredentialsPolicyType credentialsPolicy,
+            String operation, PageAdminLTE parentPage) {
+        ValuePolicyType valuePolicyType = null;
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
+        try {
+            if (user != null) {
+                Task task = parentPage.createSimpleTask(operation);
+                valuePolicyType = resolvePasswordValuePolicy(credentialsPolicy, task, parentPage);
+            } else {
+                valuePolicyType = parentPage.getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
+                    Task task = parentPage.createAnonymousTask(operation);
+                    return resolvePasswordValuePolicy(credentialsPolicy, task, parentPage);
+                });
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't load password value policy for focus " + (user != null ? user.getFocus().asPrismObject() : null), e);
+        }
+        return valuePolicyType;
+    }
+
+    private static ValuePolicyType resolvePasswordValuePolicy(CredentialsPolicyType credentialsPolicy, Task task, PageAdminLTE parentPage) {
+        if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+            PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                    credentialsPolicy.getPassword().getValuePolicyRef(), parentPage, task, task.getResult());
+            if (valuePolicy != null) {
+                return valuePolicy.asObjectable();
+            }
+        }
+        return null;
     }
 
     @Contract("_,true->!null")

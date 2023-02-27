@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.util;
 import java.util.Objects;
 import java.util.*;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,9 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SecurityPolicyUtil {
 
     public static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
-    public static final String DEFAULT_MODULE_NAME = "loginForm";
-    public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
-    public static final String DEFAULT_SEQUENCE_DISPLAY_NAME = "Default gui sequence";
+    public static final String DEFAULT_MODULE_IDENTIFIER = "loginForm";
+    public static final String DEFAULT_SEQUENCE_IDENTIFIER = "admin-gui-default";
+    public static final String DEFAULT_SEQUENCE_DISPLAY_IDENTIFIER = "Default gui sequence";
 
     private static final List<String> DEFAULT_IGNORED_LOCAL_PATH;
 
@@ -104,7 +106,7 @@ public class SecurityPolicyUtil {
                 new AuthenticationsPolicyType()
                         .beginModules()
                             .beginLoginForm()
-                                .name(DEFAULT_MODULE_NAME)
+                                .name(DEFAULT_MODULE_IDENTIFIER)
                             .<AuthenticationModulesType>end()
                         .<AuthenticationsPolicyType>end()
                         .sequence(createDefaultSequence());
@@ -119,15 +121,15 @@ public class SecurityPolicyUtil {
 
     public static AuthenticationSequenceType createDefaultSequence() {
         return new AuthenticationSequenceType()
-                .name(DEFAULT_SEQUENCE_NAME)
-                .displayName(DEFAULT_SEQUENCE_DISPLAY_NAME)
+                .name(DEFAULT_SEQUENCE_IDENTIFIER)
+                .displayName(DEFAULT_SEQUENCE_DISPLAY_IDENTIFIER)
                 .beginChannel()
                     ._default(true)
                     .channelId(DEFAULT_CHANNEL)
                     .urlSuffix("gui-default")
                 .<AuthenticationSequenceType>end()
                 .beginModule()
-                    .name(DEFAULT_MODULE_NAME)
+                    .name(DEFAULT_MODULE_IDENTIFIER)
                     .order(1)
                     .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT)
                 .end();
@@ -141,5 +143,21 @@ public class SecurityPolicyUtil {
         }
 
         return selfRegistrationPolicy;
+    }
+
+    public static AuthenticationSequenceType findSequenceByIdentifier(@NotNull SecurityPolicyType securityPolicy, String identifier) {
+        if (StringUtils.isEmpty(identifier)) {
+            return null;
+        }
+        if (securityPolicy.getAuthentication() == null || CollectionUtils.isEmpty(securityPolicy.getAuthentication().getSequence())) {
+            return null;
+        }
+        return securityPolicy
+                .getAuthentication()
+                .getSequence()
+                .stream()
+                .filter(s -> identifier.equals(s.getIdentifier()) || identifier.equals(s.getName()))
+                .findFirst()
+                .orElse(null);
     }
 }
