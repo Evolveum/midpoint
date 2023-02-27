@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
 @PanelType(name = "roleWizard-construction-group")
 @PanelInstance(identifier = "roleWizard-construction-group",
         applicableForType = AbstractRoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
 public class ConstructionGroupStepPanel<AR extends AbstractRoleType>

@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -55,6 +52,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     private LoadableModel<GuiObjectDetailsPageType> detailsPageConfigurationModel;
 
     private LoadableDetachableModel<O> summaryModel;
+
+    private List<ObjectDelta<? extends ObjectType>> savedDeltas = new ArrayList<>();
 
     public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
@@ -111,13 +110,18 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     public WrapperContext createWrapperContext(){
         Task task = getModelServiceLocator().createSimpleTask("createWrapper");
         OperationResult result = task.getResult();
-        return createWrapperContext(task, result);
+        WrapperContext context = createWrapperContext(task, result);
+        return context;
     }
 
     protected WrapperContext createWrapperContext(Task task, OperationResult result) {
         WrapperContext ctx = new WrapperContext(task, result);
         ctx.setCreateIfEmpty(true);
         ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
+        if (getPageBase() instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
+            ctx.setShowedByWizard(page.isShowedByWizard());
+        }
         return ctx;
     }
 
@@ -193,7 +197,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return delta;
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+    private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws SchemaException {
         validationErrors = null;
 //        delta = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
@@ -339,6 +343,15 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     public void reloadPrismObjectModel(@NotNull PrismObject<O> newObject) {
         prismObjectModel.detach();
+        if (!savedDeltas.isEmpty()) {
+            savedDeltas.forEach(delta -> {
+                try {
+                    ((ObjectDelta)delta).applyTo(newObject);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't apply delta " + delta + " to object " + newObject, e);
+                }
+            });
+        }
         prismObjectModel = new LoadableDetachableModel<>(){
 
             @Override
@@ -379,5 +392,62 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         objectWrapperModel.detach();
         detailsPageConfigurationModel.detach();
         summaryModel.detach();
+    }
+
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+        Collection<ObjectDelta<? extends ObjectType>> actualDeltas = collectDeltasFromObject(result);
+        if (savedDeltas.isEmpty()) {
+            return actualDeltas;
+        }
+
+        ArrayList<ObjectDelta<? extends ObjectType>> localSavedDeltas = new ArrayList<>();
+
+        mergeDeltas(actualDeltas, localSavedDeltas);
+        return localSavedDeltas;
+    }
+
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltaWithoutSavedDeltas(OperationResult result) throws SchemaException {
+        return collectDeltasFromObject(result);
+    }
+
+    public void saveDeltas() {
+        try {
+            OperationResult result = new OperationResult("collect deltas");
+            Collection<ObjectDelta<? extends ObjectType>> actualDeltas = collectDeltaWithoutSavedDeltas(result);
+            List<ObjectDelta<? extends ObjectType>> newSavedDeltas = new ArrayList<>();
+            mergeDeltas(actualDeltas, newSavedDeltas);
+            savedDeltas.clear();
+            savedDeltas.addAll(newSavedDeltas);
+
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't collect deltas from " + getObjectType());
+        }
+    }
+
+    private void mergeDeltas(
+            Collection<ObjectDelta<? extends ObjectType>> actualDeltas, List<ObjectDelta<? extends ObjectType>> retDeltas) throws SchemaException {
+        for (ObjectDelta<? extends ObjectType> delta : savedDeltas) {
+            Class<? extends ObjectType> type = getObjectType().getClass();
+            Optional<? extends ObjectDelta> match =
+                    actualDeltas.stream()
+                            .filter(actualDelta -> (delta.getOid() == null && actualDelta.getObjectTypeClass().equals(type))
+                                    || (actualDelta.getOid() != null && actualDelta.getOid().equals(delta.getOid())))
+                            .findFirst();
+            if (match.isPresent()) {
+                ObjectDelta<? extends ObjectType> newDelta = delta.clone();
+                newDelta.merge(match.get());
+                if (newDelta.getOid() == null) {
+                    newDelta.setOid(match.get().getOid());
+                    newDelta.setChangeType(match.get().getChangeType());
+                }
+                if (!newDelta.isEmpty()) {
+                    retDeltas.add(newDelta);
+                }
+                actualDeltas.remove(match.get());
+            } else {
+                retDeltas.add(delta);
+            }
+        }
+        retDeltas.addAll(actualDeltas);
     }
 }

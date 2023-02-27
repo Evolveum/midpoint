@@ -13,7 +13,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
@@ -250,14 +253,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return wizardBreadcrumbs;
     }
 
-    protected <C extends Containerable> void showWizard(
+    protected <C extends Containerable, P extends BasePanel> P showWizard(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<C>> valueModel,
-            Class<? extends AbstractWizardPanel> clazz) {
+            Class<P> clazz) {
 
         setShowedByWizard(true);
-        saveDeltas();
+        getObjectDetailsModels().saveDeltas();
+        PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
         getObjectDetailsModels().reset();
+        getObjectDetailsModels().reloadPrismObjectModel(oldObject);
 
         getFeedbackPanel().setVisible(false);
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageAssignmentHolderDetails.this);
@@ -265,24 +270,29 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         addOrReplace(fragment);
 
         try {
-            Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-            AbstractWizardPanel wizard = constructor.newInstance(ID_WIZARD, createContainerWizardHelper(valueModel));
+            Constructor<P> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+            P wizard = constructor.newInstance(ID_WIZARD, createContainerWizardHelper(valueModel));
             wizard.setOutputMarkupId(true);
             fragment.add(wizard);
             target.add(fragment);
+            return wizard;
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-                    + " with parameters type: String, ResourceWizardPanelHelper");
+                    + " with parameters type: String, WizardPanelHelper", e);
         }
+        return null;
     }
 
-    private <C extends Containerable> WizardPanelHelper createContainerWizardHelper(
+    private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 setShowedByWizard(false);
+                PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+                getObjectDetailsModels().reset();
+                getObjectDetailsModels().reloadPrismObjectModel(oldObject);
                 backToDetailsFromWizard(target);
             }
 
@@ -303,7 +313,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
-                relo
                 navigateToNext(WebComponentUtil.getObjectListPage(getType()));
             }
 

@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-attribute-limitations",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
         expanded = true)
 public class LimitationsStepPanel extends

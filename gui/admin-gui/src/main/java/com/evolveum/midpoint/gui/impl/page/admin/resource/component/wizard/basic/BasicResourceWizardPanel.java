@@ -46,11 +46,11 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 //        this.resourceModel = model;
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
+//    @Override
+//    protected void onInitialize() {
+//        super.onInitialize();
+//        initLayout();
+//    }
 
     protected void initLayout() {
         add(createChoiceFragment(createTemplatePanel()));

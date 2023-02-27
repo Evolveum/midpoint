@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "rw-basic")
 @PanelInstance(identifier = "rw-basic",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceDetailsModel> {

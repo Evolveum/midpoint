@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
 @Experimental
 @PanelInstance(identifier = "rw-credentials",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.credentials", icon = "fa fa-key"),
         expanded = true)
 public class PasswordStepPanel extends AbstractWizardStepPanel {

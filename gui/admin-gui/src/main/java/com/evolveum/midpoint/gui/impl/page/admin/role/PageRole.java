@@ -72,11 +72,13 @@ public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<Role
 
         if (canShowWizard(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE)) {
             setShowedByWizard(true);
+            getObjectDetailsModels().reset();
             return createRoleWizardFragment(ApplicationRoleWizardPanel.class);
         }
 
         if (canShowWizard(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE)) {
             setShowedByWizard(true);
+            getObjectDetailsModels().reset();
             return createRoleWizardFragment(BusinessRoleWizardPanel.class);
         }
 
@@ -99,53 +101,8 @@ public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<Role
                     add(wizard);
                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-                            + " with parameters type: String, ResourceWizardPanelHelper");
+                            + " with parameters type: String, WizardPanelHelper");
                 }
-            }
-        };
-    }
-    @Override
-    protected FocusDetailsModels<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
-        return new FocusDetailsModels<>(createPrismObjectModel(object), this) {
-
-            @Override
-            protected boolean isReadonly() {
-                return getReadonlyOverride() != null ? getReadonlyOverride() : super.isReadonly();
-            }
-
-            @Override
-            protected WrapperContext createWrapperContext(Task task, OperationResult result) {
-                WrapperContext ctx = new WrapperContext(task, result) {
-                    @Override
-                    protected boolean isIgnoredWizardPanel(ContainerPanelConfigurationType panelConfig) {
-                        boolean useForAdd = WebComponentUtil.hasArchetypeAssignment(getObjectType(), SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value());
-
-                        if ((AccessApplicationRoleStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || AccessApplicationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || BasicInformationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || MembersWizardPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || GovernanceMembersWizardPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || ConstructionResourceStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || ConstructionResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || ConstructionGroupStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-                                || ConstructionOutboundMappingsStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier()))
-                                && (PageRole.this.isEditObject()
-                                || (!PageRole.this.isEditObject()
-                                && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation())
-                                && !useForAdd))) {
-                            // UGLY HACK we need define visibility of panel in details menu
-                            return true;
-                        }
-                        return false;
-                    }
-                };
-                ctx.setCreateIfEmpty(true);
-                ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
-
-                if (WebComponentUtil.hasArchetypeAssignment(getObjectType(), SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())) {
-                    ctx.setConfigureMappingType(true);
-                }
-                return ctx;
             }
         };
     }

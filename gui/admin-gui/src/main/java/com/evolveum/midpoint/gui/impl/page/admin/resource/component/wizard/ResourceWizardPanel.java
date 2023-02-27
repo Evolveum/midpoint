@@ -46,7 +46,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 //    }
 
     protected void initLayout() {
-        add(createBasicWizard());
+        add(createChoiceFragment(createBasicWizard()));
     }
 
     private BasicResourceWizardPanel createBasicWizard() {
@@ -99,14 +99,9 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         };
     }
 
-//    public ResourceDetailsModel getResourceModel() {
-//        return resourceModel;
-//    }
-
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         if (!result.isError()) {
-//            WebComponentUtil.createToastForCreateObject(target, ResourceType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }
@@ -140,9 +135,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                 getHelper().onExitPerformed(target);
             }
         };
-        preview.setOutputMarkupId(true);
-        ResourceWizardPanel.this.replace(preview);
-        target.add(preview);
+        showChoiceFragment(target, preview);
     }
 
 //    private void showWizardPanel(Component wizard, AjaxRequestTarget target) {

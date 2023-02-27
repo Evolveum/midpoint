@@ -103,10 +103,6 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
         return helper.onSaveObjectPerformed(target);
     }
 
-    protected boolean isSavedAfterWizard() {
-        return helper.isSavedAfterWizard();
-    }
-
     public WizardPanelHelper<C, AHD> getHelper() {
         return helper;
     }

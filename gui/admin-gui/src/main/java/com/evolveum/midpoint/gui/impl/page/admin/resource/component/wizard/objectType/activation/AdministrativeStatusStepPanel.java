@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
 @Experimental
 @PanelInstance(identifier = "rw-activation-administrativeStatus",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.administrativeStatus", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class AdministrativeStatusStepPanel extends ActivationMappingStepPanel {

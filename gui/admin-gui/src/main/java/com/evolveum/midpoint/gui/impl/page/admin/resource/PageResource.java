@@ -14,9 +14,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.ResourceObjectTypeBasicWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
@@ -81,6 +83,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     protected WebMarkupContainer createTemplatePanel(String id) {
         setShowedByWizard(true);
+        getObjectDetailsModels().reset();
         return new ResourceWizardPanel(id, createWizardPanelHelper());
     }
 
@@ -125,6 +128,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 .build();
     }
 
+    public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showWizard(target, valueModel, ResourceObjectTypeBasicWizardPanel.class);
+    }
+
+    public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(target, valueModel);
+        wizard.setShowObjectTypePreview(true);
+    }
+
     public void showSynchronizationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showWizard(target, valueModel, SynchronizationWizardPanel.class);
     }
@@ -149,82 +161,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         showWizard(target, valueModel, AssociationsWizardPanel.class);
     }
 
-    public void showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, ResourceObjectTypeWizardPanel.class);
+    public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        return showWizard(target, valueModel, ResourceObjectTypeWizardPanel.class);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showWizard(target, valueModel, AttributeMappingWizardPanel.class);
     }
-
-//    private void showResourceWizard(
-//            AjaxRequestTarget target,
-//            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
-//            Class<? extends AbstractWizardPanel> clazz) {
-//        getFeedbackPanel().setVisible(false);
-//        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-//        fragment.setOutputMarkupId(true);
-//        addOrReplace(fragment);
-//
-//        try {
-//            Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-//            AbstractWizardPanel wizard = constructor.newInstance(ID_WIZARD, createResourceWizardPanelHelper(valueModel));
-//            wizard.setOutputMarkupId(true);
-//            fragment.add(wizard);
-//            target.add(fragment);
-//        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//            LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-//                    + " with parameters type: String, ResourceWizardPanelHelper");
-//        }
-//    }
-//
-//    private WizardPanelHelper createResourceWizardPanelHelper(
-//            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-//        return new WizardPanelHelper(getObjectDetailsModels(), valueModel) {
-//
-//            @Override
-//            public void onExitPerformed(AjaxRequestTarget target) {
-//                backToDetailsFromWizard(target);
-//            }
-//
-//            @Override
-//            public boolean isSavedAfterWizard() {
-//                return false;
-//            }
-//        };
-//    }
-//
-//    private void backToDetailsFromWizard(AjaxRequestTarget target) {
-//        //TODO change it and use parameter, when it will be implemented
-//        ObjectDetailsStorage storage =
-//                getSessionStorage().getObjectDetailsStorage("details" + ResourceType.class.getSimpleName());
-//        ContainerPanelConfigurationType defaultConfig = null;
-//        if (storage != null) {
-//            defaultConfig = storage.getDefaultConfiguration();
-//        }
-//        DetailsFragment detailsFragment = createDetailsFragment();
-//        PageResource.this.addOrReplace(detailsFragment);
-//        if (defaultConfig != null) {
-//            replacePanel(defaultConfig, target);
-//        }
-//        target.add(detailsFragment);
-//
-//        getFeedbackPanel().setVisible(true);
-//    }
-
-//    @Override
-//    protected void recordNoChangesWarning(OperationResult result) {
-//        if (isEditObject()) {
-//            super.recordNoChangesWarning(result);
-//        } else {
-//            result.recordSuccess();
-//        }
-//    }
-//
-//    @Override
-//    protected void showResultNoChangesWarning(OperationResult result) {
-//        if (isEditObject()) {
-//            super.showResultNoChangesWarning(result);
-//        }
-//    }
 }

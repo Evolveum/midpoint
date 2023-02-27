@@ -35,7 +35,7 @@ import java.util.Collection;
 @PanelType(name = "rw-connectorConfiguration-discovery")
 @PanelInstance(identifier = "rw-connectorConfiguration-discovery",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.discovery", icon = "fa fa-list-check"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)

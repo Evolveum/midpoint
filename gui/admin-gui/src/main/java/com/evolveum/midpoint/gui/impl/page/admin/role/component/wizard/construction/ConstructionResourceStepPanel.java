@@ -42,7 +42,7 @@ import java.util.List;
 @PanelType(name = "roleWizard-construction-resource")
 @PanelInstance(identifier = "roleWizard-construction-resource",
         applicableForType = AbstractRoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.resource", icon = "fa fa-database"),
         containerPath = "empty")
 public class ConstructionResourceStepPanel<AR extends AbstractRoleType> extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<AR>, AssignmentType> {

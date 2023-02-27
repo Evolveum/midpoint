@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -23,7 +23,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-type-delineation",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.delineation", icon = "fa fa-circle"),
         expanded = true)
 public class DelineationResourceObjectTypeStepPanel

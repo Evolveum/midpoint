@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "roleWizard-construction-mapping")
 @PanelInstance(identifier = "roleWizard-construction-mapping",
         applicableForType = AbstractRoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-arrow-right-from-bracket"),
         containerPath = "empty")
 public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>

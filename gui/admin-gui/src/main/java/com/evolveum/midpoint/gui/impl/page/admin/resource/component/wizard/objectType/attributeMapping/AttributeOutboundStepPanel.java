@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-attribute-outbound",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
         expanded = true)
 public class AttributeOutboundStepPanel<ODM extends ObjectDetailsModels>

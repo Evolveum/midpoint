@@ -10,19 +10,11 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,23 +98,10 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-//                if (!isSavedAfterWizard()) {
-//                    onExitPerformed(target);
-//                    return;
-//                }
                 OperationResult result = ConstructionWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
-//                    WebComponentUtil.createToastForUpdateObject(target, RoleType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
-            }
-
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
-                }
-                return getPageBase().createStringResource("WizardPanel.confirm");
             }
         });
 

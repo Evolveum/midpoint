@@ -41,7 +41,7 @@ import java.util.Optional;
 @PanelType(name = "roleWizard-construction-objectType")
 @PanelInstance(identifier = "roleWizard-construction-objectType",
         applicableForType = AbstractRoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.objectType", icon = "fa fa-database"),
         containerPath = "empty")
 public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType> extends AbstractWizardStepPanel<FocusDetailsModels<AR>> {
