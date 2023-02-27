@@ -311,7 +311,7 @@
                     <code>report.getRelatedAssignment(itemDelta, valueWithState?.value)</code>
                 </script>
             </expression>
-            <order>30</order>
+            <order>40</order>
             <use>leftJoin</use>
         </subreport>
     </objectCollection>
