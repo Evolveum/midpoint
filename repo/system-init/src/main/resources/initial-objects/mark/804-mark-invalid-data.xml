@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000804">
+    <name>Invalid Data</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
+    </assignment>
+
+    <objectOperationPolicy>
+        <!--  Model Level  -->
+        <synchronize>
+          <inbound>
+              <enabled>false</enabled>
+              <severity>info</severity>
+          </inbound>
+          <outbound>
+              <enabled>false</enabled>
+              <severity>error</severity>
+          </outbound>
+        </synchronize>
+        <!--  Provisioning level -->
+        <add>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </add>
+        <modify>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </modify>
+        <delete>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </delete>
+    </objectOperationPolicy>
+</mark>
