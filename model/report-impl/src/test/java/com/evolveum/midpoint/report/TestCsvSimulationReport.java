@@ -1098,6 +1098,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withNumericColumns(C_ID)
                 .filter(r -> simulationId.equals(r.get(C_R_IDENTIFIER)))
                 .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK)
+                .display()
                 .allRecords(
                         r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "SELECTION_TOTAL_VALUE"))
                 .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ACTIVATED.getNameOrig(),
@@ -1180,8 +1181,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                                 .assertValue(C_R_SELECTION_SIZE, "1")
                                 .assertValue(C_R_SELECTION_TOTAL_VALUE, "3")
                                 .assertValue(C_R_DOMAIN_SIZE, "1")
-                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "3"))
-                .display();
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "3"));
     }
 
     /** Checks handling of REPLACE deltas. */

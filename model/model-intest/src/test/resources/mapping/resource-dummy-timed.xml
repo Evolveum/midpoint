@@ -57,17 +57,13 @@
                     <timeFrom>
                         <expression>
                             <script>
-                                <code>
-                                    return basic.fromNow("P2M");
-                                </code>
+                                <code>basic.fromNow("P2M")</code>
                             </script>
                         </expression>
                     </timeFrom>
                     <expression>
                         <script>
-                            <code>
-                                return 'sample value'
-                            </code>
+                            <code>'sample value'</code>
                         </script>
                     </expression>
                 </outbound>

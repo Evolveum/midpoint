@@ -2517,7 +2517,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
             .triggers()
                 .single()
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture(funeralTimestamp, "P1M", 10*1000L);
+                    .assertTimestampFuture(funeralTimestamp, "P30D", 10*1000L);
         // @formatter:on
     }
 
@@ -2553,7 +2553,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // GIVEN
-        clockForward("P1M"); // total override is realTime + 2D + 1M
+        clockForward("P30D"); // total override is realTime + 32D
 
         // WHEN
         runTriggerScannerOnDemand(result);
@@ -2567,10 +2567,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .end()
             .triggers()
                 .single()
-                    // Trigger for "tales bomb" mapping (see below) - it was computed as funeralTimestamp + 3M
-                    // (i.e. should be approximately equal to clock + 2M - 2D, because clock = realTime + 2D + 1M)
+                    // Trigger for "tales bomb" mapping (see below) - it was computed as funeralTimestamp + 90D
+                    // (i.e. should be approximately equal to clock + 60D - 2D, because clock = realTime + 32D)
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture("P2M", 5 * DAY_MILLIS);
+                    .assertTimestampFuture("P60D", 5 * DAY_MILLIS);
         // @formatter:on
     }
 
@@ -2585,7 +2585,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // GIVEN
-        clockForward("P1D"); // total override is realTime + 2D + 1M + 1D
+        clockForward("P1D"); // total override is realTime + 32D + 1D
 
         // WHEN
         runTriggerScannerOnDemand(result);
@@ -2600,23 +2600,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .end()
             .triggers()
                 .single()
-                    // Trigger for "tales bomb" mapping - it was computed as funeralTimestamp + 3M
-                    // (i.e. should be approximately equal to clock + 2M - 3D, because clock = realTime + 2D + 1M + 1D)
-                    //
-                    // We need to set a tolerance bigger than 5 days here, because e.g. on Feb 28th 2020 the situation is as follows:
-                    // - trigger time = 2020-05-28T00:00:00.000+01:00 (3M after funeral i.e. realTime rounded down to midnight)
-                    // - clock = 2020-04-02T12:55:20.299+02:00 (realTime + 2D + 1M + 1D)
-                    // - clock+2M (expected time) = 2020-06-02T12:55:20.299+02:00
-                    // - clock+2M - 5 days (lower tolerance interval border) = 2020-05-28T12:55:21.979+02:00 that is after funeralTimestamp!
-                    //
-                    // So setting the tolerance to 7 days should be good enough.
+                    // Trigger for "tales bomb" mapping - it was computed as funeralTimestamp + 90D
+                    // (i.e. should be approximately equal to clock + 60D - 3D, because clock = realTime + 2D + 30D + 1D)
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture("P2M", 7 * DAY_MILLIS);
+                    .assertTimestampFuture("P60D", 5 * DAY_MILLIS);
         // @formatter:on
     }
 
     /**
-     * Move the time 3M the future. Tales bomb should explode.
+     * Move the time 90D the future. Tales bomb should explode.
      * MID-4630
      */
     @Test
@@ -2624,7 +2616,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // GIVEN
-        clockForward("P3M");
+        clockForward("P90D");
 
         // WHEN
         runTriggerScannerOnDemand(result);
@@ -3007,11 +2999,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .single()
                 // Trigger from time bomb. There is no condition and the reference time is set.
                 .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                .assertTimestampFuture(funeralTimestamp, "P1M", DAY_MILLIS);
+                .assertTimestampFuture(funeralTimestamp, "P30D", DAY_MILLIS);
     }
 
     /**
-     * Shaprtooth: funeralDate=-1M1D, no description, no additional name
+     * Shaprtooth: funeralDate=-31D, no description, no additional name
      * Time bomb should explode
      * MID-4630
      */
@@ -3022,7 +3014,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", false), task, result);
+        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P31D", false), task, result);
 
         // THEN
         assertSuccess(result);
@@ -3040,11 +3032,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .single()
                 // Trigger from tales bomb. We have Kaboomed, the time constraint has activated
                 .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                .assertTimestampFuture(funeralTimestamp, "P3M", DAY_MILLIS);
+                .assertTimestampFuture(funeralTimestamp, "P90D", DAY_MILLIS);
     }
 
     /**
-     * Orangeskin: funeralDate=-3M1D, no description, no additional name
+     * Orangeskin: funeralDate=-91D, no description, no additional name
      * Time bomb should explode, tales bomb should explode
      * MID-4630
      */
@@ -3055,7 +3047,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", false), task, result);
+        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P91D", false), task, result);
 
         // THEN
         assertSuccess(result);
@@ -3199,12 +3191,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .single()
                 // Trigger from time bomb. There is no condition and the reference time is set.
                 .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                .assertTimestampFuture(funeralTimestamp, "P1M", DAY_MILLIS);
+                .assertTimestampFuture(funeralTimestamp, "P30D", DAY_MILLIS);
         // @formatter:off
     }
 
     /**
-     * Rotten Shaprtooth: funeralDate=-1M1D, description=gone, no additional name
+     * Rotten Shaprtooth: funeralDate=-31D, description=gone, no additional name
      * Time bomb should explode
      * MID-4630
      */
@@ -3215,7 +3207,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", true), task, result);
+        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P31D", true), task, result);
 
         // THEN
         assertSuccess(result);
@@ -3237,7 +3229,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .find()
                     // Trigger from tales bomb. We have Kaboomed, the time constraint has activated
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture(funeralTimestamp, "P3M", DAY_MILLIS)
+                    .assertTimestampFuture(funeralTimestamp, "P90D", DAY_MILLIS)
                     .end()
                 .by()
                     .originDescription("loot bomb")
@@ -3249,7 +3241,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Rotten Orangeskin: funeralDate=-3M1D, description=gone, no additional name
+     * Rotten Orangeskin: funeralDate=-91D, description=gone, no additional name
      * Time bomb should explode, tales bomb should explode
      * MID-4630
      */
@@ -3260,7 +3252,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", true), task, result);
+        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P91D", true), task, result);
 
         // THEN
         assertSuccess(result);
