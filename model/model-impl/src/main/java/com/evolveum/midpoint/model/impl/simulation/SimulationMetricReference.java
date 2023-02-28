@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.simulation;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricReferenceType;
 
 import org.jetbrains.annotations.NotNull;
@@ -84,5 +87,10 @@ public class SimulationMetricReference implements Serializable {
 
     String getMetricIdentifier() {
         return metricIdentifier;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public ObjectReferenceType getMarkRef() {
+        return eventMarkOid != null ? ObjectTypeUtil.createObjectRef(eventMarkOid, ObjectTypes.MARK) : null;
     }
 }

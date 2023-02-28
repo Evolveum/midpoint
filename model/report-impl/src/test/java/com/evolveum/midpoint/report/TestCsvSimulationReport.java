@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.test.TestObject;
@@ -63,7 +64,17 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_INTENT = 7;
     private static final int C_TAG = 8;
     private static final int C_STATE = 9;
+
+    // Object-, item-, and value-level
     private static final int C_MARK = 10;
+
+    // Metrics
+    private static final int C_M_EVENT_MARK = 10;
+    private static final int C_M_CUSTOM_MARK = 11;
+    private static final int C_M_SELECTED = 12;
+    private static final int C_M_VALUE = 13;
+
+    // Item- and value-level
     private static final int C_ITEM_CHANGED = 11;
     // Item-level
     private static final int C_OLD_VALUES = 12;
@@ -87,6 +98,27 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_V_RELATED_ASSIGNMENT_RESOURCE = 18;
     private static final int C_V_RELATED_ASSIGNMENT_KIND = 19;
     private static final int C_V_RELATED_ASSIGNMENT_INTENT = 20;
+
+    private static final int C_R_OID = 0;
+    private static final int C_R_NAME = 1;
+    private static final int C_R_IDENTIFIER = 2;
+    private static final int C_R_START_TIMESTAMP = 3;
+    private static final int C_R_END_TIMESTAMP = 4;
+    private static final int C_R_TASK = 5;
+    private static final int C_R_PRODUCTION_CONFIGURATION = 6;
+    private static final int C_R_EVENT_MARK = 7;
+    private static final int C_R_CUSTOM_METRIC = 8;
+    private static final int C_R_AGGREGATION_FUNCTION = 9;
+    private static final int C_R_SC_TYPE = 10;
+    private static final int C_R_SC_ARCHETYPE = 11;
+    private static final int C_R_SC_RESOURCE = 12;
+    private static final int C_R_SC_KIND = 13;
+    private static final int C_R_SC_INTENT = 14;
+    private static final int C_R_VALUE = 15;
+    private static final int C_R_SELECTION_SIZE = 16;
+    private static final int C_R_SELECTION_TOTAL_VALUE = 17;
+    private static final int C_R_DOMAIN_SIZE = 18;
+    private static final int C_R_DOMAIN_TOTAL_VALUE = 19;
 
     private List<UserType> existingUsers;
 
@@ -131,9 +163,10 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(initResult);
 
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
-        REPORT_SIMULATION_OBJECTS_BY_MARKS.init(this, initTask, initResult);
+        REPORT_SIMULATION_OBJECTS_WITH_METRICS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
+        REPORT_SIMULATION_RESULTS.init(this, initTask, initResult);
     }
 
     private static void addStandardArchetypeAssignments(UserType u) {
@@ -187,22 +220,42 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValues(C_MARK, "Focus activated")
                 .end();
 
-        when("object-level report is created (by marks)");
-        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+        when("object-level report is created (by metrics)");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("it is OK");
-        assertCsv(byMarksLines, "after")
-                .sortBy(C_NAME)
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
-                .assertRecords(users)
-                .assertColumns(OBJECT_REPORT_COLUMNS)
-                .record(0)
-                .assertValue(C_NAME, "new-0000")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Focus activated")
+                .assertRecords(users * 2) // focus activated + special
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_NAME, "new-0000")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "0.0"))
+                .record(1,
+                        r -> r.assertValue(C_NAME, "new-0000")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "Focus activated")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(14,
+                        r -> r.assertValue(C_NAME, "new-0007")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Added")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "true") // selection expression
+                                .assertValue(C_M_VALUE, String.valueOf(7 * 3.14)))
                 .end();
     }
 
@@ -259,37 +312,72 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_STATE, "Modified")
                 .assertValues(C_MARK, "Focus renamed");
 
-        when("object-level report (by marks) is created");
-        var byMarksLines = REPORT_SIMULATION_OBJECTS_BY_MARKS.export()
+        when("object-level report (by metrics) is created");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
                 .withDefaultParametersValues(simulationResult.getSimulationResultRef())
                 .execute(result);
 
         then("CSV is OK");
-        assertCsv(byMarksLines, "after")
-                .sortBy(C_NAME, C_MARK)
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
-                .assertRecords((int) (EXISTING_USERS * 1.5))
-                .assertColumns(OBJECT_REPORT_COLUMNS)
-                .record(0)
-                .assertValue(C_OID, existingUsers.get(0).getOid())
-                .assertValue(C_NAME, "existing-0000-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus deactivated")
-                .end()
-                .record(1)
-                .assertValue(C_OID, existingUsers.get(0).getOid())
-                .assertValue(C_NAME, "existing-0000-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed")
-                .end()
-                .record(2)
-                .assertValue(C_OID, existingUsers.get(1).getOid())
-                .assertValue(C_NAME, "existing-0001-renamed")
-                .assertValue(C_TYPE, "UserType")
-                .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed");
+                .assertRecords((int) (EXISTING_USERS * 3.5))
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "2"))
+                .record(1,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "0.0"))
+                .record(2,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "Focus deactivated")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(3,
+                        r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
+                                .assertValue(C_NAME, "existing-0000-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "Focus renamed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(4,
+                        r -> r.assertValue(C_OID, existingUsers.get(1).getOid())
+                                .assertValue(C_NAME, "existing-0001-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_SELECTED, "true")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(5,
+                        r -> r.assertValue(C_OID, existingUsers.get(1).getOid())
+                                .assertValue(C_NAME, "existing-0001-renamed")
+                                .assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_SELECTED, "false")
+                                .assertValue(C_M_VALUE, "3.14"));
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -795,7 +883,6 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         long adminAssignmentId = findAssignmentByTargetRequired(userReloaded, ROLE_ADMIN.oid).getId();
         long testerAssignmentId = findAssignmentByTargetRequired(userReloaded, ROLE_TESTER.oid).getId();
-        long blueAssignmentId = findAssignmentByTargetRequired(userReloaded, ARCHETYPE_BLUE.oid).getId();
         long dummyAssignmentId = findAssignmentByResourceRequired(userReloaded, RESOURCE_DUMMY_OUTBOUND.oid).getId();
 
         ItemPath pathTesterAssignment = ItemPath.create(UserType.F_ASSIGNMENT, testerAssignmentId, AssignmentType.F_ORG_REF);
@@ -803,6 +890,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 UserType.F_ASSIGNMENT, dummyAssignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
         when("assignments are modified (simulated)");
+        String simulationId = "test160";
         var simulationResult = executeWithSimulationResult(
                 List.of(deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
@@ -812,6 +900,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
                         .item(pathDummyAssignment)
                         .replace(ActivationStatusType.DISABLED)
                         .asObjectDelta(user.getOid())),
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                defaultSimulationDefinition().identifier(simulationId),
                 task, result);
         assertSuccess(result);
 
@@ -842,6 +932,53 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_INTENT, "default")
                 .assertValue(C_TAG, "")
                 .assertValue(C_STATE, "Modified");
+
+        when("object-level report (by metrics) is created");
+        var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
+                .withDefaultParametersValues(simulationResult.getSimulationResultRef())
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(metricsLines, "after")
+                .withNumericColumns(C_ID, C_M_VALUE)
+                .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
+                .display()
+                .assertRecords(8)
+                .assertColumns(14)
+                .record(0,
+                        r -> r.assertValue(C_TYPE, "UserType")
+                                .assertValue(C_STATE, "Modified")
+                                .assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_VALUE, "3"))
+                .record(1,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "special")
+                                .assertValue(C_M_VALUE, "0"))
+                .record(2,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Focus assignments changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(3,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Focus role membership changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(4,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "association-values-changed")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(5,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "attribute-modifications")
+                                .assertValue(C_M_VALUE, "0"))
+                .record(6,
+                        r -> r.assertValue(C_M_EVENT_MARK, "")
+                                .assertValue(C_M_CUSTOM_MARK, "modifications")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(7,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Projection entitlement changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"));
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -953,6 +1090,98 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_VALUE_STATE, "DELETED")
                 .assertValue(C_VALUE, "group: admin")
                 .end();
+
+        when("result-level report is created (default)");
+        var resultsLines = REPORT_SIMULATION_RESULTS.export().execute(result);
+
+        assertCsv(resultsLines, "after")
+                .withNumericColumns(C_ID)
+                .filter(r -> simulationId.equals(r.get(C_R_IDENTIFIER)))
+                .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK)
+                .allRecords(
+                        r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "SELECTION_TOTAL_VALUE"))
+                .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ACTIVATED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "UserType")
+                                .assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ASSIGNMENT_CHANGED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "UserType")
+                                .assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_EVENT_MARK, MARK_PROJECTION_DEACTIVATED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecord(C_R_EVENT_MARK, MARK_PROJECTION_ENTITLEMENT_CHANGED.getNameOrig(),
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_CUSTOM_METRIC, "association-values-changed",
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecord(C_R_CUSTOM_METRIC, "attribute-modifications",
+                        r -> r.assertValue(C_R_SC_TYPE, "ShadowType")
+                                .assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "0")
+                                .assertValue(C_R_SELECTION_SIZE, "0")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "0")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
+                .forRecords(
+                        r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
+                                && "ShadowType".equals(r.get(C_R_SC_TYPE)),
+                        r -> r.assertValue(C_R_SC_ARCHETYPE, "")
+                                .assertValue(C_R_SC_RESOURCE, "resource-outbound")
+                                .assertValue(C_R_SC_KIND, "Account")
+                                .assertValue(C_R_SC_INTENT, "default")
+                                .assertValue(C_R_VALUE, "1")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "1")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
+                .forRecords(
+                        r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
+                                && "UserType".equals(r.get(C_R_SC_TYPE)),
+                        r -> r.assertValue(C_R_SC_ARCHETYPE, "blue")
+                                .assertValue(C_R_VALUE, "3")
+                                .assertValue(C_R_SELECTION_SIZE, "1")
+                                .assertValue(C_R_SELECTION_TOTAL_VALUE, "3")
+                                .assertValue(C_R_DOMAIN_SIZE, "1")
+                                .assertValue(C_R_DOMAIN_TOTAL_VALUE, "3"))
+                .display();
     }
 
     /** Checks handling of REPLACE deltas. */

@@ -1401,6 +1401,11 @@ public interface MidpointFunctions {
     @Deprecated
     <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException;
 
+    /**
+     * Returns the structural archetype for the object, possibly `null`.
+     */
+    @Nullable <O extends AssignmentHolderType> ArchetypeType getStructuralArchetype(O object) throws SchemaException;
+
     @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException;
 
     /**
