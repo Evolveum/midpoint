@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORT_SIMULATION_VALUES_CHANGED;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
@@ -151,6 +152,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
+
+        REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
     }
 
     @Override
