@@ -266,6 +266,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         add(marksContainer);
 
         ListView<DashboardWidgetType> marks = createWidgetList(ID_MARKS, ID_MARK, true);
+        marksContainer.add(new VisibleBehaviour(() -> !marks.getModelObject().isEmpty()));
         marksContainer.add(marks);
 
         SimpleContainerPanel metricsContainer = new SimpleContainerPanel(ID_METRICS_CONTAINER, createStringResource("PageSimulationResult.metrics")) {
@@ -277,9 +278,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 return content;
             }
         };
+        metricsContainer.add(new VisibleBehaviour(() -> !createWidgetListModel(true).getObject().isEmpty()));
         add(metricsContainer);
 
         ListView<DashboardWidgetType> metrics = createWidgetList(ID_METRICS, ID_METRIC, false);
+        metricsContainer.add(new VisibleBehaviour(() -> !metrics.getModelObject().isEmpty()));
         metricsContainer.add(metrics);
     }
 

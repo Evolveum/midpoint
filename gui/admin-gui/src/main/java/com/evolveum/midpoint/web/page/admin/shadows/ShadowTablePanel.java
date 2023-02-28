@@ -2,8 +2,6 @@ package com.evolveum.midpoint.web.page.admin.shadows;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -15,6 +13,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -23,6 +22,9 @@ import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResultObjects;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,8 +70,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
+    private static final String OPERATION_IMPORT_PREVIEW_OBJECT = DOT_CLASS + "importPreviewObject";
     private static final String OPERATION_MARK_PROTECTED = DOT_CLASS + "markProtectedShadow";
-
 
     public ShadowTablePanel(String id) {
         super(id, ShadowType.class);
@@ -101,7 +104,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     protected boolean isCreateNewObjectEnabled() {
         return false;
     }
-
 
     @Override
     public CompiledObjectCollectionView getObjectCollectionView() {
@@ -167,7 +169,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             }
         });
 
-        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true) {
+        items.add(new InlineMenuItem(createStringResource("ShadowTablePanel.menu.importPreviewAccount"), true) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -178,11 +180,33 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
                         if (getRowModel() == null) {
-                            importResourceObject(null, target);
-                        } else {
-                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
-                            importResourceObject(shadow.getValue(), target);
+                            return;
                         }
+
+                        SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
+                        importPreviewResourceObject(shadow.getValue(), target);
+                    }
+                };
+            }
+        });
+
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        ShadowType shadow = null;
+                        IModel<SelectableBeanImpl<ShadowType>> model = getRowModel();
+                        if (model != null) {
+                            shadow = model.getObject().getValue();
+                        }
+
+                        importResourceObject(shadow, target);
                     }
                 };
             }
@@ -192,8 +216,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_IMPORT_MENU_ITEM);
             }
         });
-
-//        items.add(new InlineMenuItem());
 
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true) {
             private static final long serialVersionUID = 1L;
@@ -409,6 +431,36 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         WebComponentUtil.dispatchToObjectDetailsPage(owner.getClass(), owner.getOid(), this, true);
     }
 
+    protected void importPreviewResourceObject(ShadowType selected, AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+
+        Task task = page.createSimpleTask(OPERATION_IMPORT_PREVIEW_OBJECT);
+        OperationResult opResult = task.getResult();
+        try {
+            String resultOid = page.getModelInteractionService().executeWithSimulationResult(
+                    TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION,
+                    null,
+                    task,
+                    opResult,
+                    () -> {
+                        page.getModelService().importFromResource(selected.getOid(), task, opResult);
+
+                        return task.getSimulationTransaction().getResultOid();
+                    });
+
+            PageParameters params = new PageParameters();
+            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultOid);
+
+            page.navigateToNext(PageSimulationResultObjects.class, params);
+        } catch (CommonException ex) {
+            opResult.computeStatusIfUnknown();
+            opResult.recordFatalError("Couldn't simulate import shadow", ex);
+
+            page.showResult(opResult);
+            target.add(page.getFeedbackPanel());
+        }
+    }
+
     //operations
     protected void importResourceObject(ShadowType selected, AjaxRequestTarget target) {
         List<ShadowType> selectedShadows;
@@ -474,7 +526,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
-                                        "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
+                                "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
                                 .getString(),
                         e);
                 LOGGER.error("Could not update status (to {}) for {}, using option {}",
@@ -615,7 +667,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                         .type(PolicyStatementTypeType.APPLY);
                 var delta = getPageBase().getPrismContext().deltaFactory().object()
                         .createModificationAddContainer(ShadowType.class,
-                                shadow.getValue().getOid(),ShadowType.F_POLICY_STATEMENT,
+                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
                                 policyStat);
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(delta), null, task, result);
@@ -624,7 +676,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
-                                        "ResourceContentPanel.message.markShadowProtectedPerformed.partialError", shadow)
+                                "ResourceContentPanel.message.markShadowProtectedPerformed.partialError", shadow)
                                 .getString(),
                         e);
                 LOGGER.error("Could not mark shadow {} as protected", shadow, e);
