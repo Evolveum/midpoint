@@ -138,6 +138,8 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                showWarningIfSubreportsUsed(getPageBase());
+
                 isShowingPreview.setObject(!isShowingPreview.getObject());
                 ReportObjectsListPanel<?> table = getReportTable();
                 if (isShowingPreview.getObject()) {
@@ -169,7 +171,6 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         iconType.setCssClass("fa fa-window-maximize");
         iconBuilder = new CompositedIconBuilder()
                 .setBasicIcon(GuiStyleConstants.ICON_FAR_ADDRESS_CARD, IconCssStyle.IN_ROW_STYLE);
-//                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconButton showPreviewInPopup = new AjaxCompositedIconButton(showPreviewInPopupId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.showPreviewInPopup")) {
 
@@ -181,6 +182,8 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                         return createStringResource("PageReport.reportPreview");
                     }
                 };
+
+                showWarningIfSubreportsUsed(reportPopup);
                 getPageBase().showMainPopup(reportPopup, target);
                 target.add(ReportOperationalButtonsPanel.this);
             }
@@ -222,6 +225,24 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         importReport.add(AttributeAppender.append("class", "btn-default"));
         importReport.setOutputMarkupId(true);
         repeatingView.add(importReport);
+    }
+
+    private void showWarningIfSubreportsUsed(Component component) {
+        PrismObject<ReportType> object = getModelObject().getObject();
+        ReportType report = object.asObjectable();
+        ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
+        if (collection == null) {
+            return;
+        }
+
+        boolean match = collection.getSubreport().stream()
+                .map(s -> s.getResultHandling())
+                .filter(rh -> rh != null)
+                .anyMatch(rh -> MultipleSubreportResultValuesHandlingType.SPLIT_PARENT_ROW.equals(rh.getMultipleValues()));
+
+        if (match) {
+            component.warn(getString("ReportOperationalButtonsPanel.splitParentRowPreviewWarning"));
+        }
     }
 
     protected abstract Boolean isEditObject();
