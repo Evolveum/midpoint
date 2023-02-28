@@ -698,29 +698,29 @@ public class PageDebugList extends PageAdminConfiguration {
         showMainPopup(dialog, target);
     }
 
-    private void deleteAllTypeConfirmed(AjaxRequestTarget target) {
+    private void deleteAllTypeConfirmed(AjaxRequestTarget target, Class<? extends ObjectType> typeClass) {
 
-        LOGGER.debug("Deleting all of type {}", getType());
+        LOGGER.debug("Deleting all of type {}", typeClass);
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         String taskOid = null;
         try {
             ObjectQuery query = null;
-            if (ObjectTypes.USER.getClassDefinition().equals(getType())) {
+            if (ObjectTypes.USER.getClassDefinition().equals(typeClass)) {
                 query = createDeleteAllUsersQuery();
             }
 
-            QName type = ObjectTypes.getObjectType(getType()).getTypeQName();
+            QName type = ObjectTypes.getObjectType(typeClass).getTypeQName();
 
             taskOid = deleteObjectsAsync(type, query, "Delete all of type " + type.getLocalPart(),
                     result);
 
-            info(getString("pageDebugList.messsage.deleteAllOfType", getType()));
+            info(getString("pageDebugList.messsage.deleteAllOfType", typeClass));
         } catch (Exception ex) {
             result.recomputeStatus();
-            result.recordFatalError(getString("pageDebugList.messsage.notDeleteObjects", getType()), ex);
+            result.recordFatalError(getString("pageDebugList.messsage.notDeleteObjects", typeClass), ex);
 
-            LoggingUtils.logUnexpectedException(LOGGER, "" + getType(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "" + typeClass, ex);
         }
 
         finishOperation(result, taskOid, target);
@@ -804,7 +804,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 DebugConfDialogDto dto = confDialogModel.getObject();
                 switch (dto.getOperation()) {
                     case DELETE_ALL_TYPE:
-                        deleteAllTypeConfirmed(target);
+                        deleteAllTypeConfirmed(target, dto.getType());
                         break;
                     case DELETE_SELECTED:
                         deleteSelectedConfirmed(target, dto.getObjects());
