@@ -921,7 +921,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertSize(0);
         } else {
             // Resource is development mode, task sees the development configuration.
-            // Hence, both re-classification and re-correlation occurs (the latter because the
+            // Hence, both re-classification and re-correlation occurs.
             and("there is a re-classification delta");
             // @formatter:off
             assertProcessedObjects(simResult3)
@@ -943,6 +943,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                     .assertSize(2); // temporarily
             // @formatter:on
+
+            REPORT_SIMULATION_VALUES_CHANGED.export()
+                    .withDefaultParametersValues(simResult3.getSimulationResultRef())
+                    .execute(result);
         }
     }
 
