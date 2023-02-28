@@ -93,7 +93,7 @@
                             <code>
                                 import com.evolveum.midpoint.model.api.simulation.ProcessedObject
 
-                                (metric as ProcessedObject.Metric).eventMarkRef
+                                (metric as ProcessedObject.Metric)?.eventMarkRef
                             </code>
                         </script>
                     </expression>
@@ -111,7 +111,7 @@
                             <code>
                                 import com.evolveum.midpoint.model.api.simulation.ProcessedObject
 
-                                (metric as ProcessedObject.Metric).id
+                                (metric as ProcessedObject.Metric)?.id
                             </code>
                         </script>
                     </expression>
@@ -129,7 +129,7 @@
                             <code>
                                 import com.evolveum.midpoint.model.api.simulation.ProcessedObject
 
-                                (metric as ProcessedObject.Metric).selected
+                                (metric as ProcessedObject.Metric)?.selected
                             </code>
                         </script>
                     </expression>
@@ -147,7 +147,7 @@
                             <code>
                                 import com.evolveum.midpoint.model.api.simulation.ProcessedObject
 
-                                (metric as ProcessedObject.Metric).value
+                                (metric as ProcessedObject.Metric)?.value
                             </code>
                         </script>
                     </expression>
