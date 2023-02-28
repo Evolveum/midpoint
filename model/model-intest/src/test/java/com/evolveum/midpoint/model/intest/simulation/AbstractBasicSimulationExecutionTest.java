@@ -1028,6 +1028,52 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         }
     }
 
+    /**
+     * Creates a user of archetype {@link #ARCHETYPE_PERSON_DEV_TEMPLATE} that is a production archetype pointing
+     * to a development-mode object template.
+     */
+    @Test
+    public void test310CreatePersonWithDevelopmentTemplate() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        objectsCounter.remember(result);
+
+        given("a user");
+        UserType user = new UserType()
+                .name("test310")
+                .assignment(
+                        new AssignmentType()
+                                .targetRef(ARCHETYPE_PERSON_DEV_TEMPLATE.ref()));
+
+        when("user is created in simulation");
+        TestSimulationResult simResult =
+                executeWithSimulationResult(
+                        List.of(user.asPrismObject().createAddDelta()),
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+
+        and("no new objects should be created, no deltas really executed");
+        objectsCounter.assertNoNewObjects(result);
+
+        and("simulation result is OK");
+        UserType userAfter = (UserType) assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .delta().objectToAdd().getObjectable();
+
+        Set<String> orgs = userAfter.getOrganization().stream()
+                .map(PolyStringType::getOrig)
+                .collect(Collectors.toSet());
+        if (isDevelopmentConfigurationSeen()) {
+            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person-dev-template");
+        } else {
+            assertThat(orgs).as("user orgs").isEmpty();
+        }
+    }
+
     private boolean isDevelopmentConfigurationSeen() {
         return !getExecutionMode().isProductionConfiguration();
     }

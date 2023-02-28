@@ -8,11 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -20,16 +23,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
+public abstract class ResourceObjectTypeWizardPreviewPanel
+        extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
+    private final WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper;
 
     public ResourceObjectTypeWizardPreviewPanel(
             String id,
-            ResourceDetailsModel resourceModel,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, resourceModel, ResourceObjectTypePreviewTileType.class);
-        this.valueModel = valueModel;
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
+        super(id, helper.getDetailsModel(), ResourceObjectTypePreviewTileType.class);
+        this.helper = helper;
     }
 
     @Override
@@ -40,6 +43,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
 
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
 
+        BASIC("fa fa-circle"),
         PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
         SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
@@ -67,7 +71,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
     }
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
-        return valueModel;
+        return helper.getValueModel();
     }
 
     @Override
@@ -75,7 +79,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
-                return GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue());
+                return GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getRealValue());
             }
         };
     }

@@ -7292,4 +7292,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, ObjectNotFoundException, IOException {
         return ReportTestUtil.getLinesOfOutputFile(reportTask, createSimpleModelObjectResolver(), result);
     }
+
+    protected void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        var statement = new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
+        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
 }

@@ -631,9 +631,6 @@
                         as "non-matching" at a given level, all lower levels are ignored. For example, if an object class
                         has a "proposed" lifecycle state, all its object types are considered to be in non-production
                         development state, regardless of their own lifecycle state values.
-
-                        See https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/ for more
-                        information.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
@@ -3454,17 +3451,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PROTECTED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="policySituation">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Resource object was excluded from synchronization because of a (unspecified) policy situation.
-                        <!-- We may add more specific reasons here later. Or will we report that in a different way? -->
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="POLICY_SITUATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

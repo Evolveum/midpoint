@@ -4014,15 +4014,25 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                        <a:displayName>ShadowDiscriminatorType.resourceRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.kind</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of projection that is the target of reference. E.g "default", "admin", "testing"
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.intent</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tag" type="xsd:string" minOccurs="0">
@@ -4031,6 +4041,7 @@
                         Tag tha distinguished shadows that have the same combination of resource+kind+intent.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.tag</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -5100,7 +5111,7 @@
                     <xsd:documentation>
                         Lifecycle state of the mapping. Production configuration consists (by default) of `active`
                         and `deprecated` ones. Development configuration consists (by default) of `active` and
-                        `proposed` ones. (The role of `deprecated` mappings in development configuration is unclear.)
+                        `proposed` ones.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
@@ -15933,6 +15944,34 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000801">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_DECOMMISSION_LATER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000802">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_CORRELATE_LATER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000803">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_DO_NOT_TOUCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000804">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_INVALID_DATA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000001005">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -18171,6 +18210,9 @@
                             <xsd:documentation>
                                 How should we handle the situations when the sub-report produces either multiple values,
                                 or no values at all?
+
+                                BEWARE: This item is currently not supported when previewing reports in GUI. Attempts to
+                                preview reports with this feature may fail.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SubreportParameterType.resultHandling</a:displayName>

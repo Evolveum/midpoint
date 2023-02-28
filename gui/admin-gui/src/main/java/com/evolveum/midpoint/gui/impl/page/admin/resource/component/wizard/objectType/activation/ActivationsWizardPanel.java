@@ -9,12 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -123,23 +120,10 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformed(target);
-                    return;
-                }
                 OperationResult result = ActivationsWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
-                    WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
-            }
-
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
-                }
-                return getPageBase().createStringResource("WizardPanel.confirm");
             }
         };
         lockPanel.setOutputMarkupId(true);

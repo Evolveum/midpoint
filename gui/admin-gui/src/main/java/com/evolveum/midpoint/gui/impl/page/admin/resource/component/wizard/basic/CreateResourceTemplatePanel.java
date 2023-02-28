@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -154,6 +155,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
         SearchPanel<AssignmentHolderType> search = initSearch();
         fragment.add(search);
+        fragment.add(AttributeAppender.replace("class", "w-100"));
 
         return fragment;
     }

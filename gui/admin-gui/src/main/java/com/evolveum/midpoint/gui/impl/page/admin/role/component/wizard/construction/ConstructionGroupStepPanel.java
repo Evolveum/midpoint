@@ -67,12 +67,12 @@ import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "roleWizard-construction-group")
 @PanelInstance(identifier = "roleWizard-construction-group",
-        applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
-public class ConstructionGroupStepPanel
-        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel.AssociationWrapper, ShadowType, FocusDetailsModels<RoleType>, ConstructionType> {
+public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
+        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>, ConstructionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
@@ -84,7 +84,7 @@ public class ConstructionGroupStepPanel
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
 
-    public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
+    public ConstructionGroupStepPanel(FocusDetailsModels<AR> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(model);
         this.assignmentModel = assignmentModel;
@@ -328,7 +328,7 @@ public class ConstructionGroupStepPanel
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof AssociationWrapper)) {
+            if (!(obj instanceof ConstructionGroupStepPanel.AssociationWrapper)) {
                 return false;
             }
             AssociationWrapper associationWrapper = (AssociationWrapper) obj;

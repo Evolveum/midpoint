@@ -10,7 +10,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        oid="635e4db8-244f-4a9a-b13f-61bc8211947c">
+        oid="00000000-0000-0000-0000-61bc8211947c">
     <name>Simulation report: Values changed</name>
     <objectCollection>
         <collection>
@@ -19,7 +19,8 @@
                 <q:inOid>
                     <c:expression>
                         <c:script>
-                            <c:code>simulationResultRef.oid</c:code>
+                            <!-- temporary hack -->
+                            <c:code>simulationResultRef ? simulationResultRef.oid : simulationResultOid</c:code>
                         </c:script>
                     </c:expression>
                     <q:considerOwner>true</q:considerOwner>
@@ -29,11 +30,23 @@
         <view>
             <column>
                 <name>id</name>
-                <path>#</path>
+                <display>
+                    <label>ID</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.id</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <column>
                 <name>oid</name>
                 <path>oid</path>
+                <display>
+                    <label>OID</label>
+                </display>
                 <previousColumn>id</previousColumn>
             </column>
             <column>
@@ -239,6 +252,10 @@
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
+        </parameter>
+        <parameter> <!-- temporary hack -->
+            <name>simulationResultOid</name>
+            <type>xsd:string</type>
         </parameter>
         <parameter>
             <name>pathsToInclude</name>

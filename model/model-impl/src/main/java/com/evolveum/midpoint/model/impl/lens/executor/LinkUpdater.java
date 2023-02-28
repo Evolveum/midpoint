@@ -110,7 +110,7 @@ class LinkUpdater<F extends FocusType> {
         this.clock = beans.clock;
     }
 
-    void updateLinks(OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    void updateLinks(OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
         OperationResult result = parentResult.subresult(OP_UPDATE_LINKS)
                 .setMinor()
@@ -355,13 +355,18 @@ class LinkUpdater<F extends FocusType> {
         executeFocusDelta(delta, OP_LINK_ACCOUNT, result);
     }
 
-    private boolean checkOidPresent() {
+    private boolean checkOidPresent() throws SchemaException, ConfigurationException {
         if (projCtx.getOid() != null) {
             return false;
         }
         if (projCtx.isBroken()) {
             // This seems to be OK. In quite a strange way, but still OK.
             LOGGER.trace("Shadow OID not present in broken context, not updating links. Context: {}",
+                    projCtx.toHumanReadableString());
+            return true;
+        }
+        if (!projCtx.isVisible()) {
+            LOGGER.trace("Shadow OID not present in invisible account -> not updating links. In: {}",
                     projCtx.toHumanReadableString());
             return true;
         }

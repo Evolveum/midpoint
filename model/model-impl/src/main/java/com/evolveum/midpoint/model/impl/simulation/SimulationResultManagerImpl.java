@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.SIMULATION_RESULT_DEFAULT_TRANSACTION_ID;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.merger.simulation.SimulationDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.SimulationResult;
@@ -58,7 +57,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     public @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException {
         List<SimulationDefinitionType> allDefinitions = this.simulationDefinitions;
         if (allDefinitions.size() == 1) {
-            return allDefinitions.get(0); // regardless of whether it's marked as default
+            return allDefinitions.get(0).clone(); // regardless of whether it's marked as default
         }
         List<SimulationDefinitionType> defaultOnes = allDefinitions.stream()
                 .filter(SimulationDefinitionType::isDefault)
@@ -67,7 +66,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             throw new ConfigurationException("More than one default simulation definition present: " +
                     getIdentifiers(defaultOnes));
         } else if (defaultOnes.size() == 1) {
-            return defaultOnes.get(0);
+            return defaultOnes.get(0).clone();
         }
         if (!allDefinitions.isEmpty()) {
             throw new ConfigurationException("Multiple simulation definitions present, none marked as default: " +
@@ -85,7 +84,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @Override
     public @NotNull SimulationResultImpl createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @Nullable String rootTaskOid,
+            @Nullable Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException {
@@ -95,11 +94,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         SimulationDefinitionType expandedDefinition = expandDefinition(definition, new HashSet<>());
         long now = clock.currentTimeMillis();
         SimulationResultType newResult = new SimulationResultType()
-                .name(getResultName(expandedDefinition, now))
+                .name(getResultName(expandedDefinition, now, rootTask))
                 .definition(expandedDefinition.clone())
                 .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(now))
                 .rootTaskRef(
-                        rootTaskOid != null ? createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
+                        rootTask != null ? rootTask.getSelfReference() : null)
                 .configurationUsed(
                         configurationSpecification != null ? configurationSpecification.clone() : null);
 
@@ -117,14 +116,19 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TODO improve this method (e.g. by formatting the timestamp? by configuring the name? i18n?) */
-    private String getResultName(SimulationDefinitionType expandedDefinition, long now) {
+    private String getResultName(SimulationDefinitionType expandedDefinition, long now, @Nullable Task rootTask) {
         String identifier = expandedDefinition.getIdentifier();
-        String timeInfo = String.valueOf(now);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Simulation result"); // TODO i18n
         if (identifier != null) {
-            return String.format("Simulation result (%s): %s", identifier, timeInfo);
-        } else {
-            return String.format("Simulation result: %s", timeInfo);
+            sb.append("(").append(identifier).append(") ");
         }
+        sb.append(": ");
+        if (rootTask != null) {
+            sb.append(getOrig(rootTask.getName())).append(", ");
+        }
+        sb.append(XmlTypeConverter.createXMLGregorianCalendar(now));
+        return sb.toString();
     }
 
     private SimulationDefinitionType expandDefinition(

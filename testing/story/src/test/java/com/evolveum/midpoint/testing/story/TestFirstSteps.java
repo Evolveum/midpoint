@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.POLICY_SITUATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,20 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.model.test.TestSimulationResult;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.util.LDIFException;
@@ -53,20 +39,34 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AnyTestResource;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -112,8 +112,8 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private static final String RESOURCE_OPENDJ_OID = "0934922f-0f63-4768-b1b1-eab4275b31d1";
 
-    private static final TestResource<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
-            new TestResource<>(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
+    private static final TestObject<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
+            TestObject.file(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
 
     private static final AnyTestResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
     private static final AnyTestResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
@@ -179,9 +179,10 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        if (repositoryService.supportsMarks()) {
-            CommonInitialObjects.addMarks(this, initTask, initResult);
+        if (!isNativeRepository()) {
+            return;
         }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
     }
 
     /**
@@ -998,9 +999,7 @@ public class TestFirstSteps extends AbstractStoryTest {
      * - `tesla`: as "keep but do not touch" (legacy)
      * - `hacker`: as "investigate and delete" (illegal)
      * - `admin`: as protected
-     * - `junior1`: as "please add to HR" (pending)
-     *
-     * *HIGHLY EXPERIMENTAL* Just to implement "Account marking phase" in the First Steps Solution Notes document.
+     * - `junior1`: as "please add to HR" (correlate later)
      */
     @Test
     public void test230MarkUnmatchedAccounts() throws CommonException, IOException {
@@ -1008,23 +1007,11 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
         focusCounter.remember(result);
 
-        when("marking shadows with respective policy situations");
-        addShadowPolicySituation(
-                getTeslaOpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_LEGACY,
-                result);
-        addShadowPolicySituation(
-                getHackerOpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_ILLEGAL,
-                result);
-        addShadowPolicySituation(
-                getAdminOpenDjShadow().getOid(),
-                MODEL_POLICY_SITUATION_PROTECTED_SHADOW,
-                result);
-        addShadowPolicySituation(
-                getJunior1OpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_PENDING,
-                result);
+        when("marking shadows");
+        markShadow(getTeslaOpenDjShadow().getOid(), MARK_DO_NOT_TOUCH.oid, task, result);
+        markShadow(getHackerOpenDjShadow().getOid(), MARK_DECOMMISION_LATER.oid, task, result);
+        markShadow(getAdminOpenDjShadow().getOid(), MARK_PROTECTED.oid, task, result);
+        markShadow(getJunior1OpenDjShadow().getOid(), MARK_CORRELATE_LATER.oid, task, result);
 
         when("the reconciliation is run in simulated development mode");
         String taskOid = reconcileAllOpenDjAccountsRequest()
@@ -1044,9 +1031,8 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertTransition(null, UNLINKED, UNLINKED, null, 2, 0, 0)
                         .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
                         .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
-                        .assertTransitions(5)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
+                        .assertTransitions(4)
                     .end();
         // @formatter:on
 
@@ -1087,9 +1073,8 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertTransition(null, UNLINKED, LINKED, null, 2, 0, 0)
                         .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
                         .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
-                        .assertTransitions(5)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
+                        .assertTransitions(4)
                     .end()
                 .end()
                 .assertClockworkRunCount(2); // Two unlinked->linked accounts
@@ -1189,9 +1174,8 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .synchronizationStatistics()
                         .display()
                         .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
-                        .assertTransitions(3)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
+                        .assertTransitions(2)
                     .end()
                 .end()
                 .assertClockworkRunCount(5);

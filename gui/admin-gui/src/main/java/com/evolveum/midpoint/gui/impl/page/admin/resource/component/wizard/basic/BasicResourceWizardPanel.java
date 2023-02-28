@@ -6,12 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -29,79 +30,56 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class BasicResourceWizardPanel extends BasePanel {
+public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, ResourceDetailsModel> {
 
-    private static final String ID_FRAGMENT = "fragment";
-    private static final String ID_TEMPLATE_FRAGMENT = "templateFragment";
-    private static final String ID_TEMPLATE = "template";
-    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_WIZARD = "wizard";
+//    private static final String ID_FRAGMENT = "fragment";
+//    private static final String ID_TEMPLATE_FRAGMENT = "templateFragment";
+//    private static final String ID_TEMPLATE = "template";
+//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
+//    private static final String ID_MAIN_FORM = "mainForm";
+//    private static final String ID_WIZARD = "wizard";
 
-    private final ResourceDetailsModel resourceModel;
+//    private final ResourceDetailsModel resourceModel;
 
-    public BasicResourceWizardPanel(String id, ResourceDetailsModel model) {
-        super(id);
-        this.resourceModel = model;
+    public BasicResourceWizardPanel(String id, WizardPanelHelper<ResourceType, ResourceDetailsModel> helper) {
+        super(id, helper);
+//        this.resourceModel = model;
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
+//    @Override
+//    protected void onInitialize() {
+//        super.onInitialize();
+//        initLayout();
+//    }
+
+    protected void initLayout() {
+        add(createChoiceFragment(createTemplatePanel()));
     }
 
-    private void initLayout() {
-        add(createTemplateFragment());
-    }
-
-    protected Fragment createTemplateFragment() {
-        Fragment fragment = new Fragment(ID_FRAGMENT, ID_TEMPLATE_FRAGMENT, BasicResourceWizardPanel.this);
-        fragment.setOutputMarkupId(true);
-        CreateResourceTemplatePanel templatePanel = new CreateResourceTemplatePanel(ID_TEMPLATE) {
+    protected CreateResourceTemplatePanel createTemplatePanel() {
+        return new CreateResourceTemplatePanel(getIdOfChoicePanel()) {
 
             @Override
             protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
                 reloadObjectDetailsModel(newObject);
-                Fragment fragment = createBasicWizardFragment();
-                fragment.setOutputMarkupId(true);
-                BasicResourceWizardPanel.this.replace(fragment);
-                target.add(fragment);
+                showWizardFragment(target, new WizardPanel(
+                        getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
             }
         };
-        fragment.add(templatePanel);
-        return fragment;
-    }
-
-    private Fragment createBasicWizardFragment() {
-        Fragment fragment = new Fragment(ID_FRAGMENT, ID_WIZARD_FRAGMENT, BasicResourceWizardPanel.this);
-        Form mainForm = new Form(ID_MAIN_FORM);
-        fragment.add(mainForm);
-        WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createBasicSteps()));
-        wizard.setOutputMarkupId(true);
-        mainForm.add(wizard);
-        return fragment;
     }
 
     private void reloadObjectDetailsModel(PrismObject<ResourceType> newObject) {
-        getResourceModel().reset();
-        getResourceModel().reloadPrismObjectModel(newObject);
-    }
-
-    public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
+        getAssignmentHolderModel().reset();
+        getAssignmentHolderModel().reloadPrismObjectModel(newObject);
     }
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new BasicInformationStepPanel(getResourceModel()) {
+        steps.add(new BasicInformationStepPanel(getAssignmentHolderModel()) {
 
             @Override
             public boolean onBackPerformed(AjaxRequestTarget target) {
-                Fragment fragment = createTemplateFragment();
-                fragment.setOutputMarkupId(true);
-                BasicResourceWizardPanel.this.addOrReplace(fragment);
-                target.add(fragment);
+                showChoiceFragment(target, createTemplatePanel());
 
                 return false;
             }
@@ -113,15 +91,15 @@ public class BasicResourceWizardPanel extends BasePanel {
             }
         });
 
-        PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(getResourceModel().getObjectType().getConnectorRef(), getPageBase());
+        PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(getAssignmentHolderModel().getObjectType().getConnectorRef(), getPageBase());
 
         if (connector != null && SchemaConstants.ICF_FRAMEWORK_URI.equals(connector.asObjectable().getFramework())) {
             CapabilityCollectionType capabilities
-                    = WebComponentUtil.getNativeCapabilities(getResourceModel().getObjectType(), getPageBase());
+                    = WebComponentUtil.getNativeCapabilities(getAssignmentHolderModel().getObjectType(), getPageBase());
 
             if (capabilities.getDiscoverConfiguration() != null) {
-                steps.add(new PartialConfigurationStepPanel(getResourceModel()));
-                steps.add(new DiscoveryStepPanel(getResourceModel()) {
+                steps.add(new PartialConfigurationStepPanel(getAssignmentHolderModel()));
+                steps.add(new DiscoveryStepPanel(getAssignmentHolderModel()) {
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());
@@ -129,7 +107,7 @@ public class BasicResourceWizardPanel extends BasePanel {
                     }
                 });
             } else {
-                steps.add(new ConfigurationStepPanel(getResourceModel()) {
+                steps.add(new ConfigurationStepPanel(getAssignmentHolderModel()) {
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());
@@ -139,7 +117,7 @@ public class BasicResourceWizardPanel extends BasePanel {
             }
 
             if (capabilities.getSchema() != null) {
-                steps.add(new SelectObjectClassesStepPanel(getResourceModel()) {
+                steps.add(new SelectObjectClassesStepPanel(getAssignmentHolderModel()) {
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());

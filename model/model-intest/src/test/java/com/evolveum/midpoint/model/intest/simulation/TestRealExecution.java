@@ -366,17 +366,6 @@ public class TestRealExecution extends AbstractSimulationsTest {
         and("in audit there are no 'non-apply' attributes (after reconciliation)");
         displayDumpable("audit", dummyAuditService);
 
-//        dummyAuditService.assertExecutionDeltas(2);
-//        ObjectDeltaOperation<UserType> userOdo2 = dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-//        // model thinks there is some provisioning - this may change in future
-//        assertDelta(userOdo2.getObjectDelta(), "user after reconciliation")
-//                .assertModified(PATH_METADATA_LAST_PROVISIONING_TIMESTAMP);
-//        // this delta is metadata-only, because the only "meat" was cut out ... TODO shouldn't we skip it?
-//        ObjectDeltaOperation<ShadowType> shadowOdo2 = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
-//        assertDelta(shadowOdo2.getObjectDelta(), "shadow after reconciliation")
-//                .assertNoRealResourceObjectModifications()
-//                .assertModified(ShadowType.F_METADATA);
-
         and("there is nothing in the simulation result");
         assertProcessedObjectsAfter(simResult2)
                 .assertSize(0);

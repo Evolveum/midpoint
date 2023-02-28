@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-attribute",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.mainConfiguration", icon = "fa fa-circle"),
         expanded = true)
 public class MainConfigurationStepPanel

@@ -48,6 +48,7 @@ class AggregatedMetricsComputation {
     private static final SimulationMetricAggregationFunctionType DEFAULT_AGGREGATION_FUNCTION = SELECTION_TOTAL_VALUE;
 
     private final SimulationResultManagerImpl simulationResultManager = ModelBeans.get().simulationResultManager;
+
     private final MarkManager markManager = ModelBeans.get().markManager;
 
     private final Map<SimulationMetricReference, MetricAggregation> metricAggregations = new HashMap<>();

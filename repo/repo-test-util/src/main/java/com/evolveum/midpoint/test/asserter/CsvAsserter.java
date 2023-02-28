@@ -11,7 +11,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -59,6 +63,12 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
 
     public CsvAsserter<RA> withNumericColumns(Integer... columns) {
         numericColumns = Set.of(columns);
+        return this;
+    }
+
+    public CsvAsserter<RA> filter(Predicate<CSVRecord> predicate) throws IOException {
+        parse();
+        records.removeIf(r -> !predicate.test(r));
         return this;
     }
 
@@ -168,6 +178,36 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
         var recordAsserter = new RecordAsserter(index, this, getDetails());
         copySetupTo(recordAsserter);
         return recordAsserter;
+    }
+
+    @Experimental
+    public CsvAsserter<RA> record(int index, Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        return function
+                .apply(record(index))
+                .end();
+    }
+
+    public CsvAsserter<RA> forRecord(
+            int column, String value, Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        return forRecords(r -> value.equals(r.get(column)), function);
+    }
+
+    public CsvAsserter<RA> forRecords(
+            Predicate<CSVRecord> selector, Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        for (int i = 0; i < records.size(); i++) {
+            CSVRecord record = records.get(i);
+            if (selector.test(record)) {
+                record(i, function);
+            }
+        }
+        return this;
+    }
+
+    public CsvAsserter<RA> allRecords(Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        for (int i = 0; i < records.size(); i++) {
+            record(i, function);
+        }
+        return this;
     }
 
     public class RecordAsserter extends AbstractAsserter<CsvAsserter<RA>> {

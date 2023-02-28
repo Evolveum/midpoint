@@ -1454,7 +1454,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException {
-        // TODO + use in model calls as appropriate
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
         Objects.requireNonNull(handler, "Result handler must not be null.");

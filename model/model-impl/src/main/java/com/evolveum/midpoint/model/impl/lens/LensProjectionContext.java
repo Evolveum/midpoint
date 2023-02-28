@@ -1928,6 +1928,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
     }
 
+    public boolean hasResourceAndIsVisible() throws SchemaException, ConfigurationException {
+        return resource != null
+                && SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
+    }
+
     private @NotNull TaskExecutionMode getTaskExecutionMode() {
         return lensContext.getTaskExecutionMode();
     }

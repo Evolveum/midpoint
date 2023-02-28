@@ -162,6 +162,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
         topButtons.setOutputMarkupId(true);
 
+        initBasicConfigButton(topButtons);
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
@@ -351,10 +352,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showAttributeMappingWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -363,6 +364,29 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         attrMappingButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(attrMappingButton);
+    }
+
+    private void initBasicConfigButton(RepeatingView topButtons) {
+        AjaxIconButton synchConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.BASIC.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.BASIC)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null && valueModel.getObject() != null) {
+                    getObjectDetailsModels().getPageResource().showResourceObjectTypeBasicWizard(
+                            target,
+                            valueModel.getObject().getPath());
+                }
+            }
+        };
+        synchConfButton.setOutputMarkupId(true);
+        synchConfButton.showTitleAsLabel(true);
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        topButtons.add(synchConfButton);
     }
 
     private void initSychronizationButton(RepeatingView topButtons) {
@@ -374,10 +398,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showSynchronizationWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -397,10 +421,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCorrelationWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -420,10 +444,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCapabilitiesWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -443,10 +467,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCredentialsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -466,10 +490,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showActivationsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
@@ -489,10 +513,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showAssociationsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };

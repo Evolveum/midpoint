@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.LocalizableMessageModel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerDto;
 
 public class EvaluatedTriggerPanel extends BasePanel<EvaluatedTriggerDto> {
 
-    private static final String ID_FRAME = "frame";
     private static final String ID_MESSAGE = "message";
     private static final String ID_CHILDREN = "children";
 
@@ -30,19 +28,14 @@ public class EvaluatedTriggerPanel extends BasePanel<EvaluatedTriggerDto> {
     }
 
     protected void initLayout() {
-        EvaluatedTriggerDto trigger = getModelObject();
-        WebMarkupContainer frame = new WebMarkupContainer(ID_FRAME);
-        if (trigger.isHighlighted()) {
-            frame.add(new AttributeAppender("style", "background-color: #fcffd3"));     // TODO skin
-        }
-        add(frame);
+        add(AttributeAppender.append("class", "m-2 p-2 border rounded"));
+        add(AttributeAppender.append("class", () -> getModelObject().isHighlighted() ? "bg-warning" : null));
 
-        frame.add(new Label(ID_MESSAGE,
-                new LocalizableMessageModel(Model.of(trigger.getMessage()), this)));
-        EvaluatedTriggerGroupDto children = trigger.getChildren();
-        EvaluatedTriggerGroupPanel childrenPanel = new EvaluatedTriggerGroupPanel(ID_CHILDREN, Model.of(children));
-        childrenPanel.setVisible(!children.getTriggers().isEmpty());
-        frame.add(childrenPanel);
+        add(new Label(ID_MESSAGE, () -> LocalizationUtil.translateMessage(getModelObject().getMessage())));
+
+        EvaluatedTriggerGroupPanel children = new EvaluatedTriggerGroupPanel(ID_CHILDREN, () -> getModelObject().getChildren());
+        children.add(new VisibleBehaviour(() -> !getModelObject().getChildren().getTriggers().isEmpty()));
+        add(children);
     }
 
 }

@@ -66,4 +66,90 @@
         </caching>
     </internals>
 
+    <simulation>
+        <metric>
+            <identifier>modifications</identifier>
+            <documentation>The number of non-operational item modifications. Applies to all kinds of objects.</documentation>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.modification</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.nonOperationalItemModificationsCount</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>attribute-modifications</identifier>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.shadow &amp;&amp; processedObject.modification</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.attributeModificationsCount</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>association-values-changed</identifier>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.shadow &amp;&amp; processedObject.modification</code>
+                        </script>
+                    </expression>
+                </domain>
+                <valueExpression>
+                    <script>
+                        <code>processedObject.associationValuesChanged</code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+        <metric>
+            <identifier>special</identifier>
+            <computation>
+                <domain>
+                    <expression>
+                        <script>
+                            <code>processedObject.focus</code>
+                        </script>
+                    </expression>
+                </domain>
+                <selection>
+                    <expression>
+                        <script>
+                            <code>basic.stringify(processedObject.name).contains('7')</code>
+                        </script>
+                    </expression>
+                </selection>
+                <valueExpression>
+                    <script>
+                        <code>
+                            try {
+                                def index = basic.stringify(processedObject.name).takeAfter('-').substring(0, 4)
+                                3.14 * Integer.parseInt(index)
+                            } catch (Exception e) {
+                                log.error('Problem while determining the index', e)
+                                0
+                            }
+                        </code>
+                    </script>
+                </valueExpression>
+            </computation>
+        </metric>
+    </simulation>
 </systemConfiguration>

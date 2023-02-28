@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "roleWizard-access-application")
 @PanelInstance(identifier = "roleWizard-access-application",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.application", icon = "fa fa-list"),
         containerPath = "empty")
 public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {

@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -1112,6 +1114,35 @@ public class ObjectTypeUtil {
 
     public static String getOid(ObjectType object) {
         return object != null ? object.getOid() : null;
+    }
+
+    /**
+     * Converts {@link PrismContainerValue} to {@link PrismObjectValue} based {@link ObjectType} as a workaround for MID-8522.
+     *
+     * TEMPORARY CODE
+     */
+    public static ObjectType fix(ObjectType objectable) {
+        if (objectable == null) {
+            return null;
+        }
+        PrismContainerValue<?> pcv = objectable.asPrismContainerValue();
+        if (pcv instanceof PrismObjectValue) {
+            return objectable;
+        }
+
+        PrismObjectValue<?> pov;
+        try {
+            pov = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(objectable.getClass())
+                    .instantiate()
+                    .createNewValue();
+            for (Item<?, ?> item : pcv.getItems()) {
+                pov.add(item.clone());
+            }
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when fixing " + objectable);
+        }
+        return (ObjectType) pov.asObjectable();
     }
 
     @FunctionalInterface

@@ -6,10 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Complex User Template</name>
@@ -447,7 +445,7 @@
             <referenceTime>
                 <path>$focus/extension/funeralTimestamp</path>
             </referenceTime>
-            <offset>P1M</offset>
+            <offset>P30D</offset>
         </timeFrom>
         <expression>
             <value>Kaboom!</value>
@@ -474,7 +472,7 @@
                             // Always process this mapping immediately
                             return basic.longAgo()
                         }
-                        def timestamp = basic.addDuration(funeralTimestamp, "P3M")
+                        def timestamp = basic.addDuration(funeralTimestamp, "P90D")
                         timestamp = basic.roundDownToMidnight(timestamp)
                         return timestamp
                     </code>

@@ -87,7 +87,7 @@ class SimulationSupport {
                 ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
                 simulationResult = advancedActivityRunSupport.createSimulationResult(
                         execModeDef.getSimulationDefinition(),
-                        activityRun.getRunningTask().getRootTaskOid(),
+                        activityRun.getRunningTask().getRootTask(),
                         execModeDef.getConfigurationSpecification(),
                         result);
                 simResultOid = simulationResult.getResultOid();

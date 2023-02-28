@@ -132,6 +132,10 @@ public class TestObject<T extends ObjectType> {
         return get().asObjectable();
     }
 
+    public @NotNull String getNameOrig() {
+        return getObjectable().getName().getOrig();
+    }
+
     public ObjectReferenceType ref() {
         return ObjectTypeUtil.createObjectRef(get(), SchemaConstants.ORG_DEFAULT);
     }

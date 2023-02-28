@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -19,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -45,4 +49,12 @@ public class ConstructionInducementsPanel<AR extends AbstractRoleType> extends A
                 .exists(AssignmentType.F_CONSTRUCTION).build();
     }
 
+    @Override
+    protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+        if (getPageBase() instanceof PageAbstractRole) {
+            ((PageAbstractRole)getPageBase()).showConstructionWizard(target);
+            return;
+        }
+        super.newAssignmentClickPerformed(target);
+    }
 }
