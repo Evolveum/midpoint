@@ -12,7 +12,7 @@
     <name>Indirect assignment report</name>
     <description>Shows information stored in roleMembershipRef value metadata.</description>
     <!--
-    Serious test would have this archetype, but it's not available for test.
+    Serious report would have this archetype, but it's not available for test.
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
@@ -39,73 +39,7 @@
             <expression>
                 <script>
                     <objectVariableMode>prismReference</objectVariableMode>
-                    <code>
-
-
-                        import com.evolveum.midpoint.prism.PrismValueUtil
-                        import com.evolveum.midpoint.schema.GetOperationOptions
-                        import com.evolveum.midpoint.schema.SelectorOptions
-                        import com.evolveum.midpoint.schema.result.OperationResult
-                        import com.evolveum.midpoint.util.exception.ObjectNotFoundException
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType
-
-                        // object is Referencable (can be ObjectReferenceType, but also DefaultReferencableImpl).
-                        def prismRefValue = object?.asReferenceValue()
-                        // If parent is available, it's better to use it, we'll save resolutions in the collect loop.
-                        def parentObject = PrismValueUtil.getParentObject(prismRefValue)?.realValue
-
-                        return prismRefValue?.valueMetadata?.realValues?.findAll {
-                            m -> m.provenance.assignmentPath != null
-                        }?.collect { m ->
-                            def assignmentPath = m.provenance.assignmentPath
-                            def directAssignmentId = assignmentPath.segment[0].assignmentId
-                            def ownerRef = m.provenance.assignmentPath.sourceRef
-//                            def owner = parentObject ?: midpoint.resolveReferenceIfExists(ownerRef) // uses model and is very slow in 4.7
-                            def owner = parentObject ?: resolveWithRepo(ownerRef) // with parent, no resolution is used here
-                            def directAssignment = null
-                            if (owner != null) {
-                                for (def assignment : owner.assignment) {
-                                    if (assignment?.id == directAssignmentId) {
-                                        directAssignment = assignment
-                                        break
-                                    }
-                                }
-                            }
-                            def segmentTargets = assignmentPath.segment
-//                                    .collect(s -> midpoint.resolveReferenceIfExists(s?.targetRef)) // slow
-                                    .collect(s -> resolveWithRepo(s?.targetRef))
-                            AbstractRoleType role = prismRefValue?.object?.asObjectable() // this one should be available (resolved)
-
-                            // we'll return object/hashmap for each assignment path metadata value
-                            return [
-                                    assignmentPath: m.provenance.assignmentPath,
-                                    segmentTargets: segmentTargets,
-                                    createTimestamp: m.storage?.createTimestamp,
-                                    owner: owner,
-                                    role: role,
-                                    roleArchetype: midpoint.getStructuralArchetype(role),
-                                    assignment: directAssignment
-                            ]
-                        }
-
-                        private ObjectType resolveWithRepo(ObjectReferenceType ref) {
-                            if (ref == null) return null
-                            try {
-                                var typeDef = prismContext.schemaRegistry.findObjectDefinitionByType(ref.type)
-                                // We're creating ignored operation result as we don't want to contaminate the master
-                                // result with false errors (partial or not). Not found is perfectly fine here.
-                                return midpoint.repositoryService
-                                        .getObject(typeDef.compileTimeClass, ref.oid,
-                                                SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-                                                new OperationResult('ignored'))
-                                        .asObjectable()
-                            } catch (ObjectNotFoundException ignored) {
-                                return null
-                            }
-                        }
-                    </code>
+                    <code>report.generateAssignmentPathRows(object)</code>
                 </script>
             </expression>
         </subreport>

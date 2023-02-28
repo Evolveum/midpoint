@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -31,11 +32,13 @@ import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,14 +62,19 @@ public class ReportFunctions {
     private final ModelService model;
     private final TaskManager taskManager;
     private final ModelAuditService modelAuditService;
+    private final RepositoryService repositoryService;
+    private final MidpointFunctions midpointFunctions;
 
     public ReportFunctions(PrismContext prismContext, SchemaService schemaService,
-            ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService) {
+            ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService,
+            RepositoryService repositoryService, MidpointFunctions midpointFunctions) {
         this.prismContext = prismContext;
         this.schemaService = schemaService;
         this.model = modelService;
         this.taskManager = taskManager;
         this.modelAuditService = modelAuditService;
+        this.repositoryService = repositoryService;
+        this.midpointFunctions = midpointFunctions;
     }
 
     public <O extends ObjectType> O resolveObject(ObjectReferenceType ref) {
@@ -601,5 +609,101 @@ public class ReportFunctions {
         }
 
         return null;
+    }
+
+    public List<AssignmentPathRowStructure> generateAssignmentPathRows(Referencable ref) throws CommonException {
+        // ref is Referencable (can be ObjectReferenceType, but also DefaultReferencableImpl).
+        PrismReferenceValue prismRefValue = ref.asReferenceValue();
+        // If parent is available, it's better to use it, we'll save resolutions in the loop.
+        PrismObject<?> parentPrismObject = PrismValueUtil.getParentObject(prismRefValue);
+        Objectable parentObject = parentPrismObject != null ? parentPrismObject.getRealValue() : null;
+
+        ValueMetadata valueMetadataPrism = prismRefValue.getValueMetadata();
+        if (valueMetadataPrism.isEmpty()) {
+            return List.of();
+        }
+
+        List<AssignmentPathRowStructure> list = new ArrayList<>();
+        for (Containerable valueMetadataUntyped : valueMetadataPrism.getRealValues()) {
+            ValueMetadataType valueMetadata = (ValueMetadataType) valueMetadataUntyped;
+            ProvenanceMetadataType p = valueMetadata.getProvenance();
+            if (p != null) {
+                AssignmentPathMetadataType ap = p.getAssignmentPath();
+                if (ap != null) {
+                    AssignmentPathRowStructure row = generateAssignmentPathRow(ap, (AssignmentHolderType) parentObject);
+                    // Some fields are more convenient to fill here:
+                    AbstractRoleType role = prismRefValue.getObject().getRealValue(AbstractRoleType.class);
+                    row.role = role;
+                    row.roleArchetype = midpointFunctions.getStructuralArchetype(role);
+                    StorageMetadataType storageMetadata = valueMetadata.getStorage();
+                    row.createTimestamp = storageMetadata != null ? storageMetadata.getCreateTimestamp() : null;
+                    list.add(row);
+                }
+            }
+        }
+        return list;
+    }
+
+    private AssignmentPathRowStructure generateAssignmentPathRow(
+            AssignmentPathMetadataType assignmentPath, AssignmentHolderType owner) throws CommonException {
+        List<AssignmentPathSegmentMetadataType> segments = assignmentPath.getSegment();
+        Long directAssignmentId = segments.get(0).getAssignmentId();
+        ObjectReferenceType ownerRef = assignmentPath.getSourceRef();
+        if (owner == null) {
+            owner = (AssignmentHolderType) resolveWithRepositoryIfExists(ownerRef);
+        }
+        AssignmentType directAssignment = owner == null ? null
+                : owner.getAssignment().stream()
+                .filter(a -> Objects.equals(a.getId(), directAssignmentId))
+                .findFirst()
+                .orElse(null);
+
+        List<ObjectType> segmentTargets = new ArrayList<>();
+        for (AssignmentPathSegmentMetadataType segment : assignmentPath.getSegment()) {
+            segmentTargets.add(resolveWithRepositoryIfExists(segment.getTargetRef()));
+        }
+
+        // This one should be available (resolved) by the code calling the expression.
+        AssignmentPathRowStructure row = new AssignmentPathRowStructure();
+        row.assignmentPath = assignmentPath;
+        row.segmentTargets = segmentTargets;
+        row.owner = owner;
+        row.assignment = directAssignment;
+        return row;
+    }
+
+    // Must be Serializable to be acceptable return value from the subreport.
+    static class AssignmentPathRowStructure implements Serializable {
+        public AssignmentPathMetadataType assignmentPath;
+        public AssignmentHolderType owner;
+        public List<ObjectType> segmentTargets;
+        public AbstractRoleType role;
+        public ArchetypeType roleArchetype;
+        public XMLGregorianCalendar createTimestamp;
+        public AssignmentType assignment;
+    }
+
+    /**
+     * Low-level faster version of {@link MidpointFunctions#resolveReferenceIfExists(ObjectReferenceType)}.
+     * This one does not use the model reference resolution and goes around the security checks.
+     * Use with care, when SchemaTransformer cost is too much.
+     */
+    private @Nullable ObjectType resolveWithRepositoryIfExists(@Nullable ObjectReferenceType ref) throws CommonException {
+        if (ref == null) {
+            return null;
+        }
+        try {
+            PrismObjectDefinition<? extends ObjectType> typeDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByType(ref.getType());
+            // We're creating ignored operation result as we don't want to contaminate the master
+            // result with false errors (partial or not). Not found is perfectly fine here.
+            Class<? extends ObjectType> compileTimeClass = typeDef.getCompileTimeClass();
+            return repositoryService.getObject(compileTimeClass, ref.getOid(),
+                            SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+                            new OperationResult("ignored"))
+                    .asObjectable();
+        } catch (ObjectNotFoundException ignored) {
+            return null;
+        }
     }
 }
