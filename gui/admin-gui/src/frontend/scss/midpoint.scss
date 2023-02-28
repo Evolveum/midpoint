@@ -1793,28 +1793,20 @@ th.debug-list-buttons {
   }
 }
 
-.assignmentPath {
+.assignment-path > ul {
   list-style: none;
-  margin-bottom: 0px;
-  padding-left: 0px !important;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
 
   & > li {
 
-    & + li {
-      margin-left: 10px;
-
-      &::before {
-        color: $text-muted;
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-        content: "\f061";
-        margin-right: 2px;
-      }
+    &::before {
+      color: $text-secondary;
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      content: "\f061";
+      margin-right: .25rem;
     }
-  }
-
-  & > a {
-    margin-left: -20px;
   }
 }
 
