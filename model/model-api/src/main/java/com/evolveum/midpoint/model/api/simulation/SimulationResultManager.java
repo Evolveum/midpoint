@@ -37,7 +37,7 @@ public interface SimulationResultManager {
      */
     @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @Nullable String rootTaskOid,
+            @Nullable Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException;
