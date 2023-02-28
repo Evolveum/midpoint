@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.io.IOUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -82,6 +84,11 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
+
+        if (areMarksSupported()) {
+            CommonInitialObjects.ARCHETYPE_OBJECT_MARK.init(this, initTask, initResult);
+            CommonInitialObjects.MARK_PROTECTED.init(this, initTask, initResult);
+        }
     }
 
     @Override
