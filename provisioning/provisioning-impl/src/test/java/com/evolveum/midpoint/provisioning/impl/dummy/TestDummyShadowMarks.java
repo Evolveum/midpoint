@@ -79,9 +79,8 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
             SystemObjectsType.ARCHETYPE_SHADOW_MARK.value());
 
     private static final TestObject<MarkType> TAG_PROTECTED_SHADOW = TestObject.classPath(
-            "initial-objects/mark", "800-mark-protected-shadow.xml",
+            "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
-
 
     String piratesIcfUid;
 
