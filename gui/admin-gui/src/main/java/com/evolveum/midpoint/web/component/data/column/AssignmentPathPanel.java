@@ -45,47 +45,61 @@ public class AssignmentPathPanel extends BasePanel<List<AssignmentPathMetadataTy
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "d-flex flex-column"));
+        add(AttributeAppender.append("class", "d-flex flex-column gap-2"));
 
         ListView<AssignmentPathMetadataType> paths = new ListView<>(ID_PATHS, getModel()) {
 
             @Override
             protected void populateItem(ListItem<AssignmentPathMetadataType> item) {
-                item.setOutputMarkupId(true);
-
-                ObjectReferenceColumnPanel firstSegment = new ObjectReferenceColumnPanel(ID_FIRST_SEGMENT,
-                        () -> item.getModelObject().getSegment().get(0).getTargetRef());
-                item.add(firstSegment);
-
-                IModel<Boolean> openModel = Model.of(false);
-
-                AjaxIconButton open = new AjaxIconButton(ID_OPEN,
-                        () -> openModel.getObject() ? "fa fa-search-minus" : "fa fa-search-plus",
-                        () -> openModel.getObject() ? "AssignmentPathPanel.hideDetails" : "AssignmentPathPanel.showDetails") {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        openModel.setObject(!openModel.getObject());
-                        target.add(item);
-                    }
-                };
-                item.add(open);
-
-                WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-                body.add(new VisibleBehaviour(() -> openModel.getObject()));
-                item.add(body);
-
-                ListView<AssignmentPathSegmentMetadataType> segments = new ListView<>(ID_SEGMENTS, () -> item.getModelObject().getSegment().subList(1, item.getModelObject().getSegment().size())) {
-
-                    @Override
-                    protected void populateItem(ListItem<AssignmentPathSegmentMetadataType> item) {
-                        ObjectReferenceColumnPanel segment = new ObjectReferenceColumnPanel(ID_SEGMENT, () -> item.getModelObject().getTargetRef());
-                        item.add(segment);
-                    }
-                };
-                body.add(segments);
+                initLayoutForAssignmentPath(item);
             }
         };
         add(paths);
+    }
+
+    private void initLayoutForAssignmentPath(ListItem<AssignmentPathMetadataType> item) {
+        item.add(new VisibleBehaviour(() -> !getSegments(item).isEmpty()));
+        item.setOutputMarkupId(true);
+
+        item.add(new ObjectReferenceColumnPanel(ID_FIRST_SEGMENT, () -> getSegments(item).get(0).getTargetRef()));
+
+        IModel<Boolean> openModel = Model.of(false);
+
+        AjaxIconButton open = new AjaxIconButton(ID_OPEN,
+                () -> openModel.getObject() ? "fa fa-search-minus" : "fa fa-search-plus",
+                () -> openModel.getObject() ? "AssignmentPathPanel.hideDetails" : "AssignmentPathPanel.showDetails") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                openModel.setObject(!openModel.getObject());
+                target.add(item);
+            }
+        };
+        open.add(new VisibleBehaviour(() -> hasSegments(item)));
+        item.add(open);
+
+        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+        body.add(new VisibleBehaviour(() -> openModel.getObject() && hasSegments(item)));
+        item.add(body);
+
+        ListView<AssignmentPathSegmentMetadataType> segments = new ListView<>(ID_SEGMENTS, () -> {
+            List<AssignmentPathSegmentMetadataType> list = getSegments(item);
+            return list.subList(1, list.size());
+        }) {
+
+            @Override
+            protected void populateItem(ListItem<AssignmentPathSegmentMetadataType> item) {
+                item.add(new ObjectReferenceColumnPanel(ID_SEGMENT, () -> item.getModelObject().getTargetRef()));
+            }
+        };
+        body.add(segments);
+    }
+
+    private List<AssignmentPathSegmentMetadataType> getSegments(ListItem<AssignmentPathMetadataType> item) {
+        return item.getModelObject().getSegment();
+    }
+
+    private boolean hasSegments(ListItem<AssignmentPathMetadataType> item) {
+        return item.getModelObject().getSegment().size() > 1;
     }
 }
