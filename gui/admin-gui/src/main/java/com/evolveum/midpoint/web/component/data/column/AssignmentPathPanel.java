@@ -67,7 +67,7 @@ public class AssignmentPathPanel extends BasePanel<List<AssignmentPathMetadataTy
 
         AjaxIconButton open = new AjaxIconButton(ID_OPEN,
                 () -> openModel.getObject() ? "fa fa-search-minus" : "fa fa-search-plus",
-                () -> openModel.getObject() ? "AssignmentPathPanel.hideDetails" : "AssignmentPathPanel.showDetails") {
+                () -> openModel.getObject() ? getString("AssignmentPathPanel.hideDetails") : getString("AssignmentPathPanel.showDetails")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
