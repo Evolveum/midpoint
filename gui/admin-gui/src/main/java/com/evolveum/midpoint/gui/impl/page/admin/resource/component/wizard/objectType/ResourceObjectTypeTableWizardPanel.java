@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -24,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
  * @author lskublik
  */
 public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeTableWizardPanel.class);
 
     private static final String PANEL_TYPE = "schemaHandling";
     private static final String ID_TABLE = "table";
@@ -51,6 +64,24 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
                 getTable().getTable().setShowAsCard(false);
             }
+
+            @Override
+            protected void onNewValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = () -> {
+                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = containerModel.getObject();
+                    PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
+                    try {
+                        PrismContainerValueWrapper newWrapper = WebPrismUtil.createNewValueWrapper(
+                                container, value, getPageBase(), getObjectDetailsModels().createWrapperContext());
+                        container.getValues().add(newWrapper);
+                        return newWrapper;
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create new value for container " + container, e);
+                    }
+                    return null;
+                };
+                onCreateValue(model, target);
+            }
         };
         table.setOutputMarkupId(true);
         add(table);
@@ -67,6 +98,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     }
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
+
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
     @Override
     protected IModel<String> getSubTextModel() {

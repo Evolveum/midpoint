@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -14,14 +13,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.*;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
@@ -97,7 +93,7 @@ public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<Role
             protected void initFragmentLayout() {
                 try {
                     Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createWizardPanelHelper());
+                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
                     add(wizard);
                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()

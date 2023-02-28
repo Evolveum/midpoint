@@ -88,7 +88,14 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         return new ResourceObjectTypeTableWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
-                showChoiceFragment(target, createObjectTypeWizard(valueModel));
+                ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
+                wizard.setShowObjectTypePreview(true);
+                showChoiceFragment(target, wizard);
+            }
+
+            @Override
+            protected void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target) {
+                showChoiceFragment(target, createObjectTypeWizard(value));
             }
 
             @Override

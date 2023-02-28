@@ -80,6 +80,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
                 OperationResult result = ResourceObjectTypeWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     refreshValueModel();
+                    showObjectTypePreviewFragment(getValueModel(), target);
                 }
                 return result;
             }
@@ -137,9 +138,27 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
     }
 
     private void showResourceObjectTypeBasic(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+
+        WizardPanelHelper helper = new WizardPanelHelper<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(getValueModel(), target);
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                OperationResult result = ResourceObjectTypeWizardPanel.this.onSavePerformed(target);
+                if (result != null && !result.isError()) {
+                    refreshValueModel();
+                    onExitPerformed(target);
+                }
+                return result;
+            }
+        };
+
         showChoiceFragment(
                 target,
-                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(valueModel))
+                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), helper)
         );
     }
 

@@ -62,9 +62,7 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 OperationResult result = ResourceObjectTypeBasicWizardPanel.this.onSavePerformed(target);
-                if (result != null && !result.isError()) {
-                    onExitPerformed(target);
-                } else {
+                if (result == null || result.isError()) {
                     target.add(getFeedback());
                 }
             }
