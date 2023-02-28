@@ -632,7 +632,10 @@ public class ReportFunctions {
                 if (ap != null) {
                     AssignmentPathRowStructure row = generateAssignmentPathRow(ap, (AssignmentHolderType) parentObject);
                     // Some fields are more convenient to fill here:
-                    AbstractRoleType role = prismRefValue.getObject().getRealValue(AbstractRoleType.class);
+                    PrismObject<Objectable> targetObject = prismRefValue.getObject();
+                    AbstractRoleType role = targetObject != null // can be null, e.g deleted
+                            ? targetObject.getRealValue(AbstractRoleType.class)
+                            : null;
                     row.role = role;
                     row.roleArchetype = midpointFunctions.getStructuralArchetype(role);
                     StorageMetadataType storageMetadata = valueMetadata.getStorage();
@@ -695,12 +698,10 @@ public class ReportFunctions {
         try {
             PrismObjectDefinition<? extends ObjectType> typeDef =
                     prismContext.getSchemaRegistry().findObjectDefinitionByType(ref.getType());
-            // We're creating ignored operation result as we don't want to contaminate the master
-            // result with false errors (partial or not). Not found is perfectly fine here.
             Class<? extends ObjectType> compileTimeClass = typeDef.getCompileTimeClass();
             return repositoryService.getObject(compileTimeClass, ref.getOid(),
                             SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-                            new OperationResult("ignored"))
+                            getCurrentResult())
                     .asObjectable();
         } catch (ObjectNotFoundException ignored) {
             return null;
