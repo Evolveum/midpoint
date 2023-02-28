@@ -1079,7 +1079,7 @@ public class ShadowUtil {
                 .collect(Collectors.toList());
     }
 
-    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
+    public static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }

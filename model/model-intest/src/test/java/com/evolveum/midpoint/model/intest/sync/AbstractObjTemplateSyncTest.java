@@ -81,7 +81,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 
         if (areMarksSupported()) {
             repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
         }
         // templates
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);

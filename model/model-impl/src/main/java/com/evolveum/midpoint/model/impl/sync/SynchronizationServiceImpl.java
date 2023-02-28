@@ -230,7 +230,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return true;
         }
 
-        if (syncCtx.isMarkedSkipSynchronization()) {
+        if (syncCtx.isMarkedSkipSynchronization(result)) {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for marked shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
@@ -242,7 +242,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return true;
         }
 
-
         if (syncCtx.isProtected()) {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
@@ -252,18 +251,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateCoordinatesIfMissing();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
-            return true;
-        }
-
-        if (syncCtx.isSynchronizationPreventedByShadowPolicySituation()) {
-            String message = String.format(
-                    "SYNCHRONIZATION is skipped for %s because of the policy situation %s, ignoring change from channel %s",
-                    shadow, shadow.getPolicySituation(), channel);
-            LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateAllSyncMetadataRespectingMode();
-            result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
             return true;
         }
 

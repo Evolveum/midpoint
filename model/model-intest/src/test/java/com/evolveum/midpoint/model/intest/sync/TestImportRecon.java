@@ -226,7 +226,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         if (areMarksSupported()) {
             repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
         }
 
         reconciliationResultListener = new DebugReconciliationResultListener();
