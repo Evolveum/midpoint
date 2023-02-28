@@ -8,6 +8,7 @@ package com.evolveum.midpoint.report;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +35,9 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
     private static final TestTask TASK_EXPORT_CLASSIC_ROLE_CACHING = new TestTask(TEST_DIR_REPORTS,
             "task-export-role-caching.xml", "0ff414b6-76c6-4d38-95e8-d2d34c7a11cb");
 
+    private String appArchetypeOid;
+    private String appRoleOid;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // Only for Native repo, as Generic repo does not support reference search.
@@ -42,10 +46,10 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         }
         super.initSystem(initTask, initResult);
 
-        repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult);
-        repoAdd(REPORT_INDIRECT_ASSIGNMENTS, initResult);
+        REPORT_INDIRECT_ASSIGNMENTS.init(this, initTask, initResult); // new style (2023-02 and later)
+        repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult); // old style
 
-        String appArchetypeOid = addObject(new ArchetypeType().name("Application")
+        appArchetypeOid = addObject(new ArchetypeType().name("Application")
                 .asPrismObject(), initTask, initResult);
         String orgOid = addObject(new OrgType().name("Org1")
                 .asPrismObject(), initTask, initResult);
@@ -54,7 +58,7 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         String appServiceOid = addObject(new ServiceType().name("appService")
                 .assignment(new AssignmentType().targetRef(appArchetypeOid, ArchetypeType.COMPLEX_TYPE))
                 .asPrismObject(), initTask, initResult);
-        String appRoleOid = addObject(new RoleType().name("appRole")
+        appRoleOid = addObject(new RoleType().name("appRole")
                 .inducement(new AssignmentType().targetRef(appServiceOid, ServiceType.COMPLEX_TYPE))
                 .asPrismObject(), initTask, initResult);
         String businessRoleOid = addObject(new RoleType().name("businessRole")
@@ -100,8 +104,62 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
     public void test100RunReport() throws Exception {
         skipIfNotNativeRepository();
 
-        // 50 * 3 (normal) + 50 // 3 * 2 (direct assignments + orgs) + 3 (without metadata) + deleted + jack + header
-        // (subscription footer is considered automatically later, do not count it here)
-        testExport(TASK_EXPORT_CLASSIC_ROLE_CACHING, REPORT_INDIRECT_ASSIGNMENTS, 188, REPORT_COLUMN_COUNT, null, null);
+        when("report is run without any parameters");
+        List<String> rows = REPORT_INDIRECT_ASSIGNMENTS.export()
+                .execute(getTestOperationResult());
+
+        then("only rows for that user are exported");
+        assertCsv(rows, "after")
+                .assertColumns(REPORT_COLUMN_COUNT)
+                // 50 * 3 (normal) + 50 // 3 * 2 (direct assignments + orgs) + 3 (without metadata) + deleted + jack
+                .assertRecords(187);
+    }
+
+    @Test
+    public void test200RunReportWithUserParameter() throws Exception {
+        skipIfNotNativeRepository();
+
+        when("report is run with userName parameter set");
+        List<String> rows = REPORT_INDIRECT_ASSIGNMENTS.export()
+                .withParameter("userName", "user-00001")
+                .execute(getTestOperationResult());
+
+        then("only rows for that user are exported");
+        assertCsv(rows, "after")
+                .assertColumns(REPORT_COLUMN_COUNT)
+                .assertRecords(3); // rows for user-00001
+    }
+
+    @Test
+    public void test210RunReportWithRoleParameter() throws Exception {
+        skipIfNotNativeRepository();
+
+        when("report is run with role parameter set");
+        List<String> rows = REPORT_INDIRECT_ASSIGNMENTS.export()
+                .withParameter("roleRef", new ObjectReferenceType().oid(appRoleOid).type(RoleType.COMPLEX_TYPE))
+                .execute(getTestOperationResult());
+
+        then("only rows with that role are exported");
+        assertCsv(rows, "after")
+                .assertColumns(REPORT_COLUMN_COUNT)
+                // 50 normal + 1 without metadata, but still properly matched by ref search
+                .assertRecords(51);
+    }
+
+    @Test(enabled = false) // TODO when roleArchetypeRef parameter is supported
+    public void test220RunReportWithRoleParameter() throws Exception {
+        skipIfNotNativeRepository();
+
+        when("report is run with role archetype parameter set");
+        List<String> rows = REPORT_INDIRECT_ASSIGNMENTS.export()
+                .withParameter("roleArchetypeRef",
+                        new ObjectReferenceType().oid(appArchetypeOid).type(ArchetypeType.COMPLEX_TYPE))
+                .execute(getTestOperationResult());
+
+        then("only rows with that role are exported");
+        assertCsv(rows, "after")
+                .assertColumns(REPORT_COLUMN_COUNT)
+                // 50 normal + 16 direct + 1 without metadata, but still properly matched by ref search
+                .assertRecords(67);
     }
 }

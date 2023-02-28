@@ -5,27 +5,78 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+
+<!--
+NOTE: This is the test version of 200-report-indirect-assignments.xml.
+If enhanced, add the features into 200-report-indirect-assignments.xml as well.
+-->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="7f1695f2-d826-4d78-a046-b8249b79d2b5">
     <name>Indirect assignment report</name>
     <description>Shows information stored in roleMembershipRef value metadata.</description>
-    <!--
-    Serious report would have this archetype, but it's not available for test.
-    <assignment>
-        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
-    </assignment>
-    -->
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>
-                    . ownedBy (@type = UserType and @path = roleMembershipRef)
-                </q:text>
+                <q:and>
+                    <q:ownedBy>
+                        <q:type>UserType</q:type>
+                        <q:path>roleMembershipRef</q:path>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$userName</path>
+                                </expression>
+                            </q:equal>
+                        </q:filter>
+                    </q:ownedBy>
+                    <q:ref>
+                        <q:path>.</q:path>
+                        <expression>
+                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                            <path>$roleRef</path>
+                        </expression>
+                    </q:ref>
+                    <!--
+                    TODO: this does not work yet, expression is not allowed for collection (multi-value)
+                    <q:ref>
+                        <q:path>.</q:path>
+                        <q:filter>
+                            <q:ref>
+                                <q:path>archetypeRef</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$roleArchetypeRef</path>
+                                </expression>
+                            </q:ref>
+                        </q:filter>
+                    </q:ref>
+                    -->
+                </q:and>
             </filter>
         </collection>
+        <parameter>
+            <name>userName</name>
+            <type>PolyStringType</type>
+        </parameter>
+        <parameter>
+            <name>roleRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:AbstractRoleType</targetType>
+        </parameter>
+        <!--
+        TODO: not supported yet
+        <parameter>
+            <name>roleArchetypeRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:ArchetypeRef</targetType>
+        </parameter>
+        -->
+
         <subreport>
             <!--
             This subreport generates additional lines per each metadata value,
@@ -106,9 +157,7 @@
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                return object?.relation
-                            </code>
+                            <code>object?.relation</code>
                         </script>
                     </expression>
                 </export>
