@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.api.util;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +56,14 @@ public class LocalizationUtil {
         LocalizationService service = ma.getLocalizationService();
 
         return service.translate(key, params, locale, defaultMsg);
+    }
+
+    public static String translateMessage(LocalizableMessageType msg) {
+        if (msg == null) {
+            return null;
+        }
+
+        return translateMessage(com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage(msg));
     }
 
     public static String translateMessage(LocalizableMessage msg) {
