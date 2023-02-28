@@ -10,6 +10,7 @@ import java.io.File;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -60,8 +61,16 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
     private Object markPolicyNoOutbound;
 
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        if (!isNativeRepository()) {
+            return;
+        }
         super.initSystem(initTask, initResult);
         addObject(OBJECT_TEMPLATE_PERSON, initTask, initResult);
         addObject(ARCHETYPE_PERSON, initTask, initResult);
