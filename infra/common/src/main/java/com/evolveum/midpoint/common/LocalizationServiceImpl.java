@@ -264,7 +264,7 @@ public class LocalizationServiceImpl implements LocalizationService {
         String key = translation.getKey();
 
         if (StringUtils.isEmpty(key)) {
-            return translateFromFallback(translation, locale, key);
+            return translateFromFallback(translation, locale);
         }
 
         String result;
@@ -277,18 +277,18 @@ public class LocalizationServiceImpl implements LocalizationService {
         if (result != null) {
             return result;
         } else {
-            return translateFromFallback(translation, locale, key);
+            return translateFromFallback(translation, locale);
         }
     }
 
-    private String translateFromFallback(PolyStringTranslationType translation, Locale locale, String defaultValue) {
+    private String translateFromFallback(PolyStringTranslationType translation, Locale locale) {
         if (translation.getFallbackTranslation() != null) {
             return translate(translation.getFallbackTranslation(), locale);
         } else if (translation.getFallback() != null) {
             return translation.getFallback();
-        } else {
-            return defaultValue;
         }
+
+        return null;
     }
 
     private String translate(PolyStringTranslationArgumentType polyStringTranslationArgument, Locale locale) {
