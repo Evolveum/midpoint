@@ -7,38 +7,43 @@
 
 package com.evolveum.midpoint.model.test.util;
 
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.IMPORT;
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.RECONCILIATION;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.test.TestSimulationResult;
-import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
-import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.expression.ExpressionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestSpringBeans;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -49,6 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Why a special class? To make clients' life easier and avoid many method variants.
  * (Regarding what parameters it needs to specify.)
+ *
+ * TODO remove the builder, it's unnecessary complication
  *
  * Limitations:
  *
@@ -66,6 +73,7 @@ public class SynchronizationRequest {
     private final boolean assertSuccess;
     private final Task task;
     private final TracingProfileType tracingProfile;
+    private final Collection<String> tracingAccounts;
     @NotNull private final TaskExecutionMode taskExecutionMode;
 
     private SynchronizationRequest(
@@ -79,6 +87,7 @@ public class SynchronizationRequest {
         this.assertSuccess = builder.assertSuccess;
         this.task = Objects.requireNonNullElseGet(builder.task, test::getTestTask);
         this.tracingProfile = builder.tracingProfile;
+        this.tracingAccounts = builder.tracingAccounts;
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
     }
 
@@ -101,27 +110,37 @@ public class SynchronizationRequest {
                     .reconciliation(new ReconciliationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet));
         }
-        TaskType importTask = new TaskType()
+        ActivityDefinitionType activityDefinition = new ActivityDefinitionType()
+                .work(work)
+                .executionMode(
+                        getBackgroundTaskExecutionMode())
+                .execution(new ActivityExecutionDefinitionType()
+                        .configurationToUse(new ConfigurationSpecificationType()
+                                .productionConfiguration(
+                                        taskExecutionMode.isProductionConfiguration()))
+                        .createSimulationResult(
+                                test.isNativeRepository() && !taskExecutionMode.isFullyPersistent()));
+        if (tracingProfile != null) {
+            ActivityTracingDefinitionType tracing = new ActivityTracingDefinitionType()
+                    .tracingProfile(tracingProfile);
+            if (tracingAccounts != null) {
+                String script = String.format(
+                        "[%s].contains(item?.name?.orig)",
+                        tracingAccounts.stream()
+                                .map(s -> "'" + s + "'")
+                                .collect(Collectors.joining(",")));
+                tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
+                        .expression(ExpressionUtil.forGroovyCode(script)));
+            }
+            activityDefinition.reporting(new ActivityReportingDefinitionType()
+                    .tracing(tracing));
+        }
+        TaskType syncTask = new TaskType()
                 .name(synchronizationStyle.taskName)
                 .executionState(TaskExecutionStateType.RUNNABLE)
-                .activity(new ActivityDefinitionType()
-                        .work(work)
-                        .executionMode(
-                                getBackgroundTaskExecutionMode())
-                        .execution(new ActivityExecutionDefinitionType()
-                                .configurationToUse(new ConfigurationSpecificationType()
-                                                .productionConfiguration(
-                                                        taskExecutionMode.isProductionConfiguration()))
-                                .createSimulationResult(
-                                        test.isNativeRepository() && !taskExecutionMode.isFullyPersistent())));
-        String taskOid = test.addObject(importTask, task, result);
-        if (tracingProfile != null) {
-            test.traced(
-                    tracingProfile,
-                    () -> test.waitForTaskCloseOrSuspend(taskOid, timeout));
-        } else {
-            test.waitForTaskCloseOrSuspend(taskOid, timeout);
-        }
+                .activity(activityDefinition);
+        String taskOid = test.addObject(syncTask, task, result);
+        test.waitForTaskCloseOrSuspend(taskOid, timeout);
 
         if (assertSuccess) {
             test.assertTask(taskOid, "after")
@@ -322,6 +341,7 @@ public class SynchronizationRequest {
         private long timeout = DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
         private boolean assertSuccess = true;
         private TracingProfileType tracingProfile;
+        private Collection<String> tracingAccounts;
         private Task task;
         private TaskExecutionMode taskExecutionMode;
 
@@ -408,6 +428,14 @@ public class SynchronizationRequest {
         public SynchronizationRequestBuilder withTracing() {
             return withTracingProfile(
                     test.createModelLoggingTracingProfile());
+        }
+
+        public SynchronizationRequestBuilder withTracingAccounts(String... names) {
+            if (tracingProfile == null) {
+                withTracing();
+            }
+            this.tracingAccounts = List.of(names);
+            return this;
         }
 
         public SynchronizationRequestBuilder simulatedDevelopment() {

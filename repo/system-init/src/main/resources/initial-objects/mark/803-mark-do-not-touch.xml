@@ -6,8 +6,8 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000803">
-    <name>Do not Touch</name>
+        oid="00000000-0000-0000-0000-000000000803">
+    <name>Do not touch</name>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
     </assignment>
@@ -15,14 +15,14 @@
     <objectOperationPolicy>
         <!--  Model Level  -->
         <synchronize>
-          <inbound>
-              <enabled>false</enabled>
-              <severity>info</severity>
-          </inbound>
-          <outbound>
-              <enabled>false</enabled>
-              <severity>error</severity>
-          </outbound>
+            <inbound>
+                <enabled>false</enabled>
+                <severity>info</severity>
+            </inbound>
+            <outbound>
+                <enabled>false</enabled>
+                <severity>error</severity>
+            </outbound>
         </synchronize>
         <!--  Provisioning level -->
         <add>

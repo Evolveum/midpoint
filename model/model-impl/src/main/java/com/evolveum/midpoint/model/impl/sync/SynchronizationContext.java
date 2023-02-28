@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -194,12 +193,12 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
-    public boolean isMarkedSkipSynchronization() {
+    boolean isMarkedSkipSynchronization(OperationResult result) {
         var policy = shadowedResourceObject.getEffectiveOperationPolicy();
         // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
         // provisioning is skipped, so we need to ensure policy is computed.
         if (policy == null) {
-            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, new OperationResult("markedSkipSynchronization"));
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
         }
         return !policy.getSynchronize().getInbound().isEnabled();
     }
@@ -515,15 +514,6 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public boolean isVisible() {
         return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
-    }
-
-    /**
-     * TEMPORARY IMPLEMENTATION
-     *
-     * Later, we will have a dictionary of those situations with the information how they affect the synchronization process.
-     */
-    boolean isSynchronizationPreventedByShadowPolicySituation() {
-        return !shadowedResourceObject.getPolicySituation().isEmpty();
     }
 
     /**

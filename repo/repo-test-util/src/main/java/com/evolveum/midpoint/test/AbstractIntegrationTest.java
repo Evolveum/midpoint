@@ -4504,4 +4504,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     public SimpleObjectResolver getResourceReloader() {
         return RepoSimpleObjectResolver.get(); // overridden in higher-level tests
     }
+
+    public void initTestObjects(Task task, OperationResult result, TestObject<?>... objects) throws Exception {
+        for (TestObject<?> object : objects) {
+            object.init(this, getTestTask(), getTestOperationResult());
+        }
+    }
 }
