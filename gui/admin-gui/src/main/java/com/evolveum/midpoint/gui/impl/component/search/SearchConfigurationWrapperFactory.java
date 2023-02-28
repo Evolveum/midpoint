@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchIte
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.AvailableMarkItemWrapperFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class SearchConfigurationWrapperFactory {
@@ -37,7 +38,7 @@ public class SearchConfigurationWrapperFactory {
 
     public static PropertySearchItemWrapper createPropertySearchItemWrapper(
             Class<?> type,
-            Map<ItemPath, ItemDefinition<?>> availableSearchItems,
+            PathKeyedMap<ItemDefinition<?>> availableSearchItems,
             SearchItemType item,
             SearchContext additionalSearchContext,
             ModelServiceLocator modelServiceLocator) {

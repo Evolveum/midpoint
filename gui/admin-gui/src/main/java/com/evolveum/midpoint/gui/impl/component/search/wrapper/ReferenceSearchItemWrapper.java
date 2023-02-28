@@ -22,17 +22,20 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
 import java.util.List;
 
 public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<ObjectReferenceType> {
 
     PrismReferenceDefinition def;
     Class<?> searchType;
+    private QName targetType;
 //    List<T> availableValues = new ArrayList<>();
 
-    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<?> searchType) {
+    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, QName targetType, Class<?> searchType) {
         super(def.getItemName());
         this.def = def;
+        this.targetType = targetType;
         this.searchType = searchType;
     }
 
@@ -59,11 +62,15 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
     @Override
     public DisplayableValue<ObjectReferenceType> getDefaultValue() {
         ObjectReferenceType ref = new ObjectReferenceType();
-        List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
+        List<QName> supportedTargets = getSupportedTargetTypes();
         if (supportedTargets.size() == 1) {
             ref.setType(supportedTargets.iterator().next());
         }
         return new SearchValue<>(ref);
+    }
+
+    private List<QName> getSupportedTargetTypes() {
+        return targetType != null ? Arrays.asList(targetType) : WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
     }
 
     @Override
@@ -72,7 +79,7 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
         if (refValue.isEmpty()) {
             return null;
         }
-        List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
+        List<QName> supportedTargets = getSupportedTargetTypes();
         if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
                 && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
             return null;
@@ -88,4 +95,8 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
 //    public List<T> getAvailableValues() {
 //        return availableValues;
 //    }
+
+    public QName getTargetType() {
+        return targetType;
+    }
 }

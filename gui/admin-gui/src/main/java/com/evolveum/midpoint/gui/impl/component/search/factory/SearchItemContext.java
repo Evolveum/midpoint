@@ -15,6 +15,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +31,6 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -55,7 +55,7 @@ public class SearchItemContext implements Serializable {
 
     public SearchItemContext(
             Class<?> containerType,
-            Map<ItemPath, ItemDefinition<?>> availableSearchItems,
+            PathKeyedMap<ItemDefinition<?>> availableSearchItems,
             SearchItemType searchItem,
             SearchContext additionalSearchContext,
             ModelServiceLocator modelServiceLocator) {
@@ -68,8 +68,11 @@ public class SearchItemContext implements Serializable {
         if (path != null) {
             this.itemDef = availableSearchItems.get(path);
         }
-        this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         this.valueTypeName = getSearchItemValueTypeName(item, itemDef);
+        if (valueTypeName != null && itemDef == null) {
+            this.itemDef = PrismContext.get().getSchemaRegistry().findItemDefinitionByType(valueTypeName);
+        }
+        this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
         this.additionalSearchContext = additionalSearchContext;
@@ -234,5 +237,12 @@ public class SearchItemContext implements Serializable {
 
     public SearchContext getAdditionalSearchContext() {
         return additionalSearchContext;
+    }
+
+    public QName getParameterTargetType() {
+        if (hasParameter()) {
+            return item.getParameter().getTargetType();
+        }
+        return null;
     }
 }

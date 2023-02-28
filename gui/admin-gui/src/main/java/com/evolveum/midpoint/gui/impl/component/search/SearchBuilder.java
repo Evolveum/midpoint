@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +57,7 @@ public class SearchBuilder<C extends Serializable> {
 
     private boolean isViewForDashboard;
 
-    private Map<ItemPath, ItemDefinition<?>> allSearchableItems;
+    private PathKeyedMap<ItemDefinition<?>> allSearchableItems;
 
     private SearchContext additionalSearchContext;
 

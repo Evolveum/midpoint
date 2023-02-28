@@ -173,7 +173,7 @@ public class SearchBoxConfigurationBuilder {
             SearchFilterType filter = reportCollection.getCollection().getFilter();
             if (filter != null) {
                 try {
-                    ObjectFilter parsedFilter = null;//PrismContext.get().getQueryConverter().parseFilter(filter, type);
+                    ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().parseFilter(filter, type);
                     if (parsedFilter instanceof AndFilter) {
                         List<ObjectFilter> conditions = ((AndFilter) parsedFilter).getConditions();
                         conditions.forEach(condition -> processFilterToSearchItem(searchItems, condition));

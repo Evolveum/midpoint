@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -264,11 +265,11 @@ public class SearchableItemsDefinitions {
         return SearchableItemsDefinitions.SEARCHABLE_OBJECTS.get(typeClass);
     }
 
-    @NotNull public Map<ItemPath, ItemDefinition<?>> createAvailableSearchItems() {
+    @NotNull public PathKeyedMap<ItemDefinition<?>> createAvailableSearchItems() {
 
         Collection<ItemPath> extensionPaths = createExtensionPaths();
 
-        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
+        PathKeyedMap<ItemDefinition<?>> searchableDefinitions = new PathKeyedMap<>();
 
         ItemDefinition<?> containerDef = getDefinition();
         collectExtensionDefinitions(containerDef, extensionPaths, searchableDefinitions);

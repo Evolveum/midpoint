@@ -19,6 +19,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,6 +65,15 @@ public class ReferenceSearchItemPanel extends PropertySearchItemPanel<ReferenceS
 
             private Class<?> getSearchType() {
                 return ReferenceSearchItemPanel.this.getModelObject().getSearchType();
+            }
+
+            @Override
+            protected List<QName> getSupportedTargetList() {
+                QName parameterTargetType = ReferenceSearchItemPanel.this.getModelObject().getTargetType();
+                if (parameterTargetType != null) {
+                    return Arrays.asList(parameterTargetType);
+                }
+                return super.getSupportedTargetList();
             }
         };
     }

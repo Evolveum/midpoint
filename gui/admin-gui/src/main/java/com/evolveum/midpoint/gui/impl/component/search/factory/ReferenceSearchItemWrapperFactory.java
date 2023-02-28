@@ -16,7 +16,7 @@ public class ReferenceSearchItemWrapperFactory extends AbstractSearchItemWrapper
 
     @Override
     protected ReferenceSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new ReferenceSearchItemWrapper((PrismReferenceDefinition)ctx.getItemDef(), ctx.getContainerClassType());
+        return new ReferenceSearchItemWrapper((PrismReferenceDefinition)ctx.getItemDef(), ctx.getParameterTargetType(), ctx.getContainerClassType());
     }
 
     @Override

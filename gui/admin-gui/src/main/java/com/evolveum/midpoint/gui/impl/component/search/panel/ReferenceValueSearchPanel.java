@@ -129,7 +129,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         };
     }
 
-    private List<QName> getSupportedTargetList() {
+    protected List<QName> getSupportedTargetList() {
         if (referenceDef != null) {
             return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
         }
