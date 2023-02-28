@@ -8,6 +8,7 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-0000-0000-0000-286d76cea7c5">
     <name>Simulation report: Objects</name>
     <objectCollection>
@@ -17,7 +18,8 @@
                 <q:inOid>
                     <c:expression>
                         <c:script>
-                            <c:code>simulationResultRef.oid</c:code>
+                            <!-- temporary hack -->
+                            <c:code>simulationResultRef ? simulationResultRef.oid : simulationResultOid</c:code>
                         </c:script>
                     </c:expression>
                     <q:considerOwner>true</q:considerOwner>
@@ -27,10 +29,16 @@
         <view>
             <column>
                 <name>id</name>
-                <path>#</path>
                 <display>
                     <label>ID</label>
                 </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.id</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <column>
                 <name>oid</name>
@@ -91,6 +99,10 @@
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
+        </parameter>
+        <parameter> <!-- temporary hack -->
+            <name>simulationResultOid</name>
+            <type>xsd:string</type>
         </parameter>
     </objectCollection>
 </report>
