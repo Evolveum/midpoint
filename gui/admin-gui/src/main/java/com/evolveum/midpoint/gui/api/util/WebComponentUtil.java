@@ -467,13 +467,6 @@ public final class WebComponentUtil {
         });
     }
 
-    public static String resolveLocalizableMessage(LocalizableMessageType localizableMessage, Component component) {
-        if (localizableMessage == null) {
-            return null;
-        }
-        return resolveLocalizableMessage(com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage(localizableMessage), component);
-    }
-
     public static String resolveLocalizableMessage(LocalizableMessage localizableMessage, Component component) {
         if (localizableMessage == null) {
             return null;

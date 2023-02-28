@@ -7,21 +7,17 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.LocalizableMessageModel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.getLocalizableMessageOrDefault;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 
 public class InformationPanel extends BasePanel<InformationType> {
 
@@ -35,33 +31,41 @@ public class InformationPanel extends BasePanel<InformationType> {
     }
 
     private void initLayout() {
-        Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new IModel<LocalizableMessageType>() {
-            @Override
-            public LocalizableMessageType getObject() {
-                InformationType info = getModelObject();
-                if (info == null || info.getTitle() == null && info.getLocalizableTitle() == null){
-                    return new SingleLocalizableMessageType().fallbackMessage("ApprovalStageDefinitionType.additionalInformation");
-                }
-                return getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle());
+        Label titleLabel = new Label(ID_TITLE, () -> {
+            InformationType info = getModelObject();
+            if (info == null || info.getTitle() == null && info.getLocalizableTitle() == null) {
+                return getString("ApprovalStageDefinitionType.additionalInformation");
             }
-        }, this));
+
+            return translate(info.getLocalizableTitle(), info.getTitle());
+        });
         titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(titleLabel);
 
-        ListView<InformationPartType> list = new ListView<InformationPartType>(ID_PARTS,
-                new PropertyModel<>(getModel(), InformationType.F_PART.getLocalPart())) {
+        ListView<InformationPartType> list = new ListView<>(ID_PARTS, () -> getModelObject().getPart()) {
+
             @Override
             protected void populateItem(ListItem<InformationPartType> item) {
-                InformationPartType part = item.getModelObject();
-                Label label = new Label(ID_PART, part != null ? WebComponentUtil.resolveLocalizableMessage(
-                        getLocalizableMessageOrDefault(part.getLocalizableText(), part.getText()), InformationPanel.this)
-                        : "");
-                if (Boolean.TRUE.equals(part.isHasMarkup())) {
+                Label label = new Label(ID_PART, () -> {
+                    InformationPartType part = item.getModelObject();
+                    return translate(part.getLocalizableText(), part.getText());
+                });
+
+                if (Boolean.TRUE.equals(item.getModelObject().isHasMarkup())) {
                     label.setEscapeModelStrings(false);
                 }
+
                 item.add(label);
             }
         };
         add(list);
+    }
+
+    private String translate(LocalizableMessageType msg, String defaultKey) {
+        if (msg != null) {
+            return LocalizationUtil.translateMessage(msg);
+        }
+
+        return LocalizationUtil.translate(defaultKey);
     }
 }
