@@ -5111,7 +5111,7 @@
                     <xsd:documentation>
                         Lifecycle state of the mapping. Production configuration consists (by default) of `active`
                         and `deprecated` ones. Development configuration consists (by default) of `active` and
-                        `proposed` ones. (The role of `deprecated` mappings in development configuration is unclear.)
+                        `proposed` ones.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
