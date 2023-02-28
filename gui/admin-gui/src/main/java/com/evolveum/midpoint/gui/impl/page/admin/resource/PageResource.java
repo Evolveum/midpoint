@@ -8,13 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
@@ -24,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -84,7 +83,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     protected WebMarkupContainer createTemplatePanel(String id) {
         setShowedByWizard(true);
         getObjectDetailsModels().reset();
-        return new ResourceWizardPanel(id, createWizardPanelHelper());
+        return new ResourceWizardPanel(id, createObjectWizardPanelHelper());
     }
 
     @Override
@@ -128,44 +127,46 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 .build();
     }
 
-    public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, ResourceObjectTypeBasicWizardPanel.class);
+    public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
     }
 
-    public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(target, valueModel);
+    public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(target, pathToValue);
         wizard.setShowObjectTypePreview(true);
     }
 
-    public void showSynchronizationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, SynchronizationWizardPanel.class);
+    public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, SynchronizationWizardPanel.class);
     }
 
-    public void showCorrelationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, CorrelationWizardPanel.class);
+    public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, CorrelationWizardPanel.class);
     }
 
-    public void showCapabilitiesWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, CapabilitiesWizardPanel.class);
+    public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, CapabilitiesWizardPanel.class);
     }
 
-    public void showCredentialsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, CredentialsWizardPanel.class);
+    public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, CredentialsWizardPanel.class);
     }
 
-    public void showActivationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, ActivationsWizardPanel.class);
+    public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, ActivationsWizardPanel.class);
     }
 
-    public void showAssociationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, AssociationsWizardPanel.class);
+    public void showAssociationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, AssociationsWizardPanel.class);
     }
 
-    public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        return showWizard(target, valueModel, ResourceObjectTypeWizardPanel.class);
+    public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        ResourceObjectTypeWizardPanel wizard =
+                showWizard(target, pathToValue, ResourceObjectTypeWizardPanel.class);
+        return wizard;
     }
 
-    public void showAttributeMappingWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showWizard(target, valueModel, AttributeMappingWizardPanel.class);
+    public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showWizard(target, pathToValue, AttributeMappingWizardPanel.class);
     }
 }

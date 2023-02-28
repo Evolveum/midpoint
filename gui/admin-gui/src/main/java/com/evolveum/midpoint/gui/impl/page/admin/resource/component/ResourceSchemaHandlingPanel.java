@@ -23,7 +23,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -49,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
@@ -175,21 +173,22 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-                PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = getContainerModel().getObject();
-                PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> newWrapper =
-                        createNewItemContainerValueWrapper(value, container, target);
-                getObjectDetailsModels().getPageResource().showObjectTypeWizard(target, () -> newWrapper);
+                onNewValue(getContainerModel(), target);
             }
         };
         form.add(objectTypesPanel);
+    }
+
+    protected void onNewValue(
+            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+        getObjectDetailsModels().getPageResource().showObjectTypeWizard(target, newWrapperModel.getObject().getPath());
     }
 
     protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
         if (valueModel != null) {
             getObjectDetailsModels().getPageResource().showResourceObjectTypePreviewWizard(
                     target,
-                    valueModel);
+                    valueModel.getObject().getPath());
         }
     }
 
