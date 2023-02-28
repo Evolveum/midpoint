@@ -152,12 +152,12 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     @Override
     public @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @NotNull String rootTaskOid,
+            @NotNull Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             OperationResult result)
             throws ConfigurationException {
         return simulationResultManager
-                .createSimulationResult(definition, rootTaskOid, configurationSpecification, result);
+                .createSimulationResult(definition, rootTask, configurationSpecification, result);
     }
 
     @Override

@@ -80,7 +80,7 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     @Override
     public @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @NotNull String rootTaskOid,
+            @NotNull Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             OperationResult result) {
         throw noModelAvailableException();
