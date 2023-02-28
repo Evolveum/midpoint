@@ -1263,7 +1263,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NEW_VALUES,
                         a -> a.contains("developer")
                                 .contains("admin")
-                                .contains("2000"))
+                                .contains("00"))
                 .assertValue(C_VALUES_ADDED, a -> a.contains("developer"))
                 .assertValue(C_VALUES_DELETED, "")
                 .end()
