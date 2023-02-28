@@ -1,0 +1,19 @@
+= Resource Object Classification Fine-Tuning
+:page-since: "4.7"
+:page-upkeep-status: green
+
+#TODO#
+
+#TODO check if GUI supports this#
+
+// [NOTE]
+// ====
+// Currently, we do not provide any analytic capabilities regarding the classification of shadows.
+// This is unlike higher-level processing, where any changes are stored into "simulation results" and can be analyzed after the simulation.
+// The classification of shadows is always updated right in the repository, and has to be analyzed there.
+//
+// (This is not considered to be a persistent, externally visible effect, as these shadows should not be linked to any focal objects.
+// So their classification and re-classification is viewed as internal midPoint data manipulation.)
+//
+// We may consider adding analytical capabilities here later.
+// ====

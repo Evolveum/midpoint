@@ -23,20 +23,26 @@ Let us describe these concepts in more details.
 == Persistent-Effects vs Simulation Execution Mode
 
 Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in two basic modes: _persistent-effects_ or _simulation_.
-(There is also a third one, _mixed_ mode that is combination of the two.)
 
 === Persistent-Effects Mode
-
-#FIXME Better term is needed.#
 
 This is the standard mode of operation, where any actions are really executed, be that in midPoint repository or on the resources.
 All such changes are also recorded in the system audit log.
 
-NOTE: There are some specialties like postponing resource operations either because of the resource unavailability (planned - see xref:/midpoint/reference/resources/maintenance-state/[maintenance mode] - or unplanned), or because of xref:/midpoint/reference/resources/propagation/[provisioning propagation].
+[NOTE]
+====
+There are some specialties like postponing resource operations either because of the resource unavailability (planned - see xref:/midpoint/reference/resources/maintenance-state/[maintenance mode] - or unplanned), or because of xref:/midpoint/reference/resources/propagation/[provisioning propagation].
 But none of these contradict the basic idea that all computed operations are going to be (eventually) applied.
+====
 
-NOTE: This mode can be sometimes (imprecisely) called _production_.
+[NOTE]
+====
+This mode can be sometimes (imprecisely) called _production_.
 But this term conflicts with the one of <<Production Configuration>>, so it should not be used.
+
+Overall, the "persistent-effects mode" is not ideal either.
+We are looking for a better term.
+====
 
 === Simulation Mode
 
@@ -50,36 +56,33 @@ This is a special object in the midPoint repository that collects information ab
 . changes computed against these objects,
 . values of so-called _simulation metrics_ that provide high-level view of the activity being simulated.
 
-=== Mixed Mode
-
-In this mode, the majority of changes are applied just like in <<Persistent-Effects Mode>>, but selected ones are not.
-They are written to a simulation result instead.
-See <<Report-Only Attributes>>.
-
 == Production vs Development Configuration
-
-Since 4.7, midPoint supports iterative and incremental solution development style:
-Individual configuration items (like resource, resource object type, attribute, association, abstract role, assignment, mapping) can be developed gradually, and without the strict need of having a separate development/testing environment (although having such environment is still a bonus).
-
-The basic mechanism allowing this mode is the distinction between _production_ and _development_ variants of the system configuration.
 
 === Production Configuration
 
 The production configuration comprises all configuration items that are engaged in regular midPoint operations.
-Namely, these are the only ones that can cause any persistent effects.
+By _configuration item_ we mean for example the definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
+
+Items in the production configuration are the only ones that can cause persistent effects.
 (See <<Persistent-Effects Mode>>.)
 
 === Development Configuration
 
-On the other hand, some configuration items can be still being developed.
-Along with selected items from the <<Production Configuration>>, they are part of so-called _development configuration_.
+Development configuration represents the state of the system that is currently being developed.
+
+It may differ from the production configuration such that some configuration items may be added, other ones replaced, and finally, some may be missing.
+For example, we may develop the connection of a new resource, or a new object type on existing resource.
+Or, we may try to create a new version of metarole.
+Finally, we may want to decommission a resource or a role.
+
+The development configuration cannot be executed in "persistent-effects" mode.
 
 Before 4.7, the development configuration had to reside in separate midPoint instance called typically "development" or "testing" one.
-Now it is possible that both configurations share the single midPoint instance.
+Although such approach still has its advantages, now it is possible that both configurations share a single midPoint instance.
 
-Items in <<Development Configuration>> that are not in <<Production Configuration>> are generally marked by having `lifecycleState` of `proposed`.
-On the other hand, there may be items that are contained in <<Production Configuration>> but not in <<Development Configuration>>.
-They are recognized by having `lifecycleState` of `deprecated`.
+=== Distinguishing Production and Development Configurations
+
+This distinction is currently done using the `lifecycleState` property on configuration items.
 
 .Lifecycle states and configurations
 image::lifecycle-states.drawio.png[Lifecycle States]
@@ -104,11 +107,37 @@ Lifecycle state is currently supported on the following configuration items:
 - resource object association,
 - abstract roles (role, org, service, archetype),
 - assignment,
+- object template,
 - mapping.
 
-The following setup can be used to simulate a migration from old to new organizational unit by switching mappings in an object template.
+NOTE: For short, we will sometime use the statements "configuration item (like resource) is in development mode" to denote the fact that the item is part of the development configuration but not present in the production one.
+On the contrary, when saying "item is in production mode", we will usually mean that it is a part of the production configuration, with not saying anything whether it is also part of the development configuration.
 
-.Listing 1: Example of switching mappings in an object template
+=== Examples
+
+==== Resource in Development Configuration Only
+
+The following resource is in development configuration only.
+
+.Listing 1: Example of a resource in development configuration only
+[source,xml]
+----
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>CSV resource</name>
+    <!-- ... -->
+    <lifecycleState>proposed</lifecycleState>
+    <!-- ... -->
+</resource>
+----
+
+This setting guarantees that the content of the real resource will not be touched by midPoint.
+All operations that could affect this resource could be only simulated.
+
+==== Replacing a Mapping in an Object Template
+
+The following setup can be used to preview a migration from old to new organizational unit by switching mappings in an object template.
+
+.Listing 2: Example of switching mappings in an object template
 [source,xml]
 ----
 <objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
@@ -150,34 +179,120 @@ Hence, this mapping is part of both production and development configurations.
 <3> The `proposed` state means that this mapping belongs only to the development configuration.
 
 The third mapping can be seen as a replacement of the second one in the development configuration.
-Hence, when you run a persistent-effect activity (or a simulation one using production configuration), users get assigned to `old-unit`.
+Hence, when you run a persistent-effect activity (or a simulation one using production configuration), users are assigned to `old-unit`.
 But when running a simulation using development configuration, the users are assigned to `new-unit` instead.
 
-=== Report-Only Attributes
+== Typical Simulation Scenarios
 
-There is an experimental feature that allows to run <<Mixed Mode>> activities.
-Selected resource object attributes can be marked as _report-only_.
-They can belong to either <<Production Configuration>> or <<Development Configuration>> (or both).
-When set up, they have the following effect - if visible by the respective activity:
+=== Incremental Introduction of a New Resource Configuration
 
-. In <<Persistent-Effects Mode>> they are ignored. Any changes computed for them are lost.
-. In <<Mixed Mode>>, all changes computed for them are written to the simulation result.
-They are the only information in the result, as all other changes are executed normally, and written to the system audit log.
-. In <<Simulation Mode>>, all changes computed for them are written to the simulation result, along with all the other changes.
-In other words, the setting report-only mode has _no effects_ if the whole activity runs in the simulation mode.
+When connecting a new source or target system to midPoint, we must create its resource definition.
+However, the first version of the definition is rarely completely correct and usually there is a need to fine-tune it.
+To avoid any damage, we want actions driven by this resource definition to have no permanent effects in the production data in midPoint nor in any connected system.
 
-Resource attribute is put into report-only mode by setting the experimental property `changeApplicationMode` on it to the value of `report`.
+MidPoint supports this by not letting the resource definition into the production configuration, and keeping it in development one only.
+This is the default setting for new resources created in the Resource Wizard. #TODO verify if this is the case#
 
-WARNING: If there is a further dependency on the attribute, i.e. an inbound mapping, the effects can be unexpected.
-The mapping will get applied, and the results will be applied in the normal way.
-Hence, for such cases, it is advisable to avoid inbound mappings, or if that cannot be done, put them out of production configuration by setting `lifecycleState` appropriately.
+Having the resource in development but not production configuration has the following effects.
 
-== Execution Mode vs Configuration
+==== Fine-Tuning of the Classification Configuration
 
-Not all parts of midPoint configuration are usable with each execution mode, as described in Figure 1 above.
+The classification is the process of determining kind and intent of any shadows seen by midPoint.
+It is driven by `delineation` part of resource object types definitions.
+It usually needs to be iterated until it is good enough to be released into production.
+(One of the reasons is incomplete understanding of the data on the resource or their suboptimal quality.)
 
-. The <<Persistent-Effects Mode>> "sees" only the <<Production Configuration>>.
-(Otherwise, data inconsistencies would quickly build up.)
-. The <<Simulation Mode>> can be defined that it either sees <<Production Configuration>> or <<Development Configuration>>.
+Normally, each shadow is classified only once.
+Main reasons for this behavior are performance and stability:
+first, the classification takes some resources, and second, we do not want the shadows to change their classification at any moment.
 
-As the <<Mixed Mode>> is basically the "persistent-effects" mode, it uses the production configuration with special treatment of the report-only attributes.
+However, development-mode resources can be made more flexible.
+The performance is not crucial for them.
+The stability is not important neither, as the shadows on such resources should not be linked to any focal objects yet.
+
+Hence, if a shadow on a development-mode resource is processed in a simulation mode, it is re-classified each time it is seen.
+This provides the possibility to easily develop the classification configuration for the resource.
+
+See xref:classification-fine-tuning.adoc[] for more information.
+
+==== Fine-Tuning of the Correlation Configuration
+
+The correlation deals with determining the owner of the shadow - or concluding that there is currently no owner.
+Just like any other part of midPoint configuration, in most cases also this one needs some fine-tuning until it is production-ready.
+
+#TODO how does this work#
+
+See xref:correlation-fine-tuning.adoc[] for more information.
+
+==== Fine-Tuning of Inbound and Outbound Mappings
+
+After the classification and correlation are set up, we may start fine-tuning the inbound and outbound mappings.footnote:[Actually, it is not strictly required that the mappings come after correlation.
+There may be cases when correlation comes after the mappings - or does not come at all.]
+
+While the resource as such is in development mode, the execution of mappings has no effects on objects in midPoint and connected systems.
+The effects can only be previewed and checked for correctness.
+Only later, when we decide that the first version of the resource definition is adequate and all mappings were tested properly, we can switch the resource to the production mode.
+After that, all the mappings and other settings such as object types and correlations will be effective during regular midPoint operation.
+
+=== Incremental Improvements of the Resource Configuration
+
+When a new _resource object type_ is being added, the challenges and the procedures are very similar.
+This time, however, we cannot switch the whole resource to development mode.
+We do so only for the newly created object type.
+This guarantees that the previously accepted and tested configuration continues to work as expected - and, at the same time, we can test the newly added parts.
+
+=== Other Scenarios
+
+#TODO#
+
+// Note that the necessary changes to object classification may be tricky here.
+// When dealing with separate object class (like working with groups while accounts are already in production), it can be done by putting group object class into the development mode.
+// However, the problem may be if we have - for example - all of `inetOrgPerson` accounts in production (as `account/default` type), and now we want to split the type into two: `account/default` and `account/testing`, where the latter are designated by some naming convention.
+//
+// Here we probably need the feature of production/non-production shadows.
+//
+// . First, we would "unmark" selected shadows (given by the naming convention we suppose matches the testing accounts) from production to non-production mode.
+// . Then, we change the classification algorithm.
+// Technically, this is done by introducing a new object type (`account/testing`) in the development mode, with a specific delineation.
+// In fact, mere addition of this object type changes the configuration for the classification algorithm, even if the delineation for `account/default` remains unchanged.
+// (#TODO# If the delineation for `account/default` changes - how this will be put into the configuration? Will we mark the old one as deprecated, and the new one as proposed?)
+// . We then experiment with the classification configuration, running the import from the resource (single-account or bulk one), and looking at changes that are either done to now-unmarked shadows or at changes that would be executed against the production shadows. #TODO# This part is to be thought about in more details.
+//
+// #TODO think about possible interference with the production processes#
+
+// ==== Development of Other Configuration Items
+//
+// You now probably feel that this is not the end.
+// The same applies to adding new attribute mappings or new associations to existing object types.
+// Also, to changing or extending the correlation rules.
+// We need to support all these scenarios with simulated executions as well.
+//
+// #TODO think about this again#
+//
+// === Other Configuration Changes
+//
+// Fine-tuning of the configuration is not limited to resources.
+// The same approach can be used when introducing e.g. new object template mappings, new archetypes, policy rules, and so on.
+//
+// (This is not guaranteed to be fully supported in 4.7.)
+//
+// === Reorganization Simulation
+//
+// * What would be the consequences of importing the CSV with the new organizational structure?
+// * What would be the consequences of substantial changes in midPoint organizational structure?
+// (A variation of the above.)
+//
+// Not to be supported in 4.7.
+//
+// === Role Evolution
+//
+// When a role (or a set of roles) evolve, we may want to preview the effects before we put the updated definition(s) into production.
+//
+// Also, we may want to limit the effects we are interested in to the mere information of what users have the role(s) currently assigned.
+// (Meaning that we are interested only in the membership changes: who obtained the role and who lost the membership.)
+//
+// Not to be supported in 4.7.
+//
+// === Other Scenarios
+//
+// #TODO#
