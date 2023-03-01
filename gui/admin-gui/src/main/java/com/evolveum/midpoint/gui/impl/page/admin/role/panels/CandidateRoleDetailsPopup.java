@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.Co
 import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.CostResultSingle;
 import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UrType;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.TableResultCostPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.TableSimpleCostPopup;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -67,7 +67,7 @@ public class CandidateRoleDetailsPopup extends BasePanel<String> implements Popu
                 int userPossibleRolesSize = userPossibleRoles.size();
                 double reduceValue = ((userOriginalRolesSize - userPossibleRolesSize) / (double) userOriginalRolesSize) * 100;
 
-                costResultList.add(new CostResultSingle(userObjectType, userOriginalRoles, userPossibleRoles, reduceValue));
+                costResultList.add(new CostResultSingle(userObjectType, userOriginalRoles, userPossibleRoles, reduceValue,candidateRole,false));
             }
         } else if (modePermission) {
             for (UrType urType : candidateUserRole) {
@@ -87,7 +87,8 @@ public class CandidateRoleDetailsPopup extends BasePanel<String> implements Popu
                 int userPossibleRolesSize = userPossibleRoles.size();
                 double reduceValue = ((userOriginalRolesSize - userPossibleRolesSize) / (double) userOriginalRolesSize) * 100;
 
-                costResultList.add(new CostResultSingle(userObjectType, userOriginalRoles, userPossibleRoles, reduceValue));
+                costResultList.add(new CostResultSingle(userObjectType, userOriginalRoles, userPossibleRoles,
+                        reduceValue,candidateRole,false));
             }
         }
 
@@ -101,7 +102,7 @@ public class CandidateRoleDetailsPopup extends BasePanel<String> implements Popu
         form.setOutputMarkupId(true);
         add(form);
 
-        form.add(new TableResultCostPopup(ID_DATATABLE, generateCostResultSingle(costResult, modeRole, modePermission)));
+        form.add(new TableSimpleCostPopup(ID_DATATABLE, generateCostResultSingle(costResult, modeRole, modePermission)));
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_OK,
                 createStringResource("Button.cancel")) {
@@ -110,8 +111,6 @@ public class CandidateRoleDetailsPopup extends BasePanel<String> implements Popu
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ((PageBase) getPage()).getMainPopup().close(target);
-                // getPageBase().getMainPopup().close(target);
-                // getPageBase().hideMainPopup(target);
             }
         };
         add(cancelButton);

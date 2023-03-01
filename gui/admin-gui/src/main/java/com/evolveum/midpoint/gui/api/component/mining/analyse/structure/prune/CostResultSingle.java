@@ -22,14 +22,34 @@ public class CostResultSingle extends Selectable<CostResultSingle> implements Se
     UserType userObjectType;
     List<RoleType> userOriginalRoles;
     List<String> userPossibleRoles;
+    CandidateRole candidateRole;
     double reduceValue;
+    boolean applied;
 
     public CostResultSingle(UserType userObjectType, List<RoleType> userOriginalRoles,
-            List<String> userPossibleRoles, double reduceValue) {
+            List<String> userPossibleRoles, double reduceValue, CandidateRole candidateRole, boolean applied) {
         this.userObjectType = userObjectType;
         this.userOriginalRoles = userOriginalRoles;
         this.userPossibleRoles = userPossibleRoles;
         this.reduceValue = reduceValue;
+        this.candidateRole = candidateRole;
+        this.applied = applied;
+    }
+
+    public boolean isApplied() {
+        return applied;
+    }
+
+    public void setApplied(boolean applied) {
+        this.applied = applied;
+    }
+
+    public CandidateRole getCandidateRole() {
+        return candidateRole;
+    }
+
+    public void setCandidateRole(CandidateRole candidateRole) {
+        this.candidateRole = candidateRole;
     }
 
     public UserType getUserObjectType() {

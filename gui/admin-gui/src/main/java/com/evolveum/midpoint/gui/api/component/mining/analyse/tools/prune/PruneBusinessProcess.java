@@ -137,8 +137,8 @@ public class PruneBusinessProcess implements PruneFunctionality {
 
         while (degree != roles.size()) {
             minSupport = sigma * (degree + 1) + tau + omega;
-            LOGGER.info("Processing degree: " + (degree + 1) + ".");
             HashMap<Integer, CandidateRole> roleDegreeMinus = rolesDegrees.get(degree - 1);
+            LOGGER.info("Processing degree: " + (degree + 1) + ". Degree " + (degree) + " size = " + roleDegreeMinus.size());
             roleDegreePlus = new HashMap<>();
 
             List<CandidateRole> mappedValues = new ArrayList<>(roleDegreeMinus.values());

@@ -20,20 +20,25 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.CostResultSingle;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.MergeOperations;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -45,14 +50,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class TableResultCostPopup extends Panel {
+public class TableSimpleCostPopup extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra_rbac";
+    private static final String ID_MESSAGE_FORM = "form_message";
+    private static final String ID_MESSAGE_PANEL = "warningFeedback";
 
-    public TableResultCostPopup(String id, List<CostResultSingle> costResultList) {
+
+    public TableSimpleCostPopup(String id, List<CostResultSingle> costResultList) {
         super(id);
 
-        add(generateTableCR(costResultList));
+        Form<?> messageForm = new Form<>(ID_MESSAGE_FORM);
+        messageForm.setOutputMarkupId(true);
+        add(messageForm);
+        MessagePanel<?> warningMessage = new MessagePanel<>(ID_MESSAGE_PANEL, MessagePanel.MessagePanelType.INFO, getWarningMessageModel()) {
+        };
+        warningMessage.setOutputMarkupId(true);
+        warningMessage.setOutputMarkupPlaceholderTag(true);
+        warningMessage.setVisible(false);
+        messageForm.add(warningMessage);
+
+        messageForm.add(generateTableCR(costResultList));
+
+    }
+
+    protected MessagePanel<?> getMessagePanel() {
+        return (MessagePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MESSAGE_FORM, ID_MESSAGE_PANEL));
     }
 
     public PageBase getPageBase() {
@@ -76,14 +99,14 @@ public class TableResultCostPopup extends Panel {
         provider.setSort(CostResultSingle.F_ROLE_COST, SortOrder.ASCENDING);
 
         BoxedTablePanel<CostResultSingle> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumnsRC(),
+                ID_DATATABLE, provider, initColumnsRC(costResultList),
                 null, true, false);
         table.setOutputMarkupId(true);
 
         return table;
     }
 
-    public List<IColumn<CostResultSingle, String>> initColumnsRC() {
+    public List<IColumn<CostResultSingle, String>> initColumnsRC(List<CostResultSingle> costResultList) {
 
         List<IColumn<CostResultSingle, String>> columns = new ArrayList<>();
 
@@ -292,10 +315,37 @@ public class TableResultCostPopup extends Panel {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
+                        UserType manageUser = rowModel.getObject().getUserObjectType();
+                        List<String> userPossibleRoles = rowModel.getObject().getUserPossibleRoles();
+                        List<RoleType> userOriginalRoles = rowModel.getObject().getUserOriginalRoles();
+                        List<PrismObject<RoleType>> roleForDelete = new ArrayList<>();
+                        for (RoleType roleType : userOriginalRoles) {
+                            if (!userPossibleRoles.contains(roleType.getName().toString())) {
+                                roleForDelete.add(roleType.asPrismObject());
+                            }
+                        }
+                        new MergeOperations(getPageBase()).mergeProcess(roleForDelete, manageUser.asPrismObject(),
+                                rowModel.getObject().getCandidateRole());
+
+                        //TODO The current functionality of replacing roles with candidate roles is used for basic processing
+                        // of results. Another run of the prune algorithm is required to record and track changes. This process will need to be reviewed later.
+                        //rowModel.getObject().setApplied(false);
+
+                        ajaxRequestTarget.add(getMessagePanel().replaceWith(getMessagePanel().setVisible(true)));
+                        this.setDefaultModel(Model.of("Applied"));
+                        this.add(new AttributeAppender("class", " btn btn-primary btn-lg disabled"));
+                        this.setEnabled(false);
+
+                        ajaxRequestTarget.add(this);
                     }
                 };
 
-                item.add(ajaxButton.add(new AttributeAppender("class", " btn btn-primary btn-sm ")));
+                if (rowModel.getObject().isApplied()) {
+                    ajaxButton.setDefaultModel(Model.of("Applied"));
+                    ajaxButton.add(new AttributeAppender("class", " btn btn-primary btn-lg disabled"));
+                    ajaxButton.setEnabled(false);
+                }
+                item.add(ajaxButton.add(new AttributeAppender("class", " btn btn-primary btn-sm ")).setOutputMarkupId(true));
             }
 
             @Override
@@ -307,6 +357,10 @@ public class TableResultCostPopup extends Panel {
         });
 
         return columns;
+    }
+
+    protected IModel<String> getWarningMessageModel() {
+        return new StringResourceModel("RoleMining.merge.role.mining.warning");
     }
 
 }

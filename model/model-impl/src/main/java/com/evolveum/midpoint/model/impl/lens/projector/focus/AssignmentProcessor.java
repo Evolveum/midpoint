@@ -1032,7 +1032,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets =
                     findEvaluatedAssignmentTargets(roleRef, evalAssignment);
             if (evaluatedAssignmentTargets.isEmpty()) {
-                LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
+               // LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
                 continue;
             }
 

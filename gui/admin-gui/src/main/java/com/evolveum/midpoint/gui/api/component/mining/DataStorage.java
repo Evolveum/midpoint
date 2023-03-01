@@ -85,10 +85,10 @@ public class DataStorage {
         resultDatumTypes = new ArrayList<>();
 
         probabilitiesList = new ArrayList<>();
-        // fillStructures(pageBase);
 
         rolesDegrees = new ArrayList<>();
         candidateKeyUpStructureMapUR = new HashMap<>();
+        candidateKeyUpStructureMapUP = new HashMap<>();
     }
 
     public static HashMap<Integer, List<UpType>> getCandidateKeyUpStructureMapUP() {
