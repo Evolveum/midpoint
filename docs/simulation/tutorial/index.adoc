@@ -12,12 +12,12 @@ NOTE: The simulations feature requires midPoint 4.7 or later, and the native (Po
 The overall scenario is that we connect HR system - represented by a CSV file - to midPoint.
 Then, we will connect the target system, represented again by a CSV file.
 
-Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial[midPoint samples] repository.
+Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial[midPoint samples] repository.
 
-== Step 1: Connecting the HR system
+== Step 1: Viewing the Raw HR Data
 
 . Create a directory for CSV files (like `~/sim-tutorial`) and copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/hr.csv[HR CSV file] there.
-. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] that it matches the location of the copied CSV file.
+. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] that it matches the location of the copied CSV file.
 . Import the HR definition #1 into midPoint.
 Note that the lifecycle state of the resource is `proposed`, so it is in the development mode.
 +
@@ -44,7 +44,7 @@ Note that the accounts are not classified: their intent is `unknown`.
 
 The initial definition contains no object types.
 So, let us define one.
-Please import link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-2.xml[HR definition #2].
+Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-2.xml[HR definition #2].
 (Do not forget to check the CSV file location before, as usual).
 
 .Listing 2: The resource definition #2
@@ -79,7 +79,7 @@ The intents were immediately set to `default`, because the accounts were not cla
 == Step 3: Change the Definition of the Object Type
 
 Imagine we want to change the definition of the object type so that employees will have the intent of `person`.
-Let us do that in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-3.xml[HR definition #3].
+Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-3.xml[HR definition #3].
 
 .Listing 3: The resource definition #3
 [source,xml]
@@ -124,9 +124,9 @@ Let us go through options 2b and 2a now.
 
 ==== Running the Simulation
 
-Import the following link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/task-hr-import-shadow-management-simulation.xml[task]:
+Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-shadow-management-simulation.xml[task]:
 
-.Listing 4: Import task that simulates the accounts re-classification
+.Listing 4: A task that simulates the accounts re-classification
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -183,9 +183,220 @@ The results can be also exported into CSV, by running a report named _Simulation
 . `pathsIncluded` set to `intent` to avoid showing changes in synchronization timestamps;
 . `showIfNoDetails` set to `false`.
 
+#TODO fix the report to provide reasonable labels for parameters#
+
 (The preview in GUI does not work with these kinds of reports. Execute the report to create the CSV file.)
 
 After opening the CSV in the spreadsheet and hiding unimportant columns it will look like this:
 
 .Reclassified objects report
 image::result-after-reclassification-report.png[Reclassified objects report]
+
+=== Running the Re-classification
+
+After we are satisfied with the expected re-classification results, we can run the re-classification in real.
+
+Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation.xml[task]:
+
+.Listing 5: A task that executes the accounts re-classification
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="8b169df3-3124-4e36-871f-83bb52acfd7b">
+    <name>hr-import (full simulation)</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="236dd5ca-47df-403c-82e1-9ce2f36be000"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <executionMode>preview</executionMode> <!--1-->
+        <execution>
+            <configurationToUse>
+                <productionConfiguration>false</productionConfiguration>
+            </configurationToUse>
+            <createSimulationResult>true</createSimulationResult>
+        </execution>
+    </activity>
+</task>
+----
+<1> This is the "main" (full) simulation.
+The low-level operations on shadows (classification, correlation state determination) are carried out.
+Changes to focus objects and resource objects are not executed.
+
+After running the task and listing the accounts, we see their intent was changed to `person`.
+
+.Content of HR resource after re-classification
+image::accounts-intent-person.png[Content of HR resource after re-classification]
+
+As an exercise, you can try running the simulated reclassification task again and check there are no simulated re-classification now.
+
+== Step 4: Simulation of Inbound Mappings
+
+So we can assume the resource object classification is OK now.
+Let us prepare some inbound mappings and synchronization reactions.
+Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-4.xml[HR definition #4].
+
+.Listing 6: The resource definition #4 - with mappings and reactions
+[source,xml]
+----
+<resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
+    <name>hr</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef> ... </connectorRef>
+    <connectorConfiguration> ... </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <attribute>
+                <ref>ri:ident</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:firstname</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastname</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:email</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>emailAddress</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+Traditional import from GUI does nothing, because it simply does not "see" the resource configuration:
+just as if there were no mappings nor synchronization reactions defined.
+
+There is a possibility to preview (simulate) the import.
+But be sure to check the preview that uses the development configuration, otherwise there will be no effects at all.
+
+#TODO implement preview with development configuration in GUI and describe it here#
+
+To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation.xml[full simulation task].
+
+After looking at the simulation result, we should see "2 focus activations" and after clicking on that mark, we will see users that are going to be added.
+After displaying the details of the first of them, we see the following:
+
+.Preview of the first user added
+image::user-after-first-import.png[Preview of the first user added]
+
+We see that our mappings work correctly.
+
+== Step 5: Switching the Resource into Production
+
+Now we can change the lifecycle state of the resource to `active`, making it part of the production configuration.
+After that, we can run the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
+
+We observe that two users were added.
+
+We may now run the simulated import and check that there are no computed changes.
+
+.Four unmodified objects
+image::four-unmodified-objects.png[Four unmodified objects]
+
+== Step 6: Extending the Resource
+
+Len us imagine that we want to add a mapping for `telephoneNumber`.
+We cannot put the whole resource back into development mode, but we can do that for the particular mapping.
+
+Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-5.xml[HR definition #5].
+
+.Listing 7: New mapping, in development mode
+[source,xml]
+----
+<resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
+    <name>hr</name>
+    <lifecycleState>active</lifecycleState>
+    <connectorRef> ... </connectorRef>
+    <connectorConfiguration> ... </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <attribute>
+                <ref>ri:phone</ref>
+                <inbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <target>
+                        <path>telephoneNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization> ... </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+After running the (full) simulation of import from HR, the result contains two deltas like this:
+
+.Telephone number change
+image::telephone-number-delta.png[Telephone number change]
+
+After we are satisfied with the mapping, we can put it into production mode (`lifecycleState` = `active`) and run the import task in "persistent-effects" mode.
