@@ -54,5 +54,6 @@
         <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
-    <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120" type="SecurityPolicyType"/>
+    <!-- Set later, because missing object 120 causes problems on startup; for some strange reasons, on native repo only! -->
+    <!--<globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120" type="SecurityPolicyType"/>-->
 </systemConfiguration>
