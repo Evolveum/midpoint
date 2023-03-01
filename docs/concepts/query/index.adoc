@@ -5,7 +5,6 @@ scripts: [ 'multi-source.js' ]
 :page-nav-title: Query
 :page-toc: top
 :toclevels: 3
-:page-alias: { "parent" : "/midpoint/reference/concepts/query/", "slug" : "query-api",  "title" : "Query API", "display-order" : 500 }
 
 == Introduction
 
