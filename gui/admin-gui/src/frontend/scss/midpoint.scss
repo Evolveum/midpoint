@@ -483,6 +483,10 @@ li.dropdown.user.user-menu {
 }
 
 .info-box {
+  & .info-box-icon {
+    color: $white;
+  }
+
   &.info-box-link {
     cursor: pointer;
   }
