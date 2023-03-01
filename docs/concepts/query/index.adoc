@@ -669,7 +669,7 @@ There are the following complex filters:
 * *Type* filter - to narrow the type of the searched object.
 * *Exists* filter - to apply multiple conditions on each value from a multi-value item.
 * *Ref* filter with target filter - for complex conditions on the multi-value references and their targets.
-* *OwnedBy* filter - for container searches with conditions on their parents.
+* *OwnedBy* filter - for container and reference searches with conditions on their parents.
 * *ReferencedBy* filter - for object searches with conditions on other objects that reference them.
 
 ==== Logical filters
@@ -2147,8 +2147,111 @@ Using example above will return first 10 records ordered by `name` where `admini
 [NOTE]
 Ordering objects by items inside multi-value container have unclear semantics and is not supported.
 
+// TODO == Container query, what are the supported types, what is delivered by the search?
+// Also link /midpoint/guides/assignment-repository-search/[GUI: Assignment Repository Search] guide as an example
+
+== Reference query
+
+[IMPORTANT]
+====
+* Reference query is supported since version 4.7.
+* Reference query is only supported with the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
+* As of 4.7, only `roleMembershipRef` and `linkRef` is searchable.
+====
+
+Reference query is not just any query with a `ref` filter - it is a special query returning references.
+Let's start with an example of the simplest reference search:
+
+[source,axiom]
+----
+. ownedBy (
+    @type = UserType
+    and @path = roleMembershipRef )
+----
+
+[source,xml]
+----
+<q:ownedBy>
+    <q:type>UserType</q:type>
+    <q:path>roleMembershipRef</q:path>
+</q:ownedBy>
+----
+
+[source,java]
+----
+prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+    // ... build() or buildFilter()
+----
+
+The examples above show just the filter for the reference search.
+There is no need to specify the type of the return object, because it always is `ObjectReferenceType`.
+On the other hand, there are some requirements for the reference search filter:
+
+* At minimum, there must be an `ownedBy` filter present, because it specifies the path to the reference.
+** It can also narrow down the type of the owning object, which is also used in the example above.
+Role membership references can appear on any `AssignmentHolderType`, but the filter above clearly
+states that we are interested only in the references owned by users (`UserType`).
+** The mandatory `ownedBy` filter can also contain nested filter and further narrow the search,
+e.g. only for users with name starting with "a" - see xref:#ownedby-filter[OwnedBy filter] for more.
+
+* Additional `ref` filters can be added for the searched reference.
+In this case, the top level filter must be `and`, it has to contain exactly one `ownedBy` filter
+specifying the path to the reference.
+** All the `ref` filters must use "self" path - which is an empty path in the XML representation
+or `.` in Axiom query language.
+** Ref filters can contain the target filter - see xref:#ref-filter-with-target-filter[this section] for more.
+
+Because of the specifics of this search, you may notice that the fluent Java API for the refernce
+search starts differently than other searches.
+It requires the information for the `ownedBy` filter right at the start and creates the filter for you.
+You can then continue either with the nested filter or the ref filter - we will show examples later.
+
+=== What is returned?
+
 // TODO
-//== Reference queries
+
+=== Reference search examples
+
+////
+TODO more examples
+
+[source,axiom]
+----
+. ownedBy (
+    @type = UserType
+    and @path = roleMembershipRef )
+and
+. matches (
+    targetType = RoleType
+    and
+    @ matches ( name startsWith[origIgnoreCase] "super" ) )
+----
+
+[source,xml]
+----
+<q:and>
+    <q:ownedBy>
+        <q:type>UserType</q:type>
+        <q:path>roleMembershipRef</q:path>
+        <q:filter>
+            <q:equal>
+                <q:path>name</q:path>
+                <expression>
+                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                    <path>$userName</path>
+                </expression>
+            </q:equal>
+        </q:filter>
+    </q:ownedBy>
+    <q:ref>
+        <q:path>.</q:path>
+        <expression>
+            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+            <path>$roleRef</path>
+        </expression>
+    </q:ref>
+----
+////
 
 == Query playground
 
