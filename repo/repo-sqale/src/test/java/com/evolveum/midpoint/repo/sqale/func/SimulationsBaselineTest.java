@@ -11,13 +11,17 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
+
+import com.evolveum.midpoint.schema.DeltaConvertor;
+
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -169,5 +173,65 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         @NotNull
         PrismObject<MarkType> read = repositoryService.getObject(MarkType.class, oid, null, result);
         assertNotNull(read);
+    }
+
+    @Test
+    public void test200DeleteTransaction() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("two simulation results in repository");
+        var user = new UserType()
+                .oid("d9fcaccc-9f38-437d-b26e-8e6715e47afc")
+                .name("user");
+        ObjectDeltaType addDeltaBean = DeltaConvertor.toObjectDeltaType(user.clone().asPrismObject().createAddDelta());
+
+        SimulationResultType simResult1 = new SimulationResultType()
+                .name("Result 1")
+                .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                .processedObject(new SimulationResultProcessedObjectType()
+                        .transactionId("T1")
+                        .oid(user.getOid())
+                        .name(user.getName())
+                        .state(ObjectProcessingStateType.ADDED)
+                        .after(user.clone())
+                        .delta(addDeltaBean));
+        repositoryService.addObject(simResult1.asPrismObject(), null, result);
+
+        SimulationResultType simResult2 = new SimulationResultType()
+                .name("Result 2")
+                .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                .processedObject(new SimulationResultProcessedObjectType()
+                        .transactionId("T1")
+                        .oid(user.getOid())
+                        .name(user.getName())
+                        .state(ObjectProcessingStateType.UNMODIFIED)
+                        .before(user.clone())
+                        .after(user.clone()));
+        repositoryService.addObject(simResult2.asPrismObject(), null, result);
+
+        when("POs in transaction T1 in first one are deleted");
+        repositoryService.deleteSimulatedProcessedObjects(simResult1.getOid(), "T1", result);
+
+        then("there are two results, one with POs, one with none");
+        assertProcessedObjects(simResult1.getOid(), 0, result);
+        assertProcessedObjects(simResult2.getOid(), 1, result);
+    }
+
+    private void assertProcessedObjects(String oid, int expectedObjects, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        var simResult = repositoryService.getObject(SimulationResultType.class, oid, null, result);
+        assertThat(simResult).as("simulation result").isNotNull();
+        assertThat(getProcessedObjects(oid, result)).as("processed objects").hasSize(expectedObjects);
+    }
+
+    private Collection<SimulationResultProcessedObjectType> getProcessedObjects(String oid, OperationResult result)
+            throws SchemaException {
+        return repositoryService.searchContainers(
+                SimulationResultProcessedObjectType.class,
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(oid)
+                        .build(),
+                null,
+                result);
     }
 }
