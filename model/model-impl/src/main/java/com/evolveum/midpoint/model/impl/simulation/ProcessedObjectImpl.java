@@ -333,7 +333,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta,
                 InternalState.CREATING);
 
-        processedObject.addComputedMetricValues(List.of()); // Ignoring metrics in this mode
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
 
         return processedObject;
     }

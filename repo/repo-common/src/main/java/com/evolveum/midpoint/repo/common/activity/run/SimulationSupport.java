@@ -157,10 +157,11 @@ class SimulationSupport {
         return activityRun.getActivityPath() + "#" + getBucketSequentialNumber();
     }
 
-    void openSimulationTransaction(OperationResult result) {
+    SimulationTransaction openSimulationTransaction(OperationResult result) {
         if (simulationResult != null) {
             simulationTransaction = simulationResult.openTransaction(getSimulationResultTxId(), result);
         }
+        return simulationTransaction;
     }
 
     void commitSimulationTransaction(OperationResult result) {

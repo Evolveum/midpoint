@@ -54,14 +54,12 @@ class ShadowUpdater {
     @NotNull private final SynchronizationContext<?> syncCtx;
     @NotNull private final ModelBeans beans;
     @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-
-    /** Only for simulation purposes. */
-    private final ShadowType shadowBefore;
+    @NotNull private final ShadowType shadowBefore;
 
     ShadowUpdater(@NotNull SynchronizationContext<?> syncCtx, @NotNull ModelBeans beans) {
         this.syncCtx = syncCtx;
         this.beans = beans;
-        this.shadowBefore = isShadowSimulation() ? syncCtx.getShadowedResourceObject().clone() : null;
+        this.shadowBefore = syncCtx.getShadowedResourceObject().clone();
     }
 
     ShadowUpdater updateAllSyncMetadataRespectingMode() throws SchemaException {
@@ -81,7 +79,7 @@ class ShadowUpdater {
 
     private void updateSyncSituation() throws SchemaException {
         applyShadowDelta(
-                createSynchronizationSituationDelta(syncCtx.getSituation()));
+                createSynchronizationSituationDelta(shadowBefore, syncCtx.getSituation()));
     }
 
     private void updateSyncSituationDescription(XMLGregorianCalendar now) throws SchemaException {
@@ -96,13 +94,13 @@ class ShadowUpdater {
 
     ShadowUpdater updateFullSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
-                SynchronizationUtils.createFullSynchronizationTimestampDelta(now));
+                SynchronizationUtils.createFullSynchronizationTimestampDelta(shadowBefore, now));
         return this;
     }
 
     private void updateBasicSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
-                SynchronizationUtils.createSynchronizationTimestampDelta(now));
+                SynchronizationUtils.createSynchronizationTimestampDelta(shadowBefore, now));
     }
 
     ShadowUpdater updateBothSyncTimestamps() throws SchemaException {

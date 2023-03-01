@@ -944,6 +944,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertSize(2); // temporarily
             // @formatter:on
 
+            assertSimulationResult(simResult3, "after")
+                    .display()
+                    .assertMetricValueByEventMark(MARK_SHADOW_CLASSIFICATION_CHANGED.oid, BigDecimal.ONE);
+
             REPORT_SIMULATION_VALUES_CHANGED.export()
                     .withDefaultParametersValues(simResult3.getSimulationResultRef())
                     .execute(result);
