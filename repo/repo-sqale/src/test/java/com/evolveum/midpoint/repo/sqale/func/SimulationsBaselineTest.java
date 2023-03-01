@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.NotNull;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,7 +37,83 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     private static final String TEST_TAG_2 = "00000000-0000-0000-0000-000000002000";
     private static final String TEST_ARCHETYPE = "d029f4e9-d0e9-4486-a927-20585d909dc7";
     private static final String RANDOM_OID = "24a89c52-e477-4a38-b3c0-75a01d8c13f3";
-    private @NotNull String simulationOid;
+
+    private static final String USER1_OID = "f333e8f2-b38a-4b13-b37e-b34b629d50f9";
+    private static final String USER1_NAME = "user1";
+    private static final String USER2_OID = "0d05c1ae-7687-4954-91e9-5a6af887e70e";
+    private static final String USER2_NAME = "user2";
+    private static final String SHADOW_OID = "76d44f44-1703-4acc-8b44-df01fe022203";
+    private static final String SHADOW_NAME = "account";
+
+    private String firstResultOid;
+    private String secondResultOid;
+
+    @BeforeClass
+    public void initDatabase() throws Exception {
+        super.initDatabase();
+        createResultsForSearching();
+    }
+
+    private void createResultsForSearching() throws SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        var user1 = new UserType()
+                .oid(USER1_OID)
+                .name(USER1_NAME);
+        var user2 = new UserType()
+                .oid(USER2_OID)
+                .name(USER2_NAME);
+        var shadow = new ShadowType()
+                .oid(SHADOW_OID)
+                .name(SHADOW_NAME);
+
+        ObjectDeltaType addDeltaBean = DeltaConvertor.toObjectDeltaType(user1.clone().asPrismObject().createAddDelta());
+
+        firstResultOid = repositoryService.addObject(
+                new SimulationResultType()
+                        .name("First Result")
+                        .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                        .processedObject(new SimulationResultProcessedObjectType()
+                                .transactionId("#1")
+                                .oid(user1.getOid())
+                                .name(user1.getName())
+                                .type(UserType.COMPLEX_TYPE)
+                                .state(ObjectProcessingStateType.ADDED)
+                                .after(user1.clone())
+                                .delta(addDeltaBean.clone()))
+                        .asPrismObject(),
+                null, result);
+
+        secondResultOid = repositoryService.addObject(
+                new SimulationResultType()
+                        .name("Second Result")
+                        .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                        .processedObject(new SimulationResultProcessedObjectType()
+                                .transactionId("#1")
+                                .oid(user1.getOid())
+                                .name(user1.getName())
+                                .type(UserType.COMPLEX_TYPE)
+                                .state(ObjectProcessingStateType.ADDED)
+                                .after(user1.clone())
+                                .delta(addDeltaBean.clone()))
+                        .processedObject(new SimulationResultProcessedObjectType()
+                                .transactionId("#2")
+                                .oid(user2.getOid())
+                                .name(user2.getName())
+                                .type(UserType.COMPLEX_TYPE)
+                                .state(ObjectProcessingStateType.UNMODIFIED)
+                                .before(user2.clone())
+                                .after(user2.clone()))
+                        .processedObject(new SimulationResultProcessedObjectType()
+                                .transactionId("#3")
+                                .oid(shadow.getOid())
+                                .name(shadow.getName())
+                                .type(ShadowType.COMPLEX_TYPE)
+                                .state(ObjectProcessingStateType.UNMODIFIED)
+                                .before(shadow.clone())
+                                .after(shadow.clone()))
+                        .asPrismObject(),
+                null, result);
+    }
 
     @Test
     public void test100CreateSimulation() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -69,7 +145,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                         .before(systemConfiguration.clone()));
 
         when("result is added to the repository");
-        simulationOid = repositoryService.addObject(obj.asPrismObject(), null, result);
+        var simulationOid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
         and("result is read back (as an object)");
         @NotNull PrismObject<SimulationResultType> resultReadBack =
@@ -149,23 +225,12 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         assertThat(byAssignmentTargetRefNonMatching).as("by assignment/targetRef, non-matching").isEmpty();
     }
 
-    @Test
-    public void test109deleteProcessedObjectsViaDelta() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        var delta = PrismContext.get().deltaFactory().object()
-                .createEmptyModifyDelta(SimulationResultType.class, simulationOid);
-        var cd = delta.createContainerModification(SimulationResultType.F_PROCESSED_OBJECT);
-        cd.setValuesToReplace(new ArrayList<>());
-
-        repositoryService.modifyObject(SimulationResultType.class, simulationOid, delta.getModifications(), null, createOperationResult());
-
-    }
-
     protected boolean getPartitioned() {
         return false;
     }
 
     @Test
-    public void test110createTag() throws Exception {
+    public void test110CreateTag() throws Exception {
         OperationResult result = createOperationResult();
         MarkType obj = new MarkType().name("testOfTest");
         String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
@@ -175,11 +240,12 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         assertNotNull(read);
     }
 
+    /** Deleting POs explicitly and using a delta. */
     @Test
-    public void test200DeleteTransaction() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public void test200DeleteProcessedObjects() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
 
-        given("two simulation results in repository");
+        given("three simulation results in repository");
         var user = new UserType()
                 .oid("d9fcaccc-9f38-437d-b26e-8e6715e47afc")
                 .name("user");
@@ -206,15 +272,140 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                         .name(user.getName())
                         .state(ObjectProcessingStateType.UNMODIFIED)
                         .before(user.clone())
+                        .after(user.clone()))
+                .processedObject(new SimulationResultProcessedObjectType()
+                        .transactionId("T2")
+                        .oid(user.getOid())
+                        .name(user.getName())
+                        .state(ObjectProcessingStateType.UNMODIFIED)
+                        .before(user.clone())
                         .after(user.clone()));
         repositoryService.addObject(simResult2.asPrismObject(), null, result);
 
-        when("POs in transaction T1 in first one are deleted");
+        SimulationResultType simResult3 = new SimulationResultType()
+                .name("Result 3")
+                .definition(new SimulationDefinitionType().useOwnPartitionForProcessedObjects(getPartitioned()))
+                .processedObject(new SimulationResultProcessedObjectType()
+                        .transactionId("T1")
+                        .oid(user.getOid())
+                        .name(user.getName())
+                        .state(ObjectProcessingStateType.UNMODIFIED)
+                        .before(user.clone())
+                        .after(user.clone()));
+        repositoryService.addObject(simResult3.asPrismObject(), null, result);
+
+        when("POs in transaction T1 in first one are deleted (explicitly)");
         repositoryService.deleteSimulatedProcessedObjects(simResult1.getOid(), "T1", result);
 
-        then("there are two results, one with POs, one with none");
+        then("POs in first results are deleted, others are intact");
         assertProcessedObjects(simResult1.getOid(), 0, result);
-        assertProcessedObjects(simResult2.getOid(), 1, result);
+        assertProcessedObjects(simResult2.getOid(), 2, result);
+        assertProcessedObjects(simResult3.getOid(), 1, result);
+
+        when("POs in second result are deleted (via delta)");
+        var modifications = PrismContext.get().deltaFor(SimulationResultType.class)
+                .item(SimulationResultType.F_PROCESSED_OBJECT)
+                .replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(SimulationResultType.class, simResult2.getOid(), modifications, null, result);
+
+        then("POs in first two results are deleted, the third one is intact");
+        assertProcessedObjects(simResult1.getOid(), 0, result);
+        assertProcessedObjects(simResult2.getOid(), 0, result);
+        assertProcessedObjects(simResult3.getOid(), 1, result);
+    }
+
+    /** Searching for POs. */
+    @Test(enabled = false)
+    public void test300SearchForProcessedObjects() throws SchemaException {
+        OperationResult result = createOperationResult();
+
+        when("getting all POs from 1st result");
+        var allFromFirst = getProcessedObjects(firstResultOid, result);
+
+        then("search result is OK");
+        assertThat(allFromFirst).as("all objects from first result").hasSize(1);
+        assertThat(allFromFirst.iterator().next().getState())
+                .as("state")
+                .isEqualTo(ObjectProcessingStateType.ADDED);
+
+        when("getting POs from 2nd result by name");
+        Collection<SimulationResultProcessedObjectType> byName =
+                repositoryService.searchContainers(
+                        SimulationResultProcessedObjectType.class,
+                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                                .ownerId(secondResultOid)
+                                .and()
+                                .item(SimulationResultProcessedObjectType.F_NAME)
+                                .eqPoly(USER2_NAME)
+                                .build(),
+                        null,
+                        result);
+
+        then("search result is OK");
+        assertThat(byName).as("POs by name").hasSize(1);
+        assertThat(byName.iterator().next().getName().getOrig())
+                .as("name")
+                .isEqualTo(USER2_NAME);
+
+        when("getting POs from 2nd result by type");
+        Collection<SimulationResultProcessedObjectType> byType =
+                repositoryService.searchContainers(
+                        SimulationResultProcessedObjectType.class,
+                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                                .ownerId(secondResultOid)
+                                .and()
+                                .item(SimulationResultProcessedObjectType.F_TYPE)
+                                .eq(ShadowType.COMPLEX_TYPE)
+                                .build(),
+                        null,
+                        result);
+
+        then("search result is OK");
+        assertThat(byType).as("POs by type").hasSize(1);
+        assertThat(byType.iterator().next().getType())
+                .as("type")
+                .isEqualTo(ShadowType.COMPLEX_TYPE);
+
+        when("getting POs from 2nd result by OID");
+        Collection<SimulationResultProcessedObjectType> byOid =
+                repositoryService.searchContainers(
+                        SimulationResultProcessedObjectType.class,
+                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                                .ownerId(secondResultOid)
+                                .and()
+                                .item(SimulationResultProcessedObjectType.F_OID)
+                                .eq(USER1_OID)
+                                .build(),
+                        null,
+                        result);
+
+        then("search result is OK");
+        assertThat(byOid).as("POs by OID").hasSize(1);
+        assertThat(byOid.iterator().next().getOid())
+                .as("OID")
+                .isEqualTo(USER1_OID);
+
+        when("getting POs from 2nd result by state");
+        Collection<SimulationResultProcessedObjectType> byState =
+                repositoryService.searchContainers(
+                        SimulationResultProcessedObjectType.class,
+                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                                .ownerId(secondResultOid)
+                                .and()
+                                .item(SimulationResultProcessedObjectType.F_STATE)
+                                .eq(ObjectProcessingStateType.ADDED)
+                                .build(),
+                        null,
+                        result);
+
+        then("search result is OK");
+        assertThat(byState).as("objects from 2nd result by state").hasSize(1);
+        assertThat(byState.iterator().next().getState())
+                .as("state")
+                .isEqualTo(ObjectProcessingStateType.ADDED);
+
+        // TODO other kinds of search
     }
 
     private void assertProcessedObjects(String oid, int expectedObjects, OperationResult result)
