@@ -273,11 +273,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
-        if (query == null) {
-            recordAuthenticationFailure(username, connEnv, "no username");
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
-        }
-
         Class<? extends FocusType> clazz = authCtx.getPrincipalType();
         MidPointPrincipal principal;
         try {
