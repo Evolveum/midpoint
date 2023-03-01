@@ -11,7 +11,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -172,7 +174,6 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         assertThat(processedObjects).as("processed objects").hasSize(1);
 
         and("can be parsed");
-        // TODO this should work, shouldn't it?
         ObjectType objectBefore = processedObjects.get(0).getBefore();
         assertThat(objectBefore).as("'object before' from result").isEqualTo(systemConfiguration);
 
@@ -316,96 +317,116 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     }
 
     /** Searching for POs. */
-    @Test(enabled = false)
+    @Test
     public void test300SearchForProcessedObjects() throws SchemaException {
         OperationResult result = createOperationResult();
 
-        when("getting all POs from 1st result");
-        var allFromFirst = getProcessedObjects(firstResultOid, result);
+        when("checking 'search all'");
+        ObjectQuery allFrom1st = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                .ownerId(firstResultOid)
+                .build();
+        checkCountAndSearch("all from 1st", allFrom1st, 1, result,
+                po -> assertThat(po.getState())
+                        .as("state")
+                        .isEqualTo(ObjectProcessingStateType.ADDED));
 
-        then("search result is OK");
-        assertThat(allFromFirst).as("all objects from first result").hasSize(1);
-        assertThat(allFromFirst.iterator().next().getState())
-                .as("state")
-                .isEqualTo(ObjectProcessingStateType.ADDED);
+        when("checking search by name");
+        ObjectQuery byName =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_NAME)
+                        .eq(USER2_NAME)
+                        .build();
+        checkCountAndSearch("by name", byName, 1, result,
+                po -> assertThat(po.getName().getOrig())
+                        .as("name")
+                        .isEqualTo(USER2_NAME));
 
-        when("getting POs from 2nd result by name");
-        Collection<SimulationResultProcessedObjectType> byName =
-                repositoryService.searchContainers(
-                        SimulationResultProcessedObjectType.class,
-                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                                .ownerId(secondResultOid)
-                                .and()
-                                .item(SimulationResultProcessedObjectType.F_NAME)
-                                .eqPoly(USER2_NAME)
-                                .build(),
-                        null,
-                        result);
+        when("checking search by OID");
+        ObjectQuery byOid =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_OID)
+                        .eq(USER1_OID)
+                        .build();
+        checkCountAndSearch("by OID", byOid, 1, result,
+                po -> assertThat(po.getOid())
+                        .as("OID")
+                        .isEqualTo(USER1_OID));
 
-        then("search result is OK");
-        assertThat(byName).as("POs by name").hasSize(1);
-        assertThat(byName.iterator().next().getName().getOrig())
-                .as("name")
-                .isEqualTo(USER2_NAME);
+        when("checking search by record ID");
+        var firstId = getProcessedObjects(secondResultOid, result)
+                .iterator().next().getId();
+        ObjectQuery byId =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(PrismConstants.T_ID)
+                        .eq(firstId)
+                        .build();
+        checkCountAndSearch("by ID", byId, 1, result,
+                po -> assertThat(po.getId())
+                        .as("ID")
+                        .isEqualTo(firstId));
 
-        when("getting POs from 2nd result by type");
-        Collection<SimulationResultProcessedObjectType> byType =
-                repositoryService.searchContainers(
-                        SimulationResultProcessedObjectType.class,
-                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                                .ownerId(secondResultOid)
-                                .and()
-                                .item(SimulationResultProcessedObjectType.F_TYPE)
-                                .eq(ShadowType.COMPLEX_TYPE)
-                                .build(),
-                        null,
-                        result);
+        when("checking search by transaction ID");
+        ObjectQuery byTxId =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_TRANSACTION_ID)
+                        .eq("#3")
+                        .build();
+        checkCountAndSearch("by tx ID", byTxId, 1, result,
+                po -> assertThat(po.getTransactionId())
+                        .as("tx ID")
+                        .isEqualTo("#3"));
 
-        then("search result is OK");
-        assertThat(byType).as("POs by type").hasSize(1);
-        assertThat(byType.iterator().next().getType())
-                .as("type")
-                .isEqualTo(ShadowType.COMPLEX_TYPE);
+//        when("checking search by state");
+//        ObjectQuery byState =
+//                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+//                        .ownerId(secondResultOid)
+//                        .and()
+//                        .item(SimulationResultProcessedObjectType.F_STATE)
+//                        .eq(ObjectProcessingStateType.ADDED)
+//                        .build();
+//        checkCountAndSearch("by OID", byState, 1, result,
+//                po -> assertThat(po.getState())
+//                        .as("state")
+//                        .isEqualTo(ObjectProcessingStateType.ADDED));
+//
+//        when("checking search by type");
+//        ObjectQuery byType =
+//                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+//                        .ownerId(secondResultOid)
+//                        .and()
+//                        .item(SimulationResultProcessedObjectType.F_TYPE)
+//                        .eq(ShadowType.COMPLEX_TYPE)
+//                        .build();
+//        checkCountAndSearch("by type", byType, 1, result,
+//                po -> assertThat(po.getType())
+//                        .as("type")
+//                        .isEqualTo(ShadowType.COMPLEX_TYPE));
+    }
 
-        when("getting POs from 2nd result by OID");
-        Collection<SimulationResultProcessedObjectType> byOid =
-                repositoryService.searchContainers(
-                        SimulationResultProcessedObjectType.class,
-                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                                .ownerId(secondResultOid)
-                                .and()
-                                .item(SimulationResultProcessedObjectType.F_OID)
-                                .eq(USER1_OID)
-                                .build(),
-                        null,
-                        result);
+    @SuppressWarnings("SameParameterValue")
+    private void checkCountAndSearch(
+            String label, ObjectQuery query, int expectedCount, OperationResult result,
+            Consumer<SimulationResultProcessedObjectType> asserter) throws SchemaException {
+        when("counting POs " + label);
+        int count = repositoryService.countContainers(SimulationResultProcessedObjectType.class, query, null, result);
 
-        then("search result is OK");
-        assertThat(byOid).as("POs by OID").hasSize(1);
-        assertThat(byOid.iterator().next().getOid())
-                .as("OID")
-                .isEqualTo(USER1_OID);
+        then("result is OK");
+        assertThat(count).as("count " + label).isEqualTo(expectedCount);
 
-        when("getting POs from 2nd result by state");
-        Collection<SimulationResultProcessedObjectType> byState =
-                repositoryService.searchContainers(
-                        SimulationResultProcessedObjectType.class,
-                        PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                                .ownerId(secondResultOid)
-                                .and()
-                                .item(SimulationResultProcessedObjectType.F_STATE)
-                                .eq(ObjectProcessingStateType.ADDED)
-                                .build(),
-                        null,
-                        result);
+        when("searching for POs " + label);
+        var objects = repositoryService.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
 
-        then("search result is OK");
-        assertThat(byState).as("objects from 2nd result by state").hasSize(1);
-        assertThat(byState.iterator().next().getState())
-                .as("state")
-                .isEqualTo(ObjectProcessingStateType.ADDED);
-
-        // TODO other kinds of search
+        then("results are OK");
+        assertThat(objects).as("objects " + label).hasSize(expectedCount);
+        objects.forEach(asserter);
     }
 
     private void assertProcessedObjects(String oid, int expectedObjects, OperationResult result)
