@@ -179,11 +179,16 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     private IModel<String> createConfirmationMessage(ColumnMenuAction<SelectableBean<SimulationResultType>> action, String singleKey, String multiKey) {
         return () -> {
             IModel<SelectableBean<SimulationResultType>> result = action.getRowModel();
-            if (action.getRowModel() != null || getSelectedObjectsCount() == 1) {
+            if (result != null) {
                 return getString(singleKey, WebComponentUtil.getName(result.getObject().getValue()));
             }
 
-            return getString(multiKey, getSelectedRealObjects());
+            if (getSelectedObjectsCount() == 1) {
+                SimulationResultType object = getSelectedRealObjects().get(0);
+                return getString(singleKey, WebComponentUtil.getName(object));
+            }
+
+            return getString(multiKey, getSelectedObjectsCount());
         };
     }
 
