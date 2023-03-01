@@ -105,7 +105,7 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
             if (StringUtils.isEmpty(cssClass)) {
                 cssClass = ICON_DEFAULT_CSS_CLASS;
             }
-            return "info-box-icon " + cssClass;
+            return cssClass;
         };
     }
 
@@ -142,10 +142,11 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
     private IModel<String> getIconStyleModel() {
         return () -> {
             String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
-            if (StringUtils.isNotEmpty(iconColor)) {
-                return "background-color: " + iconColor + " !important";
+            if (StringUtils.isEmpty(iconColor)) {
+                return null;
             }
-            return "";
+
+            return "background-color: " + iconColor + " !important";
         };
     }
 
