@@ -1,5 +1,5 @@
-MidPoint 4.7 Development Branch
--------------------------------
+MidPoint 4.7 Milestone 3
+------------------------
 
 General information:
 

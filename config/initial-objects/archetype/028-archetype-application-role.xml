@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000328"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Application role</name>
+    <description>
+        Application roles are basic roles. They are related to applications.
+        The application roles are integrating technical components for creation
+        of user access with business description of the access.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>Application role</label>
+            <pluralLabel>Application roles</pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>
