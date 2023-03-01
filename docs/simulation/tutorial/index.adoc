@@ -1,0 +1,191 @@
+= Simple Simulation Tutorial
+:page-toc: top
+:page-since: "4.7"
+:page-upkeep-status: green
+
+This is a simple tutorial describing the new xref:/midpoint/reference/simulation/[simulations] feature.
+
+NOTE: The reader is expected to have reasonable knowledge of midPoint; we don't describe individual steps in much detail here.
+
+NOTE: The simulations feature requires midPoint 4.7 or later, and the native (PostgreSQL-based) repository.
+
+The overall scenario is that we connect HR system - represented by a CSV file - to midPoint.
+Then, we will connect the target system, represented again by a CSV file.
+
+Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial[midPoint samples] repository.
+
+== Step 1: Connecting the HR system
+
+. Create a directory for CSV files (like `~/sim-tutorial`) and copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/hr.csv[HR CSV file] there.
+. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] that it matches the location of the copied CSV file.
+. Import the HR definition #1 into midPoint.
+Note that the lifecycle state of the resource is `proposed`, so it is in the development mode.
++
+.Listing 1: The resource definition #1
+[source,xml]
+----
+<resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
+    <name>hr</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef type="ConnectorType"> ... </connectorRef>
+	<connectorConfiguration> ... </connectorConfiguration>
+</resource>
+----
+
+. List the accounts on the resource.
+You should see something like this:
++
+.Content of HR resource
+image::unclassified-accounts.png[Content of HR resource]
+
+Note that the accounts are not classified: their intent is `unknown`.
+
+== Step 2: Definition of an Object Type
+
+The initial definition contains no object types.
+So, let us define one.
+Please import link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-2.xml[HR definition #2].
+(Do not forget to check the CSV file location before, as usual).
+
+.Listing 2: The resource definition #2
+[source,xml]
+----
+<resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
+    <name>hr</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef type="ConnectorType"> ... </connectorRef>
+	<connectorConfiguration> ... </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+Now, list the accounts on the resource again.
+You should see something like this:
++
+.Content of HR resource with preliminary classification
+image::accounts-intent-default.png[Content of HR resource with preliminary classification]
+
+The intents were immediately set to `default`, because the accounts were not classified before.
+
+== Step 3: Change the Definition of the Object Type
+
+Imagine we want to change the definition of the object type so that employees will have the intent of `person`.
+Let us do that in link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/resource-hr-3.xml[HR definition #3].
+
+.Listing 3: The resource definition #3
+[source,xml]
+----
+<resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
+    <name>hr</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef type="ConnectorType"> ... </connectorRef>
+	<connectorConfiguration> ... </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+Now, let us import the definition and check the accounts.
+Their intents have not changed. #TODO check after GUI is updated#
+Why?
+Because - by default - the GUI does not engage the development mode when listing the content of a resource.
+
+To re-classify the accounts from `default` to `person` we have two options:
+
+. Delete the shadows and let midPoint re-create them.
+(This was the only option before version 4.7.)
+. Read the content of the resource in simulation mode with development configuration enabled.
+This is currently doable using synchronization (e.g. import) tasks. Here are two alternatives:
+a. Execute the re-classification directly.
+b. Simulate the re-classification.
+Unlike the standard simulation, this is a special low-level simulation that captures assumed changes on shadow objects.
+In 4.7, it is an xref:/midpoint/versioning/experimental/[experimental functionality].
+
+Let us go through options 2b and 2a now.
+
+=== Simulation of Re-classification Process (experimental functionality)
+
+==== Running the Simulation
+
+Import the following link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/task-hr-import-shadow-management-simulation.xml[task]:
+
+.Listing 4: Import task that simulates the accounts re-classification
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="e44cd468-70e0-44b4-a25e-c26ccfdfb33d">
+    <name>hr-import (shadow management simulation)</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="236dd5ca-47df-403c-82e1-9ce2f36be000"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <executionMode>shadowManagementPreview</executionMode> <!--1-->
+        <execution>
+            <configurationToUse>
+                <productionConfiguration>false</productionConfiguration> <!--2-->
+            </configurationToUse>
+            <createSimulationResult>true</createSimulationResult> <!--3-->
+        </execution>
+    </activity>
+</task>
+----
+<1> Selects the (experimental) low-level simulation that captures changes to the shadows during classification and correlation.
+<2> Instructs midPoint to use development configuration, not the production one.
+<3> Enables the creation of the simulation result object.
+Without this option, the simulation would run, but its results would not be captured.
+
+==== Viewing the Results
+
+After running it, the classification of the shadows will _not_ change, but a new simulation result is created.
+It looks like this:
+
+.Simulation result capturing the shadows reclassification
+image::result-after-reclassification.png[Simulation result capturing the shadows reclassification]
+
+We see that the classification of both shadows would be changed.
+We can look at the details by clicking on "Shadow classification changed" mark, and then on a shadow:
+
+.Reclassified objects
+image::result-after-reclassification-details.png[Reclassified objects]
+
+.Reclassified object details
+image::result-after-reclassification-details-2.png[Reclassified object details]
+
+==== Creating a Report
+
+The results can be also exported into CSV, by running a report named _Simulation report: Items changed_, with the following parameters:
+
+. `simulationResultRef` pointing to the simulation result created;
+. `pathsIncluded` set to `intent` to avoid showing changes in synchronization timestamps;
+. `showIfNoDetails` set to `false`.
+
+(The preview in GUI does not work with these kinds of reports. Execute the report to create the CSV file.)
+
+After opening the CSV in the spreadsheet and hiding unimportant columns it will look like this:
+
+.Reclassified objects report
+image::result-after-reclassification-report.png[Reclassified objects report]

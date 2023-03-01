@@ -40,17 +40,18 @@ But none of these contradict the basic idea that all computed operations are goi
 This mode can be sometimes (imprecisely) called _production_.
 But this term conflicts with the one of <<Production Configuration>>, so it should not be used.
 
-Overall, the "persistent-effects mode" is not ideal either.
-We are looking for a better term.
+Overall, the "persistent-effects mode" term is not ideal either.
+We are looking for a better one.
 ====
 
 === Simulation Mode
 
-Here, _no_ actions that could have persistent externally-visible effects are executed.
+Here, no actions that could have persistent externally-visible effects are executed.
 Accordingly, nothing is written to the system audit log.
 
 The changes are computed, just like in <<Persistent-Effects Mode>> but instead of their application, they are written to so-called simulation result.
-This is a special object in the midPoint repository that collects information about:
+This is a special type of objects in the midPoint repository.
+A simulation result collects information about:
 
 . objects seen by the activity (both midPoint repository objects and resource objects),
 . changes computed against these objects,
@@ -61,19 +62,15 @@ This is a special object in the midPoint repository that collects information ab
 === Production Configuration
 
 The production configuration comprises all configuration items that are engaged in regular midPoint operations.
-By _configuration item_ we mean for example the definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
+By _configuration item_ we mean for example a definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
 
 Items in the production configuration are the only ones that can cause persistent effects.
 (See <<Persistent-Effects Mode>>.)
 
 === Development Configuration
 
-Development configuration represents the state of the system that is currently being developed.
-
-It may differ from the production configuration such that some configuration items may be added, other ones replaced, and finally, some may be missing.
-For example, we may develop the connection of a new resource, or a new object type on existing resource.
-Or, we may try to create a new version of metarole.
-Finally, we may want to decommission a resource or a role.
+Development configuration represents the part of the system configuration that is currently being developed.
+With regard to the production configuration, some items may be added, some replaced, and finally, some may be missing.
 
 The development configuration cannot be executed in "persistent-effects" mode.
 
@@ -111,7 +108,7 @@ Lifecycle state is currently supported on the following configuration items:
 - mapping.
 
 NOTE: For short, we will sometime use the statements "configuration item (like resource) is in development mode" to denote the fact that the item is part of the development configuration but not present in the production one.
-On the contrary, when saying "item is in production mode", we will usually mean that it is a part of the production configuration, with not saying anything whether it is also part of the development configuration.
+On the other hand, when saying "item is in production mode", we mean that it is a part of the production configuration, with not saying anything whether it is also part of the development configuration.
 
 === Examples
 
@@ -178,11 +175,14 @@ Hence, this mapping is part of both production and development configurations.
 <2> The `deprecated` state means that this mapping belongs only to the production configuration.
 <3> The `proposed` state means that this mapping belongs only to the development configuration.
 
-The third mapping can be seen as a replacement of the second one in the development configuration.
+The third mapping serves as a replacement of the second one in the development configuration.
 Hence, when you run a persistent-effect activity (or a simulation one using production configuration), users are assigned to `old-unit`.
 But when running a simulation using development configuration, the users are assigned to `new-unit` instead.
 
 == Typical Simulation Scenarios
+
+This section presents a couple of typical simulation-related scenarios.
+They are accompanied by a simple xref:/midpoint/reference/simulation/tutorial/[tutorial].
 
 === Incremental Introduction of a New Resource Configuration
 
@@ -190,7 +190,7 @@ When connecting a new source or target system to midPoint, we must create its re
 However, the first version of the definition is rarely completely correct and usually there is a need to fine-tune it.
 To avoid any damage, we want actions driven by this resource definition to have no permanent effects in the production data in midPoint nor in any connected system.
 
-MidPoint supports this by not letting the resource definition into the production configuration, and keeping it in development one only.
+MidPoint supports this by allowing us to avoid putting resource definition into the production configuration, and keeping it in development one only.
 This is the default setting for new resources created in the Resource Wizard. #TODO verify if this is the case#
 
 Having the resource in development but not production configuration has the following effects.
@@ -206,11 +206,11 @@ Normally, each shadow is classified only once.
 Main reasons for this behavior are performance and stability:
 first, the classification takes some resources, and second, we do not want the shadows to change their classification at any moment.
 
-However, development-mode resources can be made more flexible.
+However, classification in development-mode resources can be made more flexible.
 The performance is not crucial for them.
-The stability is not important neither, as the shadows on such resources should not be linked to any focal objects yet.
+The stability is not important either, as the shadows on such resources should not be linked to any focal objects yet.
 
-Hence, if a shadow on a development-mode resource is processed in a simulation mode, it is re-classified each time it is seen.
+Hence, if a shadow on a development-mode resource is processed in a simulation-development mode, it is re-classified each time it is seen.
 This provides the possibility to easily develop the classification configuration for the resource.
 
 See xref:classification-fine-tuning.adoc[] for more information.
