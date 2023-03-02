@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
 import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -108,7 +110,7 @@ public class PageResetPassword extends AbstractPageLogin {
 
                     showResult(result);
                     AuthUtil.clearMidpointAuthentication();
-                    setResponsePage(new RedirectPage("/"));
+                    throw new RestartResponseException(PageLogin.class);
                 } else if (showFeedback) {
                     showResult(result);
                 }
