@@ -14,29 +14,34 @@ also do not support these options.
 |===
 | Item | Meaning | Default
 
-| link:logging[`logging`]
+| xref:logging.adoc[`logging`]
 | Controls logging aspects of an activity execution.
 | See the description.
 
-| link:tracing[`tracing`]
+| xref:tracing.adoc[`tracing`]
 | Specifies when and how should be the activity execution traced.
 | No tracing.
 
-| link:profiling[`profiling`]
+| xref:profiling.adoc[`profiling`]
 | Specifies when and how should be the activity execution dynamically profiled.
 This functionality is deprecated. The tracing should be used instead.
 | No profiling.
 
-| link:execution-reports[`executionReports`]
+| xref:execution-reports.adoc[`executionReports`]
 | Configures specific activity execution reports: on buckets, items, and so on.
 | No reports.
 
-| link:item-counting[`itemCounting`]
+| xref:item-counting.adoc[`itemCounting`]
 | How should the activity deal with item counting, i.e. determining "expected progress"
 for a bucket or overall.
 | TODO
 
-| link:state-overview[`stateOverview`]
+| xref:state-overview.adoc[`stateOverview`]
 | Parameters related to the maintenance of activity tree state overview.
 | TODO
+
+| xref:simulation-result.adoc[`simulationResult`]
+| Whether we want to create a simulation result object for this activity run.
+Since 4.7.
+| No.
 |===

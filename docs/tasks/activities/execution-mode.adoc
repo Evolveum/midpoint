@@ -28,3 +28,5 @@ The `preview` and `dryRun` execution modes are supported by the following activi
 * synchronization ones: import, live synchronization, reconciliation,
 * recomputation activity.
 ====
+
+#TODO new `execution` element#

@@ -35,7 +35,7 @@ Usually contains information about the task that produced the report (if any), i
 (Empty for foreground simulations.)
 | Production configuration
 | #TODO# this will be changed (either true/false or set name)
-2+| The following part of the report is instantiated once per each simulation xref:../results/metrics.adoc[metric] (event mark-based or custom one).
+2+| _The following part of the report is instantiated once per each simulation xref:../results/metrics.adoc[metric] (event mark-based or custom one)._
 | Event mark
 | Event mark corresponding to the metric row. (If applicable.)
 | Custom metric
@@ -43,7 +43,7 @@ Usually contains information about the task that produced the report (if any), i
 | Aggregation function
 | Aggregation function used for given metric.
 See xref:../results/aggregation-functions.adoc[].
-2+| The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition].
+2+| _The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition]._
 | Scope: type
 | Type of objects (user, role, org, shadow, ...).
 | Scope: archetype
@@ -67,3 +67,17 @@ The default meaning is "all objects that have metric value greater than zero".)
 | Domain total value
 | Sum of metric values for all objects.
 |===
+
+Report parameters (#planned#):
+
+[%autowidth]
+[%header]
+|===
+| Parameter | Description
+| Result | Specific simulation result we want to report on.
+| Name | Part of simulation result name to match.
+| Task | The task on whose simulation results we want to report on.
+| Started not earlier than | Selects simulation reports started on or after given time instant.
+|===
+
+Note: the above criteria are "and"-ed together.
