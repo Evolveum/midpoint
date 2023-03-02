@@ -30,10 +30,10 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
     }
 
     @Override
-    protected List<SummaryTag<UserType>> getSummaryTagComponentList(){
+    protected List<SummaryTag<UserType>> getSummaryTagComponentList() {
         List<SummaryTag<UserType>> summaryTagList = super.getSummaryTagComponentList();
 
-        SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<UserType> tagSecurity = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -45,22 +45,30 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
                     setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
                     return;
                 }
+
+                List<ObjectReferenceType> roleMembershipRef = object.getRoleMembershipRef();
+
                 boolean isSuperuser = false;
                 boolean isEndUser = false;
-                for (AssignmentType assignment: assignments) {
-                    if (assignment.getTargetRef() == null) {
+
+                for (ObjectReferenceType objectReferenceType : roleMembershipRef) {
+                    if (objectReferenceType.getOid() == null) {
                         continue;
                     }
-                    QName relation = assignment.getTargetRef().getRelation();
+
+                    QName relation = objectReferenceType.getRelation();
                     if (!WebComponentUtil.isDefaultRelation(relation)) {
                         continue;
                     }
-                    if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
+
+                    if (SystemObjectsType.ROLE_SUPERUSER.value().equals(objectReferenceType.getOid())) {
                         isSuperuser = true;
-                    } else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
+                    } else if (SystemObjectsType.ROLE_END_USER.value().equals(objectReferenceType.getOid())) {
                         isEndUser = true;
                     }
+
                 }
+
                 if (isSuperuser) {
                     setIconCssClass(GuiStyleConstants.CLASS_ICON_SUPERUSER);
                     setLabel(getString("user.superuser"));
@@ -76,7 +84,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
         };
         summaryTagList.add(tagSecurity);
 
-        SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<UserType> tagOrg = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -90,7 +98,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
                 }
                 boolean isManager = false;
                 boolean isMember = false;
-                for (ObjectReferenceType parentOrgRef: object.getParentOrgRef()) {
+                for (ObjectReferenceType parentOrgRef : object.getParentOrgRef()) {
                     if (WebComponentUtil.isManagerRelation(parentOrgRef.getRelation())) {
                         isManager = true;
                     } else {

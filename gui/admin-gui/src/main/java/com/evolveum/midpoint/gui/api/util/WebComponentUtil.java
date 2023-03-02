@@ -2152,20 +2152,29 @@ public final class WebComponentUtil {
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
-        // if user has superuser role assigned, it's superuser
+        // if user has superuser role assigned, or if user has an assigned role whose inducement is superuser then it's superuser
+        List<ObjectReferenceType> roleMembershipRef = object.asObjectable().getRoleMembershipRef();
+
         boolean isEndUser = false;
-        for (AssignmentType assignment : user.getAssignment()) {
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef == null) {
+
+        for (ObjectReferenceType objectReferenceType : roleMembershipRef) {
+            if (objectReferenceType.getOid() == null) {
                 continue;
             }
-            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
+
+            QName relation = objectReferenceType.getRelation();
+            if (!WebComponentUtil.isDefaultRelation(relation)) {
+                continue;
+            }
+
+            if (StringUtils.equals(objectReferenceType.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
                 return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " "
                         + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
             }
-            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
+            if (StringUtils.equals(objectReferenceType.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
                 isEndUser = true;
             }
+
         }
 
         boolean isManager = false;
@@ -3871,7 +3880,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (activationNotSupported(resource) ) {
+        if (activationNotSupported(resource)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }
@@ -4016,7 +4025,6 @@ public final class WebComponentUtil {
         }
         return null;
     }
-
 
     private static void appendUndefinedIcon(CompositedIconBuilder builder) {
         appendIcon(builder, "fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
