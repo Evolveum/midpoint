@@ -14,12 +14,14 @@ Then, we will connect the target system, represented again by a CSV file.
 
 Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial[midPoint samples] repository.
 
-== Step 1: Viewing the Raw HR Data
+== Connecting the Source (HR) System
+
+=== Step HR-1: Viewing the Raw HR Data
 
 . Create a directory for CSV files (like `~/sim-tutorial`) and copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/hr.csv[HR CSV file] there.
-. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] that it matches the location of the copied CSV file.
+. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] matches the location of the copied HR CSV file.
 . Import the HR definition #1 into midPoint.
-Note that the lifecycle state of the resource is `proposed`, so it is in the development mode.
+Note that the lifecycle state of the resource is `proposed`, so the whole resource definition is in the development mode.
 +
 .Listing 1: The resource definition #1
 [source,xml]
@@ -28,24 +30,24 @@ Note that the lifecycle state of the resource is `proposed`, so it is in the dev
     <name>hr</name>
     <lifecycleState>proposed</lifecycleState>
     <connectorRef type="ConnectorType"> ... </connectorRef>
-	<connectorConfiguration> ... </connectorConfiguration>
+    <connectorConfiguration> ... </connectorConfiguration>
 </resource>
 ----
 
 . List the accounts on the resource.
 You should see something like this:
 +
-.Content of HR resource
-image::unclassified-accounts.png[Content of HR resource]
+.Content of the HR resource
+image::unclassified-accounts.png[Content of the HR resource]
 
 Note that the accounts are not classified: their intent is `unknown`.
 
-== Step 2: Definition of an Object Type
+=== Step HR-2: Definition of an Object Type
 
 The initial definition contains no object types.
 So, let us define one.
 Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-2.xml[HR definition #2].
-(Do not forget to check the CSV file location before, as usual).
+(Do not forget to check the CSV file location, as usual).
 
 .Listing 2: The resource definition #2
 [source,xml]
@@ -54,7 +56,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
     <name>hr</name>
     <lifecycleState>proposed</lifecycleState>
     <connectorRef type="ConnectorType"> ... </connectorRef>
-	<connectorConfiguration> ... </connectorConfiguration>
+    <connectorConfiguration> ... </connectorConfiguration>
     <schemaHandling>
         <objectType>
             <kind>account</kind>
@@ -76,9 +78,9 @@ image::accounts-intent-default.png[Content of HR resource with preliminary class
 
 The intents were immediately set to `default`, because the accounts were not classified before.
 
-== Step 3: Change the Definition of the Object Type
+=== Step HR-3: Change the Definition of the Object Type
 
-Imagine we want to change the definition of the object type so that employees will have the intent of `person`.
+Imagine we want to change the definition of the object type so that employees will have the intent of `person` instead of `default`.
 Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-3.xml[HR definition #3].
 
 .Listing 3: The resource definition #3
@@ -88,7 +90,7 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
     <name>hr</name>
     <lifecycleState>proposed</lifecycleState>
     <connectorRef type="ConnectorType"> ... </connectorRef>
-	<connectorConfiguration> ... </connectorConfiguration>
+    <connectorConfiguration> ... </connectorConfiguration>
     <schemaHandling>
         <objectType>
             <kind>account</kind>
@@ -105,7 +107,7 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
 Now, let us import the definition and check the accounts.
 Their intents have not changed. #TODO check after GUI is updated#
 Why?
-Because - by default - the GUI does not engage the development mode when listing the content of a resource.
+Because - by default - the GUI does not engage the development configuration when listing the content of a resource.
 
 To re-classify the accounts from `default` to `person` we have two options:
 
@@ -120,9 +122,13 @@ In 4.7, it is an xref:/midpoint/versioning/experimental/[experimental functional
 
 Let us go through options 2b and 2a now.
 
-=== Simulation of Re-classification Process (experimental functionality)
+==== Simulation of Re-classification Process (experimental functionality)
 
-==== Running the Simulation
+++++
+{% include experimental.html %}
+++++
+
+===== Running the Simulation
 
 Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-shadow-management-simulation.xml[task]:
 
@@ -150,6 +156,22 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
             </configurationToUse>
             <createSimulationResult>true</createSimulationResult> <!--3-->
         </execution>
+        <!-- new style -->
+        <execution>
+            <mode>shadowManagementPreview</mode> <!--1-->
+            <configurationToUse>
+                <set>development</set> <!--2-->
+            </configurationToUse>
+        </execution>
+        <reporting>
+            <simulationResult> <!--3-->
+                <create>true</create> <!--3-->
+                <!-- OR -->
+                <definition/> <!-- SimulationDefinitionType -> SimulationResultDefinitionType? -->
+                <!-- OR -->
+                <!-- not specifying anything here; the mere presence of "simulationResult" enables its creation -->
+            </simulationResult>
+        </reporting>
     </activity>
 </task>
 ----
@@ -158,9 +180,9 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
 <3> Enables the creation of the simulation result object.
 Without this option, the simulation would run, but its results would not be captured.
 
-==== Viewing the Results
+===== Viewing the Results
 
-After running it, the classification of the shadows will _not_ change, but a new simulation result is created.
+After running this task, the classification of the shadows will _not_ change, but a new simulation result is created.
 It looks like this:
 
 .Simulation result capturing the shadows reclassification
@@ -175,28 +197,33 @@ image::result-after-reclassification-details.png[Reclassified objects]
 .Reclassified object details
 image::result-after-reclassification-details-2.png[Reclassified object details]
 
-==== Creating a Report
+===== Creating a Report
 
 The results can be also exported into CSV, by running a report named _Simulation report: Items changed_, with the following parameters:
 
-. `simulationResultRef` pointing to the simulation result created;
-. `pathsIncluded` set to `intent` to avoid showing changes in synchronization timestamps;
-. `showIfNoDetails` set to `false`.
+[%autowidth]
+[%heading]
+|===
+| Parameter | Value | Description
+| `simulationResultRef` | choose the simulation result |
+| `pathsIncluded` | `intent` | to avoid showing other changes, e.g. those of synchronization timestamps
+| `showIfNoDetails` | `false` | to show only the really changed values
+|===
 
 #TODO fix the report to provide reasonable labels for parameters#
 
-(The preview in GUI does not work with these kinds of reports. Execute the report to create the CSV file.)
+(The preview in GUI does not work with these kinds of reports. You have to execute the report to create the CSV file.)
 
 After opening the CSV in the spreadsheet and hiding unimportant columns it will look like this:
 
 .Reclassified objects report
 image::result-after-reclassification-report.png[Reclassified objects report]
 
-=== Running the Re-classification
+==== Running the Re-classification
 
 After we are satisfied with the expected re-classification results, we can run the re-classification in real.
 
-Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation.xml[task]:
+Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation-no-result.xml[task]: #TODO add to samples#
 
 .Listing 5: A task that executes the accounts re-classification
 [source,xml]
@@ -204,7 +231,7 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="8b169df3-3124-4e36-871f-83bb52acfd7b">
-    <name>hr-import (full simulation)</name>
+    <name>hr-import (full simulation, no result)</name>
     <executionState>runnable</executionState>
     <activity>
         <work>
@@ -220,7 +247,13 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
             <configurationToUse>
                 <productionConfiguration>false</productionConfiguration>
             </configurationToUse>
-            <createSimulationResult>true</createSimulationResult>
+        </execution>
+        <!-- OR -->
+        <execution>
+            <mode>preview</mode> <!--1-->
+            <configurationToUse>
+                <set>development</set>
+            </configurationToUse>
         </execution>
     </activity>
 </task>
@@ -236,7 +269,7 @@ image::accounts-intent-person.png[Content of HR resource after re-classification
 
 As an exercise, you can try running the simulated reclassification task again and check there are no simulated re-classification now.
 
-== Step 4: Simulation of Inbound Mappings
+=== Step HR-4: Simulation of Inbound Mappings
 
 So we can assume the resource object classification is OK now.
 Let us prepare some inbound mappings and synchronization reactions.
@@ -331,7 +364,7 @@ just as if there were no mappings nor synchronization reactions defined.
 There is a possibility to preview (simulate) the import.
 But be sure to check the preview that uses the development configuration, otherwise there will be no effects at all.
 
-#TODO implement preview with development configuration in GUI and describe it here#
+#TODO describe it here#
 
 To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation.xml[full simulation task].
 
@@ -343,7 +376,7 @@ image::user-after-first-import.png[Preview of the first user added]
 
 We see that our mappings work correctly.
 
-== Step 5: Switching the Resource into Production
+=== Step HR-5: Switching the Resource into Production
 
 Now we can change the lifecycle state of the resource to `active`, making it part of the production configuration.
 After that, we can run the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
@@ -355,10 +388,11 @@ We may now run the simulated import and check that there are no computed changes
 .Four unmodified objects
 image::four-unmodified-objects.png[Four unmodified objects]
 
-== Step 6: Extending the Resource
+=== Step HR-6: Extending the Resource
 
 Len us imagine that we want to add a mapping for `telephoneNumber`.
-We cannot put the whole resource back into development mode, but we can do that for the particular mapping.
+Usually, we cannot put the whole resource back into development mode.
+However, we can do that for the particular mapping.
 
 Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-5.xml[HR definition #5].
 
@@ -367,7 +401,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
 ----
 <resource oid="236dd5ca-47df-403c-82e1-9ce2f36be000">
     <name>hr</name>
-    <lifecycleState>active</lifecycleState>
+    <lifecycleState>active</lifecycleState> <!--1-->
     <connectorRef> ... </connectorRef>
     <connectorConfiguration> ... </connectorConfiguration>
     <schemaHandling>
@@ -381,7 +415,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
             <attribute>
                 <ref>ri:phone</ref>
                 <inbound>
-                    <lifecycleState>proposed</lifecycleState>
+                    <lifecycleState>proposed</lifecycleState> <!--2-->
                     <strength>strong</strength>
                     <target>
                         <path>telephoneNumber</path>
@@ -393,6 +427,8 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
     </schemaHandling>
 </resource>
 ----
+<1> The resource as such is in production mode.
+<2> This particular mapping is visible only in the development mode.
 
 After running the (full) simulation of import from HR, the result contains two deltas like this:
 
@@ -400,3 +436,81 @@ After running the (full) simulation of import from HR, the result contains two d
 image::telephone-number-delta.png[Telephone number change]
 
 After we are satisfied with the mapping, we can put it into production mode (`lifecycleState` = `active`) and run the import task in "persistent-effects" mode.
+
+== Connecting the Target System (Simulation of LDAP)
+
+Now, let us connect a sample target system.
+Typically, this would be an LDAP (AD) one.
+For simplicity, let us use a CSV resource instead.
+
+=== Step LDAP-1: Viewing the Raw LDAP Data
+
+. Copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/ldap.csv[LDAP CSV file] to the directory for CSV files for this tutorial (e.g. `~/sim-tutorial`).
+. Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-1.xml[LDAP definition #1] matches the location of the copied LDAP CSV file.
+. Import the LDAP definition #1 into midPoint.
+Note that the lifecycle state of the resource is `proposed`, so the whole resource definition is in the development mode.
++
+.Listing 8: The LDAP resource definition #1 (simulated by a CSV file)
+[source,xml]
+----
+<resource oid="80d0e843-906a-4bbe-b237-bd3568ec4169">
+    <name>ldap</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef type="ConnectorType"> ... </connectorRef>
+    <connectorConfiguration> ... </connectorConfiguration>
+</resource>
+----
+
+. List the accounts on the resource.
+You should see something like this:
++
+.Content of the LDAP resource
+image::unclassified-accounts-ldap.png[Content of the LDAP resource]
+#TODO FIX#
+
+Note that the accounts are not classified: their intent is `unknown`.
+
+=== Step LDAP-2: Definition of an Object Type
+
+The initial definition contains no object types.
+So, let us define one.
+Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-2.xml[LDAP definition #2].
+
+.Listing 9: The LDAP resource definition #2
+[source,xml]
+----
+<resource oid="80d0e843-906a-4bbe-b237-bd3568ec4169">
+    <name>ldap</name>
+    <lifecycleState>proposed</lifecycleState>
+    <connectorRef type="ConnectorType"> ... </connectorRef>
+    <connectorConfiguration> ... </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <!-- Would be inetOrgPerson on real LDAP -->
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+Now, list the accounts on the resource again.
+You should see something like this:
++
+.Content of LDAP resource with classification
+image::accounts-intent-default-ldap.png[Content of LDAP resource with classification]
+
+#TODO fix#
+
+The intents were immediately set to `default`, because the accounts were not classified before.
+
+Let us assume we are satisfied with this.
+If we would not be, we could fine-tune the classification just like in <<Step HR-3: Change the Definition of the Object Type>>.
+
+Now let us start correlating the accounts.
+
+=== Step LDAP-3: Definition of an Object Type
