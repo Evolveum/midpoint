@@ -5364,17 +5364,8 @@ public final class WebComponentUtil {
         return objectListView;
     }
 
-    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
-                                                                boolean allowNull) {
-        return createDropDownChoices(id, model, choices, allowNull, null);
-    }
-
-    /**
-     * page base parameter not needed, please use {@link WebComponentUtil#createDropDownChoices(String, IModel, IModel, boolean)}
-     */
-    @Deprecated
-    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
-            boolean allowNull, PageBase pageBase) {
+    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model,
+                                                                IModel<List<DisplayableValue<T>>> choices, boolean allowNull) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
             private static final long serialVersionUID = 1L;
 

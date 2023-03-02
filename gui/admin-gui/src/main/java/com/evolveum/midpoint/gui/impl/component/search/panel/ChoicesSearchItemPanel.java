@@ -22,8 +22,8 @@ public class ChoicesSearchItemPanel<T> extends PropertySearchItemPanel<ChoicesSe
 
     @Override
     protected Component initSearchItemField(String id) {
-        return WebComponentUtil.createDropDownChoices(
-                id, new PropertyModel(getModel(), ChoicesSearchItemWrapper.F_DISPLAYABLE_VALUE), Model.ofList(getModelObject().getAvailableValues()), allowNull(), getPageBase());
+        return WebComponentUtil.createDropDownChoices(id, new PropertyModel(getModel(), ChoicesSearchItemWrapper.F_DISPLAYABLE_VALUE),
+                Model.ofList(getModelObject().getAvailableValues()), allowNull());
     }
 
     private boolean allowNull() {
