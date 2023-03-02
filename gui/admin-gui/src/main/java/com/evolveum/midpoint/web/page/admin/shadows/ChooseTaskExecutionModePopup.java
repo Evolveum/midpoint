@@ -45,7 +45,7 @@ public class ChooseTaskExecutionModePopup extends SimplePopupable<DisplayableVal
         return new LoadableModel<>(false) {
             @Override
             protected DisplayableValue<TaskExecutionMode> load() {
-                return createValue(TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION);
+                return createValue(TaskExecutionMode.SIMULATED_PRODUCTION);
             }
         };
     }
@@ -66,8 +66,8 @@ public class ChooseTaskExecutionModePopup extends SimplePopupable<DisplayableVal
 
     private void initLayout() {
         IModel<List<DisplayableValue<TaskExecutionMode>>> choices = () -> Arrays.asList(
-                createValue(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT),
-                createValue(TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION));
+                createValue(TaskExecutionMode.SIMULATED_DEVELOPMENT),
+                createValue(TaskExecutionMode.SIMULATED_PRODUCTION));
 
        DropDownChoicePanel<TaskExecutionMode> dropdown = WebComponentUtil.createDropDownChoices(ID_DROPDOWN, getModel(), choices, false);
         add(dropdown);
