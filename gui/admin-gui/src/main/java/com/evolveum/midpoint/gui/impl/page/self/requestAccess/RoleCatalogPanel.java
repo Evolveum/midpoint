@@ -364,6 +364,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
                 ObjectQuery query = catalogQuery.getQuery();
+                query = query.clone();
 
                 Class<? extends AbstractRoleType> type = catalogQuery.getType();
 
