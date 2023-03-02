@@ -5356,19 +5356,36 @@ public final class WebComponentUtil {
     }
 
     public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
+                                                                boolean allowNull) {
+        return createDropDownChoices(id, model, choices, allowNull, null);
+    }
+
+    /**
+     * page base parameter not needed, please use {@link WebComponentUtil#createDropDownChoices(String, IModel, IModel, boolean)}
+     */
+    @Deprecated
+    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
             boolean allowNull, PageBase pageBase) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
             private static final long serialVersionUID = 1L;
 
+            /**
+             * TODO This impl doesn't look good, label should take preference, that's why it's there for...
+             */
             @Override
             public Object getDisplayValue(DisplayableValue val) {
-                if (val.getValue() instanceof Enum) {
-                    return pageBase.createStringResource((Enum<?>) val.getValue()).getString();
+                Object value = val.getValue();
+                String label = val.getLabel();
+
+                if (value instanceof Enum) {
+                    return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateEnum((Enum<?>) value);
                 }
+
                 if (val.getLabel() == null) {
-                    return pageBase.createStringResource(String.valueOf(val.getValue())).getString();
+                    return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(String.valueOf(value));
                 }
-                return pageBase.createStringResource(val.getLabel()).getString();
+
+                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(label);
             }
 
             @Override

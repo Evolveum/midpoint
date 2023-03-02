@@ -14,7 +14,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -308,7 +307,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                                     String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
 
                 SelectableBean<ShadowType> dto = rowModel.getObject();
                 RepeatingView repeater = new RepeatingView(componentId);
@@ -349,7 +348,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel,
-                    ObjectType targetObjectType) {
+                                ObjectType targetObjectType) {
                 ownerDetailsPerformed((FocusType) targetObjectType);
             }
         };
@@ -362,7 +361,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                                     String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
                 cellItem.add(new PendingOperationPanel(componentId,
                         new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
             }
@@ -433,12 +432,23 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     protected void importPreviewResourceObject(ShadowType selected, AjaxRequestTarget target) {
         PageBase page = getPageBase();
+        page.showMainPopup(new ChooseTaskExecutionModePopup(getPageBase().getMainPopupBodyId()) {
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, TaskExecutionMode mode) {
+                importPreviewResourceObjectConfirmed(mode, selected, target);
+            }
+        }, target);
+    }
+
+    protected void importPreviewResourceObjectConfirmed(TaskExecutionMode mode, ShadowType selected, AjaxRequestTarget target) {
+        PageBase page = getPageBase();
 
         Task task = page.createSimpleTask(OPERATION_IMPORT_PREVIEW_OBJECT);
         OperationResult opResult = task.getResult();
         try {
             String resultOid = page.getModelInteractionService().executeWithSimulationResult(
-                    TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION,
+                    mode,
                     null,
                     task,
                     opResult,
@@ -497,7 +507,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     protected void updateResourceObjectStatusPerformed(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target,
-            boolean enabled) {
+                                                       boolean enabled) {
         List<SelectableBean<ShadowType>> selectedShadow = getSelectedShadowsList(selected);
 
         OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
@@ -522,8 +532,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(deleteDelta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
@@ -564,7 +574,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result,
-            List<SelectableBean<ShadowType>> selected) {
+                                                 List<SelectableBean<ShadowType>> selected) {
         Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
 
         for (SelectableBean<ShadowType> shadow : selected) {
@@ -606,7 +616,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void changeOwner(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target, FocusType ownerToChange,
-            boolean remove) {
+                             boolean remove) {
 
         getPageBase().hideMainPopup(target);
 
@@ -672,8 +682,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.markShadowProtectedPerformed.partialError", shadow)
@@ -704,7 +714,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta> modifications,
-            AjaxRequestTarget target) {
+                                     AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         Task task = getPageBase().createSimpleTask(OPERATION_CHANGE_OWNER);
         ObjectDelta<? extends ObjectType> objectDelta =

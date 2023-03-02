@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="d-flex flex-column align-items-center gap-4">
+        <p class="mb-0"><wicket:message key="ChooseTaskExecutionModePopup.text"/></p>
+
+        <div wicket:id="dropdown"/>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-outline-primary" wicket:id="cancel">
+                <i class="fa fa-xmark mr-1"/>
+                <span><wicket:message key="ChooseTaskExecutionModePopup.button.cancel"/></span>
+            </a>
+            <a class="btn btn-success" wicket:id="select">
+                <span><wicket:message key="ChooseTaskExecutionModePopup.button.select"/></span>
+                <i class="fa fa-arrow-right ml-1"/>
+            </a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
