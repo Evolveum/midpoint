@@ -8,7 +8,7 @@ This page is work-in-progress with stuff useful to a DB admin but also to a prog
 
 == Index tuning
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:/midpoint/reference/concepts/query/query-api/[Query API].
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:/midpoint/reference/concepts/query/[midPoint Query].
 It is not possible to search for information stored only in the serialized form of the object.
 But _searchable_ and _efficiently searchable_ are two different things.
 

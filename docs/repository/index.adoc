@@ -15,4 +15,4 @@ include::../_reference-disclaimer.adoc[]
 == See Also
 
 * For conceptual and design overview see xref:/midpoint/architecture/archive/subsystems/repo/[Repository Subsystem].
-* For information how to query objects in the repository see xref:/midpoint/reference/concepts/query/query-api/[Query API].
+* For information how to query objects in the repository see xref:/midpoint/reference/concepts/query/[midPoint Query].

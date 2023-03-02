@@ -72,7 +72,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
 
 Now, list the accounts on the resource again.
 You should see something like this:
-+
+
 .Content of HR resource with preliminary classification
 image::accounts-intent-default.png[Content of HR resource with preliminary classification]
 

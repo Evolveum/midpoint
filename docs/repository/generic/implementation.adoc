@@ -107,7 +107,7 @@ Default configurations are defined in `SqlRepositoryConfiguration`.
 
 == Querying
 
-See the relevant section in xref:/midpoint/reference/concepts/query/query-api#differences-in-filter-interpretation[Query API]
+See the relevant section in xref:/midpoint/reference/concepts/query/#differences-in-filter-interpretation[Query API]
 documentation for details about what is or is not supported from our Query API in the repository.
 
 Query processing is implemented in `QueryInterpreter` which uses `QueryDefinitionRegistry`

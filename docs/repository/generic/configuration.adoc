@@ -338,7 +338,7 @@ Also configure `<tomcat-location>/conf/context.xml` file:
 
 == Index tuning
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../../concepts/query/query-api/[].
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:/midpoint/reference/concepts/query/[midPoint Query].
 It is not possible to search for information stored only in the serialized form of the object.
 But _searchable_ and _efficiently searchable_ are two different things.
 
