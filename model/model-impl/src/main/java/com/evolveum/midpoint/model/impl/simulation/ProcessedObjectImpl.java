@@ -939,8 +939,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     static class MetricValue implements Serializable {
 
-        static MetricValue ZERO = new MetricValue(BigDecimal.ZERO, false);
-        static MetricValue ONE = new MetricValue(BigDecimal.ONE, true);
+        public static final MetricValue ZERO = new MetricValue(BigDecimal.ZERO, false);
+        public static final MetricValue ONE = new MetricValue(BigDecimal.ONE, true);
 
         @NotNull final BigDecimal value;
         final boolean inSelection;
