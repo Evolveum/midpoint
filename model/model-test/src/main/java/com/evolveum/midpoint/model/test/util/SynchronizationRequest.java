@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.Synch
 import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.RECONCILIATION;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -110,16 +109,18 @@ public class SynchronizationRequest {
                     .reconciliation(new ReconciliationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet));
         }
+        var reporting = new ActivityReportingDefinitionType();
         ActivityDefinitionType activityDefinition = new ActivityDefinitionType()
                 .work(work)
                 .executionMode(
                         getBackgroundTaskExecutionMode())
-                .execution(new ActivityExecutionDefinitionType()
-                        .configurationToUse(new ConfigurationSpecificationType()
-                                .productionConfiguration(
-                                        taskExecutionMode.isProductionConfiguration()))
-                        .createSimulationResult(
-                                test.isNativeRepository() && !taskExecutionMode.isFullyPersistent()));
+                .execution(new ActivityExecutionModeDefinitionType()
+                        .configurationToUse(
+                                taskExecutionMode.toConfigurationSpecification()))
+                .reporting(reporting);
+        if (test.isNativeRepository() && !taskExecutionMode.isFullyPersistent()) {
+            reporting.simulationResult(new ActivitySimulationResultDefinitionType());
+        }
         if (tracingProfile != null) {
             ActivityTracingDefinitionType tracing = new ActivityTracingDefinitionType()
                     .tracingProfile(tracingProfile);
@@ -132,8 +133,7 @@ public class SynchronizationRequest {
                 tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
                         .expression(ExpressionUtil.forGroovyCode(script)));
             }
-            activityDefinition.reporting(new ActivityReportingDefinitionType()
-                    .tracing(tracing));
+            reporting.tracing(tracing);
         }
         TaskType syncTask = new TaskType()
                 .name(synchronizationStyle.taskName)

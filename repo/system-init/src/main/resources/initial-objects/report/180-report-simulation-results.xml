@@ -77,8 +77,8 @@
                 <previousColumn>endTimestamp</previousColumn>
             </column>
             <column>
-                <name>productionConfiguration</name>
-                <path>configurationUsed/productionConfiguration</path>
+                <name>configuration</name>
+                <path>configurationUsed/predefined</path>
                 <previousColumn>rootTaskRef</previousColumn>
             </column>
             <!-- metric -->
@@ -90,7 +90,7 @@
                 <display>
                     <label>Event mark</label>
                 </display>
-                <previousColumn>productionConfiguration</previousColumn>
+                <previousColumn>configuration</previousColumn>
                 <export>
                     <expression>
                         <script>

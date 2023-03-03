@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -89,7 +91,8 @@ public class TaskExecutionMode implements Serializable {
 
     public @NotNull ConfigurationSpecificationType toConfigurationSpecification() {
         return new ConfigurationSpecificationType()
-                .productionConfiguration(productionConfiguration);
+                .predefined(productionConfiguration ?
+                        PredefinedConfigurationType.PRODUCTION : PredefinedConfigurationType.DEVELOPMENT);
     }
 
     enum TaskPersistenceMode {

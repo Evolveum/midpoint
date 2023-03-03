@@ -36,11 +36,8 @@
     <xsd:complexType name="SimulationResultType">
         <xsd:annotation>
             <xsd:documentation>
-                Result of a simulation run. The simulation may have run either on foreground or on background (within a task).
+                Result of a simulation run. The simulation may run either on foreground or on background, i.e. within a task.
                 In the latter case, the task run can be suspended and resumed, but the simulation result object stays the same.
-
-                (However, note that suspension and resuming is not fully supported now. There can be duplicate information
-                about objects being processed.)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:object/>
@@ -54,8 +51,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 (Expanded) definition of this simulation.
-
-                                TODO decide about this item
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -100,7 +95,7 @@
                     <xsd:element name="configurationUsed" type="tns:ConfigurationSpecificationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What (system) configuration was used to run the simulation? E.g. whas that production
+                                What (system) configuration was used to run the simulation? E.g. was that production
                                 or development one?
                             </xsd:documentation>
                         </xsd:annotation>
@@ -1189,8 +1184,6 @@
                 (For example, just ignoring some parts of it, e.g. some resources.)
 
                 For the time being, only rudimentary options are here.
-
-                TODO better name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1198,21 +1191,54 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="productionConfiguration" type="xsd:boolean" minOccurs="0" default="true">
+            <xsd:element name="predefined" type="tns:PredefinedConfigurationType" minOccurs="0" default="production">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What configuration is used to run the simulation? Production or development one?
-
-                        - Production usually means `active` and `deprecated` lifecycle states.
-                        - Development usually means `active` and `proposed` states.
+                        Predefined configuration set that we want to use.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ConfigurationSpecificationType.productionConfiguration</a:displayName>
+                        <a:displayName>ConfigurationSpecificationType.predefined</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="PredefinedConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Predefined configuration sets.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="production">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The production configuration set.
+                        It (usually) comprises elements with `active` and `deprecated` lifecycle states.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRODUCTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="development">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The development configuration set.
+                        It (usually) comprises elements with `active` and `proposed` lifecycle states.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEVELOPMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="EventMarkDomainType">
         <xsd:annotation>
