@@ -24,42 +24,47 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Defines "execution mode" aspects of an activity: production/preview/dry-run/... plus additional information.
  *
- * TODO better name
- *
- * Corresponds to {@link ActivityExecutionDefinitionType} - TODO better name for that one as well
+ * Corresponds to {@link ActivityExecutionModeDefinitionType}
  */
 public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable {
 
-    @NotNull private ExecutionModeType mode;
-
     /**
      * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
+     *
+     * The `mode` property i.e. `bean.getMode()` should not be `null`.
      */
-    @NotNull private final ActivityExecutionDefinitionType bean;
+    @NotNull private final ActivityExecutionModeDefinitionType bean;
 
     private ActivityExecutionModeDefinition(
-            @NotNull ExecutionModeType mode,
-            @NotNull ActivityExecutionDefinitionType bean) {
-        this.mode = mode;
+            @NotNull ActivityExecutionModeDefinitionType bean) {
         this.bean = bean;
     }
 
     public static @NotNull ActivityExecutionModeDefinition create(
             @Nullable ActivityDefinitionType activityDefinitionBean,
-            @NotNull Supplier<ExecutionModeType> defaultValueSupplier) {
+            @NotNull Supplier<ExecutionModeType> defaultModeSupplier) {
         if (activityDefinitionBean == null) {
-            return new ActivityExecutionModeDefinition(defaultValueSupplier.get(), new ActivityExecutionDefinitionType());
+            return new ActivityExecutionModeDefinition(
+                    new ActivityExecutionModeDefinitionType()
+                            .mode(defaultModeSupplier.get()));
         }
-        ExecutionModeType mode = Objects.requireNonNullElseGet(activityDefinitionBean.getExecutionMode(), defaultValueSupplier);
-        ActivityExecutionDefinitionType executionBean = activityDefinitionBean.getExecution();
-        ActivityExecutionDefinitionType clonedBean =
-                executionBean != null ? executionBean.clone() : new ActivityExecutionDefinitionType();
-        return new ActivityExecutionModeDefinition(mode, clonedBean);
+        ActivityExecutionModeDefinitionType originalBean = activityDefinitionBean.getExecution();
+        ActivityExecutionModeDefinitionType clonedBean =
+                originalBean != null ? originalBean.clone() : new ActivityExecutionModeDefinitionType();
+        if (clonedBean.getMode() == null) {
+            ExecutionModeType legacyMode = activityDefinitionBean.getExecutionMode();
+            if (legacyMode != null) {
+                clonedBean.setMode(legacyMode);
+            } else {
+                clonedBean.setMode(defaultModeSupplier.get());
+            }
+        }
+        return new ActivityExecutionModeDefinition(clonedBean);
     }
 
     @Override
     public String toString() {
-        return mode + "; " + bean.asPrismContainerValue().size() + " additional item(s)";
+        return getMode() + "; " + (bean.asPrismContainerValue().size()-1) + " additional item(s)";
     }
 
     @Override
@@ -70,35 +75,22 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ActivityExecutionModeDefinition clone() {
-        return new ActivityExecutionModeDefinition(mode, bean.clone());
+        return new ActivityExecutionModeDefinition(bean.clone());
     }
 
     public @NotNull ExecutionModeType getMode() {
-        return mode;
+        return Objects.requireNonNull(bean.getMode(), "no execution mode");
     }
 
     public void setMode(@NotNull ExecutionModeType mode) {
-        this.mode = Objects.requireNonNull(mode);
+        bean.setMode(Objects.requireNonNull(mode));
     }
 
     void applyChangeTailoring(ActivityTailoringType tailoring) {
         ExecutionModeType tailoredMode = tailoring.getExecutionMode();
         if (tailoredMode != null) {
-            mode = tailoredMode;
+            setMode(tailoredMode);
         }
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean shouldCreateSimulationResult() {
-        Boolean explicitValue = bean.isCreateSimulationResult();
-        if (explicitValue != null) {
-            return explicitValue;
-        }
-        return bean.getSimulationDefinition() != null;
-    }
-
-    public SimulationDefinitionType getSimulationDefinition() {
-        return bean.getSimulationDefinition();
     }
 
     public @Nullable ConfigurationSpecificationType getConfigurationSpecification() {
@@ -106,6 +98,7 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
     }
 
     public TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
+        ExecutionModeType mode = getMode();
         switch (mode) {
             case FULL:
                 if (isProductionConfiguration()) {
@@ -133,7 +126,6 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
                 return TaskExecutionMode.PRODUCTION;
             default:
                 throw new AssertionError(mode);
-
         }
     }
 
