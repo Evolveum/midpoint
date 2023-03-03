@@ -46,7 +46,7 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
     public BaseSearchDataProvider(Component component, IModel<Search<C>> search, boolean useCache, boolean useDefaultSortingField) {
         super(component, useCache, useDefaultSortingField);
         this.search = search;
-        this.oldType = search.getObject() == null ? null : search.getObject().getTypeClass();
+        this.oldType = search.getObject() == null ? null : search.getObject().getTypeClass();   // TODO not good, resolving model in constructor of provider. Can't this be avoided?
     }
 
     protected IModel<Search<C>> getSearchModel() {
