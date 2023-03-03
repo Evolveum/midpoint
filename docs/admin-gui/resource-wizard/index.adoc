@@ -4,6 +4,8 @@
 
 Resource wizard was complete rewrite and redesign in midPoint version 4.6.
 
+Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+
 New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a wizard with steps.
 
 == Basic configuration
