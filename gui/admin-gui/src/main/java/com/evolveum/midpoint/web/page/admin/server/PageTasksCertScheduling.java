@@ -13,31 +13,26 @@ import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-/**
- * Temporary solution for MID-3098 (expanding both "tasks" and "certification scheduling" menu sections when opening tasks page).
- *
- * TODO show really only certification scheduling tasks (not e.g. remediation ones)
- * TODO decouple settings (e.g. selected task states) from PageTasks
- *
- * @author mederly
- */
 @PageDescriptor(
-        urls = {
-                @Url(mountUrl = "/admin/certificationSchedulingTasks")
-        },
+        urls = @Url(mountUrl = "/admin/certificationSchedulingTasks"),
         action = {
-        @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
-                label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
-                description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
-                label = "PageTasks.auth.tasks.label",
-                description = "PageTasks.auth.tasks.description")})
+                @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+                        label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
+                        description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
+                        label = "PageTasks.auth.tasks.label",
+                        description = "PageTasks.auth.tasks.description") })
 public class PageTasksCertScheduling extends PageTasks {
 
+    public static final String COLLECTION_NAME = "certification-tasks-view";
+
     public PageTasksCertScheduling() {
+        this(new PageParameters());
     }
 
     public PageTasksCertScheduling(PageParameters parameters) {
         super(parameters);
+
+        parameters.set(PageTasks.PARAMETER_OBJECT_COLLECTION_NAME, COLLECTION_NAME);
     }
 }
