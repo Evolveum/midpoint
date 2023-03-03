@@ -12,6 +12,7 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
+    <displayOrder>160</displayOrder>
     <policyRule>
         <name>focus-role-membership-changed</name>
         <policyConstraints>

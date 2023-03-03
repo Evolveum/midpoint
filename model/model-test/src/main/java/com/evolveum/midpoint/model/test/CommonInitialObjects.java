@@ -99,6 +99,10 @@ public interface CommonInitialObjects {
             MARKS, "737-mark-shadow-correlation-state-changed.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
 
+    TestObject<MarkType> MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED = TestObject.classPath(
+            MARKS, "738-mark-projection-resource-object-affected.xml",
+            SystemObjectsType.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED.value());
+
     TestObject<MarkType> MARK_PROTECTED = TestObject.classPath(
             MARKS, "800-mark-protected.xml", SystemObjectsType.MARK_PROTECTED.value());
 
@@ -175,6 +179,7 @@ public interface CommonInitialObjects {
                     MARK_PROJECTION_PASSWORD_CHANGED,
                     MARK_SHADOW_CLASSIFICATION_CHANGED,
                     MARK_SHADOW_CORRELATION_STATE_CHANGED,
+                    MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
                     MARK_DECOMMISION_LATER,
                     MARK_CORRELATE_LATER,

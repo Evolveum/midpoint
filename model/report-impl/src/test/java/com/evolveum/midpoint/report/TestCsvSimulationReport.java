@@ -527,7 +527,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValue(C_MARK, "Projection activated");
+                .assertValues(C_MARK, "Projection activated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -559,7 +559,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValue(C_MARK, "Projection activated");
+                .assertValues(C_MARK, "Projection activated", "Resource object affected");
     }
 
     /** Checks account deletion reporting. */
@@ -604,7 +604,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Deleted")
-                .assertValue(C_MARK, "Projection deactivated");
+                .assertValues(C_MARK, "Projection deactivated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -636,7 +636,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Deleted")
-                .assertValue(C_MARK, "Projection deactivated");
+                .assertValues(C_MARK, "Projection deactivated", "Resource object affected");
 
         then("finally deleting the account");
         executeChanges(
@@ -687,7 +687,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValue(C_MARK, "Projection activated");
+                .assertValues(C_MARK, "Projection activated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -738,7 +738,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_TAG, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValue(C_MARK, "Projection activated");
+                .assertValues(C_MARK, "Projection activated", "Resource object affected");
     }
 
     /** Checks reporting of account modifications. */
@@ -943,7 +943,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withNumericColumns(C_ID, C_M_VALUE)
                 .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
-                .assertRecords(8)
+                .assertRecords(9)
                 .assertColumns(14)
                 .record(0,
                         r -> r.assertValue(C_TYPE, "UserType")
@@ -977,6 +977,10 @@ public class TestCsvSimulationReport extends TestCsvReport {
                                 .assertValue(C_M_VALUE, "1"))
                 .record(7,
                         r -> r.assertValue(C_M_EVENT_MARK, "Projection entitlement changed")
+                                .assertValue(C_M_CUSTOM_MARK, "")
+                                .assertValue(C_M_VALUE, "1"))
+                .record(8,
+                        r -> r.assertValue(C_M_EVENT_MARK, "Resource object affected")
                                 .assertValue(C_M_CUSTOM_MARK, "")
                                 .assertValue(C_M_VALUE, "1"));
 

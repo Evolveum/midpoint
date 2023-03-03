@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_ACTIVATED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -421,7 +422,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         .end()
                     .end()
                     .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
-                        .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                        .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                         .delta()
                             .objectToAdd()
                                 .asShadow()

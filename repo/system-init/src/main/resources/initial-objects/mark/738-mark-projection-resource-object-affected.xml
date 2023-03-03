@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000738">
+    <name>Resource object affected</name>
+    <description>Operation that made any change (addition, modification, deletion) to a resource object</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>360</displayOrder>
+    <policyRule>
+        <name>resource-object-affected</name>
+        <policyConstraints>
+            <or>
+                <name>$resource-object-affected</name>
+                <modification>
+                    <operation>modify</operation>
+                    <specialItem>resourceObjectItem</specialItem>
+                </modification>
+                <modification>
+                    <!-- We assume that ADD/DELETE always modifies the state of the resource -->
+                    <operation>add</operation>
+                    <operation>delete</operation>
+                </modification>
+            </or>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+    </policyRule>
+</mark>

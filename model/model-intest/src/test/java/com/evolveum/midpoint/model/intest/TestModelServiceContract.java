@@ -31,8 +31,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-
 import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 
@@ -118,7 +116,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
             throws Exception {
         super.initSystem(initTask, initResult);
 
-        CommonInitialObjects.addMarks(this, initTask, initResult);
+        addMarks(this, initTask, initResult);
+
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
@@ -258,7 +257,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks())
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -838,7 +837,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks())
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find(
-                        a -> a.assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED))
+                        a -> a.assertEventMarks(
+                                MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -1086,7 +1086,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks())
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find(
-                        a -> a.assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -1197,7 +1197,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertProcessedObjects(simulationResult, "after")
                 .display() // No user, because the account was not linked
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find(
-                        a -> a.assertEventMarks(CommonInitialObjects.MARK_PROJECTION_DEACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(1);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -1287,7 +1287,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED))
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -1464,7 +1464,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                                         null,
                                         "The crew of Queen Anne's Revenge")))
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY)
-                .find(a -> a.assertEventMarks()
+                .find(a -> a.assertEventMarks(MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                         .delta(d -> d.assertModifiedExclusive(
                                         ShadowType.F_METADATA,
                                         DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH,
@@ -1739,7 +1739,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED))
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -3195,7 +3195,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.DELETE).find(
                         a -> a.assertEventMarks(MARK_FOCUS_DEACTIVATED))
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -3382,7 +3382,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find(
                         a -> a.assertEventMarks(MARK_FOCUS_ACTIVATED))
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED))
+                        a -> a.assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -3500,7 +3500,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks(MARK_FOCUS_RENAMED))
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find(
-                        a -> a.assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED))
+                        a -> a.assertEventMarks(
+                                MARK_PROJECTION_RENAMED,
+                                MARK_PROJECTION_IDENTIFIER_CHANGED,
+                                MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");

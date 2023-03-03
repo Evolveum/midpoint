@@ -198,6 +198,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An order in which this metric should be displayed relative to other metrics within the same context.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="enabledByDefault" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -248,7 +255,14 @@
             <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of an explicitly defined metric.
+                        Identifier of an explicitly defined (custom) metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="builtIn" type="tns:BuiltInSimulationMetricType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of a built-in metric.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -264,6 +278,49 @@
             </xsd:element>
         </xsd:choice>
     </xsd:complexType>
+
+    <xsd:simpleType name="BuiltInSimulationMetricType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Built-in simulation metric.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="added">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of objects added.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modified">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of objects modified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="deleted">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of objects deleted.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SimulationMetricComputationType">
         <xsd:annotation>

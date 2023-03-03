@@ -16,6 +16,7 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
+    <displayOrder>320</displayOrder>
     <!-- TODO @Vilo please add "display" here (and to other tags) -->
     <policyRule>
         <name>projection-renamed</name>

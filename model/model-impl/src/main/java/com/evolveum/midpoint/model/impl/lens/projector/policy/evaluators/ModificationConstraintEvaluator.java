@@ -58,7 +58,8 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
     boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return constraintElement.getValue().getExpression() == null || expressionEvaluatesToTrue(constraintElement, ctx, result);
+        return constraintElement.getValue().getExpression() == null
+                || expressionEvaluatesToTrue(constraintElement, ctx, result);
     }
 
     private boolean expressionEvaluatesToTrue(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx,

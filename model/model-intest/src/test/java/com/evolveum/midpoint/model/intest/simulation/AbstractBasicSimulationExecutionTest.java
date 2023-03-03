@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -114,15 +115,19 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertNoNewObjects(result);
 
         and("simulation result is OK");
-        SimulationResultType resultBean = assertSimulationResultAfter(simResult) // TODO some asserts here
+        SimulationResultType resultBean = assertSimulationResultAfter(simResult)
                 .assertMetricValueByEventMark(MARK_USER_ADD.oid, BigDecimal.ONE)
+                .assertObjectsAdded(1)
+                .assertObjectsModified(0)
+                .assertObjectsDeleted(0)
+                .assertObjectsProcessed(1)
                 .getObjectable();
 
         // TODO write an asserter for this
         SimulationMetricValuesType mv =
-                SimulationResultTypeUtil.getAggregatedMetricValuesByEventMarkOid(resultBean, MARK_USER_ADD.oid);
+                SimulationResultTypeUtil.getMetricValuesBeanByMarkOid(resultBean, MARK_USER_ADD.oid);
         displayDumpable("metric value", mv);
-        List<SimulationMetricPartitionType> partitions = mv.getPartition();
+        List<SimulationMetricPartitionType> partitions = Objects.requireNonNull(mv).getPartition();
         assertThat(partitions).as("metric partitions").hasSize(1);
         SimulationMetricPartitionScopeType scope = partitions.get(0).getScope();
         assertThat(scope.getTypeName()).as("type name").isEqualTo(UserType.COMPLEX_TYPE);
@@ -552,7 +557,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects) {
         assertProcessedObjects(processedObjects, "objects")
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                     .objectToAdd()
                         .assertNoName() // currently, there is no object name there
@@ -604,7 +609,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertNoNewObjects(result);
 
         and("simulation result is OK");
-        assertSimulationResultAfter(simResult);
+        assertSimulationResultAfter(simResult)
+                .assertObjectsAdded(0)
+                .assertObjectsModified(1)
+                .assertObjectsDeleted(0)
+                .assertObjectsProcessed(1);
+
         // @formatter:off
         assertProcessedObjects(simResult)
                 .display()

@@ -19,8 +19,7 @@
                 <q:inOid>
                     <c:expression>
                         <c:script>
-                            <!-- temporary hack -->
-                            <c:code>simulationResultRef ? simulationResultRef.oid : simulationResultOid</c:code>
+                            <c:code>simulationResultRef?.oid</c:code>
                         </c:script>
                     </c:expression>
                     <q:considerOwner>true</q:considerOwner>
@@ -288,26 +287,37 @@
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
-        </parameter>
-        <parameter> <!-- temporary hack -->
-            <name>simulationResultOid</name>
-            <type>xsd:string</type>
+            <display>
+                <label>Simulation result</label>
+            </display>
         </parameter>
         <parameter>
             <name>pathsToInclude</name>
             <type>t:ItemPathType</type>
+            <display>
+                <label>Paths to include</label>
+            </display>
         </parameter>
         <parameter>
             <name>pathsToExclude</name>
             <type>t:ItemPathType</type>
+            <display>
+                <label>Paths to exclude</label>
+            </display>
         </parameter>
         <parameter>
             <name>includeOperationalItems</name>
             <type>xsd:boolean</type>
+            <display>
+                <label>Show operational items</label>
+            </display>
         </parameter>
         <parameter>
             <name>showIfNoDetails</name>
             <type>xsd:boolean</type>
+            <display>
+                <label>Show rows with no details</label>
+            </display>
         </parameter>
         <subreport>
             <name>itemDelta</name>

@@ -16,6 +16,7 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
+    <displayOrder>300</displayOrder>
     <policyRule>
         <name>projection-activated</name>
         <policyConstraints>
