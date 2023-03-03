@@ -1,12 +1,5 @@
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.Locale;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -14,8 +7,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 public class LocalizationUtil {
 
@@ -43,7 +41,7 @@ public class LocalizationUtil {
     }
 
     public static String translate(String key, Object[] params) {
-        return translate(key, params, null);
+        return translate(key, params, key);
     }
 
     public static String translate(String key, Object[] params, String defaultMsg) {
@@ -117,5 +115,18 @@ public class LocalizationUtil {
         }
 
         return poly.getOrig();
+    }
+
+    public static String translateEnum(Enum<?> e) {
+        return translateEnum(e, null);
+    }
+
+    public static String translateEnum(Enum<?> e, String nullKey) {
+        if (e == null) {
+            return nullKey != null ? translate(nullKey) : null;
+        }
+
+        String key = WebComponentUtil.createEnumResourceKey(e);
+        return translate(key);
     }
 }

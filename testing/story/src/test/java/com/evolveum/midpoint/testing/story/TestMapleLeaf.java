@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -47,7 +49,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final File SECURITY_POLICY_FILE = new File(TEST_DIR, "security-policy.xml");
+    private static final TestObject<?> SECURITY_POLICY =
+            TestObject.file(TEST_DIR, "security-policy.xml", "00000000-0000-0000-0000-000000000120");
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000000";
@@ -106,9 +109,16 @@ public class TestMapleLeaf extends AbstractStoryTest {
         importObjectFromFile(ROLE_MAPLE_LEAF_GRADUATE);
         importObjectFromFile(ROLE_META_MONKEY_DONKEY);
         importObjectFromFile(ROLE_SQUIRREL_FILE);
-        importObjectFromFile(SECURITY_POLICY_FILE);
+        SECURITY_POLICY.init(this, initTask, initResult);
         importObjectFromFile(OBJECT_TEMPLATE_USER);
 
+        executeChanges(
+                List.of(
+                        deltaFor(SystemConfigurationType.class)
+                                .item(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF)
+                                .replace(SECURITY_POLICY.ref())
+                                .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value())),
+                null, initTask, initResult);
     }
 
     @Test

@@ -333,7 +333,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 delta,
                 InternalState.CREATING);
 
-        processedObject.addComputedMetricValues(List.of()); // Ignoring metrics in this mode
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
 
         return processedObject;
     }
@@ -728,6 +728,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             return delta.getModifications().stream()
                     .map(itemDelta -> new ProcessedObjectItemDeltaImpl<>(itemDelta))
                     .filter(itemDelta -> filter.matches(itemDelta))
+                    .filter(itemDelta -> !itemDelta.isPhantom())
                     .collect(Collectors.toList());
         } else {
             return List.of();
@@ -860,6 +861,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                             getPrismValuesBefore(),
                             getPrismValuesAfter(),
                             ParameterizedEquivalenceStrategy.REAL_VALUE));
+        }
+
+        /** Either we have only operational data changed, or the delta is phantom one indeed. */
+        public boolean isPhantom() {
+            return getValuesWithStates().isEmpty();
         }
 
         @Override

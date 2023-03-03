@@ -218,10 +218,6 @@ public class TestOrgSync extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (isNativeRepository()) {
-            CommonInitialObjects.addMarks(this, initTask, initResult);
-        }
-
         reconciliationTaskResultListener = new DebugReconciliationResultListener();
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationTaskResultListener);
 

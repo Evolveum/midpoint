@@ -13,25 +13,24 @@
 <wicket:extend>
     <form class="form-horizontal" action="ignore" wicket:id="mainForm">
         <wicket:enclosure child="username">
-            <label class="col-md-4 col-lg-4 control-label">
+            <label class="control-label">
                 <wicket:message key="PageLogin.username"/>
             </label>
 
-            <div class="col-md-8 col-lg-8">
-                <input name="username" type="text" class="form-control form-control-sm focus-username"
+            <input name="username" type="text" class="form-control form-control-sm focus-username login-panel-control"
                         wicket:message="placeholder:PageLogin.username" wicket:id="username">
-            </div>
 
             <div wicket:id="dynamicLayout">
                 <div wicket:id="dynamicForm"/>
             </div>
 
-            <div class="pull-right" wicket:id="firstLevelButtons">
-                <a class="btn btn-default" wicket:id="back1">
-                    <wicket:message key="PageBase.button.back"/>
-                </a>
-                <a class="btn btn-primary" wicket:id="showQuestions">
+            <div wicket:id="firstLevelButtons">
+                <a class="btn btn-primary login-panel-control mt-2" wicket:id="showQuestions">
                     <wicket:message key="PageSecurityQuestions.showQuestions"/>
+                </a>
+                <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back1">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <wicket:message key="PageEmailNonce.backButtonLabel"/>
                 </a>
             </div>
         </wicket:enclosure>

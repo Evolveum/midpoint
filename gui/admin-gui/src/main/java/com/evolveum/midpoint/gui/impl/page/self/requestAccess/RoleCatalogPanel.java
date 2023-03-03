@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,11 +45,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -68,7 +69,6 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
@@ -344,7 +344,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
 
-                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.activateFirstAvailableItem();
+                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
+                if (active == null) {
+                    active = menu.activateFirstAvailableItem();
+                }
                 updateQueryModel(active);
 
                 return menu;
@@ -364,6 +367,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
                 ObjectQuery query = catalogQuery.getQuery();
+                query = query.clone();
 
                 Class<? extends AbstractRoleType> type = catalogQuery.getType();
 

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +34,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -179,20 +179,6 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
 
         questionsContainer.add(createBackButton(ID_BACK_2_BUTTON));
-//        AjaxButton back = new AjaxButton(ID_BACK_2_BUTTON) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                userModel.detach();
-//                questionsModel.setObject(new ArrayList<SecurityQuestionDto>());
-//                getHiddenUsername().getModel().setObject(null);
-//                getHiddenAnswer().getModel().setObject(null);
-//                target.add(getMainForm());
-//            }
-//        };
-//        questionsContainer.add(back);
     }
 
     private String generateAnswer() {
@@ -216,12 +202,12 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         firstLevelButtonContainer.setOutputMarkupId(true);
         form.add(firstLevelButtonContainer);
 
-        AjaxSubmitButton showQuestion = new AjaxSubmitButton(ID_SHOW_QUESTIONS_BUTTON) {
+        AjaxButton showQuestion = new AjaxButton(ID_SHOW_QUESTIONS_BUTTON) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
+            public void onClick(AjaxRequestTarget target) {
                 showQuestions(target);
             }
         };
@@ -231,8 +217,9 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     private void initStaticLayout(MidpointForm<?> form) {
-        RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, new Model<>());
+        RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, Model.of());
         visibleUsername.setOutputMarkupId(true);
+        visibleUsername.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         visibleUsername.add(new VisibleBehaviour(() -> !isUserDefined() && !isDynamicForm()));
         form.add(visibleUsername);
     }
@@ -242,6 +229,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     private void showQuestions(AjaxRequestTarget target) {
+        userModel.detach();
         UserType user = userModel.getObject();
 
         if (user == null) {

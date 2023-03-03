@@ -110,6 +110,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
 
+        CommonInitialObjects.addMarks(this, initTask, initResult);
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);

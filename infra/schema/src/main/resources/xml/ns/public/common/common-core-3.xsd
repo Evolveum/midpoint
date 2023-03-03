@@ -6256,6 +6256,11 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!--
+                    TODO: Consider renaming, because returnTypeof type QName is used also in expression, which is a mere level above and can be confusing.
+                     Also - this seems to do nothing at the moment, it probably ends in ScriptExpressionEvaluationContext#suggestedReturnType and is not used further.
+                     Related Jira: MID-8552
+                    -->
                     <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6265,10 +6270,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO: Consider renaming to referenceVariableMode. -->
                     <xsd:element name="objectVariableMode" type="tns:ObjectVariableModeType" minOccurs="0" default="object">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of object variables that appear in the script.
+                                Specifies how reference variables should be provided for the script.
+                                By default, they are resolved to objects.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
@@ -6355,7 +6362,8 @@
     <xsd:simpleType name="ObjectVariableModeType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of object variables that appear in the script.
+                Specifies how reference variables should be provided for the script.
+                By default, they are resolved to objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>

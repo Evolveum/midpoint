@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.io.IOUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -46,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLdapUniversity extends AbstractModelIntegrationTest {
+public class TestLdapUniversity extends AbstractModelIntegrationTest { // TODO Why not from AbstractLongTest?
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 
@@ -100,6 +102,11 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
+
+        if (areMarksSupported()) {
+            CommonInitialObjects.ARCHETYPE_OBJECT_MARK.init(this, initTask, initResult);
+            CommonInitialObjects.MARK_PROTECTED.init(this, initTask, initResult);
+        }
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);

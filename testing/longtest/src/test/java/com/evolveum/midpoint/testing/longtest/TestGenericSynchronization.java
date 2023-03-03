@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.opends.server.types.Entry;
@@ -37,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestGenericSynchronization extends AbstractModelIntegrationTest {
+public class TestGenericSynchronization extends AbstractModelIntegrationTest { // TODO Why not from AbstractLongTest?
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -105,6 +107,11 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
+
+        if (areMarksSupported()) {
+            CommonInitialObjects.ARCHETYPE_OBJECT_MARK.init(this, initTask, initResult);
+            CommonInitialObjects.MARK_PROTECTED.init(this, initTask, initResult);
+        }
 
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
         setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);

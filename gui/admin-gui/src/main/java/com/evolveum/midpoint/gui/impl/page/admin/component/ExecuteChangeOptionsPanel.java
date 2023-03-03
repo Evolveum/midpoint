@@ -10,17 +10,20 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.value.IValueMap;
+import org.apache.wicket.util.value.ValueMap;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -36,12 +39,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.CheckboxMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
-
-import org.apache.wicket.util.value.IValueMap;
-import org.apache.wicket.util.value.ValueMap;
 
 /**
  * @author lazyman
@@ -113,6 +114,13 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 CheckBoxPanel panel = new CheckBoxPanel(componentId, checkboxMenuItem.getCheckBoxModel(), checkboxMenuItem.getLabel(), null) {
 
                     private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected Component createLabel(String id, IModel<String> model, AjaxCheckBox check) {
+                        Component c = super.createLabel(id, model, check);
+                        c.add(AttributeAppender.append("class", "w-100"));
+                        return c;
+                    }
 
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {

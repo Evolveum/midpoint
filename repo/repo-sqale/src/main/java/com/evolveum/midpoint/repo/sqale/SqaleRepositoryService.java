@@ -767,7 +767,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             var predicate = alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid));
             // If transactionId is null, delete all processed objects
             // otherwise delete only ones in particular transaction
-            predicate = transactionId != null ? alias.transactionId.eq(transactionId) : predicate;
+            predicate = transactionId != null ?
+                    predicate.and(alias.transactionId.eq(transactionId)) :
+                    predicate;
 
             jdbcSession.newDelete(alias).where(predicate).execute();
             update.finishExecutionOwn();

@@ -68,7 +68,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -445,14 +444,11 @@ public final class WebComponentUtil {
     }
 
     public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
-        container.visitChildren(new IVisitor<Component, Object>() {
-            @Override
-            public void component(Component component, IVisit<Object> objectIVisit) {
-                if (component instanceof InputPanel) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
-                } else if (component instanceof FormComponent) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(component);
-                }
+        container.visitChildren((component, visit) -> {
+            if (component instanceof InputPanel) {
+                addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
+            } else if (component instanceof FormComponent) {
+                addAjaxOnBlurUpdateBehaviorToComponent(component);
             }
         });
     }
@@ -1228,7 +1224,7 @@ public final class WebComponentUtil {
         return name;
     }
 
-    public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName,
+    public static String getEffectiveName(ObjectReferenceType ref, QName propertyName,
             PageBase pageBase, String operation) {
         return getEffectiveName(ref, propertyName, pageBase, operation, true);
     }
@@ -2166,20 +2162,29 @@ public final class WebComponentUtil {
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
-        // if user has superuser role assigned, it's superuser
+        // if user has superuser role assigned, or if user has an assigned role whose inducement is superuser then it's superuser
+        List<ObjectReferenceType> roleMembershipRef = object.asObjectable().getRoleMembershipRef();
+
         boolean isEndUser = false;
-        for (AssignmentType assignment : user.getAssignment()) {
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef == null) {
+
+        for (ObjectReferenceType objectReferenceType : roleMembershipRef) {
+            if (objectReferenceType.getOid() == null) {
                 continue;
             }
-            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
+
+            QName relation = objectReferenceType.getRelation();
+            if (!WebComponentUtil.isDefaultRelation(relation)) {
+                continue;
+            }
+
+            if (StringUtils.equals(objectReferenceType.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
                 return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " "
                         + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
             }
-            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
+            if (StringUtils.equals(objectReferenceType.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
                 isEndUser = true;
             }
+
         }
 
         boolean isManager = false;
@@ -2540,12 +2545,12 @@ public final class WebComponentUtil {
 
     // shows the actual object that is passed via parameter (not its state in repository)
     public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
-        Class newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
+        Class<?> newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
         if (newObjectPageClass == null) {
             throw new IllegalArgumentException("Cannot determine details page for " + obj.getCompileTimeClass());
         }
 
-        Constructor constructor;
+        Constructor<?> constructor;
         try {
             PageBase page;
             if (ResourceType.class.equals(obj.getCompileTimeClass())) {
@@ -3261,7 +3266,7 @@ public final class WebComponentUtil {
             }
         };
 
-        DropDownChoice<Boolean> dropDown = new DropDownChoice<Boolean>(id, model, createChoices(), renderer) {
+        DropDownChoice<Boolean> dropDown = new DropDownChoice<>(id, model, createChoices(), renderer) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -5146,7 +5151,7 @@ public final class WebComponentUtil {
         return credentialsPolicyType;
     }
 
-    public static  <F extends FocusType> ValuePolicyType getPasswordValuePolicy(CredentialsPolicyType credentialsPolicy,
+    public static <F extends FocusType> ValuePolicyType getPasswordValuePolicy(CredentialsPolicyType credentialsPolicy,
             String operation, PageAdminLTE parentPage) {
         ValuePolicyType valuePolicyType = null;
         MidPointPrincipal user = AuthUtil.getPrincipalUser();
@@ -5355,32 +5360,9 @@ public final class WebComponentUtil {
         return objectListView;
     }
 
-    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
-            boolean allowNull, PageBase pageBase) {
-        return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Object getDisplayValue(DisplayableValue val) {
-                if (val.getValue() instanceof Enum) {
-                    return pageBase.createStringResource((Enum<?>) val.getValue()).getString();
-                }
-                if (val.getLabel() == null) {
-                    return pageBase.createStringResource(String.valueOf(val.getValue())).getString();
-                }
-                return pageBase.createStringResource(val.getLabel()).getString();
-            }
-
-            @Override
-            public String getIdValue(DisplayableValue val, int index) {
-                return Integer.toString(index);
-            }
-
-            @Override
-            public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-            }
-        }, allowNull);
+    public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model,
+                                                                IModel<List<DisplayableValue<T>>> choices, boolean allowNull) {
+        return new DropDownChoicePanel(id, model, choices, new DisplayableChoiceRenderer(), allowNull);
     }
 
     public static Map<IconCssStyle, IconType> createMainButtonLayerIcon(DisplayType mainButtonDisplayType) {

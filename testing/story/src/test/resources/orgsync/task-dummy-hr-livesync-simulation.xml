@@ -20,9 +20,11 @@
                 <updateLiveSyncTokenInPreviewMode>true</updateLiveSyncTokenInPreviewMode>
             </liveSynchronization>
         </work>
-        <executionMode>preview</executionMode>
         <execution>
-            <createSimulationResult>true</createSimulationResult>
+            <mode>preview</mode>
         </execution>
+        <reporting>
+            <simulationResult/>
+        </reporting>
     </activity>
 </task>

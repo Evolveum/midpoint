@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,41 +40,46 @@ public class SynchronizationUtils {
 
         itemDeltas.add(
                 createSynchronizationSituationDescriptionDelta(shadow, situation, timestamp, sourceChannel, full));
-        itemDeltas.add(createSynchronizationTimestampDelta(timestamp));
+        itemDeltas.add(
+                createSynchronizationTimestampDelta(shadow, timestamp));
         if (full) {
-            itemDeltas.add(createFullSynchronizationTimestampDelta(timestamp));
+            itemDeltas.add(
+                    createFullSynchronizationTimestampDelta(shadow, timestamp));
         }
-        itemDeltas.add(createSynchronizationSituationDelta(situation));
+        itemDeltas.add(
+                createSynchronizationSituationDelta(shadow, situation));
 
         return itemDeltas;
     }
 
-    public static ItemDelta<?, ?> createSynchronizationSituationDelta(SynchronizationSituationType situation)
+    public static ItemDelta<?, ?> createSynchronizationSituationDelta(ShadowType shadow, SynchronizationSituationType situation)
             throws SchemaException {
         return PrismContext.get().deltaFor(ShadowType.class)
+                .oldObject(shadow)
                 .item(ShadowType.F_SYNCHRONIZATION_SITUATION)
                 .replace(situation)
                 .asItemDelta();
     }
 
-    public static ItemDelta<?, ?> createSynchronizationTimestampDelta(XMLGregorianCalendar timestamp) throws SchemaException {
-        return createSynchronizationTimestampDelta(ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
+    public static ItemDelta<?, ?> createSynchronizationTimestampDelta(ShadowType oldShadow, XMLGregorianCalendar timestamp) throws SchemaException {
+        return createSynchronizationTimestampDelta(oldShadow, ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
     }
 
-    public static ItemDelta<?, ?> createFullSynchronizationTimestampDelta(XMLGregorianCalendar timestamp) throws SchemaException {
-        return createSynchronizationTimestampDelta(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
+    public static ItemDelta<?, ?> createFullSynchronizationTimestampDelta(ShadowType oldShadow, XMLGregorianCalendar timestamp) throws SchemaException {
+        return createSynchronizationTimestampDelta(oldShadow, ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
     }
 
     private static ItemDelta<?, ?> createSynchronizationTimestampDelta(
-            QName propName, XMLGregorianCalendar timestamp) throws SchemaException {
+            ShadowType oldShadow, ItemName propName, XMLGregorianCalendar timestamp) throws SchemaException {
         return PrismContext.get().deltaFor(ShadowType.class)
+                .oldObject(oldShadow)
                 .item(propName)
                 .replace(timestamp)
                 .asItemDelta();
     }
 
     /** Creates delta for `synchronizationSituationDescription` (adding new, removing obsolete if present). */
-    public static ItemDelta<?, ?> createSynchronizationSituationDescriptionDelta(
+    public static @NotNull ItemDelta<?, ?> createSynchronizationSituationDescriptionDelta(
             ShadowType shadow, SynchronizationSituationType situation, XMLGregorianCalendar timestamp,
             String sourceChannel, boolean full) throws SchemaException {
 
@@ -87,6 +93,7 @@ public class SynchronizationUtils {
                 getDescriptionsFromSameChannel(shadow, sourceChannel);
 
         return PrismContext.get().deltaFor(ShadowType.class)
+                .oldObject(shadow)
                 .item(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION)
                 .deleteRealValues(descriptionsToDelete)
                 .add(descriptionToAdd)

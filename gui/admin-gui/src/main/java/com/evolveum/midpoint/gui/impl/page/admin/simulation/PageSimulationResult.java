@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.BooleanUtils;
+import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
@@ -162,7 +163,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.productionConfiguration"), () -> {
 
                     ConfigurationSpecificationType specification = resultModel.getObject().getConfigurationUsed();
-                    if (specification == null || BooleanUtils.isNotFalse(specification.isProductionConfiguration())) {
+                    if (ConfigurationSpecificationTypeUtil.isProductionConfiguration(specification)) {
                         return getString("PageSimulationResult.production");
                     }
 
@@ -266,6 +267,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         add(marksContainer);
 
         ListView<DashboardWidgetType> marks = createWidgetList(ID_MARKS, ID_MARK, true);
+        marksContainer.add(new VisibleBehaviour(() -> !marks.getModelObject().isEmpty()));
         marksContainer.add(marks);
 
         SimpleContainerPanel metricsContainer = new SimpleContainerPanel(ID_METRICS_CONTAINER, createStringResource("PageSimulationResult.metrics")) {
@@ -277,9 +279,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 return content;
             }
         };
+        metricsContainer.add(new VisibleBehaviour(() -> !createWidgetListModel(true).getObject().isEmpty()));
         add(metricsContainer);
 
         ListView<DashboardWidgetType> metrics = createWidgetList(ID_METRICS, ID_METRIC, false);
+        metricsContainer.add(new VisibleBehaviour(() -> !metrics.getModelObject().isEmpty()));
         metricsContainer.add(metrics);
     }
 

@@ -68,7 +68,7 @@ public class SecurityQuestionsAuthenticationFilter
         setUsernameParameter(SPRING_SECURITY_FORM_USER_KEY);
         String username = getIdentifiedUsername();
         if (StringUtils.isBlank(username)) {
-             obtainUsername(request);
+            username = obtainUsername(request);
         }
         Map<String, String> answers = obtainAnswers(request);
 

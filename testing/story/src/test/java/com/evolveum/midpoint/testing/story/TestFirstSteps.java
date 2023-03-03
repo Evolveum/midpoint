@@ -176,15 +176,6 @@ public class TestFirstSteps extends AbstractStoryTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-        if (!isNativeRepository()) {
-            return;
-        }
-        CommonInitialObjects.addMarks(this, initTask, initResult);
-    }
-
     /**
      * Ref: _Step I: Connect; point 6 "I may now list the accounts in the resource through midPoint to see which data I have"_
      *

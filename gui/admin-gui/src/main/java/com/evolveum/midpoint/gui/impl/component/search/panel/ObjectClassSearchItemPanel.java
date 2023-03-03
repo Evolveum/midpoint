@@ -49,7 +49,7 @@ public class ObjectClassSearchItemPanel extends PropertySearchItemPanel {
     protected Component initSearchItemField(String id) {
         return WebComponentUtil.createDropDownChoices(
                 id, new PropertyModel(getModel(), ObjectClassSearchItemWrapper.F_DISPLAYABLE_VALUE),
-                Model.ofList(getAvailableObjectClassList()), true, getPageBase());
+                Model.ofList(getAvailableObjectClassList()), true);
     }
 
     private List<DisplayableValue<QName>> getAvailableObjectClassList() {

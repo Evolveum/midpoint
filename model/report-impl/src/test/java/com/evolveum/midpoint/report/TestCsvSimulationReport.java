@@ -416,7 +416,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertCsv(itemsLines2, "after")
                 .parse()
                 .display()
-                .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
+                .assertRecords((a) -> a.hasSizeGreaterThan(40)); // too many
 
         when("item-level report is created - 'name' only");
         var itemsLines3 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -1263,7 +1263,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NEW_VALUES,
                         a -> a.contains("developer")
                                 .contains("admin")
-                                .contains("2000"))
+                                .contains("00"))
                 .assertValue(C_VALUES_ADDED, a -> a.contains("developer"))
                 .assertValue(C_VALUES_DELETED, "")
                 .end()

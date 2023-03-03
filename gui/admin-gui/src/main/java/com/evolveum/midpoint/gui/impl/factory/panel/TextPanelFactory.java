@@ -76,7 +76,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                     panelCtx.getRealValueModel().setObject(object.getValue());
                 }
             };
-            return WebComponentUtil.createDropDownChoices(panelCtx.getComponentId(), convertModel, choices, true, panelCtx.getPageBase());
+            return WebComponentUtil.createDropDownChoices(panelCtx.getComponentId(), convertModel, choices, true);
         }
 
         Collection<? extends DisplayableValue<T>> suggestedValues = panelCtx.getSuggestedValues();
