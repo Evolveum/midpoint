@@ -6,24 +6,26 @@
  */
 package com.evolveum.midpoint.web.page.admin.shadows;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ChooseTaskExecutionModePopup extends SimplePopupable<DisplayableValue<TaskExecutionMode>> {
 
@@ -60,8 +62,8 @@ public class ChooseTaskExecutionModePopup extends SimplePopupable<DisplayableVal
         return footer;
     }
 
-    private DisplayableValue createValue(TaskExecutionMode mode) {
-        return new DisplayableValueImpl(mode, "TaskExecutionMode." + mode);
+    private DisplayableValue<TaskExecutionMode> createValue(TaskExecutionMode mode) {
+        return new DisplayableValueImpl<>(mode, "TaskExecutionMode." + mode);
     }
 
     private void initLayout() {
@@ -69,7 +71,13 @@ public class ChooseTaskExecutionModePopup extends SimplePopupable<DisplayableVal
                 createValue(TaskExecutionMode.SIMULATED_DEVELOPMENT),
                 createValue(TaskExecutionMode.SIMULATED_PRODUCTION));
 
-       DropDownChoicePanel<TaskExecutionMode> dropdown = WebComponentUtil.createDropDownChoices(ID_DROPDOWN, getModel(), choices, false);
+        DropDownChoice<DisplayableValue<TaskExecutionMode>> dropdown = new DropDownChoice<>(ID_DROPDOWN, getModel(), choices, new DisplayableChoiceRenderer<>());
+        dropdown.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+
+            }
+        });
         add(dropdown);
 
         footer = initFooter();

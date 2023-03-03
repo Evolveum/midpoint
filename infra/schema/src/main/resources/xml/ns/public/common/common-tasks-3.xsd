@@ -1749,8 +1749,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Execution mode for this activity: full, preview, dryRun, none, bucketAnalysis.
-                        TODO move this into "execution" item.
+                        Deprecated. Please use execution/mode instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="execution" type="tns:ActivityExecutionModeDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Detailed definition of the execution mode.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="controlFlow" type="tns:ActivityControlFlowDefinitionType" minOccurs="0">
@@ -1774,17 +1788,6 @@
                         How various aspects of activity run are reported, using logging, tracing,
                         profiling, reporting, and so on.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="execution" type="tns:ActivityExecutionDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Detailed definition of the execution.
-                        TODO better name
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.7</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
@@ -2669,10 +2672,11 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ActivityExecutionDefinitionType">
+    <!-- TODO better term should be found; "execution mode" is just too vague. -->
+    <xsd:complexType name="ActivityExecutionModeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Detailed definition of the execution.
+                Detailed definition of the execution mode.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
@@ -2680,29 +2684,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- TODO "mode" will be here. -->
+            <xsd:element name="mode" type="tns:ExecutionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution mode for this activity: full, preview, dryRun, none, bucketAnalysis, ...
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="configurationToUse" type="tns:ConfigurationSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What configuration should be used to run the simulation?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="createSimulationResult" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Should we create a simulation result for this activity?
-
-                        The default value is "true" if simulation definition is present, and "false" otherwise.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="simulationDefinition" type="tns:SimulationDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition (configuration) of the simulation. May refer to one of global definitions.
-                        If "createSimulationResult" is true and this definition is unspecified, the system default definition
-                        is used.
+                        What configuration should be used? Currently, this is to be used only when simulation (preview) mode is selected.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5900,7 +5892,6 @@
                 How should the task report its various aspects?
             </xsd:documentation>
             <xsd:appinfo>
-                <a:experimentaL>true</a:experimentaL>
                 <a:container>true</a:container>
                 <a:since>4.3</a:since>
             </xsd:appinfo>
@@ -5962,6 +5953,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simulationResult" type="tns:ActivitySimulationResultDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should the simulation result be created for the activity? If so, how?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6686,6 +6687,28 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ActivitySimulationResultDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Should the simulation result be created for the activity? If so, how?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition (configuration) of the simulation result. May refer to one of global definitions.
+                        If none is specified, the system default definition is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ObjectSetType">
         <xsd:annotation>

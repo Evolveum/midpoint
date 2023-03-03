@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.BooleanUtils;
+import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
@@ -162,7 +163,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.productionConfiguration"), () -> {
 
                     ConfigurationSpecificationType specification = resultModel.getObject().getConfigurationUsed();
-                    if (specification == null || BooleanUtils.isNotFalse(specification.isProductionConfiguration())) {
+                    if (ConfigurationSpecificationTypeUtil.isProductionConfiguration(specification)) {
                         return getString("PageSimulationResult.production");
                     }
 

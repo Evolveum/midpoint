@@ -6,18 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
-import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
-import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -26,14 +18,24 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popupable{
+public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
@@ -70,7 +72,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                     private final OrgStructurePanelStorage storage = new OrgStructurePanelStorage();
 
                     @Override
-                    protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
+                    protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel) {
                         return new LoadableModel<>(true) {
 
                             @Override
@@ -86,37 +88,37 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                     }
 
                     @Override
-                    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){
-                            if (rowModel != null && rowModel.getObject() != null) {
-                                boolean isAlreadyInList = false;
-                                Iterator<OrgType> it = allTabsSelectedOrgs.iterator();
-                                while (it.hasNext()){
-                                    OrgType org = it.next();
-                                    if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
-                                        isAlreadyInList = true;
-                                        it.remove();
-                                    }
-                                }
-                                if (!isAlreadyInList){
-                                    allTabsSelectedOrgs.add(rowModel.getObject().getValue());
+                    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
+                        if (rowModel != null && rowModel.getObject() != null) {
+                            boolean isAlreadyInList = false;
+                            Iterator<OrgType> it = allTabsSelectedOrgs.iterator();
+                            while (it.hasNext()) {
+                                OrgType org = it.next();
+                                if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
+                                    isAlreadyInList = true;
+                                    it.remove();
                                 }
                             }
+                            if (!isAlreadyInList) {
+                                allTabsSelectedOrgs.add(rowModel.getObject().getValue());
+                            }
+                        }
                         OrgTreeAssignablePanel.this.onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
                     }
 
                     @Override
                     protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
-                                                           AjaxRequestTarget target) {
+                            AjaxRequestTarget target) {
                         onItemSelect(selected, target);
                     }
 
                     @Override
-                    public OrgTreeStateStorage getOrgTreeStateStorage(){
+                    public OrgTreeStateStorage getOrgTreeStateStorage() {
                         return storage;
                     }
 
                     @Override
-                    protected ObjectFilter getCustomFilter(){
+                    protected ObjectFilter getCustomFilter() {
                         return OrgTreeAssignablePanel.this.getCustomFilter();
                     }
                 };
@@ -127,17 +129,17 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
             }
 
             @Override
-            protected boolean isWarnMessageVisible(){
+            protected boolean isWarnMessageVisible() {
                 return false;
             }
 
             @Override
-            protected ObjectFilter getAssignableItemsFilter(){
+            protected ObjectFilter getAssignableItemsFilter() {
                 return OrgTreeAssignablePanel.this.getCustomFilter();
             }
 
             @Override
-            protected OrgStructurePanelStorage getOrgStructurePanelStorage(){
+            protected OrgStructurePanelStorage getOrgStructurePanelStorage() {
                 return null;
             }
 
@@ -159,19 +161,12 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
         };
         assignButton.setOutputMarkupId(true);
         assignButton.setOutputMarkupPlaceholderTag(true);
-        assignButton.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isAssignButtonVisible();
-            }
-        });
+        assignButton.add(new VisibleBehaviour(() -> isAssignButtonVisible()));
         add(assignButton);
 
     }
 
-    protected boolean isAssignButtonVisible(){
+    protected boolean isAssignButtonVisible() {
         return selectable;
     }
 
@@ -179,7 +174,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
     }
 
-    public List<OrgType> getAllTabPanelsSelectedOrgs(){
+    public List<OrgType> getAllTabPanelsSelectedOrgs() {
         return allTabsSelectedOrgs;
     }
 
@@ -187,9 +182,9 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
     }
 
-    private ObjectFilter getCustomFilter(){
+    private ObjectFilter getCustomFilter() {
         ObjectFilter assignableItemsFilter = null;
-        if (getAssignmentOwnerObject() != null){
+        if (getAssignmentOwnerObject() != null) {
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ITEMS);
             OperationResult result = task.getResult();
             assignableItemsFilter = WebComponentUtil.getAssignableRolesFilter(getAssignmentOwnerObject().asPrismObject(), OrgType.class,
@@ -198,7 +193,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
         }
 
         ObjectFilter subTypeFilter = getSubtypeFilter();
-        if (subTypeFilter == null){
+        if (subTypeFilter == null) {
             return assignableItemsFilter;
         } else if (assignableItemsFilter == null) {
             return subTypeFilter;
@@ -211,23 +206,24 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
         }
     }
 
-    protected ObjectFilter getSubtypeFilter(){
+    protected ObjectFilter getSubtypeFilter() {
         return null;
     }
 
-    protected boolean isInducement(){
+    protected boolean isInducement() {
         return false;
     }
 
-    protected <F extends FocusType> F getAssignmentOwnerObject(){
+    protected <F extends FocusType> F getAssignmentOwnerObject() {
         return null;
     }
 
-    protected List<OrgType> getPreselectedOrgsList(){
+    protected List<OrgType> getPreselectedOrgsList() {
         return null;
     }
 
-    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){}
+    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
+    }
 
     @Override
     public int getWidth() {
@@ -240,12 +236,12 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 

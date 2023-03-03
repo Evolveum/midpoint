@@ -282,4 +282,14 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
             return false;
         }
     }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean shouldCreateSimulationResult() {
+        return bean.getSimulationResult() != null;
+    }
+
+    public SimulationDefinitionType getSimulationDefinition() {
+        ActivitySimulationResultDefinitionType simResultPart = bean.getSimulationResult();
+        return simResultPart != null ? simResultPart.getDefinition() : null;
+    }
 }

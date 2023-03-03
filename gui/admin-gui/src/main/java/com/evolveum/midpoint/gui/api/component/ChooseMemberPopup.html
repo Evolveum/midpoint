@@ -7,12 +7,14 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="form">
-        <div wicket:id="compositedButtons"></div>
+        <div wicket:id="compositedButtons"/>
         <div wicket:id="tabsPanel"/>
-
-        <p align="right">
-            <a class="btn btn-outline-primary " wicket:id="cancelButton"/>
-            <a class="btn btn-success " wicket:id="addButton"/>
-        </p>
     </form>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-outline-primary" wicket:id="cancelButton"/>
+            <a class="btn btn-success " wicket:id="addButton"/>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
