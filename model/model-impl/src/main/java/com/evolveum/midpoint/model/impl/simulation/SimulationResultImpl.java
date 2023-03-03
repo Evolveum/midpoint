@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 
+import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -86,9 +87,9 @@ public class SimulationResultImpl implements SimulationResult {
         return simulationDefinition;
     }
 
-    boolean isCustomMetricEnabled(@NotNull SimulationMetricDefinitionType metricDefinition) {
+    boolean isExplicitMetricEnabled(@NotNull SimulationMetricDefinitionType metricDefinition) {
         return metricEnabledMap.computeIfAbsent(
-                SimulationMetricReference.forMetricId(metricDefinition.getIdentifier()),
+                SimulationMetricReference.forExplicit(metricDefinition.getIdentifier()),
                 (r) -> computeCustomMetricEnabled(metricDefinition));
     }
 

@@ -193,17 +193,21 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     SimulationMetricReferenceType metricRef = m.getRef();
                     if (metricRef.getEventMarkRef() != null) {
-                        PrismObject<MarkType> mark = WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), PageSimulationResult.this);
-                        if (mark != null) {
-                            DisplayType display = mark.asObjectable().getDisplay();
+                        PrismObject<MarkType> markObject =
+                                WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), PageSimulationResult.this);
+                        if (markObject != null) {
+                            MarkType mark = markObject.asObjectable();
+                            DisplayType display = mark.getDisplay();
                             if (display == null) {
                                 display = new DisplayType();
-                                display.setLabel(new PolyStringType(mark.getName()));
+                                display.setLabel(mark.getName());
                             }
                             dw.setDisplay(display);
+                            dw.setDisplayOrder(mark.getDisplayOrder());
                         }
-                    } else {
-                        SimulationMetricDefinitionType def = getSimulationResultManager().getMetricDefinition(metricRef.getIdentifier());
+                    } else if (metricRef.getIdentifier() != null) {
+                        SimulationMetricDefinitionType def =
+                                getSimulationResultManager().getMetricDefinition(metricRef.getIdentifier());
                         if (def != null) {
                             DisplayType display = def.getDisplay();
                             if (display == null) {
@@ -211,7 +215,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                                 display.setLabel(new PolyStringType(def.getIdentifier()));
                             }
                             dw.setDisplay(display);
+                            dw.setDisplayOrder(def.getDisplayOrder());
                         }
+                    } else {
+                        // built-in -> ignored
                     }
 
                     return dw;

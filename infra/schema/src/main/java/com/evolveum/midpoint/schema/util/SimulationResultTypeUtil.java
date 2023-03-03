@@ -11,13 +11,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 /**
  * Utilities for {@link SimulationResultType}.
@@ -25,30 +29,47 @@ import static com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil.*
 @SuppressWarnings("WeakerAccess")
 public class SimulationResultTypeUtil {
 
-    public static SimulationMetricValuesType getAggregatedMetricValuesByIdentifier(
-            @NotNull SimulationResultType simulationResult, String metricId) {
+    public static @Nullable SimulationMetricValuesType getMetricValuesBeanByMarkOid(
+            @NotNull SimulationResultType simulationResult, String oid) {
+        return getMetricValuesBean(simulationResult, SimulationMetricReference.forMark(oid));
+    }
+
+    public static @Nullable SimulationMetricValuesType getMetricValuesBean(
+            @NotNull SimulationResultType simulationResult, @NotNull SimulationMetricReference ref) {
         return simulationResult.getMetric().stream()
-                .filter(mv -> SimulationMetricValuesTypeUtil.matchesMetricIdentifier(mv, metricId))
+                .filter(mv -> ref.matches(mv.getRef()))
                 .findFirst().orElse(null);
     }
 
-    public static SimulationMetricValuesType getAggregatedMetricValuesByEventMarkOid(
-            @NotNull SimulationResultType simulationResult, String tagOid) {
-        return simulationResult.getMetric().stream()
-                .filter(mv -> SimulationMetricValuesTypeUtil.matchesEventMarkOid(mv, tagOid))
-                .findFirst().orElse(null);
+    public static BigDecimal getSummarizedMetricValue(
+            @NotNull SimulationResultType simulationResult, @NotNull SimulationMetricReference ref) {
+        return getValue(
+                getMetricValuesBean(simulationResult, ref));
     }
 
-    public static BigDecimal getSummarizedMetricValueByIdentifier(
-            @NotNull SimulationResultType simulationResult, @NotNull String metricId) {
-        return getValue(
-                getAggregatedMetricValuesByIdentifier(simulationResult, metricId));
+    public static int getObjectsAdded(@NotNull SimulationResultType simulationResult) {
+        return getSummarizedMetricValue(simulationResult, SimulationMetricReference.BuiltIn.ADDED)
+                .intValue();
     }
 
-    public static BigDecimal getSummarizedMetricValueByEventMark(
-            @NotNull SimulationResultType simulationResult, @NotNull String tagOid) {
-        return getValue(
-                getAggregatedMetricValuesByEventMarkOid(simulationResult, tagOid));
+    public static int getObjectsModified(@NotNull SimulationResultType simulationResult) {
+        return getSummarizedMetricValue(simulationResult, SimulationMetricReference.BuiltIn.MODIFIED)
+                .intValue();
+    }
+
+    public static int getObjectsDeleted(@NotNull SimulationResultType simulationResult) {
+        return getSummarizedMetricValue(simulationResult, SimulationMetricReference.BuiltIn.DELETED)
+                .intValue();
+    }
+
+    public static int getObjectsProcessed(@NotNull SimulationResultType simulationResult) {
+        // Any of the built-in would be OK.
+        SimulationMetricValuesType mv = getMetricValuesBean(simulationResult, SimulationMetricReference.BuiltIn.ADDED);
+        if (mv == null) {
+            return 0; // strange but maybe possible
+        } else {
+            return or0(collapsePartitions(mv).getDomainSize());
+        }
     }
 
     public static SimulationResultType collapseDimensions(SimulationResultType originalResult) {

@@ -7,23 +7,22 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
+import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeCollectionUtil.selectPartitions;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.prism.Referencable.getOid;
-import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeCollectionUtil.selectPartitions;
+import com.evolveum.midpoint.schema.simulation.SimulationMetricComputer;
+import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
 
 /**
  * Util for {@link SimulationMetricValuesType}.
@@ -33,24 +32,22 @@ import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeCol
 @SuppressWarnings("WeakerAccess")
 public class SimulationMetricValuesTypeUtil {
 
-    public static boolean matchesMetricIdentifier(@NotNull SimulationMetricValuesType value, @NotNull String identifier) {
-        SimulationMetricReferenceType ref = value.getRef();
-        return ref != null && identifier.equals(ref.getIdentifier());
+    public static boolean matches(@NotNull SimulationMetricValuesType value, @NotNull SimulationMetricReference ref) {
+        return ref.matches(value.getRef());
     }
 
-    public static boolean matchesEventMarkOid(@NotNull SimulationMetricValuesType value, @NotNull String tagOid) {
-        SimulationMetricReferenceType ref = value.getRef();
-        return ref != null && tagOid.equals(getOid(ref.getEventMarkRef()));
-    }
-
-    public static BigDecimal getValue(@Nullable SimulationMetricValuesType mv) {
+    public static @NotNull BigDecimal getValue(@Nullable SimulationMetricValuesType mv) {
         if (mv != null) {
-            return MiscUtil.extractSingletonRequired(
-                            findOrComputePartitions(mv, Set.of()))
-                    .getValue();
+            BigDecimal value = collapsePartitions(mv).getValue();
+            return Objects.requireNonNullElse(value, BigDecimal.ZERO); // just for sure; the value should be always there
         } else {
             return BigDecimal.ZERO;
         }
+    }
+
+    static @NotNull SimulationMetricPartitionType collapsePartitions(@NotNull SimulationMetricValuesType mv) {
+        return MiscUtil.extractSingletonRequired(
+                findOrComputePartitions(mv, Set.of()));
     }
 
     public static @NotNull List<SimulationMetricPartitionType> findOrComputePartitions(

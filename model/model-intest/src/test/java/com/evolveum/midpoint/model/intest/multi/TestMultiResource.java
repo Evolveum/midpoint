@@ -955,7 +955,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .objectToAdd()
                             .asShadow()
@@ -969,7 +969,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .objectToAdd()
                             .asShadow()
@@ -985,7 +985,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .objectToAdd()
                             .asShadow()
@@ -998,7 +998,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .objectToAdd()
                             .asShadow()
@@ -1096,14 +1096,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(
+                            MARK_PROJECTION_RENAMED,
+                            MARK_PROJECTION_IDENTIFIER_CHANGED,
+                            MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .assertModification(ICFS_NAME_PATH, "jack", toName)
                         .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(
+                            MARK_PROJECTION_RENAMED,
+                            MARK_PROJECTION_IDENTIFIER_CHANGED,
+                            MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .assertModification(ICFS_NAME_PATH, "jack", toName)
                         .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
@@ -1115,14 +1121,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(
+                            MARK_PROJECTION_RENAMED,
+                            MARK_PROJECTION_IDENTIFIER_CHANGED,
+                            MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .assertModification(ICFS_NAME_PATH, "jack", toName)
                         .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(
+                            MARK_PROJECTION_RENAMED,
+                            MARK_PROJECTION_IDENTIFIER_CHANGED,
+                            MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                         .assertModification(ICFS_NAME_PATH, "jack", toName)
                         .assertModification(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Jack Sparrow", toFullName)
@@ -1205,16 +1217,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .assertEventMarks(MARK_FOCUS_ASSIGNMENT_CHANGED, MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_LAVENDER_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_IVORY_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.DELETE).resourceOid(RESOURCE_DUMMY_BEIGE_OID).find()
-                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end();
         // @formatter:on
     }

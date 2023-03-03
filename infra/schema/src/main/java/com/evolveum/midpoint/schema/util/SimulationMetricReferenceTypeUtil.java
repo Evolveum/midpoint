@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BuiltInSimulationMetricType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
@@ -37,6 +38,11 @@ public class SimulationMetricReferenceTypeUtil {
     public static SimulationMetricReferenceType forIdentifier(String identifier) {
         return new SimulationMetricReferenceType()
                 .identifier(identifier);
+    }
+
+    public static SimulationMetricReferenceType forBuiltIn(BuiltInSimulationMetricType builtIn) {
+        return new SimulationMetricReferenceType()
+                .builtIn(builtIn);
     }
 
     public static SimulationMetricReferenceType forEventMarkOid(String oid) {
