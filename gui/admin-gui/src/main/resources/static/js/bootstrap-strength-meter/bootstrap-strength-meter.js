@@ -56,8 +56,13 @@
                     var value = 0;
 
                     if (password.length > 0) {
-                        var score = new Score(password);
-                        value = score.calculateEntropyScore(settings.passwordScore.options, settings.passwordScore.append);
+                        if (password.length < 50) {
+                            var score = new Score(password);
+                            value = score.calculateEntropyScore(settings.passwordScore.options, settings.passwordScore.append);
+                        } else {
+                            console.debug("Hitting password size limit for calculating entropy")
+                            value = 1000;
+                        }
                     }
 
                     core.update(value);
