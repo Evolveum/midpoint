@@ -19,26 +19,46 @@
         <view>
             <column>
                 <name>oid</name>
-                <path>#</path>
+                <documentation>
+                    OID of the simulation result object.
+                </documentation>
                 <display>
                     <label>OID</label>
                 </display>
-                <previousColumn>id</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.oid</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <column>
                 <name>name</name>
+                <documentation>
+                    Name of the simulation result object.
+                    Usually contains information about the task that produced the report (if any),
+                    identifier of the simulation result configuration used (if any),
+                    and the timestamp of the simulation report creation.
+                </documentation>
                 <path>name</path>
                 <previousColumn>oid</previousColumn>
             </column>
             <column>
-                <name>identifier</name>
+                <name>definitionIdentifier</name>
+                <documentation>
+                    Identifier of the simulation result definition used (if any).
+                </documentation>
                 <path>definition/identifier</path>
+                <display>
+                    <label>Definition identifier</label>
+                </display>
                 <previousColumn>name</previousColumn>
             </column>
             <column>
                 <name>startTimestamp</name>
                 <path>startTimestamp</path>
-                <previousColumn>identifier</previousColumn>
+                <previousColumn>definitionIdentifier</previousColumn>
             </column>
             <column>
                 <name>endTimestamp</name>
@@ -47,7 +67,13 @@
             </column>
             <column>
                 <name>rootTaskRef</name>
+                <documentation>
+                    Task under which this simulation executes or executed. (Empty for foreground simulations.)
+                </documentation>
                 <path>rootTaskRef</path>
+                <display>
+                    <label>Task</label>
+                </display>
                 <previousColumn>endTimestamp</previousColumn>
             </column>
             <column>
@@ -58,6 +84,9 @@
             <!-- metric -->
             <column>
                 <name>eventMark</name>
+                <documentation>
+                    Event mark corresponding to the metric row. (If applicable.)
+                </documentation>
                 <display>
                     <label>Event mark</label>
                 </display>
@@ -76,6 +105,9 @@
             </column>
             <column>
                 <name>customMetric</name>
+                <documentation>
+                    Custom metric identifier corresponding to the metric row. (If applicable.)
+                </documentation>
                 <display>
                     <label>Custom metric</label>
                 </display>
@@ -113,6 +145,9 @@
             <!-- partition -->
             <column>
                 <name>scopeType</name>
+                <documentation>
+                    Type of objects (user, role, org, shadow, ...).
+                </documentation>
                 <display>
                     <label>Scope: type</label>
                 </display>
@@ -131,6 +166,9 @@
             </column>
             <column>
                 <name>scopeArchetype</name>
+                <documentation>
+                    Structural archetype of the objects. Applicable only to focal objects.
+                </documentation>
                 <display>
                     <label>Scope: archetype</label>
                 </display>
@@ -153,6 +191,9 @@
             </column>
             <column>
                 <name>scopeResource</name>
+                <documentation>
+                    Resource on which the projection (shadow) resides. Applicable only to projections.
+                </documentation>
                 <display>
                     <label>Scope: resource</label>
                 </display>
@@ -175,6 +216,9 @@
             </column>
             <column>
                 <name>scopeKind</name>
+                <documentation>
+                    Kind of the projection (shadow). Applicable only to projections.
+                </documentation>
                 <display>
                     <label>Scope: kind</label>
                 </display>
@@ -193,6 +237,9 @@
             </column>
             <column>
                 <name>scopeIntent</name>
+                <documentation>
+                    Intent of the projection (shadow). Applicable only to projections.
+                </documentation>
                 <display>
                     <label>Scope: intent</label>
                 </display>
@@ -211,6 +258,9 @@
             </column>
             <column>
                 <name>value</name>
+                <documentation>
+                    Aggregated value of the metric for given partition.
+                </documentation>
                 <display>
                     <label>Value</label>
                 </display>
@@ -229,6 +279,11 @@
             </column>
             <column>
                 <name>selectionSize</name>
+                <documentation>
+                    Number of objects selected by given metric.
+                    (The meaning of this field is metric-dependent.
+                    The default meaning is "all objects that have metric value greater than zero".)
+                </documentation>
                 <display>
                     <label>Selection size</label>
                 </display>
@@ -247,6 +302,9 @@
             </column>
             <column>
                 <name>selectionTotalValue</name>
+                <documentation>
+                    Sum of metric values for all objects selected by the metric.
+                </documentation>
                 <display>
                     <label>Selection total value</label>
                 </display>
@@ -265,6 +323,9 @@
             </column>
             <column>
                 <name>domainSize</name>
+                <documentation>
+                    Number of objects on which given metric was evaluated.
+                </documentation>
                 <display>
                     <label>Domain size</label>
                 </display>
@@ -283,6 +344,9 @@
             </column>
             <column>
                 <name>domainTotalValue</name>
+                <documentation>
+                    Sum of metric values for all objects.
+                </documentation>
                 <display>
                     <label>Domain total value</label>
                 </display>
