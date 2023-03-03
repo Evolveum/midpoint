@@ -15,6 +15,7 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluatorImpl;
 
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -115,7 +117,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract V get103EmptyPasswordJack();
     public abstract String getEmptyPasswordExceptionMessageKey();
 
+    @Deprecated
     public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
+
+    public abstract String getModuleIdentifier();
+    public abstract String getSequenceIdentifier();
     public abstract QName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
@@ -1083,14 +1089,18 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private ConnectionEnvironment createConnectionEnvironment() {
         HttpConnectionInformation connInfo = new HttpConnectionInformation();
         connInfo.setRemoteHostAddress("remote.example.com");
-        return new ConnectionEnvironment(null, connInfo);
+        ConnectionEnvironment connectionEnvironment = new ConnectionEnvironment(null, connInfo);
+        connectionEnvironment.setModuleIdentifier(getModuleIdentifier());
+        connectionEnvironment.setSequenceIdentifier(getSequenceIdentifier());
+        return connectionEnvironment;
     }
 
     private void assertFailedLoginsForCredentials(PrismObject<UserType> user, int expected) {
-        if (expected == 0 && getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins() == null) {
+        Integer failedModuleAttempts = getAuthenticationForModule(user.asObjectable()).getFailedAttempts();
+        if (expected == 0 && failedModuleAttempts == null) {
             return;
         }
-        assertEquals("Wrong failed logins in " + user, (Integer) expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
+        assertEquals("Wrong failed logins in " + user, (Integer) expected, failedModuleAttempts);
     }
 
     private void assertFailedLoginsForBehavior(PrismObject<UserType> user, int expected) {
@@ -1102,7 +1112,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private void assertLastSuccessfulLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
-        LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
+        LoginEventType lastSuccessfulLogin = getAuthenticationForModule(user.asObjectable()).getLastSuccessfulAuthentication();
         assertNotNull("no last successful login in " + user, lastSuccessfulLogin);
         XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
         TestUtil.assertBetween("last successful login timestamp", startTs, endTs, successfulLoginTs);
@@ -1115,7 +1125,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
-        LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
+        LoginEventType lastFailedLogin = getAuthenticationForModule(user.asObjectable()).getLastFailedAuthentication();
         assertNotNull("no last failed login in " + user, lastFailedLogin);
         XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
         TestUtil.assertBetween("last failed login timestamp", startTs, endTs, failedLoginTs);
@@ -1202,9 +1212,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private AuthenticationBehavioralDataType getAuthenticationBehavior(UserType user) {
-        if (user.getBehavior() == null || user.getBehavior().getAuthentication() == null) {
-            return new AuthenticationBehavioralDataType();
-        }
-        return user.getBehavior().getAuthentication();
+        return AuthUtil.getBehavioralDataForSequence(user, getSequenceIdentifier());
+    }
+
+    private AuthenticationAttemptDataType getAuthenticationForModule(UserType user) {
+        return AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(createConnectionEnvironment(), user);
     }
 }

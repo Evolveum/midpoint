@@ -6,8 +6,15 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
+import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,9 +37,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
 
 public class AuthUtil {
 
@@ -184,5 +187,65 @@ public class AuthUtil {
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) oldAuthentication);
         }
         SecurityContextHolder.getContext().setAuthentication(null);
+    }
+
+    public static AuthenticationAttemptDataType findAuthAttemptDataForModule(ConnectionEnvironment connectionEnvironment, MidPointPrincipal principal) {
+        return findAuthAttemptDataForModule(connectionEnvironment, principal.getFocus());
+    }
+
+    public static AuthenticationAttemptDataType findAuthAttemptDataForModule(ConnectionEnvironment connectionEnvironment, FocusType focus) {
+        String sequenceIdentifier = connectionEnvironment.getSequenceIdentifier();
+        String moduleIdentifier = connectionEnvironment.getModuleIdentifier();
+        if (StringUtils.isEmpty(sequenceIdentifier) || StringUtils.isEmpty(moduleIdentifier)) {
+            return null;
+        }
+
+        if (focus.getBehavior() == null || focus.getBehavior().getAuthentication() == null) {
+            return null;
+        }
+        AuthenticationBehavioralDataType behavioralDataType = getBehavioralDataForSequence(focus, sequenceIdentifier);
+        List<AuthenticationAttemptDataType> authAttempts = behavioralDataType.getAuthenticationAttempt();
+        return authAttempts.stream()
+                .filter(attempt -> sequenceIdentifier.equals(attempt.getSequenceIdentifier())
+                        && moduleIdentifier.equals(attempt.getModuleIdentifier()))
+                .findFirst().orElse(null);
+    }
+
+    public static AuthenticationBehavioralDataType getBehavioralDataForSequence(MidPointPrincipal principal, String sequenceId) {
+        FocusType focus = principal.getFocus();
+        return getBehavioralDataForSequence(focus, sequenceId);
+    }
+
+    public static AuthenticationBehavioralDataType getBehavioralDataForSequence(FocusType focus, String sequenceId) {
+        if (focus.getBehavior() == null){
+            focus.setBehavior(new BehaviorType());
+        }
+        AuthenticationBehavioralDataType authenticationData = focus.getBehavior().getAuthentication()
+                .stream()
+                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .findFirst()
+                .orElse(null);
+
+        if (authenticationData == null){
+            authenticationData = new AuthenticationBehavioralDataType().sequenceIdentifier(sequenceId);
+            focus.getBehavior().getAuthentication().add(authenticationData);
+        }
+        return authenticationData;
+    }
+    public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptDataFoModule(ConnectionEnvironment connectionEnvironment, MidPointPrincipal principal) {
+        return findOrCreateAuthenticationAttemptDataFoModule(connectionEnvironment, principal.getFocus());
+    }
+    public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptDataFoModule(ConnectionEnvironment connectionEnvironment, FocusType focus) {
+        AuthenticationAttemptDataType data = findAuthAttemptDataForModule(connectionEnvironment, focus);
+        if (data == null) {
+            data = new AuthenticationAttemptDataType();
+            data.setSequenceIdentifier(connectionEnvironment.getSequenceIdentifier());
+            data.setModuleIdentifier(connectionEnvironment.getModuleIdentifier());
+            AuthenticationBehavioralDataType behavior = getBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
+            behavior.getAuthenticationAttempt().add(data);
+        }
+
+//        data.setChannel(connectionEnvironment.getChannel());
+        return data;
     }
 }

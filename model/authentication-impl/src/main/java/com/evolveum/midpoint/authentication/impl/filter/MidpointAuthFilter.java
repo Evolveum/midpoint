@@ -159,7 +159,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
                             + "has no authentication module");
                 }
-                throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence));
+                throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + authWrapper.getSequenceIdentifier());
             }
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
@@ -245,15 +245,15 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean sequenceIdentifiersMatch(AuthenticationSequenceType seq1, AuthenticationSequenceType seq2) {
-        String seqIdentifier1 = StringUtils.isNotEmpty(seq1.getIdentifier()) ? seq1.getIdentifier() : seq1.getName();
-        String seqIdentifier2 = StringUtils.isNotEmpty(seq2.getIdentifier()) ? seq2.getIdentifier() : seq2.getName();
+        String seqIdentifier1 = AuthSequenceUtil.getAuthSequenceIdentifier(seq1); //StringUtils.isNotEmpty(seq1.getIdentifier()) ? seq1.getIdentifier() : seq1.getName();
+        String seqIdentifier2 = AuthSequenceUtil.getAuthSequenceIdentifier(seq2); //StringUtils.isNotEmpty(seq2.getIdentifier()) ? seq2.getIdentifier() : seq2.getName();
         return seqIdentifier1 != null && StringUtils.equals(seqIdentifier1, seqIdentifier2);
     }
 
     private void initAuthenticationModule(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
         if (AuthSequenceUtil.isClusterSequence(httpRequest)) {
-            if (authModulesOfSpecificSequences.containsKey(AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence))) {
-                authWrapper.authModules = authModulesOfSpecificSequences.get(AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence));
+            if (authModulesOfSpecificSequences.containsKey(authWrapper.getSequenceIdentifier())) {
+                authWrapper.authModules = authModulesOfSpecificSequences.get(authWrapper.getSequenceIdentifier());
                 if (authWrapper.authModules != null) {
                     for (AuthModule authModule : authWrapper.authModules) {
                         if (authModule != null && ((AuthModuleImpl) authModule).getConfiguration() != null) {
@@ -266,7 +266,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 }
             } else {
                 authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
-                authModulesOfSpecificSequences.put(AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence), authWrapper.authModules);
+                authModulesOfSpecificSequences.put(authWrapper.getSequenceIdentifier(), authWrapper.authModules);
             }
         } else {
             authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
@@ -355,20 +355,27 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {
         // if index == -1 indicate restart authentication flow
-        return !isIdentifiedFocus(mpAuthentication) || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        return (isNotIdentifiedFocus(mpAuthentication) && isAlreadyAudited(mpAuthentication)) || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
     }
 
-    private boolean isIdentifiedFocus(MidpointAuthentication mpAuthentication) {
+    private boolean isAlreadyAudited(MidpointAuthentication mpAuthentication) {
         if (mpAuthentication == null) {
-            return false;
+            return true;
+        }
+        return mpAuthentication.isAlreadyAudited();
+    }
+
+    private boolean isNotIdentifiedFocus(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication == null) {
+            return true;
         }
 
         Object principal = mpAuthentication.getPrincipal();
         if (!(principal instanceof MidPointPrincipal)) {
-            return false;
+            return true;
         }
 
-        return ((MidPointPrincipal) principal).getFocus() != null;
+        return ((MidPointPrincipal) principal).getFocus() == null;
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
@@ -520,6 +527,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
             this.securityPolicy = securityPolicy;
             this.authenticationsPolicy = authenticationsPolicy;
             this.credentialsPolicy = securityPolicy != null ? securityPolicy.asObjectable().getCredentials() : null;
+        }
+
+        public String getSequenceIdentifier() {
+            return AuthSequenceUtil.getAuthSequenceIdentifier(sequence);
         }
 
         public boolean isIgnoredLocalPath(HttpServletRequest httpRequest) {

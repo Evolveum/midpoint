@@ -11,11 +11,14 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -139,17 +142,22 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return moduleAuthentication;
     }
 
-    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
+    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel, Authentication authentication) {
+        ConnectionEnvironment connEnv;
         if (channel != null) {
-            ConnectionEnvironment connEnv = ConnectionEnvironment.create(channel.getChannelId());
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication instanceof MidpointAuthentication) {
-                connEnv.setSessionIdOverride(((MidpointAuthentication) authentication).getSessionId());
-            }
-            return connEnv;
+            connEnv = ConnectionEnvironment.create(channel.getChannelId());
         } else {
-            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
+            connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
         }
+
+        Authentication processingAuthentication = SecurityUtil.getAuthentication();
+        if (processingAuthentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) processingAuthentication;
+            connEnv.setSessionIdOverride(mpAuthentication.getSessionId());
+            connEnv.setSequenceIdentifier(mpAuthentication.getSequenceIdentifier());
+            connEnv.setModuleIdentifier(mpAuthentication.getProcessingModuleAuthenticationIdentifier());
+        }
+        return connEnv;
     }
 
     protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,

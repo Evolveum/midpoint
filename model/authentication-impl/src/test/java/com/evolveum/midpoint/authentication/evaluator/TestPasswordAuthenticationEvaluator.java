@@ -71,6 +71,16 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
         return user.getCredentials().getPassword();
     }
 
+    @Override
+    public String getModuleIdentifier() {
+        return "basicLogin";
+    }
+
+    @Override
+    public String getSequenceIdentifier() {
+        return "default-gui-login";
+    }
+
     private ProtectedStringType getGuybrushPassword() {
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setClearValue(USER_GUYBRUSH_PASSWORD);

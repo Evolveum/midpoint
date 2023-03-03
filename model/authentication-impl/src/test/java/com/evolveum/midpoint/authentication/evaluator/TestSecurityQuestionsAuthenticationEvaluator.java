@@ -75,6 +75,16 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     }
 
     @Override
+    public String getModuleIdentifier() {
+        return "SecQ";
+    }
+
+    @Override
+    public String getSequenceIdentifier() {
+        return "default-security-questions";
+    }
+
+    @Override
     public QName getCredentialType() {
         return CredentialsType.F_SECURITY_QUESTIONS;
     }

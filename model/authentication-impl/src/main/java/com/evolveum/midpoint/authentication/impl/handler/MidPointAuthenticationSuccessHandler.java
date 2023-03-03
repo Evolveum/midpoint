@@ -13,39 +13,28 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
-
-import org.springframework.security.web.util.UrlUtils;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
  * @author skublik
@@ -108,6 +97,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
             }
+            //TODO: record success?
         }
 
         SavedRequest savedRequest = requestCache.getRequest(request, response);
@@ -150,12 +140,12 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         }
         AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy,
-                AuthSequenceUtil.getAuthSequenceIdentifier(processingSequence));
+                mpAuthentication.getSequenceIdentifier());
         return sequence != null && processingSequence.getModule().size() != sequence.getModule().size();
     }
 
     private boolean isCorrectlyConfigured(SecurityPolicyType securityPolicy, MidpointAuthentication mpAuthentication) {
-        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, AuthSequenceUtil.getAuthSequenceIdentifier(mpAuthentication.getSequence()));
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, mpAuthentication.getSequenceIdentifier());
         if (sequence == null) {
             return false;
         }
@@ -164,9 +154,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
 
     private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {
-        AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy,
-                AuthSequenceUtil.getAuthSequenceIdentifier(processingSequence));
+                mpAuthentication.getSequenceIdentifier());
         mpAuthentication.setSequence(sequence);
         List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
                 authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),

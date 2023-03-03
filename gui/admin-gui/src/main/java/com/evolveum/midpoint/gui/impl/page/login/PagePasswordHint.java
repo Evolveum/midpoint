@@ -158,33 +158,6 @@ public class PagePasswordHint extends PageAuthenticationBase {
         return (MidpointForm) get(ID_MAIN_FORM);
     }
 
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
-            return;
-        }
-
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-    }
-
     private String getUrlProcessingLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {

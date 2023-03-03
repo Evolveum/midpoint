@@ -46,7 +46,7 @@ public class HintAuthenticationProvider extends MidPointAbstractAuthenticationPr
             return authentication;
         }
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
 
         try {
             return new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());

@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <table class="table table-striped table-sm">
+        <tr>
+            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.lastLogin"/></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="PersonalInfoPanel.lastLogin.date"/></td>
+            <td><span wicket:id="lastLoginDate"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="PersonalInfoPanel.lastLogin.from"/></td>
+            <td><span wicket:id="lastLoginFrom"/></td>
+        </tr>
+        <tr>
+            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.lastFail"/></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="PersonalInfoPanel.lastFail.date"/></td>
+            <td><span wicket:id="lastFailDate"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="PersonalInfoPanel.lastFail.from"/></td>
+            <td><span wicket:id="lastFailFrom"/></td>
+        </tr>
+        <tr>
+            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.other"/></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="PersonalInfoPanel.passwordExp"/></td>
+            <td><span wicket:id="passwordExp"/></td>
+        </tr>
+    </table>
+</wicket:panel>
+</html>

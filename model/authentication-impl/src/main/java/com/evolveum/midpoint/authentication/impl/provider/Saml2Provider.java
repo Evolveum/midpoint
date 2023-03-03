@@ -111,7 +111,7 @@ public class Saml2Provider extends RemoteModuleProvider {
                 String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
                 enteredUsername = defineEnteredUsername(attributes, nameOfSamlAttribute);
 
-                token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
+                token = getPreAuthenticationToken(authentication, enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 samlModule.setAuthentication(samlAuthenticationToken);
                 LOGGER.info("Authentication with saml module failed: {}", e.getMessage());

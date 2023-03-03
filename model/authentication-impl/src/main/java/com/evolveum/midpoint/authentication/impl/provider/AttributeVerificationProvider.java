@@ -53,7 +53,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
         String enteredUsername = ((MidPointPrincipal) authentication.getPrincipal()).getUsername();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
 
         try {
             Authentication token;

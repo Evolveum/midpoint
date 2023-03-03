@@ -8,11 +8,13 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -22,6 +24,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWithAuthenticationFilter;
+
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +45,10 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -53,29 +61,18 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private AuditedAccessDeniedHandler accessDeniedHandler;
-
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
-
-    @Autowired
-    private MidpointProviderManager authenticationManager;
-
-    @Autowired
-    private AuthModuleRegistryImpl authRegistry;
-
-    @Autowired
-    private AuthChannelRegistryImpl authChannelRegistry;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private AuditedAccessDeniedHandler accessDeniedHandler;
+    @Autowired private SessionRegistry sessionRegistry;
+    @Autowired private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+    @Autowired private MidpointProviderManager authenticationManager;
+    @Autowired private AuthModuleRegistryImpl authRegistry;
+    @Autowired private AuthChannelRegistryImpl authChannelRegistry;
+    @Autowired private PrismContext prismContext;
+//    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
+
 
     private ObjectPostProcessor<Object> objectPostProcessor;
     private final C configuration;
@@ -123,6 +120,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
                 .servletApi();
 
         http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
+//        http.addFilterBefore(new SequenceAuditFilter(authenticationRecorder), RequestCacheAwareFilter.class);
 
         http.csrf();
         if (!csrfEnabled) {

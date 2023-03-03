@@ -2395,7 +2395,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0">
+            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
             <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
                  Even compiled data may appear here, e.g. last access of user to any of his accounts.
@@ -2470,6 +2470,18 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sequenceIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication sequence within which current authentication attempt was processed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <!--<a:operational>true</a:operational>-->
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

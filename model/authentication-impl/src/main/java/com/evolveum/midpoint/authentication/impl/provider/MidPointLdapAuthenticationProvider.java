@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.ldap.LdapDirContextAdapter;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.security.api.*;
@@ -224,7 +225,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
     public void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal) {
         String channel = getChannel();
-        AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
+        ConnectionEnvironment connectionEnvironment = createConnectEnvironment(channel);
+        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal.getFocus(), connectionEnvironment.getSequenceIdentifier());
 
         FocusType focusBefore = principal.getFocus().clone();
         Integer failedLogins = behavior.getFailedLogins();
@@ -264,9 +266,9 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         } catch (Exception e) {
             //ignore if non-exist
         }
-
+        ConnectionEnvironment connectionEnvironment = createConnectEnvironment(channel);
         if (principal != null && focus != null) {
-            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(focus);
+            AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
 
             FocusType focusBefore = focus.clone();
             Integer failedLogins = behavior.getFailedLogins();

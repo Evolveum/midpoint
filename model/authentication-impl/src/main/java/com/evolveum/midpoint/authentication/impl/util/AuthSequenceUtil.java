@@ -291,7 +291,7 @@ public class AuthSequenceUtil {
         }
 
         Validate.notEmpty(sequence.getModule(), "Sequence " +
-                (StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName()) + " don't contains authentication modules");
+                (getAuthSequenceIdentifier(sequence)) + " don't contains authentication modules");
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<>();
@@ -621,8 +621,12 @@ public class AuthSequenceUtil {
 
     public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication) authentication).getSequence() != null) {
-            FocusBehaviorUpdateType actualOption = ((MidpointAuthentication) authentication).getSequence().getFocusBehaviorUpdate();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            return true;
+        }
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        if (mpAuthentication.getSequence() != null) {
+            FocusBehaviorUpdateType actualOption = mpAuthentication.getSequence().getFocusBehaviorUpdate();
             if (actualOption == null && FocusBehaviorUpdateType.ENABLED.equals(actualOption)) {
                 return true;
             } else if (FocusBehaviorUpdateType.DISABLED.equals(actualOption)) {
@@ -638,22 +642,4 @@ public class AuthSequenceUtil {
         return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 
-    public static AuthenticationSequenceType getSequenceByIdentifier(String identifier, AuthenticationsPolicyType authenticationPolicy) {
-        if (authenticationPolicy == null || CollectionUtils.isEmpty(authenticationPolicy.getSequence())) {
-            return null;
-        }
-
-        Validate.notBlank(identifier, "Identifier for searching of sequence is blank");
-        for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
-            if (sequence != null) {
-                if (identifier.equals(sequence.getIdentifier())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        return null;
-                    }
-                    return sequence;
-                }
-            }
-        }
-        return null;
-    }
 }

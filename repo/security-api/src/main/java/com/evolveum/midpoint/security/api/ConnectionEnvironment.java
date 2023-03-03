@@ -22,6 +22,9 @@ public class ConnectionEnvironment {
      */
     private String sessionIdOverride;
 
+    private String sequenceIdentifier;
+    private String moduleIdentifier;
+
     // probably not of much use
     public ConnectionEnvironment() {
     }
@@ -68,5 +71,21 @@ public class ConnectionEnvironment {
         } else {
             return null;
         }
+    }
+
+    public String getSequenceIdentifier() {
+        return sequenceIdentifier;
+    }
+
+    public void setSequenceIdentifier(String sequenceIdentifier) {
+        this.sequenceIdentifier = sequenceIdentifier;
+    }
+
+    public String getModuleIdentifier() {
+        return moduleIdentifier;
+    }
+
+    public void setModuleIdentifier(String moduleIdentifier) {
+        this.moduleIdentifier = moduleIdentifier;
     }
 }

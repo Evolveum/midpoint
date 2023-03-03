@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 
 /**
  * @author skublik
@@ -63,6 +65,8 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
      * by module) are defined.
      */
     private boolean acceptEmpty;
+
+    private AutheticationFailedData failureData;
 
     public ModuleAuthenticationImpl(String nameOfType, AuthenticationSequenceModuleType sequenceModule) {
         Validate.notNull(nameOfType);
@@ -149,6 +153,14 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         this.state = state;
     }
 
+    public void recordFailure(AuthenticationException e) {
+        this.state = AuthenticationModuleState.FAILURE;
+        if (failureData == null) {
+            failureData = new AutheticationFailedData(null, null);
+        }
+        failureData.setAuthenticationException(e);
+    }
+
     public Authentication getAuthentication() {
         return authentication;
     }
@@ -196,6 +208,16 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
     @Override
     public void setSufficient(boolean sufficient) {
         this.sufficient = sufficient;
+    }
+
+    @Override
+    public AutheticationFailedData getFailureData() {
+        return failureData;
+    }
+
+    @Override
+    public void setFailureData(AutheticationFailedData failureData) {
+        this.failureData = failureData;
     }
 
     @Override

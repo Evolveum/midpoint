@@ -59,29 +59,18 @@ public class AuthenticationEvaluatorUtil {
                                 && PrismContext.get().relationMatches(requiredRelation, ref.getRelation()));
     }
 
-    public static AuthenticationBehavioralDataType getBehavior(FocusType focus) {
 
-        if (focus.getBehavior() == null){
-            focus.setBehavior(new BehaviorType());
-        }
-        if (focus.getBehavior().getAuthentication() == null){
-            focus.getBehavior().setAuthentication(new AuthenticationBehavioralDataType());
-        }
-        return focus.getBehavior().getAuthentication();
-    }
+//    @Deprecated
+//    public static AuthenticationBehavioralDataType getBehavior(FocusType focus) {
+//
+//        if (focus.getBehavior() == null){
+//            focus.setBehavior(new BehaviorType());
+//        }
+////        if (focus.getBehavior().getAuthentication() == null){
+////            focus.getBehavior().setAuthentication(new AuthenticationBehavioralDataType());
+////        }
+////        return focus.getBehavior().getAuthentication();
+//        return new AuthenticationBehavioralDataType();
+//    }
 
-    public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptData(@NotNull AuthenticationBehavioralDataType behavioralData,
-            String sequenceIdentifier, String moduleIdentifier) {
-        for (AuthenticationAttemptDataType attemptData : behavioralData.getAuthenticationAttempt()) {
-            if (attemptData.getSequenceIdentifier() != null && attemptData.getSequenceIdentifier().equals(sequenceIdentifier)
-                    && attemptData.getModuleIdentifier() != null && attemptData.getModuleIdentifier().equals(moduleIdentifier)) {
-                return attemptData;
-            }
-        }
-        AuthenticationAttemptDataType data = new AuthenticationAttemptDataType();
-        data.setSequenceIdentifier(sequenceIdentifier);
-        data.setModuleIdentifier(moduleIdentifier);
-        behavioralData.getAuthenticationAttempt().add(data);
-        return data;
-    }
 }

@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +44,7 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -4635,6 +4638,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
             @Override
             public void setSufficient(boolean sufficient) {
+
+            }
+
+            @Override
+            public void setFailureData(AutheticationFailedData autheticationFailedData) {
+
+            }
+
+            @Override
+            public AutheticationFailedData getFailureData() {
+                return null;
+            }
+
+            @Override
+            public void recordFailure(AuthenticationException exception) {
 
             }
 

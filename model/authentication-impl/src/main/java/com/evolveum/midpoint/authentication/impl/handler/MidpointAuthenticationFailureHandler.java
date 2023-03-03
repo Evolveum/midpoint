@@ -45,8 +45,6 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
-        saveException(request, exception);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
@@ -64,18 +62,19 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
                 if (!mpAuthentication.isLast(moduleAuthentication)) {
-                    moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+                    moduleAuthentication.recordFailure(exception);
                 }
             }
-
 
             if (!mpAuthentication.isOverLockoutMaxAttempts()) {
                 getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
                 return;
             }
-            moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+            moduleAuthentication.recordFailure(exception);
+            saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
         }
 
+        saveException(request, exception);
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);
 
         if (savedRequest == null || StringUtils.isBlank(savedRequest.getRedirectUrl())

@@ -10,11 +10,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
@@ -25,7 +28,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -55,7 +57,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 //    private final List<AuthenticationSequenceModuleType> modules;
 
     /**
-     * Channel defining scope of authentication, etc. rest, gui, reset password ...
+     * Channel defining scope of authentication, eg. rest, gui, reset password ...
      */
     private AuthenticationChannel authenticationChannel;
 
@@ -73,6 +75,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean merged = false;
     private boolean overLockoutMaxAttempts = false;
 
+    /**
+     * Inditaces if the overal state of the authentication was already recorded.
+     * It should be recorded only for whole sequence and after the whole sequence
+     * was reliably evaluated. E.g. all modules run and authentication failed, or
+     * authentication was successful.
+     */
+    private boolean alreadyAudited;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -90,6 +99,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public AuthenticationSequenceType getSequence() {
         return sequence;
+    }
+
+    public String getSequenceIdentifier() {
+        if (sequence == null) {
+            return null;
+        }
+        return StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName();
     }
 
     public void setSequence(AuthenticationSequenceType sequence) {
@@ -349,6 +365,23 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return actualSize == endSize && isAuthenticated();
     }
 
+    public boolean isFinished() {
+        int actualSize = getAuthentications().size();
+        int endSize = getAuthModules().size();
+        return processingModuleIsRequisiteAndFailure() || (actualSize == endSize && allModulesAreProcessed());
+    }
+
+    private boolean processingModuleIsRequisiteAndFailure() {
+        List<ModuleAuthentication> moduleAuthentications = getAuthentications();
+        for (ModuleAuthentication moduleAuthentication : moduleAuthentications) {
+            if (AuthenticationSequenceModuleNecessityType.REQUISITE == moduleAuthentication.getNecessity()
+                    && AuthenticationModuleState.FAILURE == moduleAuthentication.getState()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int getIndexOfModule(ModuleAuthentication authentication) {
         Validate.notNull(authentication);
 
@@ -373,6 +406,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             }
         }
         return null;
+    }
+
+    public String getProcessingModuleAuthenticationIdentifier() {
+        ModuleAuthentication moduleAuthentication = getProcessingModuleAuthentication();
+        return moduleAuthentication == null ? null : moduleAuthentication.getModuleIdentifier();
     }
 
     public boolean isAuthenticationFailed() {
@@ -404,6 +442,49 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return ((MidPointPrincipal) getPrincipal()).getUsername();
         }
         return "";
+    }
+
+    public String getUsername() {
+        if (getPrincipal() instanceof MidPointPrincipal) {
+            return ((MidPointPrincipal) getPrincipal()).getUsername();
+        }
+        ModuleAuthentication moduleAuthentication = getFirstFailedAuthenticationModule();
+        if (moduleAuthentication != null) {
+            AutheticationFailedData failureData = moduleAuthentication.getFailureData();
+            return failureData.getUsername();
+        }
+        return "";
+    }
+
+    public String getFailedReason() {
+        ModuleAuthentication moduleAuthentication = getFirstFailedAuthenticationModule();
+        if (moduleAuthentication != null) {
+            AutheticationFailedData failureData = moduleAuthentication.getFailureData();
+            return failureData.getFailureMessage();
+        }
+        return "";
+    }
+
+    public ModuleAuthentication getFirstFailedAuthenticationModule() {
+        List<ModuleAuthentication> moduleAuthentications = getAuthentications();
+        for (ModuleAuthentication moduleAuthentication : moduleAuthentications) {
+            if (AuthenticationModuleState.FAILURE == moduleAuthentication.getState()) {
+                return moduleAuthentication;
+            }
+        }
+        return null;
+    }
+
+    public AuthenticationException getAuthenticationExceptionIfExsits() {
+        ModuleAuthentication moduleAuthentication = getFirstFailedAuthenticationModule();
+        if (moduleAuthentication == null) {
+            return null;
+        }
+        AutheticationFailedData failedData = moduleAuthentication.getFailureData();
+        if (failedData == null) {
+            return null;
+        }
+        return failedData.getAuthenticationException();
     }
 
     public List<ModuleAuthentication> getParallelProcessingModules() {
@@ -473,7 +554,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         }
         if (resolvedIndex == NO_MODULE_FOUND_INDEX) {
             throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
-                    + getSequence().getIdentifier() + "'");
+                    + getSequenceIdentifier() + "'");
         }
         return resolvedIndex;
     }
@@ -545,4 +626,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return securityPolicy;
     }
 
+    public boolean isAlreadyAudited() {
+        return alreadyAudited;
+    }
+
+    public void setAlreadyAudited(boolean alreadyAudited) {
+        this.alreadyAudited = alreadyAudited;
+    }
 }

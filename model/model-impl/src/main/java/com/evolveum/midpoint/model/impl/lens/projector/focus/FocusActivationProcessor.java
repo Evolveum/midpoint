@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -275,16 +276,20 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path)
+    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, List<AuthenticationBehavioralDataType> credentials, ItemPath path)
             throws SchemaException {
-        if (credentialTypeNew != null) {
-            Integer failedLogins = credentialTypeNew.getFailedLogins();
-            if (failedLogins != null && failedLogins != 0) {
-                PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
-                PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
-                failedLoginsDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(0, OriginType.USER_POLICY, null));
-                focusContext.swallowToSecondaryDelta(failedLoginsDelta);
-            }
+        for (AuthenticationBehavioralDataType credentialTypeNew : credentials) {
+            resetFailedLogins(focusContext, credentialTypeNew, path);
+        }
+    }
+
+    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path) throws SchemaException {
+        Integer failedLogins = credentialTypeNew.getFailedLogins();
+        if (failedLogins != null && failedLogins != 0) {
+            PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
+            PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
+            failedLoginsDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(0, OriginType.USER_POLICY, null));
+            focusContext.swallowToSecondaryDelta(failedLoginsDelta);
         }
     }
 

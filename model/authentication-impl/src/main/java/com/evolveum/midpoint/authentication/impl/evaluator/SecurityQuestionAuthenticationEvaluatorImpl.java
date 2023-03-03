@@ -30,7 +30,10 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             SecurityQuestionsAuthenticationContext authCtx) {
         if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty answers for security questions provided", authCtx.getPrincipalType(), false);
+//            recordPasswordAuthenticationFailure(authCtx, connEnv, null, "no stored password value", true);
+
+            recordPasswordAuthenticationFailure(authCtx.getUsername(), null, connEnv, null, "empty answers for security questions provided");
+//            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty answers for security questions provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.securityQuestion.bad");
         }
 
@@ -43,7 +46,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         }
 
         if (allBlank) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
+            recordPasswordAuthenticationFailure(authCtx.getUsername(), null, connEnv, null, "all empty");
+//            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.password.encoding");
         }
     }
@@ -64,7 +68,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         List<SecurityQuestionAnswerType> securityQuestionsAnswers = credential.getQuestionAnswer();
 
         if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
-            recordAuthenticationBehavior(principal.getUsername(),principal, connEnv, "no stored security questions", principal.getFocus().getClass(),false);
+            recordPasswordAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored security questions");
+//            recordAuthenticationBehavior(principal.getUsername(),principal, connEnv, "no stored security questions", principal.getFocus().getClass(),false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.securityQuestion.bad");
         }
 

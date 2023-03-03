@@ -58,7 +58,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
 
         try {
             Authentication token;
