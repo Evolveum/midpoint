@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.api.component.form;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author Radovan Semancik
  */
 public class CheckBoxPanel extends Panel {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_CHECK = "check";
@@ -43,8 +45,7 @@ public class CheckBoxPanel extends Panel {
         this(id, checkboxModel, labelModel, null);
     }
 
-    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel,
-            IModel<String> labelModel, IModel<String> tooltipModel) {
+    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, IModel<String> labelModel, IModel<String> tooltipModel) {
         super(id);
         this.checkboxModel = checkboxModel;
         this.labelModel = labelModel;
@@ -63,14 +64,20 @@ public class CheckBoxPanel extends Panel {
         check.add(new EnableBehaviour(() -> isCheckboxEnabled()));
         add(check);
 
-        Label label = new Label(ID_LABEL, labelModel);
-        label.add(AttributeModifier.replace("for", (IModel<String>) () -> check.getMarkupId()));
-        label.add(new VisibleBehaviour(() -> labelModel != null));
+        Component label = createLabel(ID_LABEL, labelModel, check);
         add(label);
 
         if (tooltipModel != null) {
             add(new AttributeModifier("title", tooltipModel));
         }
+    }
+
+    protected Component createLabel(String id, IModel<String> model, AjaxCheckBox check) {
+        Label label = new Label(ID_LABEL, labelModel);
+        label.add(AttributeModifier.replace("for", (IModel<String>) () -> check.getMarkupId()));
+        label.add(new VisibleBehaviour(() -> labelModel != null));
+
+        return label;
     }
 
     protected AjaxCheckBox createCheckbox() {
