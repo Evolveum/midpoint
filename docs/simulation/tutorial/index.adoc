@@ -3,6 +3,8 @@
 :page-since: "4.7"
 :page-upkeep-status: green
 
+#TODO refresh screenshots#
+
 This is a simple tutorial describing the new xref:/midpoint/reference/simulation/[simulations] feature.
 
 NOTE: The reader is expected to have reasonable knowledge of midPoint; we don't describe individual steps in much detail here.
@@ -112,7 +114,7 @@ Because - by default - the GUI does not engage the development configuration whe
 To re-classify the accounts from `default` to `person` we have two options:
 
 . Delete the shadows and let midPoint re-create them.
-(This was the only option before version 4.7.)
+(This was the only way before version 4.7.)
 . Read the content of the resource in simulation mode with development configuration enabled.
 This is currently doable using synchronization (e.g. import) tasks. Here are two alternatives:
 a. Execute the re-classification directly.
@@ -342,13 +344,13 @@ Traditional import from GUI does nothing, because it simply does not "see" the r
 just as if there were no mappings nor synchronization reactions defined.
 
 There is a possibility to preview (simulate) the import.
-But be sure to check the preview that uses the development configuration, otherwise there will be no effects at all.
+But be sure to select the preview that uses the development configuration, otherwise there will be no effects at all.
 
 #TODO describe it here#
 
 To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-simulation.xml[full simulation task].
 
-After looking at the simulation result, we should see "2 focus activations" and after clicking on that mark, we will see users that are going to be added.
+After looking at the simulation result, we should see "6 focus activations" and after clicking on that mark, we will see users that are going to be added.
 After displaying the details of the first of them, we see the following:
 
 .Preview of the first user added
@@ -361,9 +363,11 @@ We see that our mappings work correctly.
 Now we can change the lifecycle state of the resource to `active`, making it part of the production configuration.
 After that, we can run the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
 
-We observe that two users were added.
+We observe that the users were added.
 
 We may now run the simulated import and check that there are no computed changes.
+
+#TODO refresh#
 
 .Four unmodified objects
 image::four-unmodified-objects.png[Four unmodified objects]
@@ -410,7 +414,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
 <1> The resource as such is in production mode.
 <2> This particular mapping is visible only in the development mode.
 
-After running the (full) simulation of import from HR, the result contains two deltas like this:
+After running the (full) simulation of import from HR, the result contains deltas like this:
 
 .Telephone number change
 image::telephone-number-delta.png[Telephone number change]
@@ -446,7 +450,6 @@ You should see something like this:
 +
 .Content of the LDAP resource
 image::unclassified-accounts-ldap.png[Content of the LDAP resource]
-#TODO FIX#
 
 Note that the accounts are not classified: their intent is `unknown`.
 
@@ -484,8 +487,6 @@ You should see something like this:
 .Content of LDAP resource with classification
 image::accounts-intent-default-ldap.png[Content of LDAP resource with classification]
 
-#TODO fix#
-
 The intents were immediately set to `default`, because the accounts were not classified before.
 
 Let us assume we are satisfied with this.
@@ -493,4 +494,6 @@ If we would not be, we could fine-tune the classification just like in <<Step HR
 
 Now let us start correlating the accounts.
 
-=== Step LDAP-3: Definition of an Object Type
+=== Step LDAP-3: Correlation on Employee Number
+
+
