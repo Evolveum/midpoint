@@ -149,28 +149,14 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>shadowManagementPreview</executionMode> <!--1-->
-        <execution>
-            <configurationToUse>
-                <productionConfiguration>false</productionConfiguration> <!--2-->
-            </configurationToUse>
-            <createSimulationResult>true</createSimulationResult> <!--3-->
-        </execution>
-        <!-- new style -->
         <execution>
             <mode>shadowManagementPreview</mode> <!--1-->
             <configurationToUse>
-                <set>development</set> <!--2-->
+                <predefined>development</predefined> <!--2-->
             </configurationToUse>
         </execution>
         <reporting>
-            <simulationResult> <!--3-->
-                <create>true</create> <!--3-->
-                <!-- OR -->
-                <definition/> <!-- SimulationDefinitionType -> SimulationResultDefinitionType? -->
-                <!-- OR -->
-                <!-- not specifying anything here; the mere presence of "simulationResult" enables its creation -->
-            </simulationResult>
+            <simulationResult/> <!--3-->
         </reporting>
     </activity>
 </task>
@@ -205,12 +191,10 @@ The results can be also exported into CSV, by running a report named _Simulation
 [%heading]
 |===
 | Parameter | Value | Description
-| `simulationResultRef` | choose the simulation result |
-| `pathsIncluded` | `intent` | to avoid showing other changes, e.g. those of synchronization timestamps
-| `showIfNoDetails` | `false` | to show only the really changed values
+| Simulation result | choose the simulation result |
+| Paths to include | `intent` | to avoid showing other changes, e.g. those of synchronization timestamps
+| Show rows with no details | `false` | to show only the really changed values
 |===
-
-#TODO fix the report to provide reasonable labels for parameters#
 
 (The preview in GUI does not work with these kinds of reports. You have to execute the report to create the CSV file.)
 
@@ -223,7 +207,7 @@ image::result-after-reclassification-report.png[Reclassified objects report]
 
 After we are satisfied with the expected re-classification results, we can run the re-classification in real.
 
-Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation-no-result.xml[task]: #TODO add to samples#
+Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation-no-result.xml[task]:
 
 .Listing 5: A task that executes the accounts re-classification
 [source,xml]
@@ -242,19 +226,15 @@ Import the following link:https://github.com/Evolveum/midpoint-samples/tree/mast
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>preview</executionMode> <!--1-->
-        <execution>
-            <configurationToUse>
-                <productionConfiguration>false</productionConfiguration>
-            </configurationToUse>
-        </execution>
-        <!-- OR -->
         <execution>
             <mode>preview</mode> <!--1-->
             <configurationToUse>
-                <set>development</set>
+                <predefined>development</predefined>
             </configurationToUse>
         </execution>
+        <reporting>
+            <simulationResult/>
+        </reporting>
     </activity>
 </task>
 ----
@@ -366,7 +346,7 @@ But be sure to check the preview that uses the development configuration, otherw
 
 #TODO describe it here#
 
-To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation.xml[full simulation task].
+To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-simulation.xml[full simulation task].
 
 After looking at the simulation result, we should see "2 focus activations" and after clicking on that mark, we will see users that are going to be added.
 After displaying the details of the first of them, we see the following:
