@@ -15,25 +15,23 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.util.MiscUtil;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,7 +51,9 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
@@ -64,8 +64,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Expression evaluator that is based on searching for an object of `O` type meeting specified criteria (like entitlement shadow),
  * and then converting it into "processed" form (like association value).
@@ -74,7 +72,6 @@ import org.jetbrains.annotations.Nullable;
  * @param <O> "Raw" object type we are searching for to get `V` (e.g. {@link ShadowType})
  * @param <D> Definition of `V`
  * @param <E> type of configuration bean
- *
  * @author Radovan Semancik
  */
 public abstract class AbstractSearchExpressionEvaluator<
@@ -552,19 +549,9 @@ public abstract class AbstractSearchExpressionEvaluator<
         }
 
         protected boolean isCreateOnDemandSafe() {
-            boolean isCreateOnDemandSafe = false;
-
             ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
-            if (options == null || options.getSimulationOptions() == null) {
-                return isCreateOnDemandSafe;
-            }
-
-            SimulationOptionsType simulation = options.getSimulationOptions();
-            if (simulation.getCreateOnDemand() == null) {
-                return isCreateOnDemandSafe;
-            }
-
-            return SimulationOptionType.SAFE.equals(simulation.getCreateOnDemand());
+            
+            return ModelExecuteOptions.isCreateOnDemandSafe(options);
         }
     }
 
