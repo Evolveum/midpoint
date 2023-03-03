@@ -20,6 +20,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -229,15 +230,6 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         });
         add(title);
 
-        AjaxLink moreInfo = new AjaxLink<>(ID_MORE_INFO) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onMoreInfoPerformed(target);
-            }
-        };
-        moreInfo.add(new VisibleBehaviour(() -> isMoreInfoVisible()));
-        add(moreInfo);
-
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
             badge.setCssClass("badge badge-success trend trend-success");   // todo implement properly and make visible
@@ -248,7 +240,9 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         trendBadge.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(trendBadge);
 
-        Label value = new Label(ID_VALUE, createValueModel());
+        IModel<String> valueModel = createValueModel();
+        Label value = new Label(ID_VALUE, valueModel);
+        value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-bold"));
         add(value);
 
         Label valueDescription = new Label(ID_VALUE_DESCRIPTION, createDescriptionModel());
@@ -264,6 +258,21 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         chartContainer.add(new VisibleBehaviour(() -> !isIconVisible(iconModel)));
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
+
+        AjaxLink moreInfo = new AjaxLink<>(ID_MORE_INFO) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onMoreInfoPerformed(target);
+            }
+        };
+        moreInfo.add(new VisibleBehaviour(() -> isMoreInfoVisible()));
+        moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "bg-secondary" : "bg-primary"));
+        add(moreInfo);
+    }
+
+    private boolean hasZeroValue(IModel<String> valueModel) {
+        String value = valueModel.getObject();
+        return StringUtils.isEmpty(value) || "0".equals(value);
     }
 
     private boolean isIconVisible(IModel<CompositedIcon> iconModel) {
