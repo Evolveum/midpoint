@@ -96,9 +96,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private void initSearchModel() {
         searchModel = new LoadableDetachableModel<>() {
+
             @Override
             protected Search load() {
-
                 SearchBuilder searchBuilder = new SearchBuilder(FocusType.class)
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())

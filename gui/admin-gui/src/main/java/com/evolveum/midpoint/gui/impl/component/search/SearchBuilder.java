@@ -293,6 +293,10 @@ public class SearchBuilder<C extends Serializable> {
     public BasicQueryWrapper createDefaultSearchBoxConfigurationWrapper(SearchBoxConfigurationType mergedConfig) {
         BasicQueryWrapper searchConfigWrapper = new BasicQueryWrapper();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
+        if (searchItems == null) {
+            return searchConfigWrapper;
+        }
+
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(
                     type, allSearchableItems, searchItem, additionalSearchContext, modelServiceLocator));
