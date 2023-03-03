@@ -6,9 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
@@ -23,17 +27,11 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.wicket.Component;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author semancik
@@ -91,12 +89,7 @@ public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, TaskDe
         }
 
         ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
-        panel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return lensContextType != null;
-            }
-        });
+        panel.add(new VisibleBehaviour(() -> lensContextType != null));
         add(panel);
     }
 
@@ -108,7 +101,7 @@ public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, TaskDe
 
     @Override
     public Collection<Component> getComponentsToUpdate() {
-        return Collections.<Component>singleton(this);
+        return Collections.singleton(this);
     }
 
 }

@@ -7,17 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
-import static com.evolveum.midpoint.prism.Referencable.getOid;
-
 import static java.util.Collections.singletonList;
+
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -27,7 +25,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -40,6 +42,8 @@ import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -71,9 +75,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<TaskType> {
 
@@ -235,6 +236,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
         createManageLivesyncTokenButton(taskButtons);
         createDownloadReportButton(taskButtons);
+        createShowSimulationResultButton(taskButtons);
         createCleanupPerformanceButton(taskButtons);
         createCleanupResultsButton(taskButtons);
 
@@ -247,7 +249,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         initRefreshingButtons(refreshingButtons);
         add(refreshingButtons);
         refreshingButtonsContainer.add(refreshingButtons);
-
 
         AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
             private static final long serialVersionUID = 1L;
@@ -313,7 +314,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         afterOperation(target, result);
     }
 
-
     private void createResumeButton(RepeatingView repeatingView) {
         AjaxIconButton resume = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_RESUME_MENU_ITEM), createStringResource("pageTaskEdit.button.resume")) {
             @Override
@@ -375,6 +375,44 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         manageLivesyncToken.add(AttributeAppender.append("class", "btn-default"));
         manageLivesyncToken.setOutputMarkupId(true);
         repeatingView.add(manageLivesyncToken);
+    }
+
+    private void createShowSimulationResultButton(RepeatingView repeatingView) {
+        AjaxButton download = new AjaxButton(repeatingView.newChildId(), createStringResource("PageTask.simulationResult")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showSimulationResultPerformed();
+            }
+        };
+        download.add(new VisibleBehaviour(this::isSimulationResultAvailable));
+        download.add(AttributeAppender.append("class", "btn-primary"));
+        repeatingView.add(download);
+    }
+
+    private ObjectReferenceType getSimulationResultReference() {
+        TaskType task = getModelObject().getObject().asObjectable();
+        TaskActivityStateType activityState = task.getActivityState();
+        if (activityState == null || activityState.getActivity() == null) {
+            return null;
+        }
+
+        ActivitySimulationStateType simulation = activityState.getActivity().getSimulation();
+        return simulation != null ? simulation.getResultRef() : null;
+    }
+
+    private void showSimulationResultPerformed() {
+        ObjectReferenceType resultRef = getSimulationResultReference();
+
+        PageParameters params = new PageParameters();
+        params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultRef.getOid());
+        getPageBase().navigateToNext(PageSimulationResult.class, params);
+    }
+
+    private boolean isSimulationResultAvailable() {
+        return getSimulationResultReference() != null;
     }
 
     private void createDownloadReportButton(RepeatingView repeatingView) {
