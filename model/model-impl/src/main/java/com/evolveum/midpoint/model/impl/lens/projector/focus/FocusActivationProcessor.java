@@ -255,7 +255,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         if (lockoutStatusNew == LockoutStatusType.NORMAL) {
 
             CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
-            if (credentialsTypeNew != null) {
+            if (credentialsTypeNew != null) { //TODO what to do with credentials failed logins?
                 resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
                 resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
                 resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
@@ -284,7 +284,21 @@ public class FocusActivationProcessor implements ProjectorProcessor {
     }
 
     private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path) throws SchemaException {
+        if (credentialTypeNew == null) {
+            return;
+        }
         Integer failedLogins = credentialTypeNew.getFailedLogins();
+        prepareDeltaForFailedAttempts(failedLogins, focusContext, path);
+
+        List<AuthenticationAttemptDataType> moduleAuthentications = credentialTypeNew.getAuthenticationAttempt();
+        for (AuthenticationAttemptDataType moduleAuthentication : moduleAuthentications) {
+            Integer failedAttempts = moduleAuthentication.getFailedAttempts();
+            //TODO is this correct? and correctly working?
+            prepareDeltaForFailedAttempts(failedAttempts, focusContext, path);
+        }
+    }
+
+    private <F extends FocusType> void prepareDeltaForFailedAttempts(Integer failedLogins, LensFocusContext<F> focusContext, ItemPath path) throws SchemaException {
         if (failedLogins != null && failedLogins != 0) {
             PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
             PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
