@@ -38,7 +38,6 @@ import java.util.Set;
  *
  * Used during creation of {@link SimulationResultType} objects, reporting on them, and during testing.
  */
-@Experimental
 public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Serializable {
 
     Map<ChangeType, ObjectProcessingStateType> DELTA_TO_PROCESSING_STATE =
@@ -138,9 +137,9 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      * Returns the collection of {@link Metric} values for this object.
      *
      * @param showEventMarks Should we include mark-based metrics?
-     * @param showCustomMetrics Should we include custom metrics?
+     * @param showExplicitMetrics Should we include explicitly defined metrics?
      */
-    @NotNull Collection<Metric> getMetrics(@Nullable Boolean showEventMarks, @Nullable Boolean showCustomMetrics);
+    @NotNull Collection<Metric> getMetrics(@Nullable Boolean showEventMarks, @Nullable Boolean showExplicitMetrics);
 
     /**
      * Applies the definitions (currently, resource schema related to specific shadow) to the object(s) before/after,
@@ -254,7 +253,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
         /** Reference to event mark (for event mark based metrics). */
         @Nullable ObjectReferenceType getEventMarkRef();
 
-        /** String identifier (for custom metrics). */
+        /** String identifier (for explicit metrics). */
         @Nullable String getId();
 
         /** Is this object selected with regards to given metric? */

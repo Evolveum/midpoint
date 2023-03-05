@@ -9,12 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -37,12 +36,14 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -126,15 +127,15 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             }
         };
 
-        detailsModel = new LoadableModel<>() {
+        detailsModel = new LoadableModel<>(false) {
 
             @Override
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> list = new ArrayList<>();
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.startTimestamp"),
-                        () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getStartTimestamp())))));
+                        () -> LocalizationUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getStartTimestamp())))));
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.endTimestamp"),
-                        () -> WebComponentUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getEndTimestamp())))));
+                        () -> LocalizationUtil.translateMessage(ValueDisplayUtil.toStringValue(new PrismPropertyValueImpl(resultModel.getObject().getEndTimestamp())))));
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.finishedIn"),
                         () -> createResultDurationText(resultModel.getObject(), PageSimulationResult.this)));
                 list.add(new DetailsTableItem(createStringResource("PageSimulationResult.rootTask"), null) {
@@ -193,17 +194,21 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     SimulationMetricReferenceType metricRef = m.getRef();
                     if (metricRef.getEventMarkRef() != null) {
-                        PrismObject<MarkType> mark = WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), PageSimulationResult.this);
-                        if (mark != null) {
-                            DisplayType display = mark.asObjectable().getDisplay();
+                        PrismObject<MarkType> markObject =
+                                WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), PageSimulationResult.this);
+                        if (markObject != null) {
+                            MarkType mark = markObject.asObjectable();
+                            DisplayType display = mark.getDisplay();
                             if (display == null) {
                                 display = new DisplayType();
-                                display.setLabel(new PolyStringType(mark.getName()));
+                                display.setLabel(mark.getName());
                             }
                             dw.setDisplay(display);
+                            dw.setDisplayOrder(mark.getDisplayOrder());
                         }
-                    } else {
-                        SimulationMetricDefinitionType def = getSimulationResultManager().getMetricDefinition(metricRef.getIdentifier());
+                    } else if (metricRef.getIdentifier() != null) {
+                        SimulationMetricDefinitionType def =
+                                getSimulationResultManager().getMetricDefinition(metricRef.getIdentifier());
                         if (def != null) {
                             DisplayType display = def.getDisplay();
                             if (display == null) {
@@ -211,7 +216,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                                 display.setLabel(new PolyStringType(def.getIdentifier()));
                             }
                             dw.setDisplay(display);
+                            dw.setDisplayOrder(def.getDisplayOrder());
                         }
+                    } else {
+                        // built-in -> ignored
                     }
 
                     return dw;
@@ -318,9 +326,18 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             protected List<DashboardWidgetType> load() {
                 return metricsModel.getObject().stream()
                         .filter(d -> d.getData().getMetricRef().getEventMarkRef() != null ? eventMarkWidgets : !eventMarkWidgets)
+                        .sorted(
+                                Comparator.comparing(DashboardWidgetType::getDisplayOrder, Comparator.nullsFirst(Comparator.naturalOrder()))
+                                        .thenComparing(d -> getTranslatedDashboardWidgetLabel(d), Comparator.nullsFirst(Comparator.naturalOrder()))
+                        )
                         .collect(Collectors.toList());
             }
         };
+    }
+
+    private String getTranslatedDashboardWidgetLabel(DashboardWidgetType widget) {
+        PolyStringType label = widget.getDisplay() != null ? widget.getDisplay().getLabel() : null;
+        return LocalizationUtil.translatePolyString(label);
     }
 
     private void onBackPerformed(AjaxRequestTarget target) {

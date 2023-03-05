@@ -510,11 +510,11 @@
             <xsd:element name="effectiveMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                       Tags and Shadow marks assigned to the shadow.
+                       Object marks assigned to the shadow.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                        <a:experimental />
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
@@ -807,6 +807,16 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                An order in which this mark should be displayed relative to other marks within the same context.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MarkType.displayOrder</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -9286,9 +9296,9 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The content of this property specifies an order in which the organization
-                                    should be displayed relative to other organizations at the same level.
-                                    Organizations will be displayed by sorting them by the values of displayOrder
+                                    The content of this property specifies an order in which the service
+                                    should be displayed relative to other services at the same level.
+                                    Services will be displayed by sorting them by the values of displayOrder
                                     property (ascending). These that do not have any displayOrder annotation
                                     will be displayed last. Services with the same displayOrder
                                     are displayed in alphabetic order.
@@ -15954,6 +15964,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_STATE_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000738">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

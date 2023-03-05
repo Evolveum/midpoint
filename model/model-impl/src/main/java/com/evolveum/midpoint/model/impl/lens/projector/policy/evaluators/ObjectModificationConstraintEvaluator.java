@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -143,8 +145,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             return false;
         }
         ObjectDelta<?> summaryDelta = ctx.elementContext.getSummaryDelta();
-        if (ObjectDelta.isEmpty(summaryDelta)) {
-            LOGGER.trace("Focus context has no delta (primary nor secondary)");
+        if (ObjectDelta.isEmpty(summaryDelta) && !ctx.elementContext.isAdd() && !ctx.elementContext.isDelete()) {
+            LOGGER.trace("Element context has no delta (primary nor secondary) nor there is ADD/DELETE intention");
             return false;
         }
         List<ItemPathType> itemPaths = constraint.getItem();
@@ -159,7 +161,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
         }
         List<SpecialItemSpecificationType> specialItems = constraint.getSpecialItem();
         if (!specialItems.isEmpty()) {
-            if (summaryDelta.isModify()) {
+            if (ObjectDelta.isModify(summaryDelta)) {
                 for (SpecialItemSpecificationType specialItem : specialItems) {
                     if (!specialItemMatches(summaryDelta, ctx, specialItem)) {
                         LOGGER.trace("Special item {} does not match the delta (no modification there)", specialItem);
@@ -178,7 +180,9 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
     private boolean pathMatches(
             ObjectDelta<?> delta, ObjectPolicyRuleEvaluationContext<?> ctx, ItemPath path, boolean exactPathMatch)
             throws SchemaException {
-        if (delta.isAdd()) {
+        if (delta == null) {
+            return false;
+        } else if (delta.isAdd()) {
             return delta.getObjectToAdd().containsItem(path, false);
         } else if (delta.isDelete()) {
             PrismObject<?> objectOld = ctx.elementContext.getObjectOld();
@@ -216,6 +220,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
                         delta, specialItem, getResourceObjectNamingAttributePath(objectDefinition, specialItem));
             case RESOURCE_OBJECT_ENTITLEMENT:
                 return isEntitlementChange(delta, objectDefinition);
+            case RESOURCE_OBJECT_ITEM:
+                return ShadowUtil.hasResourceModifications(delta.getModifications());
             default:
                 throw new IllegalStateException("Item specification " + specialItem + " is not supported");
         }

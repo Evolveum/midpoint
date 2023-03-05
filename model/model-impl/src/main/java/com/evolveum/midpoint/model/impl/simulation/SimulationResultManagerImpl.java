@@ -51,7 +51,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
 
     /** Global metric definitions provided by the system configuration. Keyed by identifier. Immutable. */
-    @NotNull private volatile Map<String, SimulationMetricDefinitionType> metricDefinitions = new HashMap<>();
+    @NotNull private volatile Map<String, SimulationMetricDefinitionType> explicitMetricDefinitions = new HashMap<>();
 
     @Override
     public @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException {
@@ -183,7 +183,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         var configuration = value != null ? value.getSimulation() : null;
         if (configuration != null) {
             simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getSimulation());
-            metricDefinitions = configuration.getMetric().stream()
+            explicitMetricDefinitions = configuration.getMetric().stream()
                     .map(def -> CloneUtil.toImmutable(def))
                     .collect(Collectors.toMap(
                             def -> def.getIdentifier(),
@@ -236,8 +236,8 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                 "Trying to update already closed simulation result %s (%s)", simResult, endTimestamp);
     }
 
-    @NotNull Collection<SimulationMetricDefinitionType> getMetricDefinitions() {
-        return metricDefinitions.values();
+    @NotNull Collection<SimulationMetricDefinitionType> getExplicitMetricDefinitions() {
+        return explicitMetricDefinitions.values();
     }
 
     @Override
@@ -272,7 +272,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @Override
     public @Nullable SimulationMetricDefinitionType getMetricDefinition(@NotNull String identifier) {
-        return metricDefinitions.get(identifier);
+        return explicitMetricDefinitions.get(identifier);
     }
 
     @NotNull OpenResultTransactionsHolder getOpenResultTransactionsHolder() {

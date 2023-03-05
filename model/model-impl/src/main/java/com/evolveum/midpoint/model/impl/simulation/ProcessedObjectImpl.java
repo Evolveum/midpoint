@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     /** See {@link ProcessedObject#getState()}. */
     @NotNull private final ObjectProcessingStateType state;
 
-    /** Readily-accessible values of metrics related to this object. */
+    /** Readily-accessible values of metrics related to this object. Currently does not include built-in metrics. */
     @NotNull private final ParsedMetricValues parsedMetricValues;
 
     /** Complete information on the tags (optional). For dumping purposes. */
@@ -281,7 +282,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                             processedObject,
                             elementContext,
                             simulationTransaction.getSimulationResult(),
-                            ModelBeans.get().simulationResultManager.getMetricDefinitions(),
+                            ModelBeans.get().simulationResultManager.getExplicitMetricDefinitions(),
                             task,
                             result));
         } else {
@@ -499,13 +500,22 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .before(prepareObjectForStorage(before))
                     .after(prepareObjectForStorage(after))
                     .delta(DeltaConvertor.toObjectDeltaType(delta));
+
+            // Event marks
             List<ObjectReferenceType> eventMarkRef = bean.getEventMarkRef();
             parsedMetricValues.getMatchingEventMarks().forEach(
                     oid -> eventMarkRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.MARK)));
+
             List<ObjectReferenceType> consideredEventMarkRef = bean.getConsideredEventMarkRef();
             parsedMetricValues.getAllConsideredEventMarks().forEach(
                     oid -> consideredEventMarkRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.MARK)));
-            bean.getMetricValue().addAll(parsedMetricValues.getMetricValueBeans());
+
+            // Explicit marks
+            bean.getMetricValue().addAll(
+                    parsedMetricValues.getExplicitMetricValueBeans());
+
+            // Built-in marks are not stored into the bean
+
             cachedBean = bean;
             return bean;
         } catch (SchemaException e) {
@@ -637,9 +647,26 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 + emptyIfNull(mod.getValuesToDelete()).size();
     }
 
-    @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReferenceType ref) {
+    @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReference ref) {
         assert internalState == InternalState.CREATED;
-        return parsedMetricValues.getMetricValue(ref);
+        if (ref instanceof SimulationMetricReference.BuiltIn) {
+            return matches(((SimulationMetricReference.BuiltIn) ref).getBuiltIn()) ? MetricValue.ONE : MetricValue.ZERO;
+        } else {
+            return parsedMetricValues.getMetricValue(ref);
+        }
+    }
+
+    private boolean matches(@NotNull BuiltInSimulationMetricType builtIn) {
+        switch (builtIn) {
+            case ADDED:
+                return isAddition();
+            case MODIFIED:
+                return isModification();
+            case DELETED:
+                return isDeletion();
+            default:
+                throw new AssertionError(builtIn);
+        }
     }
 
     public boolean matches(@NotNull SimulationObjectPredicateType predicate, @NotNull Task task, @NotNull OperationResult result)
@@ -695,7 +722,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     PartitionScope partitionScope() {
-        return new PartitionScope(getTypeName(), getStructuralArchetypeOid(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
+        return new PartitionScope(
+                getTypeName(), getStructuralArchetypeOid(), getResourceOid(), getKind(), getIntent(), ALL_DIMENSIONS);
     }
 
     void propagateRecordId() {
@@ -752,15 +780,15 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Collection<Metric> getMetrics(@Nullable Boolean showEventMarks, @Nullable Boolean showCustomMetrics) {
+    public @NotNull Collection<Metric> getMetrics(@Nullable Boolean showEventMarks, @Nullable Boolean showExplicitMetrics) {
         List<Metric> metrics = new ArrayList<>();
         if (!Boolean.FALSE.equals(showEventMarks)) {
             metrics.addAll(
                     parsedMetricValues.getValuesForEventMarks());
         }
-        if (!Boolean.FALSE.equals(showCustomMetrics)) {
+        if (!Boolean.FALSE.equals(showExplicitMetrics)) {
             metrics.addAll(
-                    parsedMetricValues.getValuesForCustomMetrics());
+                    parsedMetricValues.getValuesForExplicitMetrics());
         }
         return metrics;
     }
@@ -910,6 +938,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     static class MetricValue implements Serializable {
+
+        public static final MetricValue ZERO = new MetricValue(BigDecimal.ZERO, false);
+        public static final MetricValue ONE = new MetricValue(BigDecimal.ONE, true);
+
         @NotNull final BigDecimal value;
         final boolean inSelection;
 
@@ -971,31 +1003,31 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         void addMetricValues(List<SimulationProcessedObjectMetricValueType> values) {
             for (SimulationProcessedObjectMetricValueType valueBean : values) {
                 valueMap.put(
-                        SimulationMetricReference.forMetricId(valueBean.getIdentifier()),
+                        SimulationMetricReference.forExplicit(valueBean.getIdentifier()),
                         new MetricValue(valueBean.getValue(), valueBean.isSelected()));
             }
         }
 
         @NotNull Collection<String> getMatchingEventMarks() {
             return valueMap.entrySet().stream()
-                    .filter(e -> e.getKey().isMark())
                     .filter(e -> e.getValue().inSelection)
-                    .map(e -> e.getKey().getMarkOid())
+                    .filter(e -> e.getKey() instanceof SimulationMetricReference.Mark)
+                    .map(e -> ((SimulationMetricReference.Mark) e.getKey()).getOid())
                     .collect(Collectors.toSet());
         }
 
         @NotNull Collection<String> getAllConsideredEventMarks() {
             return valueMap.keySet().stream()
-                    .filter(ref -> ref.isMark())
-                    .map(ref -> ref.getMarkOid())
+                    .filter(ref -> ref instanceof SimulationMetricReference.Mark)
+                    .map(ref -> ((SimulationMetricReference.Mark) ref).getOid())
                     .collect(Collectors.toSet());
         }
 
-        @NotNull Collection<SimulationProcessedObjectMetricValueType> getMetricValueBeans() {
+        @NotNull Collection<SimulationProcessedObjectMetricValueType> getExplicitMetricValueBeans() {
             return valueMap.entrySet().stream()
-                    .filter(e -> e.getKey().isCustomMetric())
+                    .filter(e -> e.getKey() instanceof SimulationMetricReference.Explicit)
                     .map(e -> new SimulationProcessedObjectMetricValueType()
-                            .identifier(e.getKey().getMetricIdentifier())
+                            .identifier(((SimulationMetricReference.Explicit) e.getKey()).getIdentifier())
                             .selected(e.getValue().inSelection)
                             .value(e.getValue().value))
                     .collect(Collectors.toList());
@@ -1008,21 +1040,20 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             return sb.toString();
         }
 
-        @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReferenceType ref) {
-            return valueMap.get(
-                    SimulationMetricReference.fromBean(ref));
+        @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReference ref) {
+            return valueMap.get(ref);
         }
 
         @NotNull Collection<? extends Metric> getValuesForEventMarks() {
             return valueMap.entrySet().stream()
-                    .filter(e -> e.getKey().isMark())
+                    .filter(e -> e.getKey() instanceof SimulationMetricReference.Mark)
                     .map(e -> MetricImpl.of(e))
                     .collect(Collectors.toList());
         }
 
-        @NotNull Collection<? extends Metric> getValuesForCustomMetrics() {
+        @NotNull Collection<? extends Metric> getValuesForExplicitMetrics() {
             return valueMap.entrySet().stream()
-                    .filter(e -> e.getKey().isCustomMetric())
+                    .filter(e -> e.getKey() instanceof SimulationMetricReference.Explicit)
                     .map(e -> MetricImpl.of(e))
                     .collect(Collectors.toList());
         }
@@ -1044,12 +1075,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         @Override
         public @Nullable ObjectReferenceType getEventMarkRef() {
-            return reference.getMarkRef();
+            return reference instanceof SimulationMetricReference.Mark ?
+                    ((SimulationMetricReference.Mark) reference).getRef() : null;
         }
 
         @Override
         public @Nullable String getId() {
-            return reference.getMetricIdentifier();
+            return reference instanceof SimulationMetricReference.Explicit ?
+                    ((SimulationMetricReference.Explicit) reference).getIdentifier() : null;
         }
 
         @Override

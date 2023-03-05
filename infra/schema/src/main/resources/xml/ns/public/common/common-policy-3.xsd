@@ -893,6 +893,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="resourceObjectItem">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any item on a resource object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE_OBJECT_ITEM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -3157,5 +3167,5 @@
          <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
       </xsd:sequence>
     </xsd:complexType>
-    
+
 </xsd:schema>

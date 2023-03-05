@@ -21,6 +21,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -229,8 +231,7 @@ public class ReportFunctions {
 
     public List<AuditEventRecordType> searchAuditRecords(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option,
             Task task, OperationResult result) throws CommonException {
-        List<AuditEventRecordType> records = modelAuditService.searchObjects(query, option, task, result);
-        return records;
+        return modelAuditService.searchObjects(query, option, task, result);
     }
 
     public List<AuditEventRecordType> searchAuditRecordsAsWorkflows(
@@ -705,6 +706,17 @@ public class ReportFunctions {
                     .asObjectable();
         } catch (ObjectNotFoundException ignored) {
             return null;
+        }
+    }
+
+    /** TEMPORARY (does not work for now) */
+    public Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType object) throws SchemaException {
+        if (object instanceof ShadowType) {
+            ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
+                    List.of(), (ShadowType) object, getCurrentResult());
+            return object.getEffectiveMarkRef();
+        } else {
+            return List.of();
         }
     }
 }

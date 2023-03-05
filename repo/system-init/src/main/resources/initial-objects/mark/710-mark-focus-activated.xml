@@ -16,6 +16,7 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
+    <displayOrder>100</displayOrder>
     <policyRule>
         <name>focus-activated</name>
         <policyConstraints>
