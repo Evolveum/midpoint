@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -22,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component("focusIdentificationEvaluator")
@@ -59,8 +57,7 @@ public class FocusIdentificationAuthenticationEvaluatorImpl extends Authenticati
         ProtectedStringType protectedString = credential.getValue();
 
         if (protectedString == null) {
-            recordPasswordAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored password value");
-//            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored password value", principal.getFocus().getClass(), false);
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored password value");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 
