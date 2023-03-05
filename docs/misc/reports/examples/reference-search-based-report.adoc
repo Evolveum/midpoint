@@ -1,0 +1,25 @@
+= Example of Collection report: Reference search based report
+:page-nav-title: Reference search based report
+
+++++
+{% include since.html since="4.7" %}
+++++
+
+Please note that this example requires reference search functionality that is available only with the
+xref:/midpoint/reference/repository/native-postgresql/[Native repository] with midPoint 4.7 or newer.
+
+TODO
+
+////
+// TODO
+
+// TODO mention this in the reference-search based reports, you must use script/objectVariableMode=prismReference in every column/subreport, even if you don't use the object/input variable! Otherwise it creates PARTIAL_ERROR for any missing reference target object.
+ERROR (c.e.m.m.c.expression.script.ScriptExpression): Expression error: Object not found during variable object resolution in subreport 'yyy': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
+com.evolveum.midpoint.util.exception.ObjectNotFoundException: Object not found during variable object resolution in subreport 'yyy': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
+////
+
+== See Also
+
+* xref:/midpoint/reference/misc/reports/configuration/[Report configuration]
+
+* xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
