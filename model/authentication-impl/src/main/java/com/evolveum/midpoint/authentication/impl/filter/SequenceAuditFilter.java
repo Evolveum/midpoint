@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * The result is recorded to two places:
  *
- * - focus/behavior/autentication
+ * - focus/behavior/authentication
  * - audit
  */
 public class SequenceAuditFilter extends OncePerRequestFilter {
@@ -49,10 +49,6 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
     private static final Trace LOGGER = TraceManager.getTrace(SequenceAuditFilter.class);
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
-
-    public SequenceAuditFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
-        this.authenticationRecorder = authenticationRecorder;
-    }
 
     public SequenceAuditFilter() {
     }
@@ -86,10 +82,6 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
             authenticationRecorder.recordSequenceAuthenticationFailure(mpAuthentication.getUsername(), mpPrincipal, null,
                     mpAuthentication.getFailedReason(), createConnectionEnvironment(mpAuthentication));
             mpAuthentication.setAlreadyAudited(true);
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExsits());
-            }
             LOGGER.trace("Authentication sequence {} evaluated as failed.", mpAuthentication.getSequenceIdentifier());
         }
         filterChain.doFilter(request, response);
