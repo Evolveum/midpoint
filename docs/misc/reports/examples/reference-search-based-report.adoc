@@ -8,15 +8,320 @@
 Please note that this example requires reference search functionality that is available only with the
 xref:/midpoint/reference/repository/native-postgresql/[Native repository] with midPoint 4.7 or newer.
 
-TODO
+This report demonstrates the following features:
 
-////
-// TODO
+* xref:/midpoint/reference/concepts/query/#reference-query[Reference search] - we directly search for `roleMembershipRef` references.
+// TODO replace with link to a better reference document related to metadata - when available
+* xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/identity-metadata-in-a-nutshell/[Value metadata] - we work with extended assignment information stored inside value metadata in the reference values.
+* xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[Row generation] - we generate new rows depending on the number of value metadata values.
+* The report also shows a few interesting
+xref:/midpoint/reference/expressions/expressions/script/[script expressions]
+with the xref:/midpoint/reference/expressions/expressions/script/groovy/[Groovy Expressions].
 
-// TODO mention this in the reference-search based reports, you must use script/objectVariableMode=prismReference in every column/subreport, even if you don't use the object/input variable! Otherwise it creates PARTIAL_ERROR for any missing reference target object.
-ERROR (c.e.m.m.c.expression.script.ScriptExpression): Expression error: Object not found during variable object resolution in subreport 'yyy': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
-com.evolveum.midpoint.util.exception.ObjectNotFoundException: Object not found during variable object resolution in subreport 'yyy': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
-////
+The key points are marked with numbers and explained below the example.
+
+[source,xml]
+----
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-b8249b79d2b5">
+    <name>Indirect assignment report</name>
+    <description>Shows information stored in roleMembershipRef value metadata.</description>
+    <objectCollection>
+        <collection>
+            <!-- Type (ObjectReferenceType) is declared in the view element. -->
+            <filter> <!--1-->
+                <q:and>
+                    <q:ownedBy>
+                        <q:type>UserType</q:type>
+                        <q:path>roleMembershipRef</q:path>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$userName</path>
+                                </expression>
+                            </q:equal>
+                        </q:filter>
+                    </q:ownedBy>
+                    <q:ref>
+                        <q:path/>
+                        <expression>
+                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                            <path>$roleRef</path>
+                        </expression>
+                    </q:ref>
+                </q:and>
+            </filter>
+        </collection>
+        <parameter> <!--3-->
+            <name>userName</name>
+            <type>string</type>
+        </parameter>
+        <parameter>
+            <name>roleRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:AbstractRoleType</targetType>
+        </parameter>
+
+        <subreport> <!--4-->
+            <!--
+            This subreport generates additional lines per each metadata value,
+            in case there are multiple distinct assignment paths.
+            -->
+            <name>data</name>
+            <order>1</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+            <expression>
+                <script>
+                    <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                    <code>report.generateAssignmentPathRows(object)</code>
+                </script>
+            </expression>
+        </subreport>
+        <view>
+            <type>c:ObjectReferenceType</type> <!--2-->
+            <paging>
+                <q:orderBy>../name</q:orderBy>
+            </paging>
+            <column>
+                <name>user</name>
+                <display>
+                    <label>User</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.owner?.name?.orig ?: 'Unknown owner'</code>  <!--6-->
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>nameColumn</name>
+                <display>
+                    <label>Role</label>
+                </display>
+                <previousColumn>user</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.role?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>archetypeName</name>
+                <display>
+                    <label>Type</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.roleArchetype?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relation</name>
+                <display>
+                    <label>Relation</label>
+                </display>
+                <previousColumn>archetypeName</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>object?.relation</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>allPath</name>
+                <display>
+                    <label>Path</label>
+                </display>
+                <previousColumn>relation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code> <!--7-->
+                                return data?.segmentTargets?.collect(o -> o?.name?.orig)?.join(' -> ') ?: '?'
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <!-- This is probably not important column, everything is in the path column anyway. -->
+                <name>parent</name>
+                <display>
+                    <label>Parent</label>
+                </display>
+                <previousColumn>allPath</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code><!--8-->
+                                if (!data?.segmentTargets) {
+                                    return "?"
+                                }
+
+                                def segLen = data.segmentTargets.size()
+                                if (segLen == 1) {
+                                    return 'Direct'
+                                } else {
+                                    return data.segmentTargets[segLen - 2]?.name?.orig
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <!-- We don't store refs/metadata for disabled assignments, so this is always Enabled. -->
+                <name>activation</name>
+                <display>
+                    <label>Activation</label>
+                </display>
+                <previousColumn>parent</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.assignment?.activation?.effectiveStatus</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>validTo</name>
+                <display>
+                    <label>Valid to</label>
+                </display>
+                <previousColumn>activation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.assignment?.activation?.validTo</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>since</name>
+                <display>
+                    <label>Since</label>
+                </display>
+                <previousColumn>validTo</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code>data?.createTimestamp</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>createChannel</name>
+                <display>
+                    <label>Source</label>
+                </display>
+                <previousColumn>since</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode> <!--5-->
+                            <code><!--9-->
+                                // Explicit String to use the right split() and not random Groovy default method.
+                                String channel = data?.assignment?.metadata?.createChannel
+                                return channel?.split('#')?.last()?.with(s -> midpoint.translate('Channel.' + s))
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+        </view>
+    </objectCollection>
+</report>
+----
+
+<1> The report is based on a xref:/midpoint/reference/concepts/query/#reference-query[Reference query]
+with the mandatory owned-by filter inside the `collection` element pointing to the `roleMembershipRef`.
+There are some parameter values used inside the filter.
+<2> The result type of the search is specified with `type` inside the `view` element.
+(The `view` element is a bit lower under the parameters and subreport.)
+<3> The paramaters are specified after the `collection` as in any other report.
+Polystring name is represented by the `string` type.
+// TODO PolyStringType doesn't work properly in the preview/run report dialog.
+<4> Subreport `data` with `splitParentRow` behavior to ensure that each value metadata value
+has xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[its own row].
+Report function `generateAssignmentPathRows` returns collection of plain objects with various
+fields extracted from the value metadata which will be used in the column expressions.
+The object is named `data` and can be null if no value metadata are found on the reference.
+<5> Crucially, every single subreport and column of this report processes the input object
+(which is a reference value) as-is - it does not try to resolve the reference.
+This is what `objectVariableMode` set to `prismReference` does.
+The default behavior is to resolve the reference which is convenient in most cases.
+But here we do not want that and the reasons for it are:
+* We need to access the value metadata in the subreport - hence we need the actual reference.
+There is no way to get to the reference from the target object as the object has no idea from
+where it is pointed to by a reference - or possibly many references.
+We need the actual reference value here.
+* If the target of the reference is missing (e.g. it was deleted, or does not exist yet),
+the resolution of the reference fails and we end up with partial error and an error in the log.
+Even worse, the variable value of the to-be-resolved reference will be null.
+That is useless for our use case, we know nothing, not even the OID of the target.
+<6> Now some Groovy expressions examples.
+Here we use the `data` variable prepared by the subreport and the function `generateAssignmentPathRows`.
+This example shows how easy and nice it is to write a one-liner to return some data - or default, if the data is null.
+There is no need to write `return`, because there is just one expression and it will be the return value.
+We use null-safe dereferencing with `?.` operator instead of `.`, obtaining the name (polystring) and its "orig" value.
+If it is not available, we use `?:` operator which you can read "and if null then..."
+<7> Another expression, this time with return (can be omitted) if you prefer it.
+There is an assignment path leading to each effective assignment.
+This is the chain of assignments and inducements leading to the effective assignment.
+The lenght of the path is one for direct assignments, and more than one for indirect ones.
+Field `segmentTargets` contains list of the objects from each assignment/inducement's `targetRef` - alrady dereferenced.
+The `collect` method will turn these into the names of these objects and, finally, they are joined into a single string, separated by `->`.
+<8> This is an example of an expression that didn't fit into a one line, because sometimes it is better
+to be explicit about various cases - and there are three cases here.
+The segments may not be available (although unlikely), there can be one segment, or more of them.
+Each of these cases provide different output into the report.
+<9> Finally, the `createChannel` column could be an ugly one-liner, but here we have to help Groovy
+to undestand that intermediate `channel` variable is a String - so it's nicer to split it into two lines.
+Without this help, it would call a wrong version of the `split` method - not the one on the Java `String` class.
+It also shows `with` construct which is here used to use the result of the `last()` method call
+as an argument to the `midpoint.translate()`.
+If you feel uneasy about it, you can split it into more line as well.
+Just don't forget that the result of the `last()` call may be `null` and stick with the `?.` operator.
+
+Again, keep in mind that we're working with reference values on the input - which is the `object`
+variable for subreport and column expressions.
+Even if you don't use this variable, it would be resolved if the `objectVariableMode` is not set
+to `prismReference` (the default value is `object` and forces the resolution).
+If this is forgotten you will end up with an error in the log similar to this (this is an example
+for a subreport, but the wording for column is similar):
+
+----
+ERROR (c.e.m.m.c.expression.script.ScriptExpression): Expression error: Object not found during variable object resolution in subreport 'data': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
+com.evolveum.midpoint.util.exception.ObjectNotFoundException: ...
+----
 
 == See Also
 
