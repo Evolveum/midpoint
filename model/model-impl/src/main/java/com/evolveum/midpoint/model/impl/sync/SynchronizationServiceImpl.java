@@ -192,10 +192,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *  Why not: technically, this is NOT a full synchronization
      *  Why yes: we want to avoid re-processing of these objects in 3rd stage of reconciliation (that looks after full sync ts)
      *  For the time being, let us keep this. But should decide on it some day.
-     *
-     * TODO open question 2: should we keep the old synchronization situation for protected accounts? For other marked as
-     *  "not synchronized"? For ones with synchronization disabled because of configuration? etc
-     *  -> for protected/marked ones the answer currently is YES, as we want to avoid displaying users stale data
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException {
@@ -242,18 +238,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             String message = String.format(
                     "SYNCHRONIZATION is skipped for marked/protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
-
-            // Let us reset the synchronization situation for protected or "not synchronized" accounts.
-            // See open question 2 above.
-            SynchronizationSituationType oldSituation = syncCtx.getShadowedResourceObject().getSynchronizationSituation();
-            if (oldSituation != null
-                    && oldSituation != SynchronizationSituationType.LINKED
-                    && oldSituation != SynchronizationSituationType.DELETED) {
-                syncCtx.getUpdater().resetSynchronizationSituation();
-            } else {
-                // This should not normally occur. But if it does, let us keep the flag.
-            }
-
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);

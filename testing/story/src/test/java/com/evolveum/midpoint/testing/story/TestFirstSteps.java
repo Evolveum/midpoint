@@ -1187,8 +1187,9 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertTransition(UNLINKED, UNLINKED, LINKED, null, 2, 0, 0)
                         .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 1, 0, 0)
                         .assertTransition(DISPUTED, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
-                        .assertTransitions(4)
+                        .assertTransition(UNMATCHED, null, null, PROTECTED, 0, 0, 4)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(5)
                     .end()
                 .end()
                 .assertClockworkRunCount(2); // Two unlinked->linked accounts
@@ -1288,8 +1289,9 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .synchronizationStatistics()
                         .display()
                         .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
-                        .assertTransitions(2)
+                        .assertTransition(UNMATCHED, null, null, PROTECTED, 0, 0, 4)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(3)
                     .end()
                 .end()
                 .assertClockworkRunCount(5);
