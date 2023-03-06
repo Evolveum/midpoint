@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -104,12 +106,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
         link.add(visibleIfReference);
         add(link);
 
-        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getModelObject() != null ? getModelObject().getAdditionalText() : null;
-            }
-        });
+        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new AdditionalLabelModel());
         add(additionalText);
     }
 
@@ -163,6 +160,23 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                 textValue = createStringResource("SceneItemLinePanel.emptyLabel").getString();
             }
             return textValue;
+        }
+    }
+
+    private class AdditionalLabelModel implements IModel<String> {
+        @Override
+        public String getObject() {
+            SceneItemValue val = getModelObject();
+            if (val == null) {
+                return null;
+            }
+            if (val.getSourceValue() != null && val.getSourceValue() instanceof PrismReferenceValue) {
+                return "[" + WebComponentUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase()) + "]";
+            }
+
+            LocalizationService service = MidPointApplication.get().getLocalizationService();
+            String additionalText = getModelObject().getAdditionalText();
+            return service.translate(additionalText, new Object[0], getPage().getLocale());
         }
     }
 }
