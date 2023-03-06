@@ -67,6 +67,7 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             }
 
             if (!mpAuthentication.isOverLockoutMaxAttempts()) {
+                saveException(request, exception);
                 getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
                 return;
             }

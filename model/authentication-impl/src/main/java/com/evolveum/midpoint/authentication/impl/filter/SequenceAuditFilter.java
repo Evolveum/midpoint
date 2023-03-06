@@ -12,13 +12,13 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -53,6 +53,11 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
     public SequenceAuditFilter() {
     }
 
+    @VisibleForTesting
+    public SequenceAuditFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
+        this.authenticationRecorder = authenticationRecorder;
+    }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -72,6 +77,13 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
             return;
         }
 
+        writeRecord(mpAuthentication);
+
+        filterChain.doFilter(request, response);
+    }
+
+    @VisibleForTesting
+    public void writeRecord(MidpointAuthentication mpAuthentication) {
         MidPointPrincipal mpPrincipal = mpAuthentication.getPrincipal() instanceof MidPointPrincipal ? (MidPointPrincipal) mpAuthentication.getPrincipal() : null;
         boolean isAuthenticated = mpAuthentication.isAuthenticated();
         if (isAuthenticated) {
@@ -84,7 +96,6 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as failed.", mpAuthentication.getSequenceIdentifier());
         }
-        filterChain.doFilter(request, response);
     }
 
     private ConnectionEnvironment createConnectionEnvironment(MidpointAuthentication mpAuthentication) {
