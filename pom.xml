@@ -17,6 +17,8 @@
     - Some JAR modules are pure-test, no main sources - deploy/install is skipped for these, otherwise it fails with:
     "The packaging for this project did not assign a file to the build artifact"
     - Some modules have explicit maven.test.skip=true to disable test plugins coming from parents.
+    Use this only for modules without any test sources!
+    If you need to skip test execution for some profile, use skipTests property instead.
     - Maven's failsafe plugin is declared in build/plugin only in modules that need it.
     This by default uses testng-integration.xml suite file, but see property integrationTestSuite
     for other possibilities (mostly to make build faster by running only most important int-tests).
