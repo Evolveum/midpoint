@@ -44,7 +44,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetP
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
@@ -295,17 +294,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 break;
         }
 
-        ObjectFilter filter = null;
-        if (state != null) {
-            filter = getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
-                    .item(SimulationResultProcessedObjectType.F_STATE).eq(state)
-                    .buildFilter();
-        }
-
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+        if (state != null) {
+            params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER, state.value());
+        }
 
-        navigateToNext(new PageSimulationResultObjects(params, filter));
+        navigateToNext(PageSimulationResultObjects.class, params);
     }
 
     private void initLayout() {
