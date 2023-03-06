@@ -22,6 +22,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetP
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
@@ -145,6 +147,13 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         AjaxButton link = new AjaxButton(id, () -> getTaskName()) {
 
                             @Override
+                            protected void onComponentTag(ComponentTag tag) {
+                                tag.setName("a");   // to override default <span> element
+
+                                super.onComponentTag(tag);
+                            }
+
+                            @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                 redirectToTaskDetails();
                             }
@@ -170,6 +179,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
                     return getString("PageSimulationResult.development");
                 }));
+
+                addBuiltInMetrics(list);
 
                 return list;
             }
@@ -226,6 +237,75 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 }).collect(Collectors.toList());
             }
         };
+    }
+
+    private void addBuiltInMetrics(List<DetailsTableItem> result) {
+        List<SimulationMetricValuesType> metrics = resultModel.getObject().getMetric();
+        List<SimulationMetricValuesType> builtIn = metrics.stream().filter(m -> m.getRef() != null && m.getRef().getBuiltIn() != null)
+                .collect(Collectors.toList());
+
+        List<DetailsTableItem> items = new ArrayList<>();
+
+        for (SimulationMetricValuesType metric : builtIn) {
+            BuiltInSimulationMetricType identifier = metric.getRef().getBuiltIn();
+
+            BigDecimal value = SimulationMetricValuesTypeUtil.getValue(metric);
+            items.add(new DetailsTableItem(
+                    createStringResource("PageSimulationResultObject." + WebComponentUtil.createEnumResourceKey(identifier)),
+                    () -> MetricWidgetPanel.formatValue(value, getPrincipal().getLocale())) {
+
+                @Override
+                public Component createValueComponent(String id) {
+                    AjaxButton link = new AjaxButton(id, getValue()) {
+
+                        @Override
+                        protected void onComponentTag(ComponentTag tag) {
+                            tag.setName("a");   // to override default <span> element
+
+                            super.onComponentTag(tag);
+                        }
+
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            redirectToProcessedObjects(identifier);
+                        }
+                    };
+
+                    return link;
+                }
+            });
+        }
+
+        items.sort(Comparator.comparing(d -> d.getLabel().getObject(), Comparator.naturalOrder()));
+
+        result.addAll(items);
+    }
+
+    private void redirectToProcessedObjects(BuiltInSimulationMetricType identifier) {
+        ObjectProcessingStateType state = null;
+        switch (identifier) {
+            case ADDED:
+                state = ObjectProcessingStateType.ADDED;
+                break;
+            case MODIFIED:
+                state = ObjectProcessingStateType.MODIFIED;
+                break;
+            case DELETED:
+                state = ObjectProcessingStateType.DELETED;
+                break;
+        }
+
+        ObjectFilter filter = null;
+        if (state != null) {
+            filter = getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
+                    .item(SimulationResultProcessedObjectType.F_STATE).eq(state)
+                    .buildFilter();
+        }
+
+        PageParameters params = new PageParameters();
+        params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
+
+        navigateToNext(new PageSimulationResultObjects(params, filter));
     }
 
     private void initLayout() {

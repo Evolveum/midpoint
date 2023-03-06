@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -70,6 +71,10 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     }
 
     public PageSimulationResultObjects(PageParameters parameters) {
+        this(parameters, null);
+    }
+
+    public PageSimulationResultObjects(PageParameters parameters, ObjectFilter objectFilter) {
         super(parameters);
 
         initModels();
