@@ -22,8 +22,10 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -162,6 +164,13 @@ public class FocusAuthenticationResultRecorder {
 
     public void recordSequenceAuthenticationFailure(String username, MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, String reason, ConnectionEnvironment connEnv) {
         FocusType focusType = null;
+        if (principal == null && StringUtils.isNotEmpty(username)) {
+            try {
+                principal = focusProfileService.getPrincipal(username, FocusType.class);
+            } catch (CommonException e) {
+                //ignore error
+            }
+        }
         if (principal != null) {
             focusType = principal.getFocus();
             processFocusChange(principal, credentialsPolicy, connEnv);

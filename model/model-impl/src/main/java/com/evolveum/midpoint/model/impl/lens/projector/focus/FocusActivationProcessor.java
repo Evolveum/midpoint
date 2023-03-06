@@ -50,7 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author katkav
- *
  */
 @Component
 // shouldn't we skip on "secondary delete" as well?
@@ -103,7 +102,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         // (OperationalDataProcessor). And why care about deleted assignments?
         Collection<EvaluatedAssignmentImpl<?>> zeroSet = evaluatedAssignmentTriple.getZeroSet();
         LensFocusContext<F> focusContext = context.getFocusContext();
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : zeroSet) {
             if (evaluatedAssignment.isVirtual()) {
                 continue;
             }
@@ -207,13 +206,13 @@ public class FocusActivationProcessor implements ProjectorProcessor {
             PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
             if (lockoutStatusDelta != null) {
                 if (lockoutStatusDelta.isAdd()) {
-                    for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
+                    for (PrismPropertyValue<LockoutStatusType> pval : lockoutStatusDelta.getValuesToAdd()) {
                         if (pval.getValue() == LockoutStatusType.LOCKED) {
                             throw new SchemaException("Lockout status cannot be changed to LOCKED value");
                         }
                     }
                 } else if (lockoutStatusDelta.isReplace()) {
-                    for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
+                    for (PrismPropertyValue<LockoutStatusType> pval : lockoutStatusDelta.getValuesToReplace()) {
                         if (pval.getValue() == LockoutStatusType.LOCKED) {
                             throw new SchemaException("Lockout status cannot be changed to LOCKED value");
                         }
@@ -254,15 +253,15 @@ public class FocusActivationProcessor implements ProjectorProcessor {
 
         if (lockoutStatusNew == LockoutStatusType.NORMAL) {
 
-            CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
-            if (credentialsTypeNew != null) { //TODO what to do with credentials failed logins?
-                resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
-                resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
-                resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
-            }
+//            CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
+//            if (credentialsTypeNew != null) { //TODO what to do with credentials failed logins?
+//                resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+//                resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
+//                resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
+//            }
             BehaviorType behavior = focusNew.asObjectable().getBehavior();
             if (behavior != null) {
-                resetFailedLogins(focusContext, behavior.getAuthentication(), SchemaConstants.PATH_AUTHENTICATION_BEHAVIOR_FAILED_LOGINS);
+                resetFailedLogins(focusContext, behavior.getAuthentication());
             }
 
             if (activationNew.getLockoutExpirationTimestamp() != null) {
@@ -276,27 +275,34 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, List<AuthenticationBehavioralDataType> credentials, ItemPath path)
+    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, List<AuthenticationBehavioralDataType> credentials)
             throws SchemaException {
         for (AuthenticationBehavioralDataType credentialTypeNew : credentials) {
-            resetFailedLogins(focusContext, credentialTypeNew, path);
+            if (credentialTypeNew == null) {
+                continue;
+            }
+            Integer failedLogins = credentialTypeNew.getFailedLogins();
+            prepareDeltaForFailedAttempts(
+                    failedLogins,
+                    focusContext,
+                    credentialTypeNew.asPrismContainerValue().getPath().append(AuthenticationBehavioralDataType.F_FAILED_LOGINS));
         }
     }
 
-    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path) throws SchemaException {
-        if (credentialTypeNew == null) {
-            return;
-        }
-        Integer failedLogins = credentialTypeNew.getFailedLogins();
-        prepareDeltaForFailedAttempts(failedLogins, focusContext, path);
-
-        List<AuthenticationAttemptDataType> moduleAuthentications = credentialTypeNew.getAuthenticationAttempt();
-        for (AuthenticationAttemptDataType moduleAuthentication : moduleAuthentications) {
-            Integer failedAttempts = moduleAuthentication.getFailedAttempts();
-            //TODO is this correct? and correctly working?
-            prepareDeltaForFailedAttempts(failedAttempts, focusContext, path);
-        }
-    }
+//    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path) throws SchemaException {
+//        if (credentialTypeNew == null) {
+//            return;
+//        }
+//        Integer failedLogins = credentialTypeNew.getFailedLogins();
+//        prepareDeltaForFailedAttempts(failedLogins, focusContext, credentialTypeNew.asPrismContainerValue().getPath());
+//
+////        List<AuthenticationAttemptDataType> moduleAuthentications = credentialTypeNew.getAuthenticationAttempt();
+////        for (AuthenticationAttemptDataType moduleAuthentication : moduleAuthentications) {
+////            Integer failedAttempts = moduleAuthentication.getFailedAttempts();
+////            //TODO is this correct? and correctly working?
+////            prepareDeltaForFailedAttempts(failedAttempts, focusContext, path);
+////        }
+//    }
 
     private <F extends FocusType> void prepareDeltaForFailedAttempts(Integer failedLogins, LensFocusContext<F> focusContext, ItemPath path) throws SchemaException {
         if (failedLogins != null && failedLogins != 0) {
@@ -359,10 +365,9 @@ public class FocusActivationProcessor implements ProjectorProcessor {
 
         PropertyDelta<XMLGregorianCalendar> timestampDelta =
                 LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
-                prismContext);
+                        prismContext);
         focusContext.swallowToSecondaryDelta(timestampDelta);
     }
-
 
     private PrismContainerDefinition<ActivationType> getActivationDefinition() {
         if (activationDefinition == null) {
