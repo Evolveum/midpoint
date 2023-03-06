@@ -756,7 +756,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
+                .assertSynchronizationSituationDescriptionUpdatedButNotFull();
     }
 
     @SuppressWarnings("SameParameterValue")

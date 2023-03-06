@@ -96,8 +96,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
             // FIXME: Somewhere here we should validate preFocus
 
-
-
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
             setupLinkedOwnerAndSituation(completeCtx, change, result);
 
@@ -107,11 +105,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .commit(result);
 
             boolean synchronizationFailure;
-            if (completeCtx.shouldExecuteSynchronizationActions()) {
+            if (completeCtx.isNotDryRunLikeMode()) {
                 synchronizationFailure =
                         new SynchronizationActionExecutor<>(completeCtx)
                                 .react(result);
-                // Note that exceptions from action execution are not propagated here.
+                // Note that standard exceptions from action execution are not re-thrown to here; in such cases,
+                // the processing continues normally here, with synchronizationFailure set to true.
             } else {
                 synchronizationFailure = false;
             }
