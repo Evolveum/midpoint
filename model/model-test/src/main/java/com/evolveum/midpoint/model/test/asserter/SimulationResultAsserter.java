@@ -96,6 +96,13 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public SimulationResultAsserter<RA> assertObjectsUnchanged(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsUnchanged(simulationResult))
+                .as("objects unchanged")
+                .isEqualTo(expected);
+        return this;
+    }
+
     public SimulationResultAsserter<RA> assertObjectsProcessed(int expected) {
         assertThat(SimulationResultTypeUtil.getObjectsProcessed(simulationResult))
                 .as("objects deleted")

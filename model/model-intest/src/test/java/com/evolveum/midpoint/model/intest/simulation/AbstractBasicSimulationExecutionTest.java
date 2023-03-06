@@ -120,6 +120,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertObjectsAdded(1)
                 .assertObjectsModified(0)
                 .assertObjectsDeleted(0)
+                .assertObjectsUnchanged(0)
                 .assertObjectsProcessed(1)
                 .getObjectable();
 
