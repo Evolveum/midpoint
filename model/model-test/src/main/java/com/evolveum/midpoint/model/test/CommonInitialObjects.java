@@ -106,7 +106,7 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_PROTECTED = TestObject.classPath(
             MARKS, "800-mark-protected.xml", SystemObjectsType.MARK_PROTECTED.value());
 
-    TestObject<MarkType> MARK_DECOMMISION_LATER = TestObject.classPath(
+    TestObject<MarkType> MARK_DECOMMISSION_LATER = TestObject.classPath(
             MARKS, "801-mark-decommission-later.xml", SystemObjectsType.MARK_DECOMMISSION_LATER.value());
 
     TestObject<MarkType> MARK_CORRELATE_LATER = TestObject.classPath(
@@ -181,7 +181,7 @@ public interface CommonInitialObjects {
                     MARK_SHADOW_CORRELATION_STATE_CHANGED,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
-                    MARK_DECOMMISION_LATER,
+                    MARK_DECOMMISSION_LATER,
                     MARK_CORRELATE_LATER,
                     MARK_DO_NOT_TOUCH,
                     MARK_INVALID_DATA);

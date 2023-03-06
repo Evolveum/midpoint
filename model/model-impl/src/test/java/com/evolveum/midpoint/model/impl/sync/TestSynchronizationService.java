@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.test.DummyTestResource;
 
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -1097,7 +1095,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                     .resolveTarget()
                         .display()
                         .assertValues(
-                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
+                                SchemaConstants.CORRELATION_SITUATION_PATH,
                                 CorrelationSituationType.NO_OWNER)
                     .end()
                 .end()
@@ -1136,7 +1134,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                     .resolveTarget()
                         .display()
                         .assertValues(
-                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
+                                SchemaConstants.CORRELATION_SITUATION_PATH,
                                 CorrelationSituationType.EXISTING_OWNER)
                     .end()
                 .end();

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +34,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
  * Manages correlation that occurs _during synchronization pre-processing_.
@@ -205,7 +209,10 @@ class CorrelationProcessing<F extends FocusType> {
     }
 
     private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
-        S_ItemEntry builder = PrismContext.get().deltaFor(ShadowType.class);
+        S_ItemEntry builder =
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .oldObject(getShadow())
+                        .optimizing();
         XMLGregorianCalendar lastStart = getShadowCorrelationStartTimestamp();
         XMLGregorianCalendar lastEnd = getShadowCorrelationEndTimestamp();
         if (lastStart == null || lastEnd != null) {
@@ -218,20 +225,25 @@ class CorrelationProcessing<F extends FocusType> {
                 // We set ERROR only if there is no previous situation recorded
                 // ...and we set none of the other items.
                 builder = builder
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .item(CORRELATION_SITUATION_PATH)
                         .replace(CorrelationSituationType.ERROR);
             }
         } else {
+            // The default delta-optimization does not work here because of PCV IDs, so we must compare on our own.
+            if (ownerOptionsChanged(correlationResult)) {
+                builder = builder
+                        .item(CORRELATION_OWNER_OPTIONS_PATH)
+                        .replace(CloneUtil.clone(correlationResult.getOwnerOptions()));
+            }
+
             // @formatter:off
             builder = builder
-                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                    .item(CORRELATION_SITUATION_PATH)
                         .replace(correlationResult.getSituation())
-                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS)
-                        .replace(CloneUtil.clone(correlationResult.getOwnerOptions()))
-                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                    .item(CORRELATION_RESULTING_OWNER_PATH)
                         .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()))
                     // The following may be already applied by the correlator. But better twice than not at all.
-                    .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATOR_STATE)
+                    .item(CORRELATION_CORRELATOR_STATE_PATH)
                         .replace(correlationContext.getCorrelatorState());
             // @formatter:on
         }
@@ -242,12 +254,32 @@ class CorrelationProcessing<F extends FocusType> {
         setShadowCorrelationEndTime(correlationResult.isDone());
     }
 
+    private boolean ownerOptionsChanged(CompleteCorrelationResult correlationResult) {
+        var oldCorrelation = getShadow().getCorrelation();
+        ResourceObjectOwnerOptionsType oldOptions = oldCorrelation != null ? oldCorrelation.getOwnerOptions() : null;
+        ResourceObjectOwnerOptionsType newOptions = correlationResult.getOwnerOptions();
+
+        if (oldOptions == null) {
+            return newOptions != null;
+        } else {
+            if (newOptions == null) {
+                return true;
+            } else {
+                // We have to ignore auto-generated PCV IDs
+                return !oldOptions.asPrismContainerValue().equals(
+                        newOptions.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE);
+            }
+        }
+    }
+
     private void setShadowCorrelationEndTime(boolean done) throws SchemaException {
         if (!done && getShadowCorrelationEndTimestamp() == null) {
             return;
         }
         syncCtx.applyShadowDeltas(
                 PrismContext.get().deltaFor(ShadowType.class)
+                        .oldObject(getShadow())
+                        .optimizing()
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
                         .replace(
                                 done ? XmlTypeConverter.createXMLGregorianCalendar() : null)

@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.STRICT_IGNORE_CASE;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
@@ -2411,20 +2412,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test702SearchShadowsByCorrelationItems() throws SchemaException {
         searchObjectTest("using all correlation items", ShadowType.class,
-                f -> f.item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
+                f -> f.item(CORRELATION_START_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(1L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                        .item(CORRELATION_END_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(2L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                        .item(CORRELATION_CASE_OPEN_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(3L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                        .item(CORRELATION_CASE_CLOSE_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(4L))
                         .and()
                         .not()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .item(CORRELATION_SITUATION_PATH)
                         .eq(CorrelationSituationType.ERROR));
     }
 

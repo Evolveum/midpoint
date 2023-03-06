@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
@@ -14,6 +17,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,9 +30,6 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 import java.util.function.Function;
 
@@ -101,6 +103,25 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
         copySetupTo(asserter);
         return asserter;
     }
+
+    public ProcessedObjectAsserter<O, RA> assertSynchronizationSituationChangedTo(SynchronizationSituationType expected) {
+        return delta()
+                .assertModification(ShadowType.F_SYNCHRONIZATION_SITUATION, expected)
+                .end();
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertCorrelationSituationChangedTo(CorrelationSituationType expected) {
+        return delta()
+                .assertModification(CORRELATION_SITUATION_PATH, expected)
+                .end();
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertResultingOwnerChangedTo(ObjectReferenceType ref) {
+        return delta()
+                .assertModification(CORRELATION_RESULTING_OWNER_PATH, ref)
+                .end();
+    }
+
 
     protected String desc() {
         return descWithDetails(processedObject);
