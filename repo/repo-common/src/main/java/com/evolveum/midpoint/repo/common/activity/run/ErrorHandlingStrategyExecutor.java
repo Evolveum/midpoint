@@ -114,7 +114,7 @@ public class ErrorHandlingStrategyExecutor {
         LOGGER.debug("Error category: {} for: {}", errorCategory, lazy(() -> MiscUtil.getClassWithMessage(exception)));
 
         for (StrategyEntryInformation entryInformation : strategyEntryInformationList) {
-            if (matches(entryInformation.entry, status, errorCategory)) {
+            if (entryInformation.matches(status, errorCategory)) {
                 return executeErrorHandlingReaction(entryInformation, triggerHolderOid, opResult);
             }
         }
@@ -125,21 +125,6 @@ public class ErrorHandlingStrategyExecutor {
         }
 
         return defaultFollowUpAction;
-    }
-
-    private boolean matches(@NotNull ActivityErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
-            @NotNull ErrorCategoryType category) {
-        ErrorSituationSelectorType situation = entry.getSituation();
-        return situation == null ||
-                statusMatches(situation.getStatus(), status) && categoryMatches(situation.getErrorCategory(), category);
-    }
-
-    private boolean statusMatches(List<OperationResultStatusType> filter, OperationResultStatus value) {
-        return filter.isEmpty() || filter.contains(value.createStatusType());
-    }
-
-    private boolean categoryMatches(List<ErrorCategoryType> filter, ErrorCategoryType value) {
-        return filter.isEmpty() || filter.contains(value);
     }
 
     private @NotNull ErrorHandlingStrategyExecutor.FollowUpAction executeErrorHandlingReaction(
@@ -193,10 +178,10 @@ public class ErrorHandlingStrategyExecutor {
 
     private void createShadowSynchronizationTrigger(RetryLaterReactionType retryReaction, String shadowOid,
             OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(SHADOW_RECONCILE_TRIGGER_HANDLER_URI)
                 .timestamp(getFirstRetryTimestamp(retryReaction));
-        PlannedOperationAttemptType firstAttempt = new PlannedOperationAttemptType(prismContext)
+        PlannedOperationAttemptType firstAttempt = new PlannedOperationAttemptType()
                 .number(1)
                 .interval(retryReaction.getNextInterval())
                 .limit(retryReaction.getRetryLimit());
@@ -274,6 +259,21 @@ public class ErrorHandlingStrategyExecutor {
 
         public Integer getOrder() {
             return entry.getOrder();
+        }
+
+        boolean matches(@NotNull OperationResultStatus status, @NotNull ErrorCategoryType category) {
+            ErrorSituationSelectorType situationSelector = entry.getSituation();
+            return situationSelector == null ||
+                    statusMatches(situationSelector.getStatus(), status)
+                            && categoryMatches(situationSelector.getErrorCategory(), category);
+        }
+
+        private static boolean statusMatches(List<OperationResultStatusType> filter, OperationResultStatus value) {
+            return filter.isEmpty() || filter.contains(value.createStatusType());
+        }
+
+        private static boolean categoryMatches(List<ErrorCategoryType> filter, ErrorCategoryType value) {
+            return filter.isEmpty() || filter.contains(value);
         }
     }
 }

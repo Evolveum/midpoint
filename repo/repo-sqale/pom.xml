@@ -22,7 +22,7 @@
     <name>midPoint Repository - new SQL repository</name>
 
     <properties>
-        <maven.test.skip>true</maven.test.skip>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -149,7 +149,7 @@
         <profile>
             <id>sqale</id>
             <properties>
-                <maven.test.skip>false</maven.test.skip>
+                <skipTests>false</skipTests>
             </properties>
         </profile>
     </profiles>
