@@ -3810,7 +3810,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 //        assertThat(userObject.getBehavior().getAuthentication().getFailedLogins()).isEqualTo(5);
 
         and("externalized version is updated");
-        MUser row = selectObjectByOid(QUser.class, user1Oid);authu
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
     }
     // endregion
