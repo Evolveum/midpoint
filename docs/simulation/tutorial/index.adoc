@@ -483,7 +483,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
 
 Now, list the accounts on the resource again.
 You should see something like this:
-+
+
 .Content of LDAP resource with classification
 image::accounts-intent-default-ldap.png[Content of LDAP resource with classification]
 
@@ -496,4 +496,42 @@ Now let us start correlating the accounts.
 
 === Step LDAP-3: Correlation on Employee Number
 
+Let us assume that some of our accounts have `employeeNumber` attribute specified.
+We want to use it as the primary correlation attribute.
+
+Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-3.xml[LDAP definition #3].
+
+.Listing 10: Definition of `employeeNumber` LDAP attribute
+[source,xml]
+----
+<attribute>
+    <ref>ri:employeeNumber</ref>
+    <correlator/> <!--1-->
+    <inbound>
+        <target>
+            <path>employeeNumber</path>
+        </target>
+        <evaluationPhases> <!--2-->
+            <include>beforeCorrelation</include>
+            <exclude>clockwork</exclude>
+        </evaluationPhases>
+    </inbound>
+</attribute>
+<synchronization/> <!--3-->
+----
+<1> Marks `employeeNumber` as a correlation attribute.
+<2> This configuration tells midPoint to execute the mapping but just for the sake of correlation, not for actual data movement from LDAP to midPoint.
+(The mapping has to be there in order for the `correlator` configuration property to work.)
+So, we want to correlate on this attribute by such a simple mechanism but do not want to use it to really modify the focus.
+Hence, such non-intuitive configuration must be used for now.
+This may happen for correlation attributes on non-authoritative resources (e.g. target ones, or "auxiliary" source ones).
+We should simplify this in the future.
+<3> Optional.
+Note there are no reactions.
+We want to do just the correlation.
+
+Just as in <<Step HR-3: Change the Definition of the Object Type>> we have now two options:
+
+. Execute the correlation and see the results right on the shadows.
+. Simulate the correlation first (experimental feature).
 
