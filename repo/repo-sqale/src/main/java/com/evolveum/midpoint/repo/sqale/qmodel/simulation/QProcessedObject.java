@@ -50,7 +50,7 @@ public class QProcessedObject extends QContainer<MProcessedObject, MSimulationRe
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
     public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final EnumPath<ObjectProcessingStateType> state =
-            createEnum("state", ObjectProcessingStateType.class, STATE);
+            createEnum("outcome", ObjectProcessingStateType.class, STATE);
 
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final ArrayPath<byte[], Byte> objectBefore = createByteArray("objectBefore", OBJECT_BEFORE);
