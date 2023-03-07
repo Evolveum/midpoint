@@ -341,13 +341,13 @@ One processed object corresponds to one report row.
 | Lists objects processed by given simulation along with metrics related to each object.
 | more detailed quantitative analysis of the simulation
 
-| Items Changed
-| #TODO#
-| #TODO#
+| xref:reports/items-changed.adoc[]
+| Lists items changed within individual processed objects.
+| changes of items, suitable especially for single-valued ones
 
-| Values Changed
-| #TODO#
-| #TODO#
+| xref:reports/values-changed.adoc[]
+| Lists values added or deleted within individual items in processed objects.
+| changes of items, suitable especially for multivalued ones with larger number of values
 |===
 
 === Application Programming Interface
