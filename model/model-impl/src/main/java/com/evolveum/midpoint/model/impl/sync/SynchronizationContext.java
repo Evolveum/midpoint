@@ -481,13 +481,13 @@ public abstract class SynchronizationContext<F extends FocusType>
         return executionMode == ExecutionModeType.DRY_RUN;
     }
 
-    // TEMPORARY
-    boolean shouldExecuteSynchronizationActions() {
+    boolean isNotDryRunLikeMode() {
         return !isDryRun() && !task.areShadowChangesSimulated();
     }
 
     boolean isFullMode() {
-        return executionMode == ExecutionModeType.FULL;
+        return executionMode == ExecutionModeType.FULL
+                && task.isExecutionFullyPersistent();
     }
 
     public @NotNull ResourceObjectShadowChangeDescription getChange() {
@@ -510,6 +510,11 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     boolean isExecutionFullyPersistent() {
         return task.isExecutionFullyPersistent();
+    }
+
+    /** I.e. we are either in full persistence or at least in shadow persistence mode. */
+    boolean areShadowChangesPersistent() {
+        return !task.areShadowChangesSimulated();
     }
 
     public boolean isVisible() {

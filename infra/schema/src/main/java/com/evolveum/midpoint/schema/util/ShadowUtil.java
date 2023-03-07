@@ -1094,4 +1094,10 @@ public class ShadowUtil {
                 || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
                 || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
+
+    public static @Nullable SynchronizationSituationDescriptionType getLastSyncSituationDescription(@NotNull ShadowType shadow) {
+        return shadow.getSynchronizationSituationDescription().stream()
+                .max(Comparator.comparing(desc -> XmlTypeConverter.toMillis(desc.getTimestamp())))
+                .orElse(null);
+    }
 }

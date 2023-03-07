@@ -136,7 +136,7 @@ public class AssignmentModificationConstraintEvaluator
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage;
 
-        if (relation == null || relation == prismContext.getDefaultRelation()) {
+        if (prismContext.isDefaultRelation(relation)) {
             builtInMessage = new LocalizableMessageBuilder()
                     .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
                     .arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))

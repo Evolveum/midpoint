@@ -67,7 +67,7 @@ class ShadowUpdater {
 
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
 
-        if (syncCtx.isExecutionFullyPersistent()) {
+        if (syncCtx.areShadowChangesPersistent()) {
             updateSyncSituation();
             updateSyncSituationDescription(now);
             updateBasicSyncTimestamp(now); // this is questionable, but the same behavior is in LinkUpdater class
@@ -153,24 +153,18 @@ class ShadowUpdater {
         if (updateType) {
             // Before 4.6, the kind was updated unconditionally, only intent was driven by "force intent change" flag.
             // This is now changed to treat kind+intent as a single data item.
-            if (ctxKind != shadowKind) {
-                deltas.add(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_KIND).replace(ctxKind)
-                                .asItemDelta());
-            }
-            if (!ctxIntent.equals(shadowIntent)) {
-                deltas.add(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_INTENT).replace(ctxIntent)
-                                .asItemDelta());
-            }
+            deltas.addAll(
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .optimizing()
+                            .item(ShadowType.F_KIND).old(shadowKind).replace(ctxKind)
+                            .item(ShadowType.F_INTENT).old(shadowIntent).replace(ctxIntent)
+                            .asItemDeltas());
         }
 
         if (StringUtils.isNotBlank(ctxTag) && !ctxTag.equals(shadowTag)) {
             deltas.add(
                     PrismContext.get().deltaFor(ShadowType.class)
-                            .item(ShadowType.F_TAG).replace(ctxTag)
+                            .item(ShadowType.F_TAG).old(shadowTag).replace(ctxTag)
                             .asItemDelta());
         }
 
