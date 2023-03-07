@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.rest.authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -15,6 +16,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.util.Optional;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -110,8 +112,13 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
     }
 
     private void assertNumberOfFailedLogin(PrismObject<UserType> user, int expectedFails){
-        int actualFails = user.asObjectable().getCredentials().getPassword().getFailedLogins();
-        assertEquals("Expected failed login" + expectedFails + " but got " + actualFails, expectedFails, actualFails);
+        int actualFails = 0;
+        Optional<AuthenticationBehavioralDataType> authentication = user.asObjectable().getBehavior().getAuthentication().stream()
+                .filter(auth -> auth.getSequenceIdentifier().equals("rest")).findFirst();
+        if (authentication.isPresent()) {
+            actualFails = authentication.get().getFailedLogins();
+        }
+        assertEquals("Expected failed login " + expectedFails + " but got " + actualFails, expectedFails, actualFails);
     }
 
 }

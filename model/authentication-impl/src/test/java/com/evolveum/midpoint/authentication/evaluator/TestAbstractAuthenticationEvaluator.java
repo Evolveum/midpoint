@@ -1295,7 +1295,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         AutheticationFailedData failedData = new AutheticationFailedData(message, username);
         mpAuthentication.getFirstFailedAuthenticationModule().setFailureData(failedData);
 
-        auditFilter.writeRecord(mpAuthentication);
+        auditFilter.writeRecord(null, mpAuthentication);
     }
 
     private void writeGlobalBehaviour(Authentication authentication) {
@@ -1303,7 +1303,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         MidpointAuthentication mpAuthentication = createFakeGlobalAuth(state);
         mpAuthentication.setPrincipal(authentication.getPrincipal());
 
-        auditFilter.writeRecord(mpAuthentication);
+        auditFilter.writeRecord(null, mpAuthentication);
 
     }
 

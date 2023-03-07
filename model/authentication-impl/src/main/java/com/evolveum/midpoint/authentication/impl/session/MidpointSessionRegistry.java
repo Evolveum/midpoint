@@ -34,7 +34,8 @@ public class MidpointSessionRegistry extends SessionRegistryImpl {
             for (SecurityContext context : sessionEvent.getSecurityContexts()) {
                 if (context != null && context.getAuthentication() != null
                         && context.getAuthentication() instanceof MidpointAuthentication) {
-                    removeUnusedSecurityFilterPublisher.publishCustomEvent((MidpointAuthentication)context.getAuthentication());
+                    removeUnusedSecurityFilterPublisher.publishCustomEvent(
+                            ((MidpointAuthentication)context.getAuthentication()).getAuthModules());
                 }
             }
         }

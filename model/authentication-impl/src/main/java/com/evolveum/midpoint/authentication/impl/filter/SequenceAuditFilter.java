@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -50,6 +52,8 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
+    private boolean recordOnEndOfChain = true;
+
     public SequenceAuditFilter() {
     }
 
@@ -58,49 +62,70 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
         this.authenticationRecorder = authenticationRecorder;
     }
 
+    public void setRecordOnEndOfChain(boolean recordOnEndOfChain) {
+        this.recordOnEndOfChain = recordOnEndOfChain;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         LOGGER.info("Running SequenceAuditFilter");
 
+        if (recordOnEndOfChain) {
+            filterChain.doFilter(request, response);
+        }
+
         Authentication authentication = SecurityUtil.getAuthentication();
         if (!(authentication instanceof MidpointAuthentication)) {
             LOGGER.trace("No MidpointAuthentication present, continue with filter chain");
-            filterChain.doFilter(request, response);
+            if (!recordOnEndOfChain) {
+                filterChain.doFilter(request, response);
+            }
             return;
         }
 
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         if (mpAuthentication.isAlreadyAudited()) {
             LOGGER.trace("Skipping auditing of authentication record, already audited.");
-            filterChain.doFilter(request, response);
+            if (!recordOnEndOfChain) {
+                filterChain.doFilter(request, response);
+            }
             return;
         }
 
-        writeRecord(mpAuthentication);
+        writeRecord(request, mpAuthentication);
 
-        filterChain.doFilter(request, response);
+        if (!recordOnEndOfChain) {
+            filterChain.doFilter(request, response);
+        }
+
     }
 
     @VisibleForTesting
-    public void writeRecord(MidpointAuthentication mpAuthentication) {
+    public void writeRecord(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
         MidPointPrincipal mpPrincipal = mpAuthentication.getPrincipal() instanceof MidPointPrincipal ? (MidPointPrincipal) mpAuthentication.getPrincipal() : null;
         boolean isAuthenticated = mpAuthentication.isAuthenticated();
         if (isAuthenticated) {
-            authenticationRecorder.recordSequenceAuthenticationSuccess(mpPrincipal, createConnectionEnvironment(mpAuthentication));
+            authenticationRecorder.recordSequenceAuthenticationSuccess(mpPrincipal, createConnectionEnvironment(request, mpAuthentication));
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as successful.", mpAuthentication.getSequenceIdentifier());
-        } else if (mpAuthentication.isFinished()) {
+        } else if (mpAuthentication.isFinished() && StringUtils.isNotEmpty(mpAuthentication.getUsername())) {
             authenticationRecorder.recordSequenceAuthenticationFailure(mpAuthentication.getUsername(), mpPrincipal, null,
-                    mpAuthentication.getFailedReason(), createConnectionEnvironment(mpAuthentication));
+                    mpAuthentication.getFailedReason(), createConnectionEnvironment(request, mpAuthentication));
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as failed.", mpAuthentication.getSequenceIdentifier());
         }
     }
 
-    private ConnectionEnvironment createConnectionEnvironment(MidpointAuthentication mpAuthentication) {
+    private ConnectionEnvironment createConnectionEnvironment(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
+        String sessionId = request != null ? request.getRequestedSessionId() : null;
+        if (mpAuthentication.getSessionId() != null) {
+            sessionId = mpAuthentication.getSessionId();
+        }
+
         ConnectionEnvironment connectionEnvironment = ConnectionEnvironment.create(mpAuthentication.getAuthenticationChannel().getChannelId());
         connectionEnvironment.setSequenceIdentifier(mpAuthentication.getSequenceIdentifier());
+        connectionEnvironment.setSessionIdOverride(sessionId);
+
         return connectionEnvironment;
     }
 }

@@ -35,7 +35,7 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
                         </q:filter>
                     </q:ownedBy>
                     <q:ref>
-                        <q:path>.</q:path>
+                        <q:path/> <!-- . would also work here, but empty string is "righter" -->
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
                             <path>$roleRef</path>
@@ -44,7 +44,7 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
                     <!--
                     TODO: this does not work yet, expression is not allowed for collection (multi-value)
                     <q:ref>
-                        <q:path>.</q:path>
+                        <q:path/>
                         <q:filter>
                             <q:ref>
                                 <q:path>archetypeRef</q:path>
@@ -61,7 +61,7 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
         </collection>
         <parameter>
             <name>userName</name>
-            <type>PolyStringType</type>
+            <type>string</type>
         </parameter>
         <parameter>
             <name>roleRef</name>
@@ -69,7 +69,7 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
             <targetType>c:AbstractRoleType</targetType>
         </parameter>
         <!--
-        TODO: not supported yet
+        TODO: not supported yet, see above
         <parameter>
             <name>roleArchetypeRef</name>
             <type>c:ObjectReferenceType</type>

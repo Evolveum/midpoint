@@ -612,6 +612,11 @@ public class ReportFunctions {
         return null;
     }
 
+    /**
+     * Takes the role membership reference and returns the list of assignment path structures.
+     *
+     * @since 4.7
+     */
     public List<AssignmentPathRowStructure> generateAssignmentPathRows(Referencable ref) throws CommonException {
         // ref is Referencable (can be ObjectReferenceType, but also DefaultReferencableImpl).
         PrismReferenceValue prismRefValue = ref.asReferenceValue();
@@ -641,6 +646,7 @@ public class ReportFunctions {
                     row.roleArchetype = midpointFunctions.getStructuralArchetype(role);
                     StorageMetadataType storageMetadata = valueMetadata.getStorage();
                     row.createTimestamp = storageMetadata != null ? storageMetadata.getCreateTimestamp() : null;
+                    row.valueMetadata = valueMetadata;
                     list.add(row);
                 }
             }
@@ -685,6 +691,16 @@ public class ReportFunctions {
         public ArchetypeType roleArchetype;
         public XMLGregorianCalendar createTimestamp;
         public AssignmentType assignment;
+        public ValueMetadataType valueMetadata; // for general purpose if fields above are not sufficient
+
+        // Minimal toString for debugging, only owner+valueMetadata to identify the data.
+        @Override
+        public String toString() {
+            return "AssignmentPathRowStructure{" +
+                    "owner=" + owner +
+                    ", valueMetadata=" + valueMetadata +
+                    '}';
+        }
     }
 
     /**
