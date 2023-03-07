@@ -18,7 +18,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -123,7 +122,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
                 popoverPanel.togglePopover(target);
             }
         };
-        more.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(morePopupModel.getObject())));
+        more.add(new VisibleBehaviour(this::morePopupPropertyListIsNotEmpty));
         more.setOutputMarkupId(true);
         add(more);
     }
@@ -161,6 +160,11 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         });
         target.add(BasicSearchPanel.this);
         target.add(getParent());
+    }
+
+    private boolean morePopupPropertyListIsNotEmpty() {
+        return CollectionUtils.isNotEmpty(morePopupModel.getObject()) &&
+                morePopupModel.getObject().stream().anyMatch(property -> !property.isVisible());
     }
 
 }
