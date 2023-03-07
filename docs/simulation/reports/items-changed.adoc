@@ -122,7 +122,7 @@ The process continues at previous point.
 .. Non-operational items are handled like this:
 They are excluded, unless "Include operational items" is `true` _or_ they are explicitly and fully mentioned in "paths to include".
 
-See https://github.com/Evolveum/midpoint/blob/df67b9346909f8b196a3d22405029146ed829607/infra/schema/src/main/java/com/evolveum/midpoint/schema/util/delta/ItemDeltaFilter.java#L90-L112[the source code].
+See https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/main/java/com/evolveum/midpoint/schema/util/delta/ItemDeltaFilter.java[the source code].
 
 == An Example
 
