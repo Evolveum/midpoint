@@ -186,7 +186,7 @@ class SaveReportFileSupport {
         String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
         String fileNamePrefix = reportName + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
-        return new File(exportDir, MiscUtil.replaceIllegalCharInFileNameOnWindows(fileName)).getPath();
+        return new File(exportDir, MiscUtil.fixFileName(fileName)).getPath();
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
