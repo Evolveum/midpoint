@@ -11,8 +11,7 @@ xref:/midpoint/reference/repository/native-postgresql/[Native repository] with m
 This report demonstrates the following features:
 
 * xref:/midpoint/reference/concepts/query/#reference-query[Reference search] - we directly search for `roleMembershipRef` references.
-// TODO replace with link to a better reference document related to metadata - when available
-* xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/identity-metadata-in-a-nutshell/[Value metadata] - we work with extended assignment information stored inside value metadata in the reference values.
+* xref:/midpoint/reference/misc/value-metadata/[Value metadata] - we work with extended assignment information stored inside value metadata in the reference values.
 * xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[Row generation] - we generate new rows depending on the number of value metadata values.
 * The report also shows a few interesting
 xref:/midpoint/reference/expressions/expressions/script/[script expressions]
@@ -175,7 +174,7 @@ The key points are marked with numbers and explained below the example.
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode> <!--5-->
-                            <code><!--8-->
+                            <code> <!--8-->
                                 if (!data?.segmentTargets) {
                                     return "?"
                                 }
@@ -247,7 +246,7 @@ The key points are marked with numbers and explained below the example.
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode> <!--5-->
-                            <code><!--9-->
+                            <code> <!--9-->
                                 // Explicit String to use the right split() and not random Groovy default method.
                                 String channel = data?.assignment?.metadata?.createChannel
                                 return channel?.split('#')?.last()?.with(s -> midpoint.translate('Channel.' + s))
@@ -271,8 +270,9 @@ Polystring name is represented by the `string` type.
 // TODO PolyStringType doesn't work properly in the preview/run report dialog.
 <4> Subreport `data` with `splitParentRow` behavior to ensure that each value metadata value
 has xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[its own row].
-Report function `generateAssignmentPathRows` returns collection of plain objects with various
-fields extracted from the value metadata which will be used in the column expressions.
+xref:/midpoint/reference/misc/reports/report-functions/[Report function] `generateAssignmentPathRows`
+returns collection of plain objects with various fields extracted from the value metadata
+which will be used in the column expressions.
 The object is named `data` and can be null if no value metadata are found on the reference.
 <5> Crucially, every single subreport and column of this report processes the input object
 (which is a reference value) as-is - it does not try to resolve the reference.
@@ -319,7 +319,9 @@ If this is forgotten you will end up with an error in the log similar to this (t
 for a subreport, but the wording for column is similar):
 
 ----
-ERROR (c.e.m.m.c.expression.script.ScriptExpression): Expression error: Object not found during variable object resolution in subreport 'data': Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
+ERROR (c.e.m.m.c.expression.script.ScriptExpression): Expression error:
+ Object not found during variable object resolution in subreport 'data':
+ Object of type 'RoleType' with OID '20fc8ca3-2184-43e9-a596-4cd833ee90c8' was not found.
 com.evolveum.midpoint.util.exception.ObjectNotFoundException: ...
 ----
 
