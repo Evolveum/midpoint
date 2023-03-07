@@ -1191,7 +1191,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
                 throw e;
             } finally {
-                exitModelMethod();
+                exitModelMethodNoRepoCache();
             }
 
             return metadata;

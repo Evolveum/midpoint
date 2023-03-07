@@ -13,11 +13,8 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,9 +26,10 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -74,14 +72,17 @@ public class SearchBuilder<C extends Serializable> {
         this.collectionView = collectionView;
         return this;
     }
+
     public SearchBuilder<C> modelServiceLocator(ModelServiceLocator modelServiceLocator) {
         this.modelServiceLocator = modelServiceLocator;
         return this;
     }
+
     public SearchBuilder<C> nameSearch(String nameSearch) {
         this.nameSearch = nameSearch;
         return this;
     }
+
     public SearchBuilder isPreview(boolean isPreview) {
         this.isPreview = isPreview;
         return this;
@@ -101,7 +102,7 @@ public class SearchBuilder<C extends Serializable> {
         SearchableItemsDefinitions searchableItemsDefinitions =
                 new SearchableItemsDefinitions(type, modelServiceLocator)
                         .additionalSearchContext(additionalSearchContext);
-        allSearchableItems =  searchableItemsDefinitions.createAvailableSearchItems();
+        allSearchableItems = searchableItemsDefinitions.createAvailableSearchItems();
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration();
 
         BasicQueryWrapper basicSearchWrapper = createBasicSearchWrapper(mergedConfig);
@@ -128,8 +129,35 @@ public class SearchBuilder<C extends Serializable> {
 //                }
 //            }
 
+        initProcessedObjectState(search);
 
         return search;
+    }
+
+    private void initProcessedObjectState(Search search) {
+        if (!(SimulationResultProcessedObjectType.class.equals(type))) {
+            return;
+        }
+
+        if (additionalSearchContext == null) {
+            return;
+        }
+
+        ObjectProcessingStateType state = additionalSearchContext.getObjectProcessingState();
+        if (state == null) {
+            return;
+        }
+
+        ChoicesSearchItemWrapper<ObjectProcessingStateType> item = (ChoicesSearchItemWrapper<ObjectProcessingStateType>)
+                search.findPropertySearchItem(SimulationResultProcessedObjectType.F_STATE);
+        if (item == null) {
+            return;
+        }
+
+        DisplayableValue<ObjectProcessingStateType> value = item.getAvailableValues().stream().filter(d -> state.equals(d.getValue())).findFirst().orElse(null);
+        if (value != null) {
+            item.setValue(value);
+        }
     }
 
     private void initSearchByNameIfNeeded(Search<C> search) {
@@ -185,12 +213,16 @@ public class SearchBuilder<C extends Serializable> {
                 .modelServiceLocator(modelServiceLocator)
                 .create();
 
+        if (isFullTextSearchEnabled(type)) {
+            defaultSearchBoxConfig.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
+        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
     public ItemDefinition<?> getDefinitionOverride() {
         return additionalSearchContext == null ? null : additionalSearchContext.getDefinitionOverride();
     }
+
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
         AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
@@ -211,7 +243,7 @@ public class SearchBuilder<C extends Serializable> {
 
         search.setSearchMode(getDefaultSearchMode(mergedConfig, type));
         search.setAllowedModeList(mergedConfig.getAllowedMode());
-        if (collectionView !=  null) {
+        if (collectionView != null) {
             search.setCollectionViewName(collectionView.getViewIdentifier());
             if (collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null) {
                 search.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
@@ -220,7 +252,6 @@ public class SearchBuilder<C extends Serializable> {
 
         return search;
     }
-
 
     private BasicQueryWrapper createBasicSearchWrapper(SearchBoxConfigurationType configuredSearchBox) {
         BasicQueryWrapper basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(configuredSearchBox);
@@ -284,7 +315,7 @@ public class SearchBuilder<C extends Serializable> {
 
     public void createAbstractRoleSearchItemWrapperList(BasicQueryWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
         AbstractRoleSearchItemWrapper roleSearchWrapper = new AbstractRoleSearchItemWrapper(config);
-        if (roleSearchWrapper.isNotEmpty()){
+        if (roleSearchWrapper.isNotEmpty()) {
             searchConfigWrapper.getItemsList().add(roleSearchWrapper);
         }
 

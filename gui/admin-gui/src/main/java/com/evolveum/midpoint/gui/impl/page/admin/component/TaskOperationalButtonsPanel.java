@@ -393,7 +393,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private ObjectReferenceType getSimulationResultReference() {
-        TaskType task = getModelObject().getObject().asObjectable();
+        TaskType task = getModelObject().getObjectOld().asObjectable();
         TaskActivityStateType activityState = task.getActivityState();
         if (activityState == null || activityState.getActivity() == null) {
             return null;

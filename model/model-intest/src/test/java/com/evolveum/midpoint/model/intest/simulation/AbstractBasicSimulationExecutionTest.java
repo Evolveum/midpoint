@@ -120,6 +120,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertObjectsAdded(1)
                 .assertObjectsModified(0)
                 .assertObjectsDeleted(0)
+                .assertObjectsUnchanged(0)
                 .assertObjectsProcessed(1)
                 .getObjectable();
 
@@ -755,7 +756,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
+                .assertSynchronizationSituationDescriptionUpdatedButNotFull();
     }
 
     @SuppressWarnings("SameParameterValue")

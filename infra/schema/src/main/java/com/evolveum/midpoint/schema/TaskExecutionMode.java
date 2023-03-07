@@ -55,7 +55,7 @@ public class TaskExecutionMode implements Serializable {
         return persistenceMode == FULL;
     }
 
-    public boolean isShadowLevelPersistent() {
+    public boolean isPersistentAtShadowLevelButNotFully() {
         return persistenceMode == SHADOWS;
     }
 

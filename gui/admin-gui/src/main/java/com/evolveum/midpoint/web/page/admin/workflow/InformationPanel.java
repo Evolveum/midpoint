@@ -33,13 +33,12 @@ public class InformationPanel extends BasePanel<InformationType> {
     private void initLayout() {
         Label titleLabel = new Label(ID_TITLE, () -> {
             InformationType info = getModelObject();
-            if (info == null || info.getTitle() == null && info.getLocalizableTitle() == null) {
+            if (info.getTitle() == null && info.getLocalizableTitle() == null) {
                 return getString("ApprovalStageDefinitionType.additionalInformation");
             }
 
             return translate(info.getLocalizableTitle(), info.getTitle());
         });
-        titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(titleLabel);
 
         ListView<InformationPartType> list = new ListView<>(ID_PARTS, () -> getModelObject().getPart()) {

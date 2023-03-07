@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -81,6 +83,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
             }
         };
         selectObject.setOutputMarkupId(true);
+        selectObject.add(new VisibleBehaviour(this::notDisplayedInPopup));
         selectObject.add(AttributeAppender.append("title", createStringResource("ReferenceValueSearchPopupPanel.selectObject")));
         add(selectObject);
     }
@@ -145,5 +148,9 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
     protected boolean isAllowedNotFoundObjectRef(){
         return false;
+    }
+
+    private boolean notDisplayedInPopup() {
+        return ReferenceValueSearchPanel.this.findParent(Popupable.class) == null;
     }
 }

@@ -173,22 +173,40 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
     }
 
     public <T> ObjectDeltaAsserter<O,RA> assertModification(
-            ItemPath path, T expectedOldOrig, T expectedAddOrReplaceOrig) {
+            ItemPath path, T expectedAddOrReplace) {
+        return assertModificationInternal(path, false, null, expectedAddOrReplace);
+    }
+
+    public <T> ObjectDeltaAsserter<O,RA> assertModification(ItemPath path, T expectedOld, T expectedAddOrReplace) {
+        return assertModificationInternal(path, true, expectedOld, expectedAddOrReplace);
+    }
+
+    private <T> ObjectDeltaAsserter<O,RA> assertModificationInternal(
+            ItemPath path, boolean checkOld, T expectedOld, T expectedAddOrReplace) {
         assertModify();
-        PropertyDelta<T> propertyDelta = getPropertyDeltaRequired(path);
+        ItemDelta<?, ?> itemDelta = getItemDeltaRequired(path);
         //noinspection unchecked
-        Collection<T> realAddOrReplaceOrig =
-                propertyDelta.isReplace() ?
-                        (Collection<T>) propertyDelta.getRealValuesToReplace() :
-                        (Collection<T>) propertyDelta.getRealValuesToAdd();
-        assertThat(realAddOrReplaceOrig)
+        Collection<T> realAddOrReplace =
+                itemDelta.isReplace() ?
+                        (Collection<T>) itemDelta.getRealValuesToReplace() :
+                        (Collection<T>) itemDelta.getRealValuesToAdd();
+        assertThat(realAddOrReplace)
                 .as("values added or replaced")
-                .containsExactlyInAnyOrder(expectedAddOrReplaceOrig);
+                .containsExactlyInAnyOrder(expectedAddOrReplace);
         Collection<T> realOldOrig =
                 PrismValueCollectionsUtil.getRealValuesOfCollection(
-                        propertyDelta.getEstimatedOldValues());
-        assertExpectedOldValues(expectedOldOrig, realOldOrig);
+                        itemDelta.getEstimatedOldValues());
+        if (checkOld) {
+            assertExpectedOldValues(expectedOld, realOldOrig);
+        }
         return this;
+    }
+
+    @NotNull
+    private ItemDelta<?, ?> getItemDeltaRequired(ItemPath path) {
+        ItemDelta<?, ?> itemDelta = delta.findItemDelta(path);
+        assertThat(itemDelta).as("delta for '" + path + "'").isNotNull();
+        return itemDelta;
     }
 
     @NotNull

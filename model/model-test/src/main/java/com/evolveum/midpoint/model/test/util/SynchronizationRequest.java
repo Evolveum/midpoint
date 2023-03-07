@@ -153,9 +153,9 @@ public class SynchronizationRequest {
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
         if (taskExecutionMode.isFullyPersistent()) {
             return ExecutionModeType.FULL;
-        } else if (taskExecutionMode.isShadowLevelPersistent()) {
+        } else if (taskExecutionMode.isPersistentAtShadowLevelButNotFully()) {
             return ExecutionModeType.PREVIEW;
-        } else if (taskExecutionMode.areShadowChangesSimulated()) {
+        } else if (taskExecutionMode.isNothingPersistent()) {
             return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
         } else {
             throw new AssertionError(taskExecutionMode);

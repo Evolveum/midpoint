@@ -340,7 +340,7 @@ public class AssignmentPolicyAspectPart {
 
         QName relation = assignment.getNormalizedRelation();
 
-        if (relation == null) {
+        if (prismContext.isDefaultRelation(relation)) {
             return new LocalizableMessageBuilder()
                     .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
                     .arg(ObjectTypeUtil.createDisplayInformation(target, false))

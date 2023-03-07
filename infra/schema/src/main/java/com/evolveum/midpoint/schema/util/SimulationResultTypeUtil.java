@@ -62,6 +62,13 @@ public class SimulationResultTypeUtil {
                 .intValue();
     }
 
+    public static int getObjectsUnchanged(@NotNull SimulationResultType simulationResult) {
+        return getObjectsProcessed(simulationResult)
+                - getObjectsAdded(simulationResult)
+                - getObjectsModified(simulationResult)
+                - getObjectsDeleted(simulationResult);
+    }
+
     public static int getObjectsProcessed(@NotNull SimulationResultType simulationResult) {
         // Any of the built-in would be OK.
         SimulationMetricValuesType mv = getMetricValuesBean(simulationResult, SimulationMetricReference.BuiltIn.ADDED);

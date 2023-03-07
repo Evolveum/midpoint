@@ -73,6 +73,9 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(ShadowType.F_RESOURCE_REF),
                 ItemPath.create(ShadowType.F_OBJECT_CLASS)
         ));
+        FIXED_SEARCH_ITEMS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                SimulationResultProcessedObjectType.F_STATE
+        ));
     }
 
     private Class<?> type;
