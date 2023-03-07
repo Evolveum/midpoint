@@ -51,7 +51,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
 public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialType, T extends AbstractAuthenticationContext>
         implements AuthenticationEvaluator<T>, MessageSourceAware {
@@ -171,7 +170,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return passwordMatches(connEnv, principal, getCredential(credentials), authnCtx);
     }
 
-    private CredentialPolicyType getCredentialsPolicy(MidPointPrincipal principal, T authnCtx){
+    private CredentialPolicyType getCredentialsPolicy(MidPointPrincipal principal, T authnCtx) {
         SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
         CredentialPolicyType credentialsPolicy;
         try {
@@ -183,7 +182,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         return credentialsPolicy;
     }
-
 
     /**
      * Special-purpose method used for Web Service authentication based on javax.security callbacks.
@@ -207,7 +205,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid.credentials");
         }
         PasswordType passwordType = credentials.getPassword();
-
 
         AuthenticationAttemptDataType authenticationAttemptData = getAuthenticationData(principal, connEnv);
         // Lockout
@@ -256,7 +253,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         ObjectQuery query = authCtx.createFocusQuery();
         String username = authCtx.getUsername();
         if (query == null) {
-            recordModuleAuthenticationFailure(username, null, connEnv, null,"no username");
+            recordModuleAuthenticationFailure(username, null, connEnv, null, "no username");
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
@@ -298,12 +295,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
     protected boolean hasNoneAuthorization(MidPointPrincipal principal) {
         Collection<Authorization> authorizations = principal.getAuthorities();
-        if (authorizations == null || authorizations.isEmpty()){
+        if (authorizations == null || authorizations.isEmpty()) {
             return true;
         }
         boolean exist = false;
-        for (Authorization auth : authorizations){
-            if (auth.getAction() != null && !auth.getAction().isEmpty()){
+        for (Authorization auth : authorizations) {
+            if (auth.getAction() != null && !auth.getAction().isEmpty()) {
                 exist = true;
             }
         }
@@ -387,20 +384,29 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     private boolean isLockoutExpired(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {
-            Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-            if (lockoutDuration == null) {
-                return false;
-            }
+        XMLGregorianCalendar lockoutExpiration = authenticationAttemptData.getLockoutExpirationTimestamp();
+        if (lockoutExpiration != null) {
+            return clock.isPast(lockoutExpiration);
+        }
+
+        Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
+        if (lockoutDuration == null) {
+            return false;
+        }
+
+        XMLGregorianCalendar lockTimestamp = authenticationAttemptData.getLockoutTimestamp();
+        if (lockTimestamp == null) {
             LoginEventType lastFailedLogin = getLastFailedLogin(authenticationAttemptData);
             if (lastFailedLogin == null) {
                 return true;
             }
-            XMLGregorianCalendar lastFailedLoginTimestamp = lastFailedLogin.getTimestamp();
-            if (lastFailedLoginTimestamp == null) {
+            lockTimestamp = lastFailedLogin.getTimestamp();
+            if (lockTimestamp == null) {
                 return true;
             }
-            XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lastFailedLoginTimestamp, lockoutDuration);
-            return clock.isPast(lockedUntilTimestamp);
+        }
+        XMLGregorianCalendar lockedUntilTimestamp = XmlTypeConverter.addDuration(lockTimestamp, lockoutDuration);
+        return clock.isPast(lockedUntilTimestamp);
     }
 
     private LoginEventType getLastFailedLogin(AuthenticationAttemptDataType authenticationAttemptData) {

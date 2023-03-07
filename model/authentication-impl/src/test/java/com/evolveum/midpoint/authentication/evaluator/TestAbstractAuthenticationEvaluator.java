@@ -32,13 +32,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.*;
-import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.annotation.DirtiesContext;
@@ -269,8 +266,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -300,8 +297,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
         assertLastFailedLogin(userAfter, startTs, endTs);
     }
@@ -329,8 +326,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 2);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 2);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -359,8 +356,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 3);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 3);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -472,8 +469,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 4);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 4);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
         clock.resetOverride();
@@ -501,8 +498,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 2);
-        assertFailedLoginsForBehavior(userBetween, 5);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 2);
+        assertFailedLoginsForFocusBehavior(userBetween, 5);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -524,8 +521,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 6);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 3);
+        assertFailedLoginsForFocusBehavior(userAfter, 6);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
@@ -552,8 +549,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 4);
-        assertFailedLoginsForBehavior(userAfter, 7);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 4);
+        assertFailedLoginsForFocusBehavior(userAfter, 7);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -582,8 +579,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 5);
-        assertFailedLoginsForBehavior(userAfter, 8);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 5);
+        assertFailedLoginsForFocusBehavior(userAfter, 8);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -608,8 +605,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
         clock.resetOverride();
@@ -638,8 +635,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 1);
-        assertFailedLoginsForBehavior(userBetween, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 1);
+        assertFailedLoginsForFocusBehavior(userBetween, 1);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -657,8 +654,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 2);
-        assertFailedLoginsForBehavior(userBetween, 2);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 2);
+        assertFailedLoginsForFocusBehavior(userBetween, 2);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -678,8 +675,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 3);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 3);
+        assertFailedLoginsForFocusBehavior(userAfter, 3);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
@@ -706,8 +703,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 4);
-        assertFailedLoginsForBehavior(userAfter, 4);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 4);
+        assertFailedLoginsForFocusBehavior(userAfter, 4);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -721,6 +718,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         when("trigger scanner runs (after 30 minutes) - should clear the lockout flag");
         clock.overrideDuration("PT30M");
         TASK_TRIGGER_SCANNER_ON_DEMAND.rerun(result);
+        clock.resetOverride();
 
 
         then("user is unlocked");
@@ -729,8 +727,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-//        assertFailedLoginsForCredentials(userBetween, 0);
-        assertFailedLoginsForBehavior(userBetween, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 0);
+        assertFailedLoginsForFocusBehavior(userBetween, 0);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         given("preparing for new login");
@@ -748,11 +746,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
-        clock.resetOverride();
     }
 
     /**
@@ -778,8 +775,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -926,8 +923,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 //        assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
         assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_USER_URI);
 
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
     }
 
     @Test
@@ -949,8 +946,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -981,8 +978,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
         assertLastFailedLogin(userAfter, startTs, endTs);
     }
 
@@ -1007,8 +1004,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -1039,8 +1036,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
     }
 
     /**
@@ -1162,7 +1159,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         return connectionEnvironment;
     }
 
-    private void assertFailedLoginsForCredentials(PrismObject<UserType> user, int expected) {
+    private void assertFailedLoginsForModuleAttemptBehaviour(PrismObject<UserType> user, int expected) {
         Integer failedModuleAttempts = getAuthenticationForModule(user.asObjectable()).getFailedAttempts();
         if (expected == 0 && failedModuleAttempts == null) {
             return;
@@ -1170,7 +1167,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("Wrong failed logins in " + user, (Integer) expected, failedModuleAttempts);
     }
 
-    private void assertFailedLoginsForBehavior(PrismObject<UserType> user, int expected) {
+    private void assertFailedLoginsForFocusBehavior(PrismObject<UserType> user, int expected) {
         if (expected == 0 && getAuthenticationBehavior(user.asObjectable()).getFailedLogins() == null) {
             return;
         }
@@ -1243,8 +1240,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -1278,8 +1275,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, expectedFailInBehavior);
-        assertFailedLoginsForBehavior(userAfter, expectedFailInBehavior);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, expectedFailInBehavior);
+        assertFailedLoginsForFocusBehavior(userAfter, expectedFailInBehavior);
     }
 
     private AuthenticationBehavioralDataType getAuthenticationBehavior(UserType user) {

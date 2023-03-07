@@ -8,9 +8,16 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import static javax.xml.datatype.DatatypeConstants.LESSER;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,9 +76,43 @@ public class UnlockTriggerHandler implements SingleTriggerHandler {
                 return;
             }
 
+            Collection<ItemDelta<?, ?>> deltas = new ArrayList<>();
+
             XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
-            if (lockoutExpirationTimestamp != null
-                    && clock.currentTimeXMLGregorianCalendar().compare(lockoutExpirationTimestamp) == LESSER) {
+            if (lockoutExpirationTimestamp == null
+                    || clock.isPast(lockoutExpirationTimestamp)) {
+
+                deltas.addAll(prismContext.deltaFor(FocusType.class)
+                        .item(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
+                        .replace(LockoutStatusType.NORMAL)
+                        .asItemDeltas());
+
+            }
+
+            if (focus.getBehavior() != null) {
+                for (AuthenticationBehavioralDataType auth : focus.getBehavior().getAuthentication()) {
+                    @NotNull ItemPath path = auth.asPrismContainerValue().getPath()
+                            .append(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
+
+                    for (AuthenticationAttemptDataType attempt : auth.getAuthenticationAttempt()) {
+                        XMLGregorianCalendar expirationTimestamp = attempt.getLockoutExpirationTimestamp();
+
+                        if (expirationTimestamp != null && clock.isPast(expirationTimestamp)) {
+                            AuthenticationAttemptDataType newValue = attempt.clone();
+                            newValue.setLockoutTimestamp(null);
+                            newValue.setLockoutExpirationTimestamp(null);
+                            newValue.setFailedAttempts(0);
+
+                            deltas.addAll(prismContext.deltaFor(FocusType.class)
+                                    .item(path).delete(attempt)
+                                    .item(path).add(newValue)
+                                    .asItemDeltas());
+                        }
+                    }
+                }
+            }
+
+            if (deltas.isEmpty()) {
                 LOGGER.debug("The lockout for {} has not expired yet: {}", focus, lockoutExpirationTimestamp);
                 result.recordNotApplicable("The lockout has not expired yet");
                 return;
@@ -81,16 +122,13 @@ public class UnlockTriggerHandler implements SingleTriggerHandler {
             // We do this intentionally via model API, as there's some non-trivial processing inside
             // (e.g., clearing the number of failed logins).
             // This also causes the change to be audited.
-            modelService.executeChanges(
-                    List.of(
-                            prismContext.deltaFor(FocusType.class)
-                                    .item(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
-                                    .replace(LockoutStatusType.NORMAL)
-                                    .asObjectDelta(focus.getOid())),
-                    null,
-                    task,
-                    result);
+
+            ObjectDelta<? extends FocusType> delta = focus.asPrismObject().createModifyDelta();
+            delta.addModifications(deltas);
+
+            modelService.executeChanges(List.of(delta), null, task, result);
             LOGGER.debug("Unlocked {}", focus);
+
         } catch (CommonException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock object {}", e, object);
             // Intentionally not retrying.
