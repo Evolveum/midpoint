@@ -213,6 +213,9 @@ public class SearchBuilder<C extends Serializable> {
                 .modelServiceLocator(modelServiceLocator)
                 .create();
 
+        if (isFullTextSearchEnabled(type)) {
+            defaultSearchBoxConfig.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
+        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
