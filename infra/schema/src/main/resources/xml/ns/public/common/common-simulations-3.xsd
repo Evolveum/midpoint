@@ -1049,7 +1049,7 @@
             <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the object processed.
+                        Name of the object processed. May be null e.g. for shadows that are to be created.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.name</a:displayName>
@@ -1059,7 +1059,7 @@
             <xsd:element name="state" type="tns:ObjectProcessingStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Was the object added, modified, deleted, or unchanged?
+                        Was the object going to be added, modified, deleted, or unchanged?
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.state</a:displayName>

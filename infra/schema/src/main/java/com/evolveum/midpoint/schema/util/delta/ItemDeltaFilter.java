@@ -70,7 +70,22 @@ public class ItemDeltaFilter {
     }
 
     /**
-     * TODO describe the algorithm
+     * Algorithm:
+     *
+     * . The changed item path is stripped off the container identifiers, e.g. `assignment/[123]/description` becomes `assignment/description`.
+     * . The simplified path is compared with {@link #pathsToInclude} and {@link #pathsToExclude}.
+     * If it matches the former, the change is included.
+     * If it matches the latter, the change is excluded.
+     * . Otherwise, the last segment of the path is removed, e.g. `assignment/description` becomes `assignment`.
+     * The process continues at previous point.
+     * . If nothing matches, then
+     * .. if there were any {@link #pathsToInclude}, the item will be excluded,
+     * .. if there were no {@link #pathsToInclude}, the item will be included.
+     * . Non-operational items are handled like this:
+     * They are excluded, unless {@link #includeOperationalItems} is `true` _or_ they are explicitly and fully mentioned in {@link #pathsToInclude}.
+     *
+     * Limitations: this algorithm does not "see" inside container deltas. They are treated atomically - purely formally
+     * according to their path.
      */
     public boolean matches(ItemDelta<?, ?> itemDelta) {
         ItemPath path = itemDelta.getPath().namedSegmentsOnly();

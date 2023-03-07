@@ -93,6 +93,7 @@
                 <path>eventMarkRef</path>
                 <previousColumn>state</previousColumn>
             </column>
+            <!-- for each item changed -->
             <column>
                 <name>itemChanged</name>
                 <display>
@@ -309,7 +310,7 @@
             <name>includeOperationalItems</name>
             <type>xsd:boolean</type>
             <display>
-                <label>Show operational items</label>
+                <label>Include operational items</label>
             </display>
         </parameter>
         <parameter>

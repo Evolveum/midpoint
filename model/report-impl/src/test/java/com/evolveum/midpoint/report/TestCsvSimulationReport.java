@@ -106,19 +106,20 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_R_END_TIMESTAMP = 4;
     private static final int C_R_TASK = 5;
     private static final int C_R_PRODUCTION_CONFIGURATION = 6;
-    private static final int C_R_EVENT_MARK = 7;
-    private static final int C_R_CUSTOM_METRIC = 8;
-    private static final int C_R_AGGREGATION_FUNCTION = 9;
-    private static final int C_R_SC_TYPE = 10;
-    private static final int C_R_SC_ARCHETYPE = 11;
-    private static final int C_R_SC_RESOURCE = 12;
-    private static final int C_R_SC_KIND = 13;
-    private static final int C_R_SC_INTENT = 14;
-    private static final int C_R_VALUE = 15;
-    private static final int C_R_SELECTION_SIZE = 16;
-    private static final int C_R_SELECTION_TOTAL_VALUE = 17;
-    private static final int C_R_DOMAIN_SIZE = 18;
-    private static final int C_R_DOMAIN_TOTAL_VALUE = 19;
+    private static final int C_R_BUILT_IN_METRIC = 7;
+    private static final int C_R_EVENT_MARK = 8;
+    private static final int C_R_CUSTOM_METRIC = 9;
+    private static final int C_R_AGGREGATION_FUNCTION = 10;
+    private static final int C_R_SC_TYPE = 11;
+    private static final int C_R_SC_ARCHETYPE = 12;
+    private static final int C_R_SC_RESOURCE = 13;
+    private static final int C_R_SC_KIND = 14;
+    private static final int C_R_SC_INTENT = 15;
+    private static final int C_R_VALUE = 16;
+    private static final int C_R_SELECTION_SIZE = 17;
+    private static final int C_R_SELECTION_TOTAL_VALUE = 18;
+    private static final int C_R_DOMAIN_SIZE = 19;
+    private static final int C_R_DOMAIN_TOTAL_VALUE = 20;
 
     private List<UserType> existingUsers;
 
@@ -1101,7 +1102,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertCsv(resultsLines, "after")
                 .withNumericColumns(C_ID)
                 .filter(r -> simulationId.equals(r.get(C_R_IDENTIFIER)))
-                .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK)
+                .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK, C_R_BUILT_IN_METRIC)
                 .display()
                 .allRecords(
                         r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "SELECTION_TOTAL_VALUE"))
@@ -1166,6 +1167,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                                 .assertValue(C_R_DOMAIN_SIZE, "1")
                                 .assertValue(C_R_DOMAIN_TOTAL_VALUE, "0"))
                 .forRecords(
+                        1,
                         r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
                                 && "ShadowType".equals(r.get(C_R_SC_TYPE)),
                         r -> r.assertValue(C_R_SC_ARCHETYPE, "")
@@ -1178,6 +1180,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                                 .assertValue(C_R_DOMAIN_SIZE, "1")
                                 .assertValue(C_R_DOMAIN_TOTAL_VALUE, "1"))
                 .forRecords(
+                        1,
                         r -> "modifications".equals(r.get(C_R_CUSTOM_METRIC))
                                 && "UserType".equals(r.get(C_R_SC_TYPE)),
                         r -> r.assertValue(C_R_SC_ARCHETYPE, "blue")
