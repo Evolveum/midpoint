@@ -192,14 +192,15 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
         if (!AuthSequenceUtil.isClusterSequence(httpRequest) && httpRequest.getSession(false) == null && mpAuthentication != null) {
-            removeUnusedSecurityFilterPublisher.publishCustomEvent(mpAuthentication);
+            removeUnusedSecurityFilterPublisher.publishCustomEvent(mpAuthentication.getAuthModules());
         }
     }
 
     private void clearAuthentication(HttpServletRequest httpRequest) {
         Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (!AuthSequenceUtil.isClusterSequence(httpRequest) && oldAuthentication instanceof MidpointAuthentication) {
-            removeUnusedSecurityFilterPublisher.publishCustomEvent((MidpointAuthentication) oldAuthentication);
+            removeUnusedSecurityFilterPublisher.publishCustomEvent(
+                    ((MidpointAuthentication) oldAuthentication).getAuthModules());
         }
         SecurityContextHolder.getContext().setAuthentication(null);
     }

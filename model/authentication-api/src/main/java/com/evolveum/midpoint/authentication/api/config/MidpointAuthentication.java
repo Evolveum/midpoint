@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+import com.evolveum.midpoint.authentication.api.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -21,9 +21,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
@@ -94,6 +91,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public void setAuthModules(List<AuthModule> authModules) {
+        if (!this.authModules.isEmpty()) {
+            List<AuthModule> modules = new ArrayList<>();
+            modules.addAll(this.authModules);
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(modules);
+        }
         this.authModules = authModules;
     }
 
@@ -451,7 +453,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         ModuleAuthentication moduleAuthentication = getFirstFailedAuthenticationModule();
         if (moduleAuthentication != null) {
             AutheticationFailedData failureData = moduleAuthentication.getFailureData();
-            return failureData.getUsername();
+            if (failureData != null) {
+                return failureData.getUsername();
+            }
         }
         return "";
     }
@@ -460,19 +464,31 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         ModuleAuthentication moduleAuthentication = getFirstFailedAuthenticationModule();
         if (moduleAuthentication != null) {
             AutheticationFailedData failureData = moduleAuthentication.getFailureData();
-            return failureData.getFailureMessage();
+            if (failureData != null) {
+                return failureData.getFailureMessage();
+            }
         }
         return "";
     }
 
     public ModuleAuthentication getFirstFailedAuthenticationModule() {
         List<ModuleAuthentication> moduleAuthentications = getAuthentications();
+        ModuleAuthentication found = null;
         for (ModuleAuthentication moduleAuthentication : moduleAuthentications) {
-            if (AuthenticationModuleState.FAILURE == moduleAuthentication.getState()) {
+            if (AuthenticationModuleState.FAILURE == moduleAuthentication.getState() && found == null) {
+                found = moduleAuthentication;
+                if (found.getFailureData() != null) {
+                    return found;
+                }
+                continue;
+            }
+            if (AuthenticationModuleState.FAILURE == moduleAuthentication.getState()
+                    && found.getOrder() == moduleAuthentication.getOrder()
+                    && moduleAuthentication.getFailureData() != null) {
                 return moduleAuthentication;
             }
         }
-        return null;
+        return found;
     }
 
     public AuthenticationException getAuthenticationExceptionIfExsits() {

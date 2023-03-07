@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +48,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMap
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -1045,10 +1044,27 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         .provenance(new ProvenanceMetadataType()
                                 .assignmentPath(assignmentPathToMetadata(assignmentPath)))
                         .storage(new StorageMetadataType()
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())))
+                                .createTimestamp(determineAssignmentSinceTimestamp(evalAssignment)))
                         .asPrismContainerValue());
             }
         }
+    }
+
+    /**
+     * Technically, storage/createTimestamp should be "now", but in this case we use it as "assigned since" date as well.
+     * Normally, it is virtually the same date, but if metadata are created later, we want to "reconstruct" the date.
+     * This also solves the problem for existing deployments.
+     */
+    private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignmentImpl<?> evalAssignment) {
+        MetadataType assignmentMetadata = evalAssignment.getAssignment().getMetadata();
+        if (assignmentMetadata != null) {
+            XMLGregorianCalendar createTimestamp = assignmentMetadata.getCreateTimestamp();
+            if (createTimestamp != null) {
+                return createTimestamp;
+            }
+        }
+
+        return MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis());
     }
 
     private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
