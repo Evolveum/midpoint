@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -138,6 +139,10 @@ public class SearchBuilder<C extends Serializable> {
             return;
         }
 
+        if (additionalSearchContext == null) {
+            return;
+        }
+
         ObjectProcessingStateType state = additionalSearchContext.getObjectProcessingState();
         if (state == null) {
             return;
@@ -149,7 +154,10 @@ public class SearchBuilder<C extends Serializable> {
             return;
         }
 
-        item.setValue(new SearchValue<>(state));
+        DisplayableValue<ObjectProcessingStateType> value = item.getAvailableValues().stream().filter(d -> state.equals(d.getValue())).findFirst().orElse(null);
+        if (value != null) {
+            item.setValue(value);
+        }
     }
 
     private void initSearchByNameIfNeeded(Search<C> search) {

@@ -6,24 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
+import java.io.Serializable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-public class ChoicesSearchItemPanel<T> extends PropertySearchItemPanel<ChoicesSearchItemWrapper> {
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
 
-    public ChoicesSearchItemPanel(String id, IModel<ChoicesSearchItemWrapper> searchItem) {
+public class ChoicesSearchItemPanel<T extends Serializable> extends PropertySearchItemPanel<ChoicesSearchItemWrapper<T>> {
+
+    public ChoicesSearchItemPanel(String id, IModel<ChoicesSearchItemWrapper<T>> searchItem) {
         super(id, searchItem);
     }
 
     @Override
     protected Component initSearchItemField(String id) {
-        return WebComponentUtil.createDropDownChoices(id, new PropertyModel(getModel(), ChoicesSearchItemWrapper.F_DISPLAYABLE_VALUE),
-                Model.ofList(getModelObject().getAvailableValues()), allowNull());
+        return WebComponentUtil.createDropDownChoices(id,
+                new PropertyModel<>(getModel(), ChoicesSearchItemWrapper.F_DISPLAYABLE_VALUE),
+                () -> getModelObject().getAvailableValues(),
+                allowNull());
     }
 
     private boolean allowNull() {
@@ -32,5 +35,4 @@ public class ChoicesSearchItemPanel<T> extends PropertySearchItemPanel<ChoicesSe
         }
         return true;
     }
-
 }

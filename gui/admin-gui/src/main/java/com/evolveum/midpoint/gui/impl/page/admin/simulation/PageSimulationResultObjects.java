@@ -167,11 +167,11 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected void onInitialize() {
-                super.onInitialize();
-
                 if (getStateQueryParameter() != null) {
+                    getPageStorage().setSearch(null);
                     resetSearchModel();
                 }
+                super.onInitialize();
             }
 
             @Override
