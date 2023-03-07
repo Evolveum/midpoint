@@ -30,7 +30,7 @@
                         </q:filter>
                     </q:ownedBy>
                     <q:ref>
-                        <q:path>.</q:path>
+                        <q:path/>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
                             <path>$roleRef</path>
@@ -41,7 +41,7 @@
         </collection>
         <parameter>
             <name>userName</name>
-            <type>PolyStringType</type>
+            <type>string</type>
         </parameter>
         <parameter>
             <name>roleRef</name>

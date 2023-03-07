@@ -279,6 +279,8 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         and("new user with assignment without accesses metadata");
         String userOid = addObject(newUserWithBusinessRole1(), task, result);
         assertNoRoleMembershipRefMetadata(userOid, businessRole1Oid, appRole1Oid, appService1Oid);
+        // Assignment (or whole object) creation is before this timestamp.
+        long afterAddTs = System.currentTimeMillis();
 
         when("accesses metadata is enabled in sysconfig");
         switchAccessesMetadata(true, task, result);
@@ -296,6 +298,7 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
         assertAssignmentPath(userAsserter, appService1Oid,
                 new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
+        assertAllStorageTimestampsAreBefore(userAsserter.getObjectable(), afterAddTs);
     }
 
     // TODO add check of no phantom deltas when no metadata change on refs
