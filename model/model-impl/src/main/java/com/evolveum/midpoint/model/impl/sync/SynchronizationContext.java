@@ -74,6 +74,12 @@ public abstract class SynchronizationContext<F extends FocusType>
      */
     @NotNull private final ShadowType shadowedResourceObject;
 
+    /**
+     * The (cloned) state of {@link #shadowedResourceObject} at the moment when this context is created.
+     * To be independent of any deltas applied to the object during processing.
+     */
+    @NotNull private final ShadowType shadowedResourceObjectBefore;
+
     /** Original delta that triggered this synchronization. (If known.) */
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
@@ -162,6 +168,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             @Nullable String tag) {
         this.change = change;
         this.shadowedResourceObject = processingContext.getShadowedResourceObject();
+        this.shadowedResourceObjectBefore = this.shadowedResourceObject.clone();
         this.resourceObjectDelta = processingContext.getResourceObjectDelta();
         this.resource = processingContext.getResource();
         this.channel = processingContext.getChannel();
@@ -276,6 +283,10 @@ public abstract class SynchronizationContext<F extends FocusType>
     @Override
     public @NotNull ShadowType getShadowedResourceObject() {
         return shadowedResourceObject;
+    }
+
+    @NotNull ShadowType getShadowedResourceObjectBefore() {
+        return shadowedResourceObjectBefore;
     }
 
     /** Normally should be non-null, but we are not sure enough to mark as NotNull. */

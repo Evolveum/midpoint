@@ -211,7 +211,7 @@ class CorrelationProcessing<F extends FocusType> {
     private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
         S_ItemEntry builder =
                 PrismContext.get().deltaFor(ShadowType.class)
-                        .oldObject(getShadow())
+                        .oldObject(syncCtx.getShadowedResourceObjectBefore())
                         .optimizing();
         XMLGregorianCalendar lastStart = getShadowCorrelationStartTimestamp();
         XMLGregorianCalendar lastEnd = getShadowCorrelationEndTimestamp();
@@ -278,7 +278,7 @@ class CorrelationProcessing<F extends FocusType> {
         }
         syncCtx.applyShadowDeltas(
                 PrismContext.get().deltaFor(ShadowType.class)
-                        .oldObject(getShadow())
+                        .oldObject(syncCtx.getShadowedResourceObjectBefore())
                         .optimizing()
                         .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
                         .replace(

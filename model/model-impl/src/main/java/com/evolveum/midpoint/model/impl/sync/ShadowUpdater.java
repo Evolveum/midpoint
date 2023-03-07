@@ -61,7 +61,7 @@ class ShadowUpdater {
     ShadowUpdater(@NotNull SynchronizationContext<?> syncCtx, @NotNull ModelBeans beans) {
         this.syncCtx = syncCtx;
         this.beans = beans;
-        this.shadowBefore = syncCtx.getShadowedResourceObject().clone();
+        this.shadowBefore = syncCtx.getShadowedResourceObjectBefore();
     }
 
     ShadowUpdater updateAllSyncMetadataRespectingMode() throws SchemaException {
@@ -77,11 +77,6 @@ class ShadowUpdater {
         updateBasicSyncTimestamp(now); // needed e.g. for 3rd part of reconciliation
 
         return this;
-    }
-
-    void resetSynchronizationSituation() throws SchemaException {
-        updateSyncSituation(null);
-        updateSyncSituationDescription(null, beans.clock.currentTimeXMLGregorianCalendar());
     }
 
     private void updateSyncSituation(SynchronizationSituationType situation) throws SchemaException {
