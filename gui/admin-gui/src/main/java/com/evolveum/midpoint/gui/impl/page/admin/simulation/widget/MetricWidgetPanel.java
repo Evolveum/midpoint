@@ -301,7 +301,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         };
     }
 
-    public static String formatValue(BigDecimal value, Locale locale) {
+    public static String formatValue(Number value, Locale locale) {
         NumberFormat numberFormat = NumberFormat.getInstance(locale);
         numberFormat.setMaximumFractionDigits(3);
         return numberFormat.format(value);

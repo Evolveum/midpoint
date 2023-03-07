@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
@@ -58,6 +61,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     private static final long serialVersionUID = 1L;
 
+    public static final String PAGE_QUERY_PARAMETER = "state";
+
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_TABLE = "table";
 
@@ -74,6 +79,20 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
         initModels();
         initLayout();
+    }
+
+    private ObjectProcessingStateType getStateQueryParameter() {
+        PageParameters params = getPageParameters();
+        String state = params.get(PAGE_QUERY_PARAMETER).toString();
+        if (StringUtils.isEmpty(state)) {
+            return null;
+        }
+
+        try {
+            return ObjectProcessingStateType.fromValue(state);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private void initModels() {
@@ -145,6 +164,23 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         add(navigation);
 
         ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableMarksModel) {
+
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+
+                if (getStateQueryParameter() != null) {
+                    resetSearchModel();
+                }
+            }
+
+            @Override
+            protected SearchContext createAdditionalSearchContext() {
+                SearchContext ctx = super.createAdditionalSearchContext();
+                ctx.setObjectProcessingState(getStateQueryParameter());
+
+                return ctx;
+            }
 
             @Override
             protected @NotNull String getSimulationResultOid() {

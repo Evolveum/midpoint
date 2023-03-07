@@ -7,7 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
@@ -23,33 +43,14 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
+public abstract class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<List<MarkType>> availableMarksModel;
+    private final IModel<List<MarkType>> availableMarksModel;
 
     public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -62,7 +63,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         super.onConfigure();
 
         String markOid = getMarkOid();
-        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        PropertySearchItemWrapper<?> wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
         if (wrapper instanceof AvailableMarkSearchItemWrapper) {
             AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
             markWrapper.setValue(markOid);
@@ -83,7 +84,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                         o.getOid(),
                         WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
                         o.getDescription()))
-                .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+                .sorted(Comparator.comparing(DisplayableValueImpl::getLabel, Comparator.naturalOrder()))
                 .collect(Collectors.toList());
         ctx.setAvailableEventMarks(values);
         ctx.setSelectedEventMark(getMarkOid());
@@ -116,7 +117,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                         return getString("ProcessedObjectsPanel.unnamed");
                     }
 
-                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
+                    return LocalizationUtil.translatePolyString(obj.getName());
                 };
                 IModel<String> description = () -> {
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
@@ -126,7 +127,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
                     List<ObjectReferenceType> eventMarkRefs = obj.getEventMarkRef();
                     // resolve names from markRefs
-                    List<String> names = eventMarkRefs.stream()
+                    Object[] names = eventMarkRefs.stream()
                             .map(ref -> {
                                 List<MarkType> marks = availableMarksModel.getObject();
                                 MarkType mark = marks.stream()
@@ -137,11 +138,11 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                                 }
                                 return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
                             })
-                            .filter(name -> name != null)
-                            .collect(Collectors.toList());
-                    names.sort(Comparator.naturalOrder());
+                            .filter(Objects::nonNull)
+                            .sorted(Comparator.naturalOrder())
+                            .toArray();
 
-                    return StringUtils.joinWith(", ", names.toArray(new String[names.size()]));
+                    return StringUtils.joinWith(", ", names);
                 };
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
 
@@ -188,9 +189,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @NotNull
-    protected String getSimulationResultOid() {
-        return null;
-    }
+    protected abstract String getSimulationResultOid();
 
     protected String getMarkOid() {
         return null;
@@ -198,7 +197,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
     @Override
     public List<SimulationResultProcessedObjectType> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
 
     @Override
@@ -217,13 +216,13 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         } else if (SimulationResultProcessedObjectType.F_TYPE.equivalent(path)) {
             return createTypeColumn(displayModel);
         } else if (SimulationResultProcessedObjectType.F_DELTA.equivalent(path)) {
-            return createDeltaColumn(displayModel);
+            return createDeltaColumn();
         }
 
         return super.createCustomExportableColumn(displayModel, customColumn, expression);
     }
 
-    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn(IModel<String> displayModel) {
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn() {
         return new DeltaProgressBarColumn<>(createStringResource("ProcessedObjectsPanel.deltaColumn")) {
 
             @Override
@@ -264,7 +263,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         // Url should be updated if selected mark oid has changed so that navigation works correctly
         // between processed object list and details, same for bookmarking urls.
 
-        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        PropertySearchItemWrapper<?> wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
         if (!(wrapper instanceof AvailableMarkSearchItemWrapper)) {
             return;
         }
