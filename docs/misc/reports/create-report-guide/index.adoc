@@ -7,7 +7,7 @@ In first step we click on 'Reports' in left menu and next click on 'All Reports'
 
 image::create-report-0.png[]
 
-We want create Collection report, so we select 'Collection report' in showed popup.
+We want to create Collection report, so we select 'Collection report' in showed popup.
 
 image::create-report-1.png[]
 
@@ -21,7 +21,7 @@ Basic configuration of report define engine, so we open 'Engine' tab. We can see
 
 image::create-report-3.png[]
 
-As first we open 'Collection' tab, where we define base collection and filter for shadows. At first we select object collection 'All shadows' as base collection. We want use resource as parameter, so we have to use it in filter.
+As first we open 'Collection' tab, where we define base collection and filter for shadows. At first we select object collection 'All shadows' as base collection. We want to use resource as parameter, so we have to use it in filter.
 
 .Filter
 [source,xml]
@@ -112,7 +112,7 @@ In next step we edit new subreport find field expression and set next snippet of
 
 image::create-report-13.png[]
 
-Now we can add new column for email of owner. We add new column similar as for custom column and we set next snippet to export expression of column. Also we can fix of order of columns, so we edit every columns and fill field for 'Previous column' by name of column which we want see before it.
+Now we can add new column for email of owner. We add new column similar as for custom column and we set next snippet to export expression of column. Also we can fix of order of columns, so we edit every column and fill field for 'Previous column' by name of column which we want see before it.
 
 .Expression of owner email column
 [source,xml]
