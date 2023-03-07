@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlation;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
@@ -321,15 +322,15 @@ public class CorrelationCaseManager {
                     ShadowType.class,
                     shadowOid,
                     prismContext.deltaFor(ShadowType.class)
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                            .item(CORRELATION_CASE_CLOSE_TIMESTAMP_PATH)
                             .replace(now)
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF)
+                            .item(CORRELATION_PERFORMER_REF_PATH)
                             .replaceRealValues(getPerformerRefs(aCase))
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT)
+                            .item(CORRELATION_PERFORMER_COMMENT_PATH)
                             .replaceRealValues(getPerformerComments(aCase, task, result))
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
+                            .item(CORRELATION_RESULTING_OWNER_PATH)
                             .replace(resultingOwnerRef)
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                            .item(CORRELATION_SITUATION_PATH)
                             .replace(situation)
                             .asItemDeltas(),
                     result);

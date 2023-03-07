@@ -75,12 +75,6 @@ public class Synchronizer {
             Throwable fetchResultException = RepoCommonUtils.getResultException(fetchResult);
             throw new SystemException("Skipped malformed resource object: " + fetchResultException.getMessage(), fetchResultException);
         }
-        if (Boolean.TRUE.equals(shadow.isProtectedObject())) {
-            LOGGER.trace("Skipping {} because it is protected", shadowObject);
-            workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.PROTECTED);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
-            return;
-        }
         if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);

@@ -668,4 +668,25 @@ public abstract class SchemaConstants {
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_DEFAULT_AUTHORITATIVE_SOURCE);
 
     public static final String SIMULATION_RESULT_DEFAULT_TRANSACTION_ID = "default";
+
+    public static final @NotNull ItemPath CORRELATION_SITUATION_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION);
+    public static final @NotNull ItemPath CORRELATION_RESULTING_OWNER_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER);
+    public static final @NotNull ItemPath CORRELATION_OWNER_OPTIONS_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS);
+    public static final @NotNull ItemPath CORRELATION_START_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_END_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_CASE_OPEN_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_CASE_CLOSE_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_PERFORMER_REF_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF);
+    public static final @NotNull ItemPath CORRELATION_PERFORMER_COMMENT_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT);
+    public static final @NotNull ItemPath CORRELATION_CORRELATOR_STATE_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATOR_STATE);
 }
