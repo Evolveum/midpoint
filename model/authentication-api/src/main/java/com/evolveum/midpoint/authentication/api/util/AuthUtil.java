@@ -184,7 +184,8 @@ public class AuthUtil {
         if (oldAuthentication instanceof MidpointAuthentication
                 && ((MidpointAuthentication) oldAuthentication).getAuthenticationChannel() != null
                 && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(((MidpointAuthentication) oldAuthentication).getAuthenticationChannel().getChannelId())) {
-            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) oldAuthentication);
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(
+                    ((MidpointAuthentication) oldAuthentication).getAuthModules());
         }
         SecurityContextHolder.getContext().setAuthentication(null);
     }

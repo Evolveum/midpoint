@@ -11,6 +11,7 @@ import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationE
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpSecurityQuestionsAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.filter.HttpSecurityQuestionsAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
@@ -62,6 +63,11 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWe
             filter.setRememberMeServices(rememberMeServices);
         }
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
+
+        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        sequenceAuditFilter.setRecordOnEndOfChain(false);
+        http.addFilterAfter(sequenceAuditFilter, BasicAuthenticationFilter.class);
+
         http.formLogin().disable()
                 .csrf().disable();
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())

@@ -15,8 +15,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.handler.BasicMidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.session.MidpointHttpServletRequest;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
@@ -194,6 +196,12 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
             this.getAuthenticationEntryPoint().commence(request, response, failed);
         } catch (ServletException e) {
             LOGGER.error("Couldn't execute post unsuccessful authentication method", e);
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            moduleAuthentication.recordFailure(failed);
         }
     }
 }

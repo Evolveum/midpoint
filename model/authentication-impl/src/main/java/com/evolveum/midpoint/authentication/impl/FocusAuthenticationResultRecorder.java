@@ -148,8 +148,10 @@ public class FocusAuthenticationResultRecorder {
 
         Integer failedLogins = behavior.getFailedLogins();
 
+        boolean successLoginAfterFail = false;
         if (failedLogins != null && failedLogins > 0) {
             behavior.setFailedLogins(0);
+            successLoginAfterFail = true;
         }
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
@@ -158,7 +160,9 @@ public class FocusAuthenticationResultRecorder {
         behavior.setPreviousSuccessfulLogin(behavior.getLastSuccessfulLogin());
         behavior.setLastSuccessfulLogin(event);
 
-        focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
         securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
     }
 
@@ -173,7 +177,9 @@ public class FocusAuthenticationResultRecorder {
         }
         if (principal != null) {
             focusType = principal.getFocus();
-            processFocusChange(principal, credentialsPolicy, connEnv);
+            if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
+                processFocusChange(principal, credentialsPolicy, connEnv);
+            }
         }
         securityHelper.auditLoginFailure(username, focusType, connEnv, reason);
     }
