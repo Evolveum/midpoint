@@ -1,5 +1,4 @@
 = Value Metadata
-:page-display-order: 40
 :page-toc: top
 
 == Introduction
