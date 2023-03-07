@@ -334,7 +334,7 @@ Shows metadata and individual metrics.
 
 | xref:reports/objects.adoc[Objects]
 | Lists objects processed by given simulation.
-One object is shown corresponds to one report row.
+One processed object corresponds to one report row.
 | high-level view of one simulation
 
 | Objects with metrics

@@ -37,7 +37,10 @@ Usually contains information about the task that produced the report (if any), i
 | Predefined configuration
 | What predefined configuration is used: `development` or `production`?
 
-2+| _The following part of the report is instantiated once per each simulation xref:../results/metrics.adoc[metric] (event mark-based, built-in, or explicit one)._
+2+|
+{zwsp} +
+_The following part of the report is instantiated once per each simulation xref:../results/metrics.adoc[metric] (event mark-based, built-in, or explicit one)._ +
+{zwsp}
 
 | Built-in metric
 | Built-in metric identifier corresponding to the metric row. (If applicable.)
@@ -52,7 +55,10 @@ Usually contains information about the task that produced the report (if any), i
 | Aggregation function used for given metric.
 See xref:../results/aggregation-functions.adoc[].
 
-2+| _The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition]._
+2+|
+{zwsp} +
+_The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition]._ +
+{zwsp}
 
 | Scope: type
 | Type of objects (user, role, org, shadow, ...).
@@ -108,3 +114,7 @@ Note: the above criteria are "and"-ed together.
 
 .An example report
 image::example-results.png[Example report]
+
+== Definition
+
+The definition can be found on https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resources/initial-objects/report/180-report-simulation-results.xml[GitHub].
