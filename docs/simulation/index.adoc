@@ -182,117 +182,182 @@ But when running a simulation using development configuration, the users are ass
 == Typical Simulation Scenarios
 
 This section presents a couple of typical simulation-related scenarios.
-They are accompanied by a simple xref:/midpoint/reference/simulation/tutorial/[tutorial].
 
-=== Incremental Introduction of a New Resource Configuration
+NOTE: Please see the xref:/midpoint/reference/simulation/tutorial/[tutorial] where these scenarios are shown in more details.
 
-When connecting a new source or target system to midPoint, we must create its resource definition.
+=== Introduction of a New Resource Configuration
+
+When connecting new source or target system to midPoint, we must create its resource definition.
 However, the first version of the definition is rarely completely correct and usually there is a need to fine-tune it.
-To avoid any damage, we want actions driven by this resource definition to have no permanent effects in the production data in midPoint nor in any connected system.
+MidPoint supports this by allowing us to evolve the definition safely, in development mode, so that potential mistakes will not cause any harm in production data in midPoint nor on resources.
 
-MidPoint supports this by allowing us to avoid putting resource definition into the production configuration, and keeping it in development one only.
-This is the default setting for new resources created in the Resource Wizard. #TODO verify if this is the case#
+Processes directly supported in this area:
 
-Having the resource in development but not production configuration has the following effects.
+- classification of resource objects (e.g. accounts) into object types, like `account/default` or `account/person`;
+- correlation of resource objects to so-called focus objects, like users, roles, and so on;
+- mapping of data between resource objects and focus objects.
 
-==== Fine-Tuning of the Classification Configuration
+=== Evolution of a Resource Configuration
 
-The classification is the process of determining kind and intent of any shadows seen by midPoint.
-It is driven by `delineation` part of resource object types definitions.
-It usually needs to be iterated until it is good enough to be released into production.
-(One of the reasons is incomplete understanding of the data on the resource or their suboptimal quality.)
+Eventually, the first version of resource configuration is completed and put into production use.
+Sooner or later, requirements for its evolution emerge.
+The simulations feature supports such evolution by allowing adding pieces of the configuration (like new object types, attributes, association, or mappings) first in the development mode, and only after being developed and tested enough, switching them into production.
+Also, other items can be replaced, by marking them as deprecated and adding analogous proposed items.
+Yet other items can be deprecated without replacement, effectively planning for their removal.
 
-Normally, each shadow is classified only once.
-Main reasons for this behavior are performance and stability:
-first, the classification takes some resources, and second, we do not want the shadows to change their classification at any moment.
+== Specific Functionality
+// TODO better name
 
-However, classification in development-mode resources can be made more flexible.
-The performance is not crucial for them.
-The stability is not important either, as the shadows on such resources should not be linked to any focal objects yet.
+=== Resource Wizard
 
-Hence, if a shadow on a development-mode resource is processed in a simulation-development mode, it is re-classified each time it is seen.
-This provides the possibility to easily develop the classification configuration for the resource.
+. #TODO# resources and other configuration items are in "proposed" state by default
+. #TODO# switching between "proposed", "active", and "deprecated" states
+. #TODO# previewing content of a resource in simulation mode, so that re-classification occurs instantly
 
-See xref:classification-fine-tuning.adoc[] for more information.
+#TODO implement + document#
 
-==== Fine-Tuning of the Correlation Configuration
+=== Running the Simulation on Foreground
 
-The correlation deals with determining the owner of the shadow - or concluding that there is currently no owner.
-Just like any other part of midPoint configuration, in most cases also this one needs some fine-tuning until it is production-ready.
+#TODO @Vilo?#
 
-#TODO how does this work#
+=== Running the Simulation on Background
 
-See xref:correlation-fine-tuning.adoc[] for more information.
+The simulations are typically executed in background tasks that host individual xref:/midpoint/reference/tasks/activities/[activities].
+There are three aspects that can be defined:
 
-==== Fine-Tuning of Inbound and Outbound Mappings
+==== Execution Mode
 
-After the classification and correlation are set up, we may start fine-tuning the inbound and outbound mappings.footnote:[Actually, it is not strictly required that the mappings come after correlation.
-There may be cases when correlation comes after the mappings - or does not come at all.]
+An activity can be run in one of three basic modes:
 
-While the resource as such is in development mode, the execution of mappings has no effects on objects in midPoint and connected systems.
-The effects can only be previewed and checked for correctness.
-Only later, when we decide that the first version of the resource definition is adequate and all mappings were tested properly, we can switch the resource to the production mode.
-After that, all the mappings and other settings such as object types and correlations will be effective during regular midPoint operation.
+1. *Full execution.*
+All computed changes are applied, everything has persistent effects.
+This is <<Persistent-Effects Mode>> described in the introduction.
 
-=== Incremental Improvements of the Resource Configuration
+2. *Simulation (or preview).*
+Changes to the data (user properties, account attributes, and so on) are only simulated, nothing is really changed in midPoint nor on resources.
+This is <<Simulation Mode>> described in the introduction.footnote:[Simulation and preview are used as synonyms.]
 
-When a new _resource object type_ is being added, the challenges and the procedures are very similar.
-This time, however, we cannot switch the whole resource to development mode.
-We do so only for the newly created object type.
-This guarantees that the previously accepted and tested configuration continues to work as expected - and, at the same time, we can test the newly added parts.
+3. *Shadow management simulation (or preview).*
+This is a special low-level simulation of shadow-management-related changes that are normally applied automatically.
+Those changes are related to shadow _classification_ i.e. determining its kind and intent, and shadow _correlation_ i.e. determining its owner.
+In modes 1 and 2 such changes are applied automatically, because they have no visible effects on the identity data.
+However, we may preview even those changes, to make development of classification and correlation configuration easier.
+This is an xref:/midpoint/versioning/experimental/[experimental functionality].
+Please see the xref:/midpoint/reference/simulation/tutorial/[tutorial] for an example.
 
-=== Other Scenarios
+This configuration is driven by `execution/mode` parameter in the activity definition.
+
+For more information, please see xref:/midpoint/reference/tasks/activities/execution-mode.adoc[activity execution mode specification].
+
+==== Configuration Used
+
+An activity can execute against <<Production Configuration>> or <<Development Configuration>>.
+(The latter cannot be used in <<Persistent-Effects Mode>>.)
+
+This configuration is driven by `execution/configurationToUse` parameter in the activity definition.
+
+For more information, please see xref:/midpoint/reference/tasks/activities/execution-mode.adoc[activity execution mode specification].
+
+==== Simulation Result
+
+We can run the simulation with or without creating the simulation result.
+Furthermore, there are various options connected with the result itself, for example, what metrics and event marks should we include in the result.
+
+This configuration is driven by `reporting/simulationResult` parameter in the activity definition.
+
+For more information, please see <<Configuring Simulation Results>> and xref:/midpoint/reference/tasks/activities/reporting/simulation-result.adoc[activity simulation result definition].
+
+==== An Example
+
+.Listing 3. An import task executing in simulation mode, over development configuration, and with creation of a simulation result
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="8b169df3-3124-4e36-871f-83bb52acfd7b">
+    <name>Simulated import from HR</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="236dd5ca-47df-403c-82e1-9ce2f36be000"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <execution>
+            <mode>preview</mode> <!--1-->
+            <configurationToUse>
+                <set>development</set> <!--2-->
+            </configurationToUse>
+        </execution>
+        <reporting>
+            <simulationResult/> <!--3-->
+        </reporting>
+    </activity>
+</task>
+----
+<1> The value of `preview` means we do not want to execute the actions in this task.
+<2> `development` means we want to use the development configuration in this task.
+<3> The presence of `simulationResult` means we want to create the simulation result object.
+
+=== Displaying and Managing the Simulation Results
+
+#TODO @Vilo?#
+
+=== Configuring Simulation Results
+
+Simulation results are configured in the system configuration and in individual simulation activities.
+Aspects that are configured include:
+
+- What metrics and event marks should be observed during the particular simulation?
+- Should a dedicated database partition be used for storing this simulation result?
+
+Please see xref:results/definition.adoc[] for more information.
+
+=== Reporting
+
+Simulation results can be displayed interactively via midPoint GUI, or their content can be exported using the xref:/midpoint/reference/misc/reports/configuration/[reporting] functionality.
+
+There are the following built-in simulation reports.
+
+.Built-in simulation reports
+[%autowidth]
+|===
+| Report | Description | Typical use
+
+| xref:reports/results.adoc[Results]
+| Lists simulation results without having a look at individual processed objects.
+Shows metadata and individual metrics.
+| overview, trends
+
+| xref:reports/objects.adoc[Objects]
+| Lists objects processed by given simulation.
+One object is shown corresponds to one report row.
+| high-level view of one simulation
+
+| Objects with metrics
+| Lists objects processed by given simulation along with metrics related to each object.
+| #TODO#
+
+| Items Changed
+| #TODO#
+| #TODO#
+
+| Values Changed
+| #TODO#
+| #TODO#
+|===
+
+=== Application Programming Interface
 
 #TODO#
 
-// Note that the necessary changes to object classification may be tricky here.
-// When dealing with separate object class (like working with groups while accounts are already in production), it can be done by putting group object class into the development mode.
-// However, the problem may be if we have - for example - all of `inetOrgPerson` accounts in production (as `account/default` type), and now we want to split the type into two: `account/default` and `account/testing`, where the latter are designated by some naming convention.
-//
-// Here we probably need the feature of production/non-production shadows.
-//
-// . First, we would "unmark" selected shadows (given by the naming convention we suppose matches the testing accounts) from production to non-production mode.
-// . Then, we change the classification algorithm.
-// Technically, this is done by introducing a new object type (`account/testing`) in the development mode, with a specific delineation.
-// In fact, mere addition of this object type changes the configuration for the classification algorithm, even if the delineation for `account/default` remains unchanged.
-// (#TODO# If the delineation for `account/default` changes - how this will be put into the configuration? Will we mark the old one as deprecated, and the new one as proposed?)
-// . We then experiment with the classification configuration, running the import from the resource (single-account or bulk one), and looking at changes that are either done to now-unmarked shadows or at changes that would be executed against the production shadows. #TODO# This part is to be thought about in more details.
-//
-// #TODO think about possible interference with the production processes#
+=== Configuring Lifecycle State
 
-// ==== Development of Other Configuration Items
-//
-// You now probably feel that this is not the end.
-// The same applies to adding new attribute mappings or new associations to existing object types.
-// Also, to changing or extending the correlation rules.
-// We need to support all these scenarios with simulated executions as well.
-//
-// #TODO think about this again#
-//
-// === Other Configuration Changes
-//
-// Fine-tuning of the configuration is not limited to resources.
-// The same approach can be used when introducing e.g. new object template mappings, new archetypes, policy rules, and so on.
-//
-// (This is not guaranteed to be fully supported in 4.7.)
-//
-// === Reorganization Simulation
-//
-// * What would be the consequences of importing the CSV with the new organizational structure?
-// * What would be the consequences of substantial changes in midPoint organizational structure?
-// (A variation of the above.)
-//
-// Not to be supported in 4.7.
-//
-// === Role Evolution
-//
-// When a role (or a set of roles) evolve, we may want to preview the effects before we put the updated definition(s) into production.
-//
-// Also, we may want to limit the effects we are interested in to the mere information of what users have the role(s) currently assigned.
-// (Meaning that we are interested only in the membership changes: who obtained the role and who lost the membership.)
-//
-// Not to be supported in 4.7.
-//
-// === Other Scenarios
-//
-// #TODO#
+#TODO#
+
+== Limitations
+
+#TODO#
