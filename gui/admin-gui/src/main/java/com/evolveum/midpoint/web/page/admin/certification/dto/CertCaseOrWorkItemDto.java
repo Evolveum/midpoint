@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,23 +56,14 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
 
     CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
-        this.objectName = getName(_case.getObjectRef());
-        this.targetName = getName(_case.getTargetRef());
+        this.objectName = getName(_case.getObjectRef(), page);
+        this.targetName = getName(_case.getTargetRef(), page);
         this.deadlineAsString = computeDeadlineAsString(page);
         this.defaultRelation = page.getPrismContext().getDefaultRelation();
     }
 
-    // ugly hack (for now) - we extract the name from serialization metadata
-    private String getName(ObjectReferenceType ref) {
-        if (ref == null) {
-            return null;
-        }
-        String name = ref.getTargetName() != null ? ref.getTargetName().getOrig() : null;
-        if (name == null) {
-            return "(" + ref.getOid() + ")";
-        } else {
-            return name.trim();
-        }
+    private String getName(ObjectReferenceType ref, PageBase pageBase) {
+        return WebModelServiceUtils.resolveReferenceName(ref, pageBase);
     }
 
     public String getObjectName() {

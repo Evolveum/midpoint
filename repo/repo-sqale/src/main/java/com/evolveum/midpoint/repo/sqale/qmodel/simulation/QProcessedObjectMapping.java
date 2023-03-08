@@ -108,7 +108,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         }
         row.state = object.getState();
 
-        row.objectType = MObjectType.fromTypeQName(object.getType());
+        if (object.getType() != null) {
+            row.objectType = MObjectType.fromTypeQName(object.getType());
+        }
         row.fullObject = createFullObject(object);
         row.transactionId = object.getTransactionId();
         row.focusRecordId = object.getFocusRecordId();

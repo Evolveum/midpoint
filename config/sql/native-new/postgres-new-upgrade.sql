@@ -180,6 +180,7 @@ call apply_change(12, $aa$
             else
                ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
                ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PERSONA';
+               ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'OBJECT_EFFECTIVE_MARK' AFTER 'OBJECT_CREATE_APPROVER';
             end if;
             ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
             ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
@@ -316,6 +317,20 @@ CREATE TABLE m_processed_object_event_mark (
 ) PARTITION BY LIST(ownerOid);
 
 CREATE TABLE m_processed_object_event_mark_default PARTITION OF m_processed_object_event_mark DEFAULT;
+
+
+-- stores ObjectType/effectiveMarkRef
+CREATE TABLE m_ref_object_effective_mark (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_EFFECTIVE_MARK') STORED
+        CHECK (referenceType = 'OBJECT_EFFECTIVE_MARK'),
+
+    PRIMARY KEY (ownerOid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_effective_markTargetOidRelationId_idx
+    ON m_ref_object_effective_mark (targetOid, relationId);
 
 $aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
 
