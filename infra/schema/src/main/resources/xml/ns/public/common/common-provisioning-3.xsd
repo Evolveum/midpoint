@@ -1032,14 +1032,14 @@
                 <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Kind of the parent type. If not specified, the kind of the referencing child is used.
+                            Kind of the parent type. Must be specified.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="intent" type="xsd:string" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Intent of the parent type. Should be specified.
+                            Intent of the parent type. Must be specified.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>

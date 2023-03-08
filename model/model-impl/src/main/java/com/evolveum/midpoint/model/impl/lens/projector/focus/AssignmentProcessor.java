@@ -66,7 +66,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -710,9 +709,16 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 continue;
             }
 
+            boolean legalized;
             if (projectionContext.isLegalize()) {
-                LOGGER.trace("Projection {} legal: legalized", desc);
-                createAssignmentDelta(context, projectionContext);
+                legalized = legalize(context, projectionContext);
+            } else {
+                legalized = false;
+            }
+
+            if (legalized) {
+
+                LOGGER.trace("Projection {} legalized", desc);
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOldIfUnknown(false);
                 projectionContext.setLegal(true);
@@ -766,10 +772,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Finishing legal decision for {}, gone {}, enforcement mode {}, legalize {}: {} -> {}",
+                LOGGER.trace("Finishing legal decision for {}, gone {}, enforcement mode {}, legalize {} (real: {}): {} -> {}",
                         projectionContext.toHumanReadableString(), projectionContext.isGone(),
                         projectionContext.getAssignmentPolicyEnforcementMode(),
-                        projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
+                        projectionContext.isLegalize(), legalized,
+                        projectionContext.isLegalOld(), projectionContext.isLegal());
             }
 
             propagateLegalDecisionToHigherOrders(context, projectionContext);
@@ -789,24 +796,31 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends AssignmentHolderType> void createAssignmentDelta(
-            LensContext<F> context, LensProjectionContext accountContext) throws SchemaException {
-        Class<F> focusClass = context.getFocusClass();
-        ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
-                .createDelta(AssignmentHolderType.F_ASSIGNMENT, focusClass);
-        AssignmentType assignment = new AssignmentType();
-        ConstructionType constructionType = new ConstructionType();
-        constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
-        assignment.setConstruction(constructionType);
-        //noinspection unchecked
-        assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
-        PrismContainerDefinition<AssignmentType> containerDefinition =
-                prismContext.getSchemaRegistry()
-                        .findObjectDefinitionByCompileTimeClass(focusClass)
-                        .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-        assignmentDelta.applyDefinition(containerDefinition);
-        context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
+    private boolean legalize(LensContext<? extends AssignmentHolderType> context, LensProjectionContext projCtx)
+            throws SchemaException {
 
+        LensFocusContext<? extends AssignmentHolderType> focusContext = context.getFocusContextRequired();
+        ProjectionContextKey projKey = projCtx.getKey();
+
+        if (!projKey.isClassified()) {
+            LOGGER.warn("Cannot legalize unclassified projection: {} - no assignment will be created in {}",
+                    projCtx.getHumanReadableName(), focusContext.getObjectAny());
+            return false;
+        }
+
+        AssignmentType assignment = new AssignmentType()
+                .construction(new ConstructionType()
+                        .resourceRef(projCtx.getResourceOidRequired(), ResourceType.COMPLEX_TYPE)
+                        .kind(projKey.getKind())
+                        .intent(projKey.getIntent()));
+
+        focusContext.swallowToSecondaryDelta(
+                prismContext.deltaFor(context.getFocusClass())
+                        .item(AssignmentHolderType.F_ASSIGNMENT)
+                        .add(assignment)
+                        .asItemDelta());
+
+        return true;
     }
 
     @ProcessorMethod
