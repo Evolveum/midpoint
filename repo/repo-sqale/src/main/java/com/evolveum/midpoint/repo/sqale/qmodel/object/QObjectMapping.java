@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -36,8 +38,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -85,6 +90,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 q -> q.tenantRefTargetType,
                 q -> q.tenantRefRelationId,
                 QOrgMapping::getOrgMapping);
+
+        addRefMapping(F_EFFECTIVE_MARK_REF,
+                QObjectReferenceMapping.initForEffectiveMark(repositoryContext));
+
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         // version/cidSeq is not mapped for queries or deltas, it's managed by repo explicitly
 
@@ -278,6 +287,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     QObjectReferenceMapping.getForModifyApprover(), jdbcSession);
         }
 
+        // complete effective marks
+        storeRefs(row, getEffectiveMarks(schemaObject), QObjectReferenceMapping.getForEffectiveMark(), jdbcSession);
+
         List<TriggerType> triggers = schemaObject.getTrigger();
         if (!triggers.isEmpty()) {
             triggers.forEach(t -> QTriggerMapping.get().insert(t, row, jdbcSession));
@@ -291,6 +303,26 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         storeRefs(row, schemaObject.getParentOrgRef(),
                 QObjectReferenceMapping.getForParentOrg(), jdbcSession);
+    }
+
+    private @NotNull List<ObjectReferenceType> getEffectiveMarks(@NotNull S schemaObject) {
+        // TODO: Should we also add marks from statementPolicy (include?) - that way they would be available
+        // for search even without recompute.
+        // Just adding them directly here, will break delta add / delete
+        //        List<ObjectReferenceType> ret = new ArrayList<>();
+        //
+        //        for (PolicyStatementType policy : schemaObject.getPolicyStatement()) {
+        //            if (PolicyStatementTypeType.APPLY.equals(policy.getType())) {
+        //                // We ensure mark is in effective marks list indexed in repository
+        //                var mark = policy.getMarkRef();
+        //                if (mark != null) {
+        //                    ret.add(mark);
+        //                }
+        //            }
+        //        }
+        return schemaObject.getEffectiveMarkRef();
+
+
     }
 
     /**

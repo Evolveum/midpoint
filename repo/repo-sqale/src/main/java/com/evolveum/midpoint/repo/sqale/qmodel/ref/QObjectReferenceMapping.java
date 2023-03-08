@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -72,6 +73,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     public static QObjectReferenceMapping<?, QResource, MResource>
             instanceResourceBusinessConfigurationApprover;
     public static QObjectReferenceMapping<?, ?, ?> instanceRoleMembership;
+    public static QObjectReferenceMapping<?, ?, ?> instanceEffectiveMark;
 
     private final Supplier<QueryTableMapping<OS, OQ, OR>> ownerMappingSupplier;
 
@@ -106,6 +108,23 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     QObjectReferenceMapping<?, Q, R> getForDelegated() {
         //noinspection unchecked
         return (QObjectReferenceMapping<?, Q, R>) Objects.requireNonNull(instanceDelegated);
+    }
+
+    public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<?, Q, R>
+    initForEffectiveMark(@NotNull SqaleRepoContext repositoryContext) {
+        if (needsInitialization(instanceEffectiveMark, repositoryContext)) {
+            instanceEffectiveMark = new QObjectReferenceMapping<>(
+                    "m_ref_object_effective_mark", "refem", repositoryContext,
+                    QMarkMapping::getInstance);
+        }
+        return getForEffectiveMark();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <Q extends QObject<R>, R extends MObject>
+    QObjectReferenceMapping<?, Q, R> getForEffectiveMark() {
+        //noinspection unchecked
+        return (QObjectReferenceMapping<?, Q, R>) Objects.requireNonNull(instanceEffectiveMark);
     }
 
     public static QObjectReferenceMapping<?, QObjectTemplate, MObject> initForInclude(
@@ -235,6 +254,8 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
         return getForRoleMembership();
     }
 
+
+
     public static <OS extends ObjectType, OQ extends QObject<OR>, OR extends MObject>
     QObjectReferenceMapping<OS, OQ, OR> getForRoleMembership() {
         //noinspection unchecked
@@ -346,4 +367,5 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             }
         };
     }
+
 }

@@ -35,6 +35,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -97,11 +98,21 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final String resourceOid = UUID.randomUUID().toString();
     private final String connectorHostOid = UUID.randomUUID().toString();
 
+    private String markProtectedOid;
+    private String markDoNotTouchOid;
+
     private ItemDefinition<?> shadowAttributeStringMvDefinition;
 
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
+
+        markProtectedOid = repositoryService.addObject(
+                new MarkType().name("protected").asPrismObject(), null, result);
+
+        markDoNotTouchOid = repositoryService.addObject(
+                new MarkType().name("do-not-touch").asPrismObject(), null, result);
+
 
         roleAvIOid = repositoryService.addObject(
                 new RoleType()
@@ -165,6 +176,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // shadow, owned by user-3
         ShadowType shadow1 = new ShadowType().name("shadow-1")
+                .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
@@ -765,6 +777,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 shadow1Oid);
     }
 
+
     @Test
     public void test171SearchShadowOwner() {
         when("searching for shadow owner by shadow OID");
@@ -795,6 +808,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.asObjectable())
                 .isInstanceOf(UserType.class)
                 .matches(u -> u.getOid().equals(user3Oid));
+    }
+
+    @Test
+    public void test173SearchShadowByEffectiveMarkOid() throws SchemaException {
+        when("searching for shadow owner by shadow OID");
+        searchObjectTest("having specified effective mark", ShadowType.class,
+                f -> f.item(ShadowType.F_EFFECTIVE_MARK_REF).ref(markProtectedOid),
+                shadow1Oid);
+    }
+
+    @Test
+    public void test174SearchShadowByEffectiveMarkName() throws SchemaException {
+        when("searching for shadow owner by shadow OID");
+        searchObjectTest("having specified effective mark", ShadowType.class,
+                f -> f.item(
+                        ItemPath.create(ShadowType.F_EFFECTIVE_MARK_REF, new ObjectReferencePathSegment(), MarkType.F_NAME))
+                .eq("protected"), shadow1Oid);
     }
 
     /**
