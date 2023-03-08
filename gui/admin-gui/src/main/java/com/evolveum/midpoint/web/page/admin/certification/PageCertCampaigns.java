@@ -79,8 +79,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
                 @Url(mountUrl = "/admin/certification/campaigns", matchUrlForSecurity = "/admin/certification/campaigns")
         },
         encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS, label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
 
 public class PageCertCampaigns extends PageAdminCertification {
 

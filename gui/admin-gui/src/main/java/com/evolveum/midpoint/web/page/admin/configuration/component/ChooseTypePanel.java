@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -45,7 +47,6 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
     private static final String ID_OBJECT_NAME = "name";
-    private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
@@ -55,7 +56,8 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     public ChooseTypePanel(String id, ObjectReferenceType ref) {
-        super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
+        super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil
+                .getOrigStringFromPoly(ref.getTargetName()) : null)));
         initLayout();
     }
 
@@ -111,7 +113,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
             LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
-        target.add(get(ID_INPUT_CONTAINER).get(ID_OBJECT_NAME));
+        target.add(getObjectNameComponent());
         executeCustomAction(target, object);
     }
 
@@ -159,5 +161,9 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     public void setPanelEnabled(boolean isEnabled) {
         get(ID_LINK_CHOOSE).setEnabled(isEnabled);
         get(ID_LINK_REMOVE).setEnabled(isEnabled);
+    }
+
+    protected TextField<?> getObjectNameComponent() {
+        return (TextField<?>) get(((PageBase) getPage()).createComponentPath(ID_OBJECT_NAME));
     }
 }
