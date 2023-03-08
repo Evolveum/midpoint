@@ -7,6 +7,7 @@ import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,7 +52,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_OID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
-        // addItemMapping(F_OBJECT_TYPE, ));
+        //addItemMapping(F_TYPE, ));
         addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
         addRefMapping(F_EVENT_MARK_REF, QProcessedObjectEventMarkReferenceMapping.init(repositoryContext));
@@ -107,6 +108,7 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         }
         row.state = object.getState();
 
+        row.objectType = MObjectType.fromTypeQName(object.getType());
         row.fullObject = createFullObject(object);
         row.transactionId = object.getTransactionId();
         row.focusRecordId = object.getFocusRecordId();
