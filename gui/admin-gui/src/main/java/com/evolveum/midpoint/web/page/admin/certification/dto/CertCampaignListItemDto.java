@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
-public class CertCampaignListItemDto extends Selectable {
+public class CertCampaignListItemDto extends Selectable<CertCampaignListItemDto> implements SelectableRow<CertCampaignListItemDto> {
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -109,10 +111,14 @@ public class CertCampaignListItemDto extends Selectable {
 
             if (delta > 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
-                return PageBase.createStringResourceStatic(key, WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic(key, WebComponentUtil
+                                .formatDurationWordsForLocal(delta, true, true, page))
+                        .getString();
             } else if (delta < 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
-                return PageBase.createStringResourceStatic(key, WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic(key, WebComponentUtil
+                                .formatDurationWordsForLocal(-delta, true, true, page))
+                        .getString();
             } else {
                 String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
                 return page.getString(key);
