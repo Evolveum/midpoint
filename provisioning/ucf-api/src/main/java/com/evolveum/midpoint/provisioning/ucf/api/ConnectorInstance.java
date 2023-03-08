@@ -422,4 +422,9 @@ public interface ConnectorInstance {
      */
     @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException;
+
+    /** Get description usable e.g. in exception messages. */
+    default String getHumanReadableDescription() {
+        return toString();
+    }
 }
