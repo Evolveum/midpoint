@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -80,8 +81,12 @@ import java.util.stream.Collectors;
                 @Url(mountUrl = "/admin/certification/campaigns", matchUrlForSecurity = "/admin/certification/campaigns")
         },
         encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS, label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
 
 public class PageCertCampaigns extends PageAdminCertification {
 
@@ -109,13 +114,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private static final String ID_SEARCH_STATE = "state";
     private static final String ID_SEARCH_CLEAR = "searchClear";
 
-
     // campaign on which close-stage/close-campaign/delete/reiterate has to be executed
     // (if chosen directly from row menu)
     private CertCampaignListItemDto relevantCampaign;
-    private String definitionOid;
+    private final String definitionOid;
 
-    private IModel<CertCampaignsSearchDto> searchModel;
+    private final IModel<CertCampaignsSearchDto> searchModel;
 
     public PageCertCampaigns(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
@@ -136,9 +140,8 @@ public class PageCertCampaigns extends PageAdminCertification {
             @Override
             public CertCampaignListItemDto createDataObjectWrapper(
                     PrismObject<AccessCertificationCampaignType> obj) {
-                CertCampaignListItemDto dto = super.createDataObjectWrapper(obj);
-//                createInlineMenuForItem(dto);
-                return dto;
+                //                createInlineMenuForItem(dto);
+                return super.createDataObjectWrapper(obj);
             }
         };
         provider.setOptions(null);
@@ -153,31 +156,27 @@ public class PageCertCampaigns extends PageAdminCertification {
         if (definitionOid == null) {
             return super.createPageTitleModel();
         } else {
-            return new IModel<String>() {
+            return () -> {
+                Task task = createSimpleTask("dummy");
+                PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
+                        .loadObject(AccessCertificationDefinitionType.class, definitionOid,
+                                PageCertCampaigns.this, task, task.getResult());
 
-                @Override
-                public String getObject() {
-                    Task task = createSimpleTask("dummy");
-                    PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
-                            .loadObject(AccessCertificationDefinitionType.class, definitionOid,
-                                    PageCertCampaigns.this, task, task.getResult());
+                String name = definitionPrismObject == null ? ""
+                        : WebComponentUtil.getName(definitionPrismObject);
 
-                    String name = definitionPrismObject == null ? ""
-                            : WebComponentUtil.getName(definitionPrismObject);
-
-                    return createStringResource("PageCertCampaigns.title", name).getString();
-                }
+                return createStringResource("PageCertCampaigns.title", name).getString();
             };
         }
     }
 
     private void initLayout() {
-        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         CertCampaignListItemDtoProvider provider = createProvider();
         provider.setQuery(createCampaignsQuery());
-        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<CertCampaignListItemDto>(ID_CAMPAIGNS_TABLE, provider,
+        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(ID_CAMPAIGNS_TABLE, provider,
                 initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL) {
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -197,7 +196,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
+            final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 
@@ -232,7 +231,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                     storage.setCampaignsSearch(cleanSearchDto);
 
                     Table panel = page.getCampaignsTable();
-                    DataTable table = panel.getDataTable();
+                    DataTable<?, ?> table = panel.getDataTable();
                     CertCampaignListItemDtoProvider provider = (CertCampaignListItemDtoProvider) table.getDataProvider();
                     provider.setQuery(page.createCampaignsQuery());
                     panel.setCurrentPage(storage.getPaging());
@@ -257,7 +256,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         CertCampaignsSearchDto dto = searchModel.getObject();
 
         Table panel = getCampaignsTable();
-        DataTable table = panel.getDataTable();
+        DataTable<?, ?> table = panel.getDataTable();
         CertCampaignListItemDtoProvider provider = (CertCampaignListItemDtoProvider) table.getDataProvider();
         provider.setQuery(createCampaignsQuery());
         table.setCurrentPage(0);
@@ -280,15 +279,8 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     private IModel<String> createCloseStageConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-
-                return createStringResource("PageCertCampaigns.message.closeStageConfirmSingle",
-                        relevantCampaign.getName()).getString();
-            }
-        };
+        return () -> createStringResource("PageCertCampaigns.message.closeStageConfirmSingle",
+                relevantCampaign.getName()).getString();
     }
 
     private IModel<String> createCloseCampaignConfirmString() {
@@ -304,28 +296,24 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     private IModel<String> createCloseSelectedCampaignsConfirmString() {
-        return new IModel<String>() {
+        return () -> {
 
-            @Override
-            public String getObject() {
-
-                final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
-                if (selectedData.size() > 1) {
-                    return createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
-                            selectedData.size()).getString();
-                } else if (selectedData.size() == 1) {
-                    return createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
-                            ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
-                } else {
-                    return "EMPTY";
-                }
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+            if (selectedData.size() > 1) {
+                return createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
+                        selectedData.size()).getString();
+            } else if (selectedData.size() == 1) {
+                return createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
+                        ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
+            } else {
+                return "EMPTY";
             }
         };
     }
 
     private IModel<String> createReiterateSelectedCampaignsConfirmString() {
         return new ReadOnlyModel<>(() -> {
-            final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
             if (selectedData.size() > 1) {
                 return createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmMultiple",
                         selectedData.size()).getString();
@@ -339,31 +327,21 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     private IModel<String> createDeleteCampaignConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                        relevantCampaign.getName()).getString();
-            }
-        };
+        return () -> createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
+                relevantCampaign.getName()).getString();
     }
 
     private IModel<String> createDeleteSelectedCampaignsConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
-                if (selectedData.size() > 1) {
-                    return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
-                            selectedData.size()).getString();
-                } else if (selectedData.size() == 1) {
-                    return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                            ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
-                } else {
-                    return "EMPTY";
-                }
+        return () -> {
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+            if (selectedData.size() > 1) {
+                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
+                        selectedData.size()).getString();
+            } else if (selectedData.size() == 1) {
+                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
+                        ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
+            } else {
+                return "EMPTY";
             }
         };
     }
@@ -380,7 +358,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new AjaxLinkColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.name"),
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
                 AccessCertificationCampaignType.F_NAME.getLocalPart(), CertCampaignListItemDto.F_NAME) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCampaignListItemDto> rowModel) {
@@ -397,10 +375,10 @@ public class PageCertCampaigns extends PageAdminCertification {
                 CertCampaignListItemDto.F_ITERATION);
         columns.add(column);
 
-        column = new EnumPropertyColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.state"),
+        column = new EnumPropertyColumn<>(createStringResource("PageCertCampaigns.table.state"),
                 CertCampaignListItemDto.F_STATE) {
             @Override
-            protected String translate(Enum en) {
+            protected String translate(Enum<?> en) {
                 return createStringResourceStatic(getPage(), en).getString();
             }
         };
@@ -422,7 +400,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                 CertCampaignListItemDto.F_DEADLINE_AS_STRING);
         columns.add(column);
 
-        column = new SingleButtonColumn<CertCampaignListItemDto>(new Model<>(), null) {
+        column = new SingleButtonColumn<>(new Model<>(), null) {
 
             @Override
             public boolean isButtonEnabled(IModel<CertCampaignListItemDto> model) {
@@ -1092,7 +1070,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         }
 
         Table campaignsTable = getCampaignsTable();
-        ObjectDataProvider provider = (ObjectDataProvider) campaignsTable.getDataTable().getDataProvider();
+        ObjectDataProvider<?, ?> provider = (ObjectDataProvider<?, ?>) campaignsTable.getDataTable().getDataProvider();
         provider.clearCache();
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         showResult(result);
@@ -1140,7 +1118,8 @@ public class PageCertCampaigns extends PageAdminCertification {
 
         result.recomputeStatus();
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource(
+                    "PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
         }
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         showResult(result);

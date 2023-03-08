@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @author mederly
  */
-public class CertCaseOrWorkItemDto extends Selectable {
+public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> implements SelectableRow<CertCaseOrWorkItemDto> {
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
@@ -187,9 +189,13 @@ public class CertCaseOrWorkItemDto extends Selectable {
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil
+                                .formatDurationWordsForLocal(delta, true, true, page))
+                        .getString();
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil
+                                .formatDurationWordsForLocal(-delta, true, true, page))
+                        .getString();
             } else {
                 return page.getString("PageCert.now");
             }

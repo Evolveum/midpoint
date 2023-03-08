@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -36,15 +37,10 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
-    private static final String ID_OWNER = "owner";
-    private static final String ID_REVIEW_STAGE_CAMPAIGNS = "campaignsInReviewStage";
-    private static final String ID_CAMPAIGNS_TOTAL = "campaignsTotal";
     private static final String ID_LAST_STARTED = "campaignLastStarted";
     private static final String ID_LAST_STARTED_HELP = "campaignLastStartedHelp";
     private static final String ID_LAST_CLOSED = "campaignLastClosed";
     private static final String ID_LAST_CLOSED_HELP = "campaignLastClosedHelp";
-    //    private static final String ID_OWNER_VALUE_CONTAINER = "ownerValueContainer";
-    //    private static final String ID_OWNER_INPUT = "ownerInput";
     private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
     private static final String ID_REMEDIATION = "remediation";
     private static final String ID_AUTOMATIC_ITERATION_AFTER = "automaticIterationAfter";
@@ -54,7 +50,6 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
     private static final String ID_OUTCOME_STRATEGY_HELP = "outcomeStrategyHelp";
     private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
-
     public DefinitionBasicPanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);
         initBasicInfoLayout();
@@ -62,7 +57,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
     private void initBasicInfoLayout() {
 
-        final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), CertDefinitionDto.F_NAME));
+        final TextField<?> nameField = new TextField<>(ID_NAME, new PropertyModel<>(getModel(), CertDefinitionDto.F_NAME));
         nameField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -71,7 +66,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
         });
         add(nameField);
 
-        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), CertDefinitionDto.F_DESCRIPTION));
+        final TextArea<?> descriptionField = new TextArea<>(ID_DESCRIPTION, new PropertyModel<>(getModel(), CertDefinitionDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -84,7 +79,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
         ownerRefChooser.setOutputMarkupId(true);
         add(ownerRefChooser);
 
-        DropDownChoice remediation = new DropDownChoice<>(ID_REMEDIATION, new Model<AccessCertificationRemediationStyleType>() {
+        DropDownChoice<?> remediation = new DropDownChoice<>(ID_REMEDIATION, new Model<>() {
 
             @Override
             public AccessCertificationRemediationStyleType getObject() {
@@ -113,7 +108,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
         overallIterationLimitField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(overallIterationLimitField);
 
-        DropDownChoice outcomeStrategy =
+        DropDownChoice<?> outcomeStrategy =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,
                         new PropertyModel<>(getModel(), CertDefinitionDto.F_OUTCOME_STRATEGY),
                         WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
@@ -122,17 +117,12 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
         add(WebComponentUtil.createHelp(ID_OUTCOME_STRATEGY_HELP));
 
-        Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new IModel<String>() {
-            @Override
-            public String getObject() {
-                List<AccessCertificationResponseType> stopOn = getModel().getObject().getStopReviewOn();
-                return CertMiscUtil.getStopReviewOnText(stopOn, getPageBase());
-            }
+        Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, (IModel<String>) () -> {
+            List<AccessCertificationResponseType> stopOn = getModel().getObject().getStopReviewOn();
+            return CertMiscUtil.getStopReviewOnText(stopOn, getPageBase());
         });
         add(stopReviewOn);
 
-        //        add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        //        add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
         add(new Label(ID_LAST_STARTED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_STARTED)));
         add(new Label(ID_LAST_CLOSED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_CLOSED)));
         add(WebComponentUtil.createHelp(ID_LAST_STARTED_HELP));

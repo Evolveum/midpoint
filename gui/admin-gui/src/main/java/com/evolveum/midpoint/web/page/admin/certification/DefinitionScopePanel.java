@@ -7,35 +7,26 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
-
-import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
  * @author mederly
@@ -69,13 +60,13 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
     protected void initLayout() {
-        final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), DefinitionScopeDto.F_NAME));
+        final TextField<?> nameField = new TextField<>(ID_NAME, new PropertyModel<>(getModel(), DefinitionScopeDto.F_NAME));
         nameField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -84,7 +75,8 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
         });
         add(nameField);
 
-        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
+        final TextArea<?> descriptionField = new TextArea<>(ID_DESCRIPTION, new PropertyModel<>(getModel(),
+                DefinitionScopeDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -93,14 +85,15 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
         });
         add(descriptionField);
 
-        DropDownChoicePanel objectTypeChooser = new DropDownChoicePanel(ID_OBJECT_TYPE_CHOOSER,
-                new PropertyModel(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
+        DropDownChoicePanel<?> objectTypeChooser = new DropDownChoicePanel<>(ID_OBJECT_TYPE_CHOOSER,
+                new PropertyModel<>(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
                 WebComponentUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
-                new EnumChoiceRenderer<DefinitionScopeObjectType>());
+                new EnumChoiceRenderer<>());
         add(objectTypeChooser);
         add(WebComponentUtil.createHelp(ID_OBJECT_TYPE_HELP));
 
-        TextArea filterTextArea = new TextArea(ID_SEARCH_FILTER, new PropertyModel<String>(getModel(), DefinitionScopeDto.F_SEARCH_FILTER_TEXT));
+        TextArea<?> filterTextArea = new TextArea<>(ID_SEARCH_FILTER, new PropertyModel<String>(getModel(),
+                DefinitionScopeDto.F_SEARCH_FILTER_TEXT));
         filterTextArea.setOutputMarkupId(true);
         add(filterTextArea);
         add(WebComponentUtil.createHelp(ID_SEARCH_FILTER_HELP));
@@ -116,13 +109,15 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
         add(new CheckBox(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS)));
         add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
-        add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
+        add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(),
+                DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
         add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
 
         List<QName> relationsList = WebComponentUtil.getAllRelations(getPageBase());
         relationsList.add(0, new QName(PrismConstants.NS_QUERY, "any"));
-        ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<QName>(ID_SCOPE_RELATIONS, new ListModel<QName>(getModelObject().getRelationList()),
-                new ListModel<QName>(relationsList), new QNameObjectTypeChoiceRenderer(), null);
+        ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<>(ID_SCOPE_RELATIONS,
+                new ListModel<>(getModelObject().getRelationList()),
+                new ListModel<>(relationsList), new QNameObjectTypeChoiceRenderer(), null);
         relationsPanel.setOutputMarkupId(true);
         add(relationsPanel);
 

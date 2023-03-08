@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.security;
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 import static com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration.AUTH_CONFIGURATION_ALL;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.application.AuthorizationActionValue;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -48,6 +47,16 @@ public enum PageUrlMapping {
                     "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.tasksAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.guiAll.description")),
+    CAMPAIGN_DETAILS("/admin/certification/campaigns/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_CAMPAIGN_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
     ROLE_DETAILS("/admin/role/**",
             new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
                     "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
@@ -200,7 +209,6 @@ public enum PageUrlMapping {
     REST3("/api/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
-
 
     INSPECTOR("/inspector/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
