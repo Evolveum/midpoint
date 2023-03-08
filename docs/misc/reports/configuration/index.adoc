@@ -1,28 +1,43 @@
 = Report Configuration
 :page-since: "4.4"
 :page-toc: top
-
+:toclevels: 3
 
 [TIP]
 .MidPoint 4.4 and later
+This feature is available only in midPoint 4.4 and later.
+For configuration before 4.4 please see xref:../configuration-before-4-4/[Report Configuration before midPoint version 4.4].
 
-This feature is available only in midPoint 4.4 and later. For configuration before 4.4 please see xref:../configuration-before-4-4/[Report Configuration before midPoint version 4.4].
+Native reports are intended to be native reporting mechanism for midPoint.
+The aim is to use what midPoint provides without the need for Jasper framework.
+Jasper framework was removed in midPoint 4.4.
+It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection.
+Current implementation supports exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
 
-Native reports are intended to be native reporting mechanism for midPoint. The aim is to use what midPoint provides without the need for Jasper framework. Jasper framework was removed in midPoint 4.4. It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection. Current implementation supports exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
+One of the requirements for _Native reports_ was supporting multithreading and bucketing.
+Since 4.4, multithreading is fully supported for all possible kinds of reported objects such as containers, objects and audit records.
+Bucketing is supported for objects and audit records, because currently bucketing of task  don't support containers.
 
-One of the requirements for _Native reports_ was supporting multithreading and bucketing. Since 4.4, multithreading is fully supported for all possible kinds of reported objects such as containers, objects and audit records. Bucketing is supported for objects and audit records, because currently bucketing of task  don't support containers.
-
-Every report output is stored in _export_ directory in `midPoint.home`. It is possible to send generated reports via email using notifier handler.
+Every report output is stored in _export_ directory in `midPoint.home`.
+It is possible to send generated reports via email using notifier handler.
 
 Every report object consists of configuration of three basic parts:
 
-* `behavior` - represents the direction of the report. There are two possible types of `behavior`: _export_ and _import_.
+* `behavior` - represents the direction of the report.
+There are two possible types of `behavior`: _export_ and _import_.
 +
-_Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated. This behavior is default and was common also in versions before 4.4.
+_Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated.
+This behavior is default and was common also in versions before 4.4.
 +
-_Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file. Supported format is the CSV. Import behavior is experimental.
-* `engine` - defines the report generation base. There are two supported options, reports based on object collections and reports based on dashboard. Only one can be defined at the same time.
-* `fileFormat` - represents format of the generated report file. Supported formats for now are CSV and HTML. Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
+_Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file.
+Supported format is the CSV.
+Import behavior is experimental.
+* `engine` - defines the report generation base.
+There are two supported options, reports based on object collections and reports based on dashboard.
+Only one can be defined at the same time.
+* `fileFormat` - represents format of the generated report file.
+Supported formats for now are CSV and HTML.
+Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
 
 All configuration attributes of report:
 
@@ -38,12 +53,14 @@ All configuration attributes of report:
 
 | _dashboard_
 | *DashboardReportEngineConfigurationType*
-| Configuration for dashboard-based reports. When defined, dashboard engine is used to generate reports.
+| Configuration for dashboard-based reports.
+When defined, dashboard engine is used to generate reports.
 
 
 | _objectCollection_
 | *ObjectCollectionReportEngineConfigurationType*
-| Configuration for object collection-based reports. When defined, object collection engine is used to generate report.
+| Configuration for object collection-based reports.
+When defined, object collection engine is used to generate report.
 
 
 | _defaultScriptConfiguration_
@@ -182,7 +199,9 @@ Report engine is defined with the configuring either `objectCollection` or `dash
 
 === Collection report
 
-Collection reports generate reports based on Object collection configuration. Collection reports support audit records, containers and objects, such as users, roles, organizations and so on. Basic part of configuration for Collection reports are query, columns, parameters, sub-reports and condition.
+Collection reports generate reports based on Object collection configuration.
+Collection reports support audit records, containers and objects, such as users, roles, organizations and so on.
+Basic part of configuration for Collection reports are query, columns, parameters, sub-reports and condition.
 
 [%autowidth]
 |===
@@ -200,11 +219,15 @@ Collection reports generate reports based on Object collection configuration. Co
 
 | _useOnlyReportView_
 | *boolean*
-| Specifies that during report creation, only view defined in report will be used. No other views defined outside the report will merger or considered.
+| Specifies that during report creation, only view defined in report will be used.
+No other views defined outside the report will merger or considered.
 
 | _condition_
 | *ExpressionType*
-| Condition for the searched objects. Generated report will contain only objects satisfying the condition. Condition is used only for generated reports. Use wisely, performance might suffer.
+| Condition for the searched objects.
+Generated report will contain only objects satisfying the condition.
+Condition is used only for generated reports.
+Use wisely, performance might suffer.
 
 | _parameter_
 | *SearchFilterParameterType*
@@ -218,7 +241,8 @@ Collection reports generate reports based on Object collection configuration. Co
 
 ==== Objects to be reported
 
-Objects to be reported for object collection based reports are defined using `collection` configuration property. There are three possibilities how the `collection` can be defined:
+Objects to be reported for object collection based reports are defined using `collection` configuration property.
+There are three possibilities how the `collection` can be defined:
 
 * using reference to the existing collection,
 * writing filter directly in collection attribute without reference to base collection,
@@ -259,21 +283,32 @@ Following are the examples for what the collection definition might look like.
 </report>
 ----
 
-If `collection` contains reference to existing collection and custom filter, midPoint has two filters for report, one from report and one from base collection. MidPoint makes the conjunction with the filters. Let's have an example where the first filter says that we want to see users with membership in Organization Evolveum. The second filter is for users with role End user. As the result we will see users that have memberships in organization Evolveum and role 'End user' at the same time.
+If `collection` contains reference to existing collection and custom filter, midPoint has two filters for report, one from report and one from base collection.
+MidPoint makes the conjunction with the filters.
+Let's have an example where the first filter says that we want to see users with membership in Organization Evolveum.
+The second filter is for users with role End user.
+As the result we will see users that have memberships in organization Evolveum and role 'End user' at the same time.
 
 image::collection-query.png[]
 
 ==== Columns
 
-Columns are defined using `view`. Configuration for `view` can be used at more places in midpoint, such as configuration in `adminGuiConfiguration`. For reports, there might be a view defined in report and view defined in object collection. When the view is defined in both places, merging of these two definitions is performed.
+Columns are defined using `view`.
+Configuration for `view` can be used at more places in midpoint, such as configuration in `adminGuiConfiguration`.
+For reports, there might be a view defined in report and view defined in object collection.
+When the view is defined in both places, merging of these two definitions is performed.
 
-For example, let's have a view defined for report and also view defined for object collection used to generate the report. Report view contains definition for _Name_ and _Email_ column, while view in object collection contains definition for _Given name_ and _Family name_ columns. The report generated based on this configuration will contain columns for _Name_, _Email_, _Given name_ and _Family name_.
+For example, let's have a view defined for report and also view defined for object collection used to generate the report.
+Report view contains definition for _Name_ and _Email_ column, while view in object collection contains definition for _Given name_ and _Family name_ columns.
+The report generated based on this configuration will contain columns for _Name_, _Email_, _Given name_ and _Family name_.
 
 image::collection-columns.png[]
 
 Of course when we want to use only view in report it is possible by attribute `useOnlyReportView`.
 
-Defining columns can be skipped when report in meant for audit records or any of the midPoint objects (such as `UserType`, `RoleType`, `ServiceType`,...). If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object. However, then the report is defined for containers, the columns definition cannot be omitted.
+Defining columns can be skipped when report in meant for audit records or any of the midPoint objects (such as `UserType`, `RoleType`, `ServiceType`,...).
+If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object.
+However, then the report is defined for containers, the columns definition cannot be omitted.
 
 ==== Parameters
 
@@ -284,7 +319,8 @@ Imagine that you need to report all users who have account on specific resources
 In such a case, _resource_ will be a parameter to the report, so we don't need to prepare report definition for each resource.
 The resource parameter will be set before the report is run.
 
-Usage of the parameter is very simple. We just use the name of the parameter in expression of query.
+Usage of the parameter is very simple.
+We just use the name of the parameter in expression of query.
 
 image::collection-parameters.png[]
 
@@ -369,7 +405,8 @@ We can use following attributes for parameter:
 
 | _allowedValuesExpression_
 | *ExpressionType*
-| Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.
+| Expression that determines allowed value.
+Expected `List<DisplayableValue>`.
 
 |===
 
@@ -405,9 +442,224 @@ We can use following attributes for subreport:
 
 | _order_
 | *Integer*
-| Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers go first. Entries with no order go last.
+| Order in which this entry is to be evaluated.
+Smaller numbers go first.
+Entries with no order go last.
+
+| _resultHandling_
+| *SubreportResultHandlingType*
+| Enables advanced subreport behavior, like row generation or row elimination.
+The element is optional and by default does not generate new rows nor does it drop any.
+See the following sections for the details.
 
 |===
+
+After the subreport is evaluated, it is available as a variable in the subsequent subreport expressions as well.
+
+==== Subreports generating rows
+
+++++
+{% include since.html since="4.7" %}
+++++
+
+Sometimes we want to produce multiple rows for one search result.
+For example, we want separate row for each assignment even though we used object search
+(there is an alternative, you can search for assignments directly).
+It is possible to generate rows for values of any other multi-value property.
+Another example would be xref:/midpoint/reference/misc/reports/examples/reference-search-based-report/[Reference search based report]
+which further splits its rows depending on the value metadata stored in each reference.
+
+Let's start with a simple example:
+
+[source,xml]
+----
+<subreport>
+    <name>assignment</name>
+    <order>1</order>
+    <resultHandling>
+        <multipleValues>splitParentRow</multipleValues>
+    </resultHandling>
+    <expression>
+        <script>
+            <code>object?.assignments</code>
+        </script>
+    </expression>
+</subreport>
+----
+
+This subreport takes the result row from the collection (e.g. a user search) and for each
+object returns its assignments - and *generates new row for each assignment*.
+The only other value of `multipleValues` is `embedInParentRow` - but as this is the default behavior, it is rarely needed.
+
+[WARNING]
+Because the new rows are generated after the search was executed, pagination becomes unreliable.
+Also, as of 4.7, the report preview functionality does not support reports with `splitParentRow` properly.
+The preview does not split the rows properly and content of columns using such subreport variable is likely invalid.
+
+Now we can use `assignment` variable in a column like this:
+
+[source,xml]
+----
+<column>
+    <name>activation</name>
+...
+    <export>
+        <expression>
+            <script>
+                <code>assignment?.activation?.effectiveStatus ?: 'unknown?'</code>
+            </script>
+        </expression>
+    </export>
+</column>
+----
+
+Note, that the `assignment` variable provides a single element from the collection returned by its subreport.
+This is the mechanics of `splitParentRow` handling and is more convenient.
+In case the subreport returns no elements, the original row is preserved and `null` value is provided.
+That's why we used null-safe dereferencing `?.` in the code above.
+Just as a demonstration of `?:` operator, instead of null (unlikely here) we return some default value.
+
+Summary of `splitParentRow` subreport and its usage:
+
+* Subreport should return a collection, possibly empty (`null` is treated as empty collection too).
+* Row is generated for each element of the collection.
+* Subreport variable in columns contains a single element - or `null` if subreport returned nothing.
+* If subreport returned nothing (empty collection or null), original row is still preserved.
+See the next section with the discussion of `resultHandling/noValues` element for different behavior.
+
+==== Dropping parent row with subreports
+
+++++
+{% include since.html since="4.7" %}
+++++
+
+In some cases we want to remove rows from the result.
+There are traditional options to do that - the best case is to use the `filter`, or you can add a `condition`.
+But these options do not work after a previous subreport generated new rows.
+That's where the `resultHandling/noValues` element comes handy.
+
+The default value for this option is `keepParentRow` which is the existing behavior - the row is kept.
+When set to `removeParentRow`, the row is eliminated if the return value of the subreport is `[]` or `null`.
+This means that you can generate rows from a single collection result and then filter only the interesting ones.
+
+This can be done also directly in the subreport that generates the rows, e.g. by using `findAll` in the Groovy code.
+But sometimes we want to do more sophisticated processing of each of the sub-rows and prepare a new variable.
+That's the prime example of using another subreport after the subreport with `splitParentRow`.
+If we are not interested in some sub-rows at all, simply return `[]` or `null` from this subsequent subreport
+and specify the `removeParentRow` option on it.
+
+You may also combine generating rows with their elimination in a single report:
+
+* For instance, using just `splitParentRow` (implying `keepParentRow`) always preserves the parent row,
+even if the returned value is an empty collection (or null).
+For SQL savvy users, this works just like `OUTER JOIN`.
+
+* If you combine `splitParentRow` with `removeParentRow`, the parent row is dropped if the subreport returns nothing (empty collection or null).
+This works just like `INNER JOIN` in the SQL.
+This more or less shifts the focus of the report from the originally searched objects to the values retruned by this subreport (e.g. to assignments or some ref targets).
+
+In any case, the wording "parent" is important.
+It doesn't have to be the "original" row from the collection.
+It may just as well be previously generated row from the subreport with lower order.
+Multiple `splitParentRow` can be chained, although one should cover 90% of cases and more than two are very unlikely.
+
+==== Mixing normal subreports with row generation/dropping
+
+The following contrived example shows how mixing subreport with various result handling works:
+
+[source,xml]
+----
+<subreport>
+    <!-- Just for example, object name is hardly a good fit for subreport. -->
+    <name>objectName</name>
+    <order>1</order>
+    <expression>
+        <script>
+            <code>object?.name?.orig</code>
+        </script>
+    </expression>
+</subreport>
+<subreport>
+    <name>assignment</name>
+    <order>2</order>
+    <resultHandling>
+        <multipleValues>splitParentRow</multipleValues>
+    </resultHandling>
+    <expression>
+        <script>
+            <!-- Only for demonstration, note that objectName is returned in the collection. -->
+            <code>
+                (!objectName.isEmpty() &amp;&amp; objectName[0]?.startsWith('a'))
+                    ? object?.assignments
+                    : []
+            </code>
+        </script>
+    </expression>
+</subreport>
+<subreport>
+    <name>target</name>
+    <order>3</order>
+    <resultHandling>
+        <noValues>removeParentRow</noValues>
+    </resultHandling>
+    <expression>
+        <script>
+            <code>midpoint.resolveReferenceIfExists(assignment?.targetRef)</code>
+        </script>
+    </expression>
+</subreport>
+----
+
+These subreports are in the context of a report based on a collection of users.
+
+The first subreport is a very simple standard subreport, that just prepares the variable `objectName`.
+As mentioned in the comment, it is very simple and not heavy on processing, that it would not require a subreport.
+But it demonstrates the option to reuse it in the following subreports.
+The first subreport does nothing with the original row, it merely adds additional input variable for the following subreports and columns.
+
+The second subreport demonstrates `multipleValues` set to `splitParentRow`.
+It may create additional rows for each assignment of the object - but only for objects starting with `a`.
+
+* If the object has no assignments or it doesn't match the condition, empty list (`[]`) is returned.
+In that case, original row stays as-is and `assignment` variable will have value of `null` in the subsequent expressions.
+* If there is a single assignment on the object, there is still just one row and `assignment` variable will hold the assignment value.
+* If there are multiple assignment, rows are generated for each of them, with the same `object` value provided for them.
+Variable `assignment` in the following subreports/columns holds a single assignment from the returned collection, each per row.
+
+In any case, `assignment` variable will be of `AssignmentHolderType` (or its respective prism value if the script uses `valueVariableMode` set to `prismValue`) or `null`.
+It will never be a collection, which is a specifics of `splitParentRow` handling and makes it more convenient to work with the subreport variable.
+
+Finally, there is the third subreport that tries to resolve target reference from the assignment.
+This one demonstrate `noValues` handling set to `removeParentRow`.
+Not every assignment has a targetRef, and not every reference points to an existing object.
+In both cases, the `target` subreport would return `null`; not that `resolveReferenceIfExists` function is null-safe and returns null for null input.
+Because no value is returned and `removeParentRow` is specified for this scenario - the row for which the target is null is omitted from the results.
+
+[IMPORTANT]
+====
+When combining these behaviors, the order obviously matters and you have to be aware of it - especially when dropping rows.
+With the example above, even for user starting with `a` - if it has no `assignment` with existing targetRef, the row for such user is dropped completely.
+This may be what you want - if you're interested in those target objects primarily.
+====
+
+If you needed a behavior "show users starting with 'a', optionally with assignment targets, each per row", you'd need to approach it differently:
+
+* You can use `condition` element inside `objectCollection` of the report to filter the users starting with `a`.
+* In this case it's also easy to specify this condition as a `filter` for the search query directly - that's always the best way.
+* After that you can generate rows for assignments, but filter only those with target refs, for instance:
++
+[source,groovy]
+----
+return object?.assignments?.findAll(a -> a.targetRef != null)
+----
++
+This would be used in the `assignment` subreport with `splitParentRow` option.
+* Finally, you can resolve these refs, but not dropping the rows to preserve the rows for the owning object.
+
+If you wanted just a single row for multiple unresolved targetRefs, the things get complicated, but that is already beyond the scope of this example.
+It's probably better to get `assignment.targetRef.oid` into one of the columns and use that to deal with the broken references instead.
+
+In any case, with great power comes great responsibility - and both `splitParentRow` and `removeParentRow` behavior gives you a lot of power.
 
 ==== Example of generated report
 
@@ -418,9 +670,14 @@ image::collection-example.png[]
 
 === Dashboard Report
 
-Dashboard engine generates reports by dashboard object. Dashboard object can be shown in GUI. Dashboard contains widgets, which showed actual state of midpoint. Documentation for dashboard configuration can be found in xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
+Dashboard engine generates reports by dashboard object.
+Dashboard object can be shown in GUI.
+Dashboard contains widgets, which showed actual state of midpoint.
+Documentation for dashboard configuration can be found in xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
 
-Dashboards support both currently supported file formats, but there is a difference. CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget. We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
+Dashboards support both currently supported file formats, but there is a difference.
+CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget.
+We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
 
 Following code shows basic configuration of dashboard report.
 
@@ -437,40 +694,47 @@ Following code shows basic configuration of dashboard report.
 </report>
 ----
 
-Configuration for dashboard report contains definition for _view_, _view_ attribute in dashboard report is multivalue. We can configure view for every type of objects, which are showed via widgets. View defines columns of table in report.
+Configuration for dashboard report contains definition for _view_, _view_ attribute in dashboard report is multivalue.
+We can configure view for every type of objects, which are showed via widgets.
+View defines columns of table in report.
 
 image::dashboard-view.png[]
 
-For example in our example it is first line under screenshot. We can see views for types `ResourceType`, `AuditEventRecordType` and `TaskType`.
+For example in our example it is first line under screenshot.
+We can see views for types `ResourceType`, `AuditEventRecordType` and `TaskType`.
 
-The final view of widget is merged from three levels of view. View in report for type of object, view in dashboard for widget and from view in object collection which contains configuration for widget. Columns from views are merged in a same way as in Collection report. Also, we can use attribute `useOnlyReportView` for using only view defined by report.
+The final view of widget is merged from three levels of view.
+View in report for type of object, view in dashboard for widget and from view in object collection which contains configuration for widget.
+Columns from views are merged in a same way as in Collection report.
+Also, we can use attribute `useOnlyReportView` for using only view defined by report.
 
 When we don't use view, report will be contained default columns.
-In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_. For more information about view configuration please see xref:/midpoint/reference/admin-gui/collections-views/configuration/#views[Views].
+In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_.
+For more information about view configuration please see xref:/midpoint/reference/admin-gui/collections-views/configuration/#views[Views].
 
 .Example of view for RoleType
 [source,xml]
 ----
-                <presentation>
-                        ...
-                        <view>
-                            <column>
-                                <name>nameColumn</name>
-                                <c:path>name</c:path>
-                                <display>
-                                    <label>Name</label>
-                                </display>
-                            </column>
-                            <column>
-                                <name>members</name>
-                                <display>
-                                    <label>Members</label>
-                                </display>
-                                <previousColumn>nameColumn</previousColumn>
-                                    <export>
-                                        <expression>
-                                            <script>
-                                                <code>
+<presentation>
+        ...
+        <view>
+            <column>
+                <name>nameColumn</name>
+                <c:path>name</c:path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>members</name>
+                <display>
+                    <label>Members</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                    <export>
+                        <expression>
+                            <script>
+                                <code>
 import com.evolveum.midpoint.prism.query.*
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
@@ -478,13 +742,13 @@ query = prismContext.queryFor(UserType.class).item(AssignmentHolderType.F_ROLE_M
 
 objects = midpoint.searchObjects(UserType.class, query)
 return objects.size();
-                                                </code>
-                                            </script>
-                                        </expression>
-                                    </export>
-                            </column>
-                    </view>
-                </presentation>
+                                </code>
+                            </script>
+                        </expression>
+                    </export>
+            </column>
+    </view>
+</presentation>
 ----
 
 .Example of view in Report
@@ -520,7 +784,12 @@ return objects.size();
 
 ==== Report for asynchronous widget
 
-Dashboard report has two kinds of output. Common case is to generated output file with reported data. However, it is also possible to save results of report to dashboard which configuration was used for generating report. Maybe you ask why? It is very simple, when we click in GUI for showing dashboard, midpoint synchronously send requests to repository for objects because of generating widget on screen. It is all right if we do not have many objects and requests are quick. But when we have to wait very long for showing page with widgets we can use saving result of report to dashboard and next configure dashboard in order to show this value.
+Dashboard report has two kinds of output.
+Common case is to generated output file with reported data.
+However, it is also possible to save results of report to dashboard which configuration was used for generating report.
+Maybe you ask why? It is very simple, when we click in GUI for showing dashboard, midpoint synchronously send requests to repository for objects because of generating widget on screen.
+It is all right if we do not have many objects and requests are quick.
+But when we have to wait very long for showing page with widgets we can use saving result of report to dashboard and next configure dashboard in order to show this value.
 
 Configuration of Dashboard report contains attribute _storeExportedWidgetData_, and using it you can define whether result of report will be save to file, widget or both.
 
@@ -541,13 +810,16 @@ Configuration of Dashboard report contains attribute _storeExportedWidgetData_, 
 
 ==== Example of generated report
 
-On screenshot we can see example generated report of Dashboard report in HTML format. On top we see table of widgets with name, message and status. Under table of widgets, report continue with one table for every widget.
+On screenshot we can see example generated report of Dashboard report in HTML format.
+On top we see table of widgets with name, message and status.
+Under table of widgets, report continue with one table for every widget.
 
 image::dashboard-example.png[]
 
 == Creating of report
 
-We have two choices for it. One of the choices is using classical flow for creating new object, so we find Report menu item on left side of screen and select new Report
+We have two choices for it.
+One of the choices is using classical flow for creating new object, so we find Report menu item on left side of screen and select new Report
 
 Second simplify way how to create report is to click on 'Create report' under table on object list pages (e.g. All users page).
 
@@ -557,26 +829,42 @@ After click you will be redirected to Create report page with predefined filter 
 
 == Tasks for reports
 
-If we create new report via GUI in 4.4. Midpoint create task with work definition of activity with 'classcal' way for actual kind of report. We know three kind of activities for reports.
+If we create new report via GUI in 4.4.
+Midpoint create task with work definition of activity with 'classcal' way for actual kind of report.
+We know three kind of activities for reports.
 
 === ClassicReportExportWorkDefinitionType 'reportExport'
 
-Exports any report in a "classical" way. Supports multithreading but not bucketing (multi-node mode). Support objects, containers and audit reports.
-Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.
+Exports any report in a "classical" way.
+Supports multithreading but not bucketing (multi-node mode).
+Support objects, containers and audit reports.
+Contains two parameter 'reportRef' and 'reportParam'.
+'reportRef' represent reference to report object.
+'reportParam' represent parameters for report, which are defined via GUI.
 
 === ClassicReportImportWorkDefinitionType 'reportImport'
 
-Imports a report in a "classical" way. Supports multithreading but not bucketing (multi-node mode).
+Imports a report in a "classical" way.
+Supports multithreading but not bucketing (multi-node mode).
 Contains only one parameter 'reportRef'.
 
 === DistributedReportExportWorkDefinitionType 'distributedReportExport'
 
-Exports report of repository objects or audit reports. Supports bucketing (multi-node mode) and multithreading.
-Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.
+Exports report of repository objects or audit reports.
+Supports bucketing (multi-node mode) and multithreading.
+Contains two parameter 'reportRef' and 'reportParam'.
+'reportRef' represent reference to report object.
+'reportParam' represent parameters for report, which are defined via GUI.
 
 === Convert ClassicReportExportWorkDefinitionType to DistributedReportExportWorkDefinitionType
 
-If we running report via GUI, then the task with classic report export definition will be created. If we are running report for objects or audit records and Midpoint is running in clustered mode, then we can convert the 'classical' way to distributed. We can rewrite it by modifying its xml configuration. In the configuration of task in raw mode we change 'reportExport' to 'distributedReportExport'. We change archetype from 'Report export task' to 'Distributed report export task', by changing oid for assignment, that define archetype. Next we remove current arhetypeRef and rolememberRef attributes for old archetype. And finally we add configuration for xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[Bucket-based work state management].
+If we running report via GUI, then the task with classic report export definition will be created.
+If we are running report for objects or audit records and Midpoint is running in clustered mode, then we can convert the 'classical' way to distributed.
+We can rewrite it by modifying its xml configuration.
+In the configuration of task in raw mode we change 'reportExport' to 'distributedReportExport'.
+We change archetype from 'Report export task' to 'Distributed report export task', by changing oid for assignment, that define archetype.
+Next we remove current arhetypeRef and rolememberRef attributes for old archetype.
+And finally we add configuration for xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[Bucket-based work state management].
 
 image::report-task-converting.png[]
 
@@ -584,18 +872,18 @@ Also we can create new task with distributed report export definition and set re
 
 == Import behaviour 'Import report'
 
-Since version 4.2, midPoint supports 'import report'/'reverse report'. This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
+Since version 4.2, midPoint supports 'import report'/'reverse report'.
+This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
 Report output generated by midPoint can also be used in reverse way - you can import it back to midPoint.
 In addition, it is also possible to import custom defined report output.
-Midpoint support two kind of import configuration .  Configuration for Object import and Import script.
-
+Midpoint support two kind of import configuration.
+Configuration for Object import and Import script.
 
 === Object import
 
 MidPoint has to understand the report output data structure to preform import correctly.
 This is configured in report (ReportType), in similar way as for exporting.
 For now, only _ObjectCollectionReportEngineConfigurationType_ and CSV format is supported (CSV FileFormatType).
-
 
 Example of imported file:
 
@@ -780,7 +1068,9 @@ Example below shows report (ReportType) configuration for importing CSV file wit
 
 ==== Behaviour and Options
 
-We need define that this report is import and not export, for this we need define element _behavior_. _Behavior_  contains direction _Import_ or _Export_. Also _behavior_ contains _importOptions_, which contains next elements:
+We need define that this report is import and not export, for this we need define element _behavior_.
+_Behavior_  contains direction _Import_ or _Export_.
+Also _behavior_ contains _importOptions_, which contains next elements:
 
 [%autowidth]
 |===
@@ -876,13 +1166,14 @@ Name of column in CSV file have to be same as name defined in view.
 Definition of name from view have some rules.
 Name is obtained from _Label_ of _DispalyType_ for column, when _Label_ is empty, then Midpoint finds name for item from item definition based on _Path_ element in column.
 
-
 Definition of column also contains _import/expression_ which can define script for generating items.
-Script have to return real value for example _String_ or _List_ of values for multivalue items for example _List<AssignmentType>_. Script get _input_ variable which is _String_, when item is singlevalue, or _List<String>_, when item is multivalue.
+Script have to return real value for example _String_ or _List_ of values for multivalue items for example _List<AssignmentType>_.
+Script get _input_ variable which is _String_, when item is singlevalue, or _List<String>_, when item is multivalue.
 
 === Import script
 
-We can define _importScript_ in element _behaviour_. Import script is _ExecuteScriptType_ type, so we can define more actions.
+We can define _importScript_ in element _behaviour_.
+Import script is _ExecuteScriptType_ type, so we can define more actions.
 Script contains variables with same name as headers of imported CSV file.
 For example from next file will be created variables with names _username, role_name, action, valid_from_ and _valid_to_.
 
@@ -900,8 +1191,10 @@ Example of imported file:
 "jack";"Superuser";;"2018-01-01";"2018-05-01"
 ----
 
-In next example we add/modify/delete assignment on user defined variable _username_ (in first line 'testUser02'). Operation define variable _action_ ('A'=add, 'M'=modify, 'R'=remove).
-Target of assignment define via name of role variable _role_name_.  Variables _valid_from_ and _valid_to_ define property _activation/validFrom_ and _activation/validTo_ of assignment.
+In next example we add/modify/delete assignment on user defined variable _username_ (in first line 'testUser02').
+Operation define variable _action_ ('A'=add, 'M'=modify, 'R'=remove).
+Target of assignment define via name of role variable _role_name_.
+Variables _valid_from_ and _valid_to_ define property _activation/validFrom_ and _activation/validTo_ of assignment.
 
 .Example of Import script - XML
 [source,xml]
@@ -1137,7 +1430,8 @@ The expression can easily circumvent those weak protections.
 Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
 *Allowing the right to edit any expression may lead to compromise of system security.*
 
-Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].  Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].
+Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
 This seems to work reasonably well for ordinary object-based reports.
 However, when it comes to audit reports, this solution may not be sufficient.
 xref:/midpoint/reference/security/audit/[Audit records] are *not*  midPoint objects, they are just rows in ordinary relational table.

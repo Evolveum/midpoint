@@ -756,6 +756,8 @@ Panels applicable only for system configuration:
 
 ==== Object details for resource
 
+WARNING: This feature is available since midPoint 4.6
+
 For configuration of object details for resource (ResourceType) use tag `resourceDetailsPage` insteadof `objectDetailsPage`. Configuration contains all attribute as configuration for `objectDetailsPage` and additionally contains attribute `connectorRef` that define connector of resource fow which configuration of admin gui applies. We can use classic reference, or we can use filter in reference that will be resolved during processing of configuration.
 
 .Example with oid for connectorType
@@ -839,6 +841,61 @@ Panels applicable only for resources (detail page):
 | `resourceTasks`
 
 |===
+
+==== Wizard panels
+
+WARNING: This feature is available since midPoint 4.6
+
+Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration].Only configuration for containers is supported and was tested. We can use container konfiguration for wizard panel which show panel with form.
+
+Example of configuration for wizard panel, which display form with basic configuration of resource object type (visible only attributes _displayName_, _description_, _kind_, _intent_, _securityPolicyRef_ and _default_):
+
+[source,xml]
+----
+...
+    <resourceDetailsPage>
+        <panel>
+            <identifier>rw-type-basic</identifier>
+            <container>
+                <identifier>basic</identifier>
+                    <display>
+                        <label>PageResource.wizard.step.objectType.basicSettings</label>
+                    </display>
+                    <item>
+                        <path>schemaHandling/objectType/displayName</path>
+                        <visibility>visible</visibility>
+                    </item>
+                    <item>
+                        <path>schemaHandling/objectType/description</path>
+                        <visibility>visible</visibility>
+                    </item>
+                    <item>
+                        <path>schemaHandling/objectType/kind</path>
+                        <visibility>visible</visibility>
+                    </item>
+                    <item>
+                        <path>schemaHandling/objectType/intent</path>
+                        <visibility>visible</visibility>
+                    </item>
+                    <item>
+                        <path>schemaHandling/objectType/securityPolicyRef</path>
+                        <visibility>visible</visibility>
+                    </item>
+                    <item>
+                        <path>schemaHandling/objectType/default</path>
+                        <visibility>visible</visibility>
+                    </item>
+                </container>
+                <container>
+                    <visibility>hidden</visibility>
+                    <path>schemaHandling/objectType</path>
+                </container>
+                <panelType>rw-type-basic</panelType>
+            </panel>
+        ...
+    </resourceDetailsPage>
+...
+----
 
 Panels applicable for resource wizard:
 [%autowidth]

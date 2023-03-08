@@ -1,0 +1,41 @@
+= Report Script Library
+
+In addition to the common xref:/expressions/expressions/script/functions/[script expression libraries]
+(`midpoint`, `basic` and `log`), you can also use `report` library inside report expressions.
+
+Functions from the `report` library are tailored for report creation, making it more convenient.
+
+There are functions like:
+
+* resolving functions - references to objects, assignment to their target objects, etc.,
+* support for reports related to certification campaings and cases,
+* functions for audit searching,
+* functions for simulation repots,
+* and more...
+
+// TODO there is no Javadoc currently, as the ReportFunctions is only in report-impl
+For the complete list of functions check the
+https://github.com/Evolveum/midpoint/blob/master/model/report-impl/src/main/java/com/evolveum/midpoint/report/impl/ReportFunctions.java[source code]
+(see the table below for links to concrete versions).
+
+== Source Code
+
+// TODO there is no Javadoc currently, as the ReportFunctions is only in report-impl
+
+++++
+{% versionlinks
+since: "4.0"
+development: true
+columns:
+#  - heading: JavaDoc
+#    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/report/impl/ReportFunctions.html"
+#    linkText: "JavaDoc"
+  - heading: Source Code
+    linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/report-impl/src/main/java/com/evolveum/midpoint/report/impl/ReportFunctions.java"
+    linkText: "Source"
+%}
+++++
+
+== See Also
+
+* xref:/expressions/expressions/script/functions/[Script Expression Functions]

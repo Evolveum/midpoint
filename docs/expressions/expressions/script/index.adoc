@@ -80,13 +80,14 @@ Note that the short name is still case-sensitive!
 The execution will be logged on INFO level if this property is set to true to make sure that it will be visible in the logs. +
 Available since midPoint 3.5.
 
-
+////
+TODO: this seems not to work now, see MID-8552
 | `returnType`
 | optional
 | The type of the expression result, either "list" or "scalar".
 If not set it will be determined automatically from the target data type for the expression.
 This setting should be used only if the automatic mechanism does not work as expected.
-
+////
 
 | `relativityMode`
 | optional
@@ -94,13 +95,30 @@ This setting should be used only if the automatic mechanism does not work as exp
 See below for more details.
 If not specified and allowed by the expression usage it defaults to relative mode.
 
-
 | `includeNullInputs`
 | optional
 | If set to true (which is the default) the script will be evaluated with null value as argument when the input is changed from or to an empty value.
 This generally works well for most cases.
 It may be set to false as an optimization.
 
+// TODO see note in common-core-3, name like referenceVariableMode would be better
+| `objectVariableMode`
+| optional
+| How the reference values are interpreted.
+With default value `object`, reference is dereferenced and the target object is provided instead.
+This may fail if the target does not exist, partial error is reported and no value is provided then.
+When `prismReference` is specified, the reference is used as-is, that is as a reference value.
+
+All reference variables are interpreted the same selected way.
+
+| `valueVariableMode`
+| optional
+| How the variable values are provided.
+The default setting is `realValue`, which means that value will have types like `Referencable` or `ObjectType`, or even simple types like `String`.
+Alternative is to use `prismValue` which will wrap the value inside a Prism value,
+e.g. `PrismReferenceValue`, `PrismObjectValue` or any other `PrismValue`.
+
+All variables are provided in the selected manner.
 
 | `code`
 | mandatory
@@ -184,7 +202,6 @@ Absolute evaluation mode is especially useful for selecting the most significant
 The `determineLdapSingleAttributeValue()` function above accepts a list of all LDAP attribute values as an input.
 It will then select only one value and return that as an output.
 This approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
-
 
 == Security of Script Expressions
 

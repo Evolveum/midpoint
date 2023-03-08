@@ -496,7 +496,7 @@ a| * 200 OK, result of the import operation in the body
 | POST
 | /\{type}/search
 | link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
-| xref:/midpoint/reference/concepts/query/query-api/[Query] in XML format
+| xref:/midpoint/reference/concepts/query/[Query] in XML format
 a| * 200 OK, list of found objects in the body
 
 
@@ -750,4 +750,4 @@ curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
 
-* xref:/midpoint/reference/concepts/query/query-api/[Query API]
+* xref:/midpoint/reference/concepts/query/[midPoint Query]
