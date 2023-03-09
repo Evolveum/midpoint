@@ -9,11 +9,6 @@ podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
-        yaml:'''
-spec:
-  securityContext:
-    fsGroup: 1000
-''',
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.10-3-alpine',

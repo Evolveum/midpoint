@@ -116,4 +116,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+        Fixes MID-8486 invalid "undefined" link in Javadoc search on JDK 11.
+        See also discussion under this answer: https://stackoverflow.com/a/52603413
+        -->
+        <profile>
+            <id>active-on-jdk-11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <javadoc.options>--no-module-directories</javadoc.options>
+            </properties>
+        </profile>
+    </profiles>
 </project>

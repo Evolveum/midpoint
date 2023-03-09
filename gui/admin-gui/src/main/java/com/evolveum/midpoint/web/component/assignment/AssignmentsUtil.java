@@ -42,10 +42,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class AssignmentsUtil {
 
     public enum AssignmentTypeType {
-        CONSTRUCTION, ABSTRACT_ROLE, POLICY_RULE, FOCUS_MAPPING, PERSONA_CONSTRUCTION, ASSIGNMENT_RELATION;
+        CONSTRUCTION, ABSTRACT_ROLE, POLICY_RULE, FOCUS_MAPPING, PERSONA_CONSTRUCTION, ASSIGNMENT_RELATION
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
+    private static final String DOT_CLASS = AssignmentsUtil.class.getSimpleName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadObject";
 
     public static AssignmentTypeType getAssignmentType(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
         if (assignmentValueWrapper == null) {
@@ -168,7 +170,7 @@ public class AssignmentsUtil {
     }
 
     public static IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
-        return new Model<Date>() {
+        return new Model<>() {
 
             @Override
             public Date getObject() {
@@ -191,7 +193,7 @@ public class AssignmentsUtil {
     }
 
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {
-        return new IModel<String>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -202,7 +204,7 @@ public class AssignmentsUtil {
     }
 
     public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type) {
-        return new IModel<String>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -276,7 +278,7 @@ public class AssignmentsUtil {
             // account assignment through account construction
             ConstructionType construction = assignment.getConstruction();
             if (construction.getResourceRef() != null) {
-                sb.append(WebComponentUtil.getName(construction.getResourceRef(), true));
+                sb.append(WebComponentUtil.getName(construction.getResourceRef(), pageBase, OPERATION_LOAD_USER));
             }
             return sb.toString();
         }
