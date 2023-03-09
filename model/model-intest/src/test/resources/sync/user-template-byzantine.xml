@@ -6,7 +6,7 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
+<objectTemplate oid="c287436b-1269-4a5f-83cd-a7ba1ef1c048"
                 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"

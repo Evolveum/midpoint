@@ -417,7 +417,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         return null;
     }
 
-    protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation, Long timeBeforeSync) {
+    @SuppressWarnings("SameParameterValue")
+    protected void assertShadowOperationalData(
+            PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation, Long timeBeforeSync) {
         ShadowType shadowType = shadow.asObjectable();
         SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
         assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
