@@ -70,9 +70,11 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
                 saveException(request, exception);
                 getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
                 return;
+            } else {
+                moduleAuthentication.recordFailure(exception);
+                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication());
             }
-            moduleAuthentication.recordFailure(exception);
-            saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
         }
 
         saveException(request, exception);

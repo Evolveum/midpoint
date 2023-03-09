@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
@@ -180,10 +179,10 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private boolean showErrorMessage() {
-        return !previousPrecessedModuleHasSufficientNecessity();
+        return !previousPrecessedModuleHasRequisiteNecessity();
     }
 
-    private boolean previousPrecessedModuleHasSufficientNecessity() {
+    private boolean previousPrecessedModuleHasRequisiteNecessity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
