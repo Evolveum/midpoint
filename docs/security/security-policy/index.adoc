@@ -13,9 +13,16 @@ Security policy object contains definition of a security-related setting for an 
 It refers to password policies and contains configuration for different types of credentials (security questions, nonce, password).
 It is also used to define password resets, self-service registration and so on.
 
-Starting from 4.7 version there is a possibility to merge security policies. This mechanism allows to apply different security policies for different groups of user. The security policy which should be applied to the user (or to the group of the users) can be defined in several places in midPoint: in global security policy (assigned in system configuration), in the organization to which the user belongs, in the structural archetype (or its super-structural-archetypes) which is assigned to the user. All security policies which are defined in the specified objects are merged into one with the next order: "closer" to the user security policies have higher priority. This means the security policy from the user's archetype can extend/override a security policy from super archetype, super archetype security policy can extend/override a security policy from organization, a security policy from the organization can extend/override a global security policy.
+== Security Policy Merging
 
-For example, let's say first step of the authentication sequence for user's password reset is defined in the global security policy, most probably it should be an authentication module which identifies the user. All users who are members of the University organizational unit should be also authenticated with mail nonce module therefore this module should be defined in the security policy assigned to the University organization. But as a third authentication step the user's attribute should be verified, besides the attribute differs for Teachers (let's say Teacher ID) and Students (Student ID) groups. In that case there will be a security policy defined for Teachers archetype and another one for Students archetype, each of these security policies defines its own authentication module. As a result a user who is a member of the University organization and has Students archetype should be authenticated with the module from global security policy, then with the module defined in the organizational security policy, and then from archetype security policy. The full authentication sequence for the user is merged from different security policies. Some more examples and explanation you can find by the link xref:/midpoint/reference/security/credentials/password-reset/index.adoc[Password Reset Configuration].
+Starting from 4.7 version there is a possibility to merge security policies. This mechanism allows to apply different security policies for different groups of user. The security policy which should be applied to the user (or to the group of the users) can be defined in several places in midPoint:
+
+. in global security policy (assigned in system configuration),
+. in the organization to which the user belongs,
+. in the structural archetype (or its super-structural-archetypes) which is assigned to the user.
+
+All security policies which are defined in the specified objects are merged into one in such an order that security policies "closer" to the user have higher priority.
+This means the security policy from the user's archetype can extend/override a security policy from super archetype, super archetype security policy can extend/override a security policy from organization, a security policy from the organization can extend/override a global security policy.
 
 Following is the example of complex Security Policy.
 
