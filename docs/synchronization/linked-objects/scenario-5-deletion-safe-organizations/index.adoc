@@ -82,3 +82,7 @@ But the scenario can be extended and made more robust, by:
 . Replacing `linkSource` specification by custom query looking after `assignment/targetRef` filters.
 
 . Creating additional global policy rule that will clean up the inducements for organization being deleted.
+
+An additional limitation is that the process of unassignment is not quite "clean":
+Because the assigned Org object does no longer exist, there are errors reported in the log and in the audit.
+See also bug:MID-8366[].
