@@ -74,7 +74,8 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
      */
     private boolean evaluated;
 
-    public ConstructionEvaluation(@NotNull EvaluatedResourceObjectConstructionImpl<AH, ROC> evaluatedConstruction,
+    ConstructionEvaluation(
+            @NotNull EvaluatedResourceObjectConstructionImpl<AH, ROC> evaluatedConstruction,
             @NotNull Task task, @NotNull OperationResult result) {
         this.evaluatedConstruction = evaluatedConstruction;
         this.construction = evaluatedConstruction.getConstruction();

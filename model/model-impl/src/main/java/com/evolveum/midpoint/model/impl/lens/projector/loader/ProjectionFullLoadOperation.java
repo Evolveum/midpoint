@@ -87,8 +87,6 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         createTraceIfNeeded(result);
 
         try {
-            String oid = projCtx.getOid();
-
             if (projCtx.isHigherOrder()) {
                 // It may be just too early to load the projection
                 if (LensUtil.hasLowerOrderContext(context, projCtx) && context.getExecutionWave() < projCtx.getWave()) {
@@ -99,6 +97,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
             }
 
             Collection<SelectorOptions<GetOperationOptions>> options = createOptions();
+            String oid = projCtx.getOid();
             try {
                 if (oid == null) {
                     throw new IllegalStateException("Trying to load shadow with null OID (reason for load: " + reason + ") for "

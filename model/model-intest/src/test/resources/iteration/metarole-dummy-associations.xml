@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="fc07a007-fdd4-44d3-99cf-d57b4df9509d">
+    <name>metarole-dummy-associations</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="64ae70db-2b2c-418e-b2bd-d167a28cfbd3"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="64ae70db-2b2c-418e-b2bd-d167a28cfbd3"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>

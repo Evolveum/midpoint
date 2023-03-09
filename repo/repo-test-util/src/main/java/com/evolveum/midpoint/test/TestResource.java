@@ -17,8 +17,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -65,6 +64,20 @@ public class TestResource<T extends ObjectType> {
 
     public ObjectReferenceType ref() {
         return ObjectTypeUtil.createObjectRef(object, SchemaConstants.ORG_DEFAULT);
+    }
+
+    /** Assumes the object can be assigned via `targetRef`. */
+    public AssignmentType assignmentTo() {
+        return new AssignmentType().targetRef(ref());
+    }
+
+    /** Assumes the object is a resource. */
+    public AssignmentType assignmentWithConstructionOf(ShadowKindType kind, String intent) {
+        return new AssignmentType()
+                .construction(new ConstructionType()
+                        .resourceRef(ref())
+                        .kind(kind)
+                        .intent(intent));
     }
 
     public void read() throws SchemaException, IOException {

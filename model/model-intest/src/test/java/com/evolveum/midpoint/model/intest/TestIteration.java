@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -99,6 +103,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     protected static final File USER_TEMPLATE_ITERATION_ASSOCIATE_FILE = new File(TEST_DIR, "user-template-iteration-associate.xml");
     protected static final String USER_TEMPLATE_ITERATION_ASSOCIATE_OID = "c0ee8964-0d2a-45d5-8a8e-6ee4f31e1c12";
 
+    // Used e.g. in test910
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_SIMPLE_ITERATION = new TestResource<>(
+            TEST_DIR, "user-template-simple-iteration.xml", "1f104a6b-f7f1-4a69-a68b-c71fa2f9f1ac");
+
     private static final String USER_ANGELICA_NAME = "angelica";
     private static final String ACCOUNT_SPARROW_NAME = "sparrow";
 
@@ -149,7 +157,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
     private static final String EMAIL_SUFFIX = "@example.com";
 
-    protected String jupiterUserOid;
+    private static final DummyTestResource RESOURCE_DUMMY_ASSOCIATIONS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-associations.xml", "64ae70db-2b2c-418e-b2bd-d167a28cfbd3",
+            "associations");
+    private static final TestResource<RoleType> METAROLE_DUMMY_ASSOCIATIONS = new TestResource<>(
+            TEST_DIR, "metarole-dummy-associations.xml", "fc07a007-fdd4-44d3-99cf-d57b4df9509d");
+    private static final TestResource<RoleType> ROLE_CS_101 = new TestResource<>(
+            TEST_DIR, "role-cs-101.xml", "4e8170d7-31e6-4c5f-b3c6-ad9f7c4bbb62");
+
+    private String jupiterUserOid;
 
     String iterationTokenDiplomatico;
     String iterationTokenMillonario;
@@ -184,6 +200,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         addObject(USER_LARGO_FILE);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        addObject(USER_TEMPLATE_SIMPLE_ITERATION, initTask, initResult);
+
+        initAndTestDummyResource(RESOURCE_DUMMY_ASSOCIATIONS, initTask, initResult);
+        addObject(METAROLE_DUMMY_ASSOCIATIONS, initTask, initResult);
+        addObject(ROLE_CS_101, initTask, initResult);
     }
 
     /**
@@ -2207,5 +2229,46 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, CaseType.class);
         dummyAuditService.assertExecutionSuccess();
+    }
+
+    /** Simply adding (conflicting) user with an association. MID-8569. */
+    @Test
+    public void test910AddUserWithAssociation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_SIMPLE_ITERATION.oid);
+        try {
+            given("existing user 'Joe Smith' with CS-101 assignment");
+            UserType existingJoe = new UserType()
+                    .givenName("Joe")
+                    .familyName("Smith")
+                    .assignment(ROLE_CS_101.assignmentTo());
+            addObject(existingJoe.asPrismObject(), task, result);
+            assertUserWithAssociation("smith1");
+
+            when("conflicting 'John Smith' with CS-101 assignment is added");
+            UserType newJoe = new UserType()
+                    .givenName("John")
+                    .familyName("Smith")
+                    .assignment(ROLE_CS_101.assignmentTo());
+            addObject(newJoe.asPrismObject(), task, result);
+
+            then("second user is created");
+            assertUserWithAssociation("smith2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    private void assertUserWithAssociation(String name) throws Exception {
+        String shadowOid = assertUserAfterByUsername(name)
+                .links()
+                .singleLive()
+                .getOid();
+
+        assertShadow(getShadowModel(shadowOid), "after")
+                .associations()
+                .assertSize(1);
     }
 }

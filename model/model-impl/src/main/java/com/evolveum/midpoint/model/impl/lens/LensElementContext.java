@@ -15,11 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
-
-import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +25,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
+import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
+import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -509,12 +509,24 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Kinds of operations
+
+    /**
+     * Be cautious when using this method for {@link LensProjectionContext}. The projection may be called into existence because
+     * a construction is assigned - i.e., no primary delta exists in this case. But the policy decision can also be null: until
+     * {@link ActivationProcessor#processProjectionsActivation(LensContext, String, XMLGregorianCalendar, Task, OperationResult)}
+     * is started - e.g. during the whole focus projection! See also MID-8569.
+     */
     public abstract boolean isAdd();
 
+    /**
+     * See also limitations for {@link #isAdd()}.
+     */
     public abstract boolean isDelete();
 
     /**
      * TODO description
+     *
+     * See also limitations for {@link #isAdd()}.
      */
     public boolean isModify() {
         return ObjectDelta.isModify(getCurrentDelta());
