@@ -126,6 +126,8 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         checkNotYetEvaluated();
 
+        LOGGER.trace("Starting evaluation of (item-level) {}", this);
+
         constructionEvaluation.loadFullShadowIfNeeded(this);
 
         try {
@@ -147,7 +149,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         }
     }
 
-    protected void checkNotYetEvaluated() {
+    private void checkNotYetEvaluated() {
         if (evaluatedMapping != null) {
             throw new IllegalStateException();
         }
@@ -313,4 +315,12 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     }
 
     abstract String getLifecycleState();
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "itemName=" + itemName +
+                ", itemPath=" + itemPath +
+                '}';
+    }
 }

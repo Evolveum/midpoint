@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -57,6 +58,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Lens context for a computation element - a focus or a projection.
@@ -525,12 +528,24 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Kinds of operations
+
+    /**
+     * Be cautious when using this method for {@link LensProjectionContext}. The projection may be called into existence because
+     * a construction is assigned - i.e., no primary delta exists in this case. But the policy decision can also be null: until
+     * {@link ActivationProcessor#processProjectionsActivation(LensContext, String, XMLGregorianCalendar, Task, OperationResult)}
+     * is started - e.g. during the whole focus projection! See also MID-8569.
+     */
     public abstract boolean isAdd();
 
+    /**
+     * See also limitations for {@link #isAdd()}.
+     */
     public abstract boolean isDelete();
 
     /**
      * TODO description
+     *
+     * See also limitations for {@link #isAdd()}.
      */
     public boolean isModify() {
         return ObjectDelta.isModify(getCurrentDelta());

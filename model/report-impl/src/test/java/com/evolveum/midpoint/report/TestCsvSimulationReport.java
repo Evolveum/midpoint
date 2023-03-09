@@ -171,10 +171,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
     }
 
     private static void addStandardArchetypeAssignments(UserType u) {
-        u.getAssignment().add(
-                new AssignmentType().targetRef(ARCHETYPE_BLUE.ref()));
-        u.getAssignment().add(
-                new AssignmentType().targetRef(ARCHETYPE_MAGENTA.ref()));
+        u.getAssignment().add(ARCHETYPE_BLUE.assignmentTo());
+        u.getAssignment().add(ARCHETYPE_MAGENTA.assignmentTo());
     }
 
     /** Checks the most simple "create user" scenario. */
@@ -753,11 +751,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
         UserType user = new UserType()
                 .name(userName)
                 .fullName("Jack Sparrow")
-                .assignment(new AssignmentType()
-                        .construction(new ConstructionType()
-                                .resourceRef(RESOURCE_DUMMY_OUTBOUND.oid, ResourceType.COMPLEX_TYPE)))
-                .assignment(new AssignmentType()
-                        .targetRef(ARCHETYPE_BLUE.ref()));
+                .assignment(RESOURCE_DUMMY_OUTBOUND.assignmentWithConstructionOf(null, null))
+                .assignment(ARCHETYPE_BLUE.assignmentTo());
         addObject(user.asPrismObject(), task, result);
 
         when("account is modified via user (simulated)");
@@ -871,14 +866,10 @@ public class TestCsvSimulationReport extends TestCsvReport {
         UserType user = new UserType()
                 .name(userName)
                 .fullName("Jack Sparrow")
-                .assignment(new AssignmentType()
-                        .construction(new ConstructionType()
-                                .resourceRef(RESOURCE_DUMMY_OUTBOUND.ref())
-                                .kind(ShadowKindType.ACCOUNT)
-                                .intent("default")))
-                .assignment(new AssignmentType().targetRef(ARCHETYPE_BLUE.ref()))
-                .assignment(new AssignmentType().targetRef(ROLE_TESTER.ref()))
-                .assignment(new AssignmentType().targetRef(ROLE_ADMIN.ref()));
+                .assignment(RESOURCE_DUMMY_OUTBOUND.assignmentWithConstructionOf(ShadowKindType.ACCOUNT, "default"))
+                .assignment(ARCHETYPE_BLUE.assignmentTo())
+                .assignment(ROLE_TESTER.assignmentTo())
+                .assignment(ROLE_ADMIN.assignmentTo());
         addObject(user.asPrismObject(), task, result);
         var userReloaded = repositoryService.getObject(UserType.class, user.getOid(), null, result);
 
@@ -1203,7 +1194,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .name(userName)
                 .fullName("Jack Sparrow")
                 .organization("org1")
-                .assignment(new AssignmentType().targetRef(ROLE_ADMIN.ref()));
+                .assignment(ROLE_ADMIN.assignmentTo());
         addObject(user.asPrismObject(), task, result);
         var userReloaded = repositoryService.getObject(UserType.class, user.getOid(), null, result);
 
