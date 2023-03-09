@@ -10,11 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -161,17 +164,36 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             return;
         }
 
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
+        if (showErrorMessage()) {
+            String msg = ex.getMessage();
+            if (StringUtils.isEmpty(msg)) {
+                msg = "web.security.provider.unavailable";
+            }
 
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
+            String[] msgs = msg.split(";");
+            for (String message : msgs) {
+                message = getLocalizationService().translate(message, null, getLocale(), message);
+                error(message);
+            }
         }
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+    }
+
+    private boolean showErrorMessage() {
+        return !previousPrecessedModuleHasSufficientNecessity();
+    }
+
+    private boolean previousPrecessedModuleHasSufficientNecessity() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            int index = mpAuthentication.getIndexOfProcessingModule(false);
+            if (index > 0) {
+                ModuleAuthentication module = mpAuthentication.getAuthModules().get(index - 1).getBaseModuleAuthentication();
+                return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(module.getNecessity());
+            }
+        }
+        return false;
     }
 
     @Override
