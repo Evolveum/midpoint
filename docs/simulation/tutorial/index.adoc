@@ -12,7 +12,7 @@ NOTE: The reader is expected to have reasonable knowledge of midPoint; we don't 
 NOTE: The simulations feature requires midPoint 4.7 or later, and the native (PostgreSQL-based) repository.
 
 The overall scenario is that we connect HR system - represented by a CSV file - to midPoint.
-Then, we will connect the target system, represented again by a CSV file.
+Then, we will connect the target LDAP-based system, represented again by a CSV file.
 
 Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial[midPoint samples] repository.
 
@@ -20,7 +20,7 @@ Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-
 
 === Step HR-1: Viewing the Raw HR Data
 
-. Create a directory for CSV files (like `~/sim-tutorial`) and copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/hr.csv[HR CSV file] there.
+. Create a directory for CSV files (like `~/sim-tutorial`) and copy the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/hr.csv[HR CSV file] there.
 . Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-1.xml[HR definition #1] matches the location of the copied HR CSV file.
 . Import the HR definition #1 into midPoint.
 Note that the lifecycle state of the resource is `proposed`, so the whole resource definition is in the development mode.
@@ -124,7 +124,7 @@ In 4.7, it is an xref:/midpoint/versioning/experimental/[experimental functional
 
 Let us go through options 2b and 2a now.
 
-==== Simulation of Re-classification Process (experimental functionality)
+==== Simulation of Re-classification Process
 
 ++++
 {% include experimental.html %}
@@ -361,7 +361,7 @@ We see that our mappings work correctly.
 === Step HR-5: Switching the Resource into Production
 
 Now we can change the lifecycle state of the resource to `active`, making it part of the production configuration.
-After that, we can run the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
+After that, we can run the https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
 
 We observe that the users were added.
 
@@ -535,3 +535,375 @@ Just as in <<Step HR-3: Change the Definition of the Object Type>> we have now t
 . Execute the correlation and see the results right on the shadows.
 . Simulate the correlation first (experimental feature).
 
+==== Simulating the Correlation
+
+++++
+{% include experimental.html %}
+++++
+
+===== Running the Simulation
+
+Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import-shadow-management-simulation.xml[task].
+It is analogous to the one mentioned in <<Step HR-3: Change the Definition of the Object Type>>; only the resource reference is different.
+
+.Listing 11: A task that simulates the accounts correlation
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>ldap-import (shadow management simulation)</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="80d0e843-906a-4bbe-b237-bd3568ec4169"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <execution>
+            <mode>shadowManagementPreview</mode> <!--1-->
+            <configurationToUse>
+                <predefined>development</predefined>
+            </configurationToUse>
+        </execution>
+        <reporting>
+            <simulationResult/>
+        </reporting>
+    </activity>
+</task>
+----
+<1> Selects the (experimental) low-level simulation that captures changes to the shadows during classification and correlation.
+
+===== Viewing the Results
+
+After running this task, the correlation information in the shadows will _not_ change, but a new simulation result is created.
+It looks like this:
+
+.Simulation result capturing the first correlation
+image::result-after-first-correlation.png[Simulation result capturing the first correlation]
+
+We see that there are 9 objects whose correlation state has changed.
+We can look at the details by clicking on "Shadow correlation state changed" mark, and then on any shadow:
+
+.Correlated accounts
+image::result-after-first-correlation-objects.png[Correlated accounts]
+
+.Correlated account details
+image::result-after-first-correlation-object-details.png[Correlated account details]
+
+===== Creating a Report
+
+The results can be also exported into CSV, by running a report named _Simulation report: Items changed_, with the following parameters:
+
+[%autowidth]
+[%heading]
+|===
+| Parameter | Value | Description
+| Simulation result | choose the simulation result |
+| Show rows with no details | `false` | to show only the really changed values
+|===
+
+After opening the CSV in the spreadsheet and hiding unimportant rows and columns it will look like this:
+
+.Correlation report
+image::result-after-first-correlation-report-1.png[Correlation report]
+
+To facilitate working with this experimental kind of simulations, we have prepared a https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/report-shadow-simulations-objects.xml[sample customized report].
+Please import and run it now.
+You should see something like this.
+
+.Specialized correlation report
+image::result-after-first-correlation-report-2.png[Specialized correlation report]
+
+==== Running the Correlation
+
+After we are satisfied with the expected correlation results (in this iteration), we can make them permanent by running the correlation in real.
+
+Import the following https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import-full-simulation-no-result.xml[task].
+
+.Listing 12: A task that executes the accounts correlation
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>ldap-import (full simulation, no result)</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="80d0e843-906a-4bbe-b237-bd3568ec4169"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <execution>
+            <mode>preview</mode>
+            <configurationToUse>
+                <predefined>development</predefined>
+            </configurationToUse>
+        </execution>
+        <reporting>
+            <simulationResult/>
+        </reporting>
+    </activity>
+</task>
+----
+After running the task and listing the accounts, we see their synchronization situation was changed like this.
+
+.Content of LDAP resource after initial correlation run
+image::shadows-after-first-correlation.png[Content of LDAP resource after initial correlation run]
+
+=== Step LDAP-4: Improving the Correlation
+
+Imagine now that further analysis showed that we can correlate remaining accounts either using e-mail address or (with lower certainty) using the user name.
+Please import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-4.xml[LDAP definition #4].
+
+The configuration now looks like this:
+
+.Listing 13: Updated definition of LDAP resource correlation
+[source,xml]
+----
+<attribute>
+    <ref>ri:employeeNumber</ref>
+    <!-- The 'correlator' property is no longer here --><!--1-->
+    <inbound>
+        <target>
+            <path>employeeNumber</path>
+        </target>
+        <evaluationPhases>
+            <include>beforeCorrelation</include>
+            <exclude>clockwork</exclude>
+        </evaluationPhases>
+    </inbound>
+</attribute>
+<attribute>
+    <ref>ri:mail</ref>
+    <inbound>
+        <target>
+            <path>emailAddress</path>
+        </target>
+        <evaluationPhases>
+            <include>beforeCorrelation</include>
+            <exclude>clockwork</exclude>
+        </evaluationPhases>
+    </inbound>
+</attribute>
+<attribute>
+    <ref>ri:givenName</ref>
+    <inbound>
+        <target>
+            <path>givenName</path>
+        </target>
+        <evaluationPhases>
+            <include>beforeCorrelation</include>
+            <exclude>clockwork</exclude>
+        </evaluationPhases>
+    </inbound>
+</attribute>
+<attribute>
+    <ref>ri:sn</ref>
+    <inbound>
+        <target>
+            <path>familyName</path>
+        </target>
+        <evaluationPhases>
+            <include>beforeCorrelation</include>
+            <exclude>clockwork</exclude>
+        </evaluationPhases>
+    </inbound>
+</attribute>
+<correlation>
+    <correlators>
+        <items>
+            <item>
+                <ref>employeeNumber</ref>
+            </item>
+            <composition>
+                <tier>1</tier> <!--2-->
+            </composition>
+        </items>
+        <items>
+            <item>
+                <ref>emailAddress</ref>
+            </item>
+            <composition>
+                <tier>2</tier> <!--3-->
+            </composition>
+        </items>
+        <items>
+            <item>
+                <ref>givenName</ref>
+            </item>
+            <item>
+                <ref>familyName</ref>
+            </item>
+            <composition>
+                <tier>3</tier> <!--4-->
+                <weight>0.8</weight>
+            </composition>
+        </items>
+    </correlators>
+</correlation>
+----
+<1> The simple correlator was moved to the complex correlation configuration in `correlation` container.
+<2> Correlation on `employeeNumber` executes first.
+If it finds a match, the correlation process stops here.
+<3> Correlation on `emailAddress` executes second.
+If it finds a match, the correlation process stops here.
+Note that we would need a way of telling midPoint that `emailAddress` matching should not apply if the `employeeNumber` value is present and not matching for particular candidate owner.
+<4> If `givenName` and `familyName` match, the candidate owner is presented but with a lower confidence (0.8), indicating a need for human confirmation.
+
+Now we can run the simulation of the correlation.
+The results would like the following:
+
+.Simulation result capturing the second correlation
+image::result-after-second-correlation.png[Simulation result capturing the second correlation]
+
+.Correlated accounts
+image::result-after-second-correlation-objects.png[Correlated accounts]
+
+.Correlated account details
+image::result-after-second-correlation-object-details.png[Correlated account details]
+
+.Specialized correlation report
+image::result-after-second-correlation-report.png[Specialized correlation report]
+
+After we are satisfied with the results, we can "commit" them by executing the same https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import-full-simulation-no-result.xml[task] as in <<Step LDAP-3: Correlation on Employee Number>>.
+
+#TODO show the list of shadows#
+
+=== Step LDAP-5: Marking Shadows as Ignored
+
+Here we could mark some shadows as ignored.
+
+#TODO put here after GUI and reports will support it#
+
+=== Step LDAP-6: Linking the Remaining Shadows Manually
+
+In order to link the shadows, we have to put the resource into production mode.
+We make sure that there are no inbound mappings that would move any data from the resource to midPoint.
+(If there were any, we could put them into development mode to avoid their unintentional use.)
+
+So, please import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-5.xml[LDAP definition #5].
+
+.Listing 14: Updated definition of LDAP resource
+[source,xml]
+----
+...
+<lifecycleState>active</lifecycleState>
+...
+<schemaHandling>
+    <objectType>
+        ...
+        <synchronization>
+            <reaction>
+                <situation>linked</situation>
+                <actions>
+                    <synchronize/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <actions>
+                    <link/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>disputed</situation>
+                <actions>
+                    <createCorrelationCase/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <actions>
+                    <unlink/>
+                </actions>
+            </reaction>
+            <!-- intentionally no reaction for unmatched -->
+        </synchronization>
+    </objectType>
+</schemaHandling>
+...
+----
+
+Let us run the https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import.xml[regular LDAP import task].
+After that, the LDAP accounts should look like this:
+
+.LDAP shadows after the first import
+image::shadows-after-first-import.png[LDAP shadows after the first import]
+
+We see that two shadows are now linked to their owners (`empNo:1`, `empNo:2`), two are disputed, and others are unmatched.
+
+We can link the disputed shadows by resolving appropriate cases: `alice` to `empNo:3` and `rblack` to `empNo:4`.
+Then we can link `bob` to `empNo:5` manually.
+
+After running the import again, the shadows should look like this:
+
+.LDAP shadows after the second import
+image::shadows-after-second-import.png[LDAP shadows after the second import]
+
+=== Step LDAP-7: Importing the usernames into midPoint
+
+Currently, our users have their (temporary) names derived from employee numbers:
+
+.Temporary usernames
+image::temporary-usernames.png[Temporary usernames]
+
+Eventually, we would like the names to be consistent with LDAP dn and uid values, and to be generated in such format for new users.
+To achieve this, we now need to import existing names from LDAP to midPoint.
+
+.Listing 15: Updated definition of LDAP resource
+[source,xml]
+----
+<attribute>
+    <ref>ri:uid</ref>
+    <inbound>
+        <strength>strong</strength>
+        <target>
+            <path>name</path>
+        </target>
+        <condition>
+            <script>
+                <code> <!--1-->
+                    def userOld = midpoint.modelContext.focusContextRequired.objectOld
+                    userOld?.asObjectable()?.name?.orig?.startsWith('empNo:')
+                </code>
+            </script>
+        </condition>
+    </inbound>
+</attribute>
+----
+<1> We want to replace the usernames only for those users that have a temporary one.
+(In the future, we plan to allow having users without usernames.
+The condition would be transferred to `weak` strength.)
+Note that we have to explicitly use `userOld` value to avoid possible 'true->false' condition state changes that could result from the (repeated) execution of this mapping.
+
+After running the import, we can see the expected changes:
+
+.Simulation result after simulated import of usernames
+image::renamed-users-result.png[Simulation result after simulated import of usernames]
+
+We see 5 "focus renamed" events, so let us have a look.
+
+.Simulation result objects
+image::renamed-users-objects.png[Simulation result objects]
+
+.Simulation result object details
+image::renamed-users-object-details.png[Simulation result object details]
+
+We can also run the "Simulation report: Items changed" to see the results in a spreadsheet.
+We recommend setting "Show rows with no details" to `false` to hide objects that were not changed.
+
+.Simulation report
+image::renamed-users-report.png[Simulation report]
+
+After we are satisfied with the result, we can switch the mapping to production mode and run the regular import or reconciliation task.
+
+== Conclusion
+
+In this tutorial, we showed how to use new xref:/midpoint/reference/simulation/[simulations] feature to realize a simple scenario of connecting one source and one target resource.
+You can find more detailed information #TODO here#.
