@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +86,17 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                         return;
                     }
                     continueSequence = true;
+                }
+
+                if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
+                    HttpSession session = request.getSession(false);
+                    if (session != null) {
+                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExsits());
+                    }
+
+                    getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                    return;
                 }
                 if (mpAuthentication.isAuthenticated() && !continueSequence) {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();

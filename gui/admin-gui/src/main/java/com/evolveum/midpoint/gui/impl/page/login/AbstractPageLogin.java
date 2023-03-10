@@ -163,18 +163,15 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             return;
         }
 
-        if (showErrorMessage()) {
+//        if (showErrorMessage()) {
             String msg = ex.getMessage();
             if (StringUtils.isEmpty(msg)) {
                 msg = "web.security.provider.unavailable";
             }
-
             String[] msgs = msg.split(";");
-            for (String message : msgs) {
-                message = getLocalizationService().translate(message, null, getLocale(), message);
-                error(message);
-            }
-        }
+            String message = getLocalizationService().translate(msgs[0], null, getLocale(), msgs[0]);
+            error(message);
+//        }
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
