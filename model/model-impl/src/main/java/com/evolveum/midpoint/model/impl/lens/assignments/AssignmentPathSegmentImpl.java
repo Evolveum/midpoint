@@ -542,11 +542,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
         rv.setAssignmentId(assignment.getId());
         if (source != null) {
-            rv.setSourceRef(ObjectTypeUtil.createObjectRef(source, getPrismContext()));
+            rv.setSourceRef(ObjectTypeUtil.createObjectRef(source));
             rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
         }
         if (target != null) {
-            rv.setTargetRef(ObjectTypeUtil.createObjectRef(target, getPrismContext()));
+            rv.setTargetRef(ObjectTypeUtil.createObjectRef(target, relation));
             rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
         }
         rv.setMatchingOrder(isMatchingOrder);
