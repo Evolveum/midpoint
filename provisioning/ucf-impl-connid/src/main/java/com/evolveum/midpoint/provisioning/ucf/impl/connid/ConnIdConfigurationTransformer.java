@@ -346,45 +346,43 @@ public class ConnIdConfigurationTransformer {
     private void transformResultsHandlerConfiguration(ResultsHandlerConfiguration resultsHandlerConfiguration,
             PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
 
-        if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
-            return;
-        }
+        resultsHandlerConfiguration.setEnableNormalizingResultsHandler(
+                determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
+                        ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER_ITEM_NAME));
 
-        for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
-            QName propertyQName = prismProperty.getElementName();
-            if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
-                String subelementName = propertyQName.getLocalPart();
-                if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableNormalizingResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableAttributesToGetSearchResultsHandler(parseBoolean(prismProperty));
-                } else {
-                    throw new SchemaException(
-                            "Unexpected element "
-                                    + propertyQName
-                                    + " in "
-                                    + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
-                }
-            } else {
-                throw new SchemaException(
-                        "Unexpected element "
-                                + propertyQName
-                                + " in "
-                                + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
-            }
-        }
+        resultsHandlerConfiguration.setEnableFilteredResultsHandler(
+                determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
+                        ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER_ITEM_NAME));
+
+        resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(
+                determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
+                        ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE_ITEM_NAME));
+
+        resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(
+                determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
+                        ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER_ITEM_NAME));
+
+        resultsHandlerConfiguration.setEnableAttributesToGetSearchResultsHandler(
+                determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
+                        ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER_ITEM_NAME));
+
     }
+
+private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHandlerConfigurationContainer, ItemName handlerProperty) {
+        if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
+            return false;
+        }
+        PrismProperty<Boolean> property = resultsHandlerConfigurationContainer.getValue().findProperty(handlerProperty);
+        if (property == null) {
+            return false;
+        }
+        Boolean value = property.getRealValue();
+        if (value == null) {
+            return false;
+        }
+        return value;
+    }
+
 
     private int parseInt(PrismProperty<?> prop) {
         return prop.getRealValue(Integer.class);

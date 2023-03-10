@@ -62,11 +62,9 @@
             <icfc:schema>-1</icfc:schema>
         </icfc:timeouts>
 
-        <icfc:resultsHandlerConfiguration>
-            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-        </icfc:resultsHandlerConfiguration>
+        <!-- We are NOT disabling ConnId result handlers here.
+             Since midPoint 4.7, the handlers should be disabled by default.
+             MID-7923 -->
 
     </connectorConfiguration>
 
