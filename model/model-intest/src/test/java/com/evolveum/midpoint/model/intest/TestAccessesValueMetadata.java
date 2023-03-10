@@ -14,7 +14,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -220,6 +222,48 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
+    public void test500AddUserWithAssignmentToRoleNonDefaultRelation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("new user with assignment to a role with different relation");
+        UserType user = new UserType()
+                .name("user-" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(
+                        createObjectReference(appRole1Oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)));
+
+        when("user is added");
+        String userOid = addObject(user, task, result);
+
+        then("roleMembershipRefs contain value metadata with accesses information");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(2); // details are not interesting for this test
+
+        and("first segments have targetRef with manager relation");
+        segmentsHaveExpectedRelations(userAsserter, appRole1Oid,
+                SchemaConstants.ORG_MANAGER);
+        segmentsHaveExpectedRelations(userAsserter, appService1Oid,
+                SchemaConstants.ORG_MANAGER, SchemaConstants.ORG_DEFAULT);
+    }
+
+    private void segmentsHaveExpectedRelations(
+            UserAsserter<Void> userAsserter, String membershipTargetOid, QName... expectedRelations)
+            throws SchemaException {
+        ValueMetadataType metadata = (ValueMetadataType) userAsserter
+                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(membershipTargetOid))
+                .assertSize(1)
+                .getRealValue();
+        List<AssignmentPathSegmentMetadataType> segments = metadata.getProvenance().getAssignmentPath().getSegment();
+        assertThat(segments).hasSameSizeAs(expectedRelations);
+        for (int i = 0; i < expectedRelations.length; i++) {
+            assertThat(segments.get(i).getTargetRef().getRelation())
+                    .describedAs("segment #%d for role membership ref to %s", i, membershipTargetOid)
+                    .isEqualTo(expectedRelations[i]);
+        }
+    }
+
+    @Test
     public void test900AccessesMetadataAreOnByDefault() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -326,11 +370,9 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
     private void assertAssignmentPath(UserAsserter<Void> userAsserter,
             String roleMembershipTargetOid, ExpectedAssignmentPath... expectedAssignmentPaths)
             throws SchemaException {
-        userAsserter.valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(roleMembershipTargetOid))
-                .assertSize(expectedAssignmentPaths.length);
-
         Collection<ValueMetadataType> metadataValues = userAsserter
                 .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(roleMembershipTargetOid))
+                .assertSize(expectedAssignmentPaths.length)
                 .getRealValues();
         userAsserter.end(); // to fix the state of asserter back after valueMetadata() call
         var listAsserter = assertThat(metadataValues)
