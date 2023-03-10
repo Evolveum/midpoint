@@ -27,28 +27,27 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.cases.impl.WorkItemManager;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
@@ -59,21 +58,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractWfTest extends AbstractModelImplementationIntegrationTest {
 
-    public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+    private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+    private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
-    protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-    protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-    protected static final String USER_JACK_USERNAME = "jack";
+    protected static final TestObject<UserType> USER_JACK =
+            TestObject.file(COMMON_DIR, "user-jack.xml", "c0c010c0-d34d-b33f-f00d-111111111111");
 
-    protected static final File ROLE_APPROVER_FILE = new File(COMMON_DIR, "041-role-approver.xml");
-    protected static final File ARCHETYPE_MANUAL_PROVISIONING_CASE_FILE = new File(COMMON_DIR, "023-archetype-manual-provisioning-case.xml");
-    protected static final File ARCHETYPE_OPERATION_REQUEST_FILE = new File(COMMON_DIR, "024-archetype-operation-request.xml");
-    protected static final File ARCHETYPE_APPROVAL_CASE_FILE = new File(COMMON_DIR, "025-archetype-approval-case.xml");
+    private static final File ROLE_APPROVER_FILE = new File(COMMON_DIR, "041-role-approver.xml");
+    private static final File ARCHETYPE_MANUAL_PROVISIONING_CASE_FILE = new File(COMMON_DIR, "023-archetype-manual-provisioning-case.xml");
+    private static final File ARCHETYPE_OPERATION_REQUEST_FILE = new File(COMMON_DIR, "024-archetype-operation-request.xml");
+    private static final File ARCHETYPE_APPROVAL_CASE_FILE = new File(COMMON_DIR, "025-archetype-approval-case.xml");
 
     protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
-
-    protected String userJackOid;
 
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
@@ -107,7 +103,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         repoAddObjectFromFile(ARCHETYPE_OPERATION_REQUEST_FILE, initResult).getOid();
         repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult).getOid();
 
-        userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
+        USER_JACK.init(this, initTask, initResult);
 
         //setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
     }
@@ -151,11 +147,11 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         checkWfProcessAuditRecords(expectedResults);
     }
 
-    protected void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
+    private void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
         WfTestUtil.checkWorkItemAuditRecords(expectedResults, dummyAuditService);
     }
 
-    protected void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
+    private void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
         WfTestUtil.checkWfProcessAuditRecords(expectedResults, dummyAuditService);
     }
 
@@ -172,7 +168,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     protected CaseWorkItemType getWorkItem(Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        SearchResultList<CaseWorkItemType> itemsAll = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
+        SearchResultList<CaseWorkItemType> itemsAll = modelService.searchContainers(CaseWorkItemType.class, ObjectQueryUtil.openItemsQuery(), null, task, result);
         if (itemsAll.size() != 1) {
             System.out.println("Unexpected # of work items: " + itemsAll.size());
             for (CaseWorkItemType workItem : itemsAll) {
@@ -184,7 +180,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     }
 
     protected SearchResultList<CaseWorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-        return modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
+        return modelService.searchContainers(CaseWorkItemType.class, ObjectQueryUtil.openItemsQuery(), null, task, result);
     }
 
     protected void displayWorkItems(String title, List<CaseWorkItemType> workItems) {
@@ -225,7 +221,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         }
     }
 
-    protected void assertObjectInTask(Task task, String oid) {
+    private void assertObjectInTask(Task task, String oid) {
         assertEquals("Missing or wrong object OID in task " + task, oid, task.getObjectOid());
     }
 
@@ -313,10 +309,14 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         assertEquals("Wrong # of matching work items", count, found);
     }
 
-    protected ObjectQuery getOpenItemsQuery() {
-        return prismContext.queryFor(CaseWorkItemType.class)
-                .item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
-                .build();
+    protected void approveOrRejectWorkItem(CaseWorkItemType workItem, boolean decision, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        if (decision) {
+            approveWorkItem(workItem, task, result);
+        } else {
+            rejectWorkItem(workItem, task, result);
+        }
     }
 
     protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result)
@@ -324,7 +324,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
+                new AbstractWorkItemOutputType().outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
                 task, result);
     }
 
@@ -333,8 +333,12 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
+                new AbstractWorkItemOutputType().outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
                 task, result);
+    }
+
+    public DummyAuditService getDummyAuditService() {
+        return dummyAuditService;
     }
 
     public class RelatedCases {
@@ -392,5 +396,13 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         String approvalCaseOid = ((PrismObjectValue<?>) grandParent).getOid();
         assertThat(approvalCaseOid).as("No parent case OID").isNotNull();
         return assertCase(approvalCaseOid, message);
+    }
+
+    protected ModelExecuteOptions getOptions(boolean immediate) {
+        if (immediate) {
+            return executeOptions().executeImmediatelyAfterApproval();
+        } else {
+            return null;
+        }
     }
 }

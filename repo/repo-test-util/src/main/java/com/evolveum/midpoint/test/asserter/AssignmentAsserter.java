@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -163,5 +164,16 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
                 new ValueMetadataValueAsserter<>(valueMetadata.getValue(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public AssignmentAsserter<R> assertExclusionViolationSituation() {
+        return assertPolicySituation(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION);
+    }
+
+    public AssignmentAsserter<R> assertPolicySituation(String... expected) {
+        assertThat(assignment.getPolicySituation())
+                .as("policy situation in " + assignment)
+                .containsExactlyInAnyOrder(expected);
+        return this;
     }
 }

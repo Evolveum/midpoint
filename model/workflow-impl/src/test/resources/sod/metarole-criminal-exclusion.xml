@@ -16,13 +16,13 @@
                 <!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
                 <or>
                     <exclusion>
-                        <targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+                        <targetRef oid="528f5ebb-5182-4f30-a975-d3531112ed4a" type="RoleType"/> <!-- Judge -->
                     </exclusion>
                     <exclusion>
-                        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+                        <targetRef oid="d99abcdf-7b29-4176-a8f7-9775b4b4c1d3" type="RoleType"/> <!-- Pirate -->
                     </exclusion>
                     <exclusion>
-                        <targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
+                        <targetRef oid="ee6a1809-a0ed-4983-a0b4-6eef24e8a76d" type="RoleType"/> <!-- Thief -->
                     </exclusion>
                 </or>
             </policyConstraints>

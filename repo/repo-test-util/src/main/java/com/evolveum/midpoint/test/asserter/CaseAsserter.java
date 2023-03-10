@@ -6,30 +6,38 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSED_QNAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSING_QNAME;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import javax.xml.namespace.QName;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSED_QNAME;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CASE_STATE_CLOSING_QNAME;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author semancik
@@ -221,6 +229,106 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return this;
     }
 
+    /** Uses approximate comparison, see {@link #normalize(ObjectDelta)}. */
+    public CaseAsserter<RA> assertDeltasToApprove(ObjectDelta<?>... expected) throws SchemaException {
+        Collection<ObjectDelta<?>> real = getRealDeltasToApprove();
+        assertThat(normalize(real))
+                .as("deltas to approve in " + desc())
+                .containsExactlyInAnyOrderElementsOf(
+                        normalize(Arrays.asList(expected)));
+        return this;
+    }
+
+    private List<ObjectDelta<?>> normalize(Collection<ObjectDelta<?>> deltas) {
+        List<ObjectDelta<?>> normalized = new ArrayList<>();
+        for (ObjectDelta<?> delta : deltas) {
+            normalized.add(normalize(delta));
+        }
+        return normalized;
+    }
+
+    /** Delta comparison is hard. Fix this method if needed. */
+    private ObjectDelta<?> normalize(ObjectDelta<?> delta) {
+        if (!delta.isModify()) {
+            return delta;
+        }
+        var deltaClone = delta.clone();
+        deltaClone.getModifications().clear(); // ugly hack
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            ItemDelta<?, ?> modificationClone = modification.clone();
+            modificationClone.setEstimatedOldValues(null);
+            deltaClone.addModification(modificationClone);
+        }
+        return deltaClone;
+    }
+
+    private Collection<ObjectDelta<?>> getRealDeltasToApprove() throws SchemaException {
+        List<ObjectDelta<?>> deltas = new ArrayList<>();
+        ApprovalContextType ctx = getObjectable().getApprovalContext();
+        if (ctx == null) {
+            return deltas;
+        }
+        ObjectTreeDeltasType bean = ctx.getDeltasToApprove();
+        if (bean == null) {
+            return deltas;
+        }
+        ObjectDeltaType focusDeltaBean = bean.getFocusPrimaryDelta();
+        if (focusDeltaBean != null) {
+            deltas.add(DeltaConvertor.createObjectDelta(focusDeltaBean));
+        }
+        for (ProjectionObjectDeltaType projectionContextDeltaBean : bean.getProjectionPrimaryDelta()) {
+            ObjectDeltaType projectionDeltaBean = projectionContextDeltaBean.getPrimaryDelta();
+            if (projectionDeltaBean != null) {
+                deltas.add(DeltaConvertor.createObjectDelta(projectionDeltaBean));
+            }
+        }
+        return deltas;
+    }
+
+    public @NotNull ApprovalContextType getApprovalContextRequired() {
+        ApprovalContextType ctx = getObjectable().getApprovalContext();
+        assertThat(ctx).as("approval context in " + desc()).isNotNull();
+        return ctx;
+    }
+
+    public CaseAsserter<RA> assertOpenApproval(@NotNull String expectedName) {
+        assertNoFetchResult();
+        assertThat(getObjectable().getName().getOrig())
+                .as("case name in " + desc())
+                .isEqualTo(expectedName);
+
+        ObjectReferenceType targetRef = getTargetRef();
+        assertThat(getStartTimestamp())
+                .as("start timestamp in " + desc())
+                .isNotNull();
+
+        assertThat(getCloseTimestamp())
+                .as("close timestamp in " + desc())
+                .isNull();
+
+        assertThat(getOutcome())
+                .as("outcome in " + desc())
+                .isNull();
+
+        return this;
+    }
+
+    private ObjectReferenceType getTargetRef() {
+        return getObjectable().getTargetRef();
+    }
+
+    private String getOutcome() {
+        return getObjectable().getOutcome();
+    }
+
+    private XMLGregorianCalendar getCloseTimestamp() {
+        return getObjectable().getCloseTimestamp();
+    }
+
+    private XMLGregorianCalendar getStartTimestamp() {
+        return CaseTypeUtil.getStartTimestamp(getObjectable());
+    }
+
     public SubcasesAsserter<RA> subcases() {
         OperationResult result = new OperationResult(CaseAsserter.class.getName() + ".subcases");
         ObjectQuery query = getPrismContext().queryFor(CaseType.class)
@@ -238,12 +346,27 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return asserter;
     }
 
+    public CaseAsserter<RA> assertObjectRef(@NotNull ObjectReferenceType ref) {
+        return assertObjectRef(ref.getOid(), ref.getType());
+    }
+
     public CaseAsserter<RA> assertObjectRef(String oid, QName typeName) {
         return assertReference(getObjectable().getObjectRef(), "objectRef", oid, typeName);
     }
 
+    public CaseAsserter<RA> assertTargetRef(@NotNull ObjectReferenceType ref) {
+        return assertTargetRef(ref.getOid(), ref.getType());
+    }
+
     public CaseAsserter<RA> assertTargetRef(String oid, QName typeName) {
-        return assertReference(getObjectable().getTargetRef(), "targetRef", oid, typeName);
+        return assertReference(getTargetRef(), "targetRef", oid, typeName);
+    }
+
+    public CaseAsserter<RA> assertNoTargetRef() {
+        assertThat(getTargetRef())
+                .withFailMessage("targetRef present in case even if it shouldn't be: " + desc())
+                .isNull();
+        return this;
     }
 
     private CaseAsserter<RA> assertReference(ObjectReferenceType ref, String desc, String oid, QName typeName) {

@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<user oid="e3c00bba-8ce0-4727-a294-91842264c2de" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<user oid="e3c00bba-8ce0-4727-a294-91842264c2de" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>draft</name>
     <lifecycleState>draft</lifecycleState>
     <fullName>Draft</fullName>

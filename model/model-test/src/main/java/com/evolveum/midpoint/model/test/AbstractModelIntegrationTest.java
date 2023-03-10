@@ -6,7 +6,12 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -3718,6 +3723,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 || !lastKnownTimestamp.equals(realTimestamp);
     }
 
+    public void waitForCaseClose(String caseOid) throws Exception {
+        CaseType aCase = repositoryService
+                .getObject(CaseType.class, caseOid, null, getTestOperationResult())
+                .asObjectable();
+        waitForCaseClose(aCase, 60000);
+    }
+
     public void waitForCaseClose(CaseType aCase) throws Exception {
         waitForCaseClose(aCase, 60000);
     }
@@ -4186,7 +4198,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void prepareNotifications() {
+    public void prepareNotifications() {
         notificationManager.setDisabled(false);
         dummyTransport.clearMessages();
     }
@@ -7227,6 +7239,65 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Collection<? extends ProcessedObject<?>> objects, String message) {
         return initializeAsserter(
                 ProcessedObjectsAsserter.forObjects(objects, message));
+    }
+
+    protected WorkItemsAsserter<Void> assertWorkItems(
+            Collection<CaseWorkItemType> workItems, String message) {
+        return initializeAsserter(
+                WorkItemsAsserter.forWorkItems(workItems, message));
+    }
+
+    // TODO will we need this method?
+    // TODO do we need the resolution?
+    protected List<CaseWorkItemType> getOpenWorkItemsResolved(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        final Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                .item(T_PARENT, F_OBJECT_REF).resolve()
+                .item(T_PARENT, F_TARGET_REF).resolve()
+                .item(F_ASSIGNEE_REF).resolve()
+                .item(F_ORIGINAL_ASSIGNEE_REF).resolve()
+                .item(T_PARENT, F_REQUESTOR_REF).resolve()
+                .build();
+
+        return new ArrayList<>( // to assure modifiable result list
+                modelService.searchContainers(CaseWorkItemType.class,
+                        ObjectQueryUtil.openItemsQuery(), options, task, result));
+    }
+
+    // TODO will we need this method?
+    protected WorkItemsAsserter<Void> assertOpenWorkItems(String message)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertWorkItems(
+                getOpenWorkItemsResolved(getTestTask(), getTestOperationResult()),
+                message);
+    }
+
+    // TODO will we need this method?
+    protected WorkItemsAsserter<Void> assertOpenWorkItemsAfter()
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertOpenWorkItems("after")
+                .display();
+    }
+
+    protected CaseAsserter<Void> assertReferencedCase(OperationResult result, String message)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertCase(getReferencedCaseOidRequired(result), message);
+    }
+
+    protected @NotNull String getReferencedCaseOidRequired(OperationResult result) {
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertThat(caseOid).as("Case OID referenced by operation result").isNotNull();
+        return caseOid;
+    }
+
+    protected CaseAsserter<Void> assertReferencedCase(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertReferencedCase(result, "after"); // intentionally not displaying
     }
 
     protected SimulationResultAsserter<Void> assertSimulationResultAfter(TestSimulationResult simResult)

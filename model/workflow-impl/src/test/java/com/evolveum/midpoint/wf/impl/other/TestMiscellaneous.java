@@ -122,11 +122,11 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         final String REQUESTER_COMMENT = "req.comment";
         businessContext.setComment(REQUESTER_COMMENT);
 
-        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, ROLE_SAILOR.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK.oid, ROLE_SAILOR.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, executeOptions().requestBusinessContext(businessContext), task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SAILOR.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_SAILOR.oid, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -164,7 +164,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR.oid, result);
+        AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_SAILOR.oid, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -186,13 +186,13 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         final String REQUESTER_COMMENT = "req.comment";
         businessContext.setComment(REQUESTER_COMMENT);
 
-        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, ROLE_CAPTAIN.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK.oid, ROLE_CAPTAIN.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         ModelExecuteOptions options = executeOptions().requestBusinessContext(businessContext);
         options.executeImmediatelyAfterApproval(true);
         modelService.executeChanges(deltas, options, task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -230,7 +230,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -248,17 +248,17 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         given();
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
-        assignRole(userJackOid, ROLE_GOLD.oid, options, task, result);
-        assertAssignedRole(getUser(userJackOid), ROLE_GOLD.oid);
+        assignRole(USER_JACK.oid, ROLE_GOLD.oid, options, task, result);
+        assertAssignedRole(getUser(USER_JACK.oid), ROLE_GOLD.oid);
 
         when();
-        assignRole(userJackOid, ROLE_SILVER.oid, task, result);
+        assignRole(USER_JACK.oid, ROLE_SILVER.oid, task, result);
 
         then();
         result.computeStatus();
         TestUtil.assertInProgress("Operation NOT in progress", result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SILVER.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_SILVER.oid, result);
 
         // complete the work item related to assigning role silver
         CaseWorkItemType workItem = getWorkItem(task, result);
@@ -272,7 +272,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         waitForCaseClose(rootCase);
 
         // should be pruned without approval
-        assertNotAssignedRole(userJackOid, ROLE_GOLD.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_GOLD.oid, result);
     }
 
     @Test
@@ -284,20 +284,20 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         given();
         setDefaultUserTemplate(null);
-        unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        unassignAllRoles(USER_JACK.oid);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN.oid);
 
         when();
         // some innocent change
-        modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
+        modifyUserChangePassword(USER_JACK.oid, "PaSsWoRd123", task, result);
 
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
     }
 
     @Test
@@ -311,21 +311,21 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         given();
         setDefaultUserTemplate(null);
-        unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        unassignAllRoles(USER_JACK.oid);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER.oid);
 
         when();
         // some innocent change
-        modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
+        modifyUserChangePassword(USER_JACK.oid, "PaSsWoRd123", task, result);
         // here the captain role appears in evaluatedAssignmentsTriple only in secondary phase; so no approvals are triggered
 
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
     }
 
     @Test
@@ -337,17 +337,17 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         given();
         setDefaultUserTemplate(null);
-        unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        unassignAllRoles(USER_JACK.oid);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         when();
-        assignRole(userJackOid, ROLE_ASSIGNING_CAPTAIN.oid, task, result);
+        assignRole(USER_JACK.oid, ROLE_ASSIGNING_CAPTAIN.oid, task, result);
 
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
     }
 
     @Test
@@ -359,15 +359,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         given();
         setDefaultUserTemplate(null);
-        unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        unassignAllRoles(USER_JACK.oid);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         when();
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
-                        .asObjectDelta(userJackOid);
+                        .asObjectDelta(USER_JACK.oid);
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(singletonList(delta), options, task, result);
@@ -376,7 +376,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
     }
 
     /**
@@ -389,18 +389,18 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
-        unassignAllRoles(userJackOid);
+        unassignAllRoles(USER_JACK.oid);
 
         // @formatter:off
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                             .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
-                        .asObjectDelta(userJackOid);
+                        .asObjectDelta(USER_JACK.oid);
         // @formatter:on
 
         executeChanges(delta, null, task, result);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         RelatedCases relatedCases = new RelatedCases().find(task, result);
         CaseType approvalCase = relatedCases.getApprovalCase();
@@ -426,18 +426,18 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
-        unassignAllRoles(userJackOid);
+        unassignAllRoles(USER_JACK.oid);
 
         // @formatter:off
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                             .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
-                        .asObjectDelta(userJackOid);
+                        .asObjectDelta(USER_JACK.oid);
         // @formatter:on
 
         executeChanges(delta, null, task, result);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
 
         RelatedCases relatedCases = new RelatedCases().find(task, result);
         CaseType approvalCase = relatedCases.getApprovalCase();

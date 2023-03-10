@@ -9,10 +9,6 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
-    <defaultObjectPolicyConfiguration>
-        <objectTemplateRef oid="5e156e0f-5844-44d3-a7f7-78df11e3c98a" />
-        <type>UserType</type>
-    </defaultObjectPolicyConfiguration>
     <workflowConfiguration>
         <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>

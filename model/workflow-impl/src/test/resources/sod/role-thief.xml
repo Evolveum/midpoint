@@ -4,10 +4,10 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<role oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b"
+<role oid="ee6a1809-a0ed-4983-a0b4-6eef24e8a76d"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Thief</name>
     <assignment>
-        <targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/>         <!-- metarole-criminal-exclusion -->
+        <targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/> <!-- metarole-criminal-exclusion -->
     </assignment>
 </role>

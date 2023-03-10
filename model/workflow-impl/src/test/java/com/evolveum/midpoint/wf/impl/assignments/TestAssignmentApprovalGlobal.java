@@ -13,11 +13,14 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval {
 
@@ -44,37 +47,18 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 
     @SuppressWarnings("Duplicates")
     @Override
-    protected String getRoleOid(int number) {
+    protected TestObject<RoleType> getRole(int number) {
         switch (number) {
             case 1:
-                return ROLE1.oid;
+                return ROLE1;
             case 2:
-                return ROLE2.oid;
+                return ROLE2;
             case 3:
-                return ROLE3.oid;
+                return ROLE3;
             case 4:
-                return ROLE4.oid;
+                return ROLE4;
             case 10:
-                return ROLE10.oid;
-            default:
-                throw new IllegalArgumentException("Wrong role number: " + number);
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    @Override
-    protected String getRoleName(int number) {
-        switch (number) {
-            case 1:
-                return "Role1";
-            case 2:
-                return "Role2";
-            case 3:
-                return "Role3";
-            case 4:
-                return "Role4";
-            case 10:
-                return "Role10";
+                return ROLE10;
             default:
                 throw new IllegalArgumentException("Wrong role number: " + number);
         }
@@ -90,12 +74,12 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
         OperationResult result = getTestOperationResult();
 
         try {
-            assignRole(userJackOid, ROLE15.oid, task, result);
+            assignRole(USER_JACK.oid, ROLE15.oid, task, result);
             fail("Unexpected success");
         } catch (PolicyViolationException e) {
             System.out.println("Got expected exception: " + e);
         }
-        List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
+        List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, ObjectQueryUtil.openItemsQuery(), null, task, result);
         display("current work items", currentWorkItems);
         assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
     }

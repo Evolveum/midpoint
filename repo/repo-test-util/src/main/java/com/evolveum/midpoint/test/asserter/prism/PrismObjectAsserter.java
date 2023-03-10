@@ -586,6 +586,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertNoFetchResult() {
+        assertThat(object.asObjectable().getFetchResult()).as("fetch result").isNull();
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertFetchResult(OperationResultStatusType status, String... messageFragments) {
         OperationResultType fetchResult = object.asObjectable().getFetchResult();
         if (fetchResult == null) {
