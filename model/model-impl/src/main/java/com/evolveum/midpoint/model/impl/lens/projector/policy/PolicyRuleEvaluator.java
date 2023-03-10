@@ -10,14 +10,12 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.CompositeConstraintEvaluator;
-
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,20 +23,32 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.CompositeConstraintEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPolicyActionType;
 
 /**
  * Abstract evaluator of assignment-, focus- and projection-related policy rules.
  *
+ * By evaluating a rule we mean the following:
+ *
+ * . constraints are evaluated, i.e. determined whether they fire, and appropriate triggers are created in that process;
+ * . rule exceptions are checked (currently on on assignments);
+ * . triggers are added to the rule (if there is no exception recorded);
+ * . enabled actions are computed;
+ * . foreign policy rules (in assignments) are set.
+ *
+ * See {@link #evaluateRule(PolicyRuleEvaluationContext, OperationResult)}.
+ *
  * Intentionally package-private.
  */
-class PolicyRuleEvaluator {
+abstract class PolicyRuleEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEvaluator.class);
 
@@ -90,8 +100,9 @@ class PolicyRuleEvaluator {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        String ruleShortString = ctx.policyRule.toShortString();
-        String ruleIdentifier = ctx.policyRule.getPolicyRuleIdentifier();
+        EvaluatedPolicyRuleImpl rule = ctx.policyRule;
+        String ruleShortString = rule.toShortString();
+        String ruleIdentifier = rule.getPolicyRuleIdentifier();
         String ctxShortDescription = ctx.getShortDescription();
         OperationResult result = parentResult.subresult(OP_EVALUATE_RULE)
                 .addParam(OperationResult.PARAM_POLICY_RULE, ruleShortString)
@@ -100,38 +111,44 @@ class PolicyRuleEvaluator {
                 .build();
         try {
             LOGGER.trace("Evaluating policy rule {} ({}) in {}", ruleShortString, ruleIdentifier, ctxShortDescription);
-            PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
+            PolicyConstraintsType constraints = rule.getPolicyConstraints();
             JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
-            EvaluatedCompositeTrigger trigger = CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);
-            LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
-            if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
-                List<EvaluatedPolicyRuleTrigger<?>> triggers;
-                // TODO reconsider this
-                if (constraints.getName() == null && constraints.getPresentation() == null) {
-                    triggers = new ArrayList<>(trigger.getInnerTriggers());
-                } else {
-                    triggers = Collections.singletonList(trigger);
-                }
-                ctx.triggerRule(triggers);
+            EvaluatedCompositeTrigger compositeTrigger = CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);
+            LOGGER.trace("Evaluated composite trigger {} for ctx {}", compositeTrigger, ctx);
+            if (compositeTrigger != null && !compositeTrigger.getInnerTriggers().isEmpty()) {
+                ctx.triggerRuleIfNoExceptions(
+                        getIndividualTriggers(compositeTrigger, constraints));
             }
-            boolean triggered = ctx.policyRule.isTriggered();
+            boolean triggered = rule.isTriggered();
             LOGGER.trace("Policy rule triggered: {}", triggered);
             result.addReturn("triggered", triggered);
             if (triggered) {
-                LOGGER.trace("Start to compute actions");
-                ((EvaluatedPolicyRuleImpl) ctx.policyRule)
-                        .computeEnabledActions(ctx, ctx.getObject(), ctx.task, result);
-                if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
-                    ctx.record(); // TODO postpone this (e.g. because of thresholds and also MID-7123)
-                }
-                result.addArbitraryObjectCollectionAsReturn("enabledActions", ctx.policyRule.getEnabledActions());
+                rule.computeEnabledActions(ctx, ctx.getObject(), ctx.task, result);
+                result.addArbitraryObjectCollectionAsReturn("enabledActions", rule.getEnabledActions());
+                rule.registerAsForeignRuleIfNeeded();
             }
-            traceRuleEvaluationResult(ctx.policyRule, ctx);
+            traceRuleEvaluationResult(rule, ctx);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    /**
+     * Retrieves triggers corresponding to the root-level constraints.
+     *
+     * We consider unnamed root-level composition as a fake one, so we look into individual sub-triggers in that case;
+     * whereas if there is a name and/or presentation, we consider that composition as a single entity.
+    */
+    private @NotNull static List<EvaluatedPolicyRuleTrigger<?>> getIndividualTriggers(
+            @NotNull EvaluatedCompositeTrigger trigger, @NotNull PolicyConstraintsType constraints) {
+        // TODO reconsider this
+        if (constraints.getName() == null && constraints.getPresentation() == null) {
+            return new ArrayList<>(trigger.getInnerTriggers());
+        } else {
+            return List.of(trigger);
         }
     }
 
@@ -151,5 +168,13 @@ class PolicyRuleEvaluator {
             sb.append(rule.debugDump());
             LOGGER.trace("{}", sb);
         }
+    }
+
+    abstract void record(OperationResult result) throws SchemaException;
+
+    @NotNull List<EvaluatedPolicyRuleImpl> selectRulesToRecord(@NotNull Collection<EvaluatedPolicyRuleImpl> allRules) {
+        return allRules.stream()
+                .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
+                .collect(Collectors.toList());
     }
 }

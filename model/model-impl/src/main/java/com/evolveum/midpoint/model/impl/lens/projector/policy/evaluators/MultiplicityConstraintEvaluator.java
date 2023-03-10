@@ -106,18 +106,19 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             throw new AssertionError("!isMin and !isMax");
         }
         // TODO cache repository call results
+        Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
+        if (requiredMultiplicity == null) {
+            return null;
+        }
         if (isMin) {
-            Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
-            if (requiredMultiplicity == null) {
-                return null;
-            }
             if (requiredMultiplicity <= 0) {
                 return null;            // unbounded or 0
             }
             for (QName relationToCheck : relationsToCheck) {
                 int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssignees < requiredMultiplicity) {
-                    return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                    return new EvaluatedMultiplicityTrigger(
+                            PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -125,19 +126,15 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
                                     requiredMultiplicity, relationToCheck.getLocalPart()));
                 }
             }
-            return null;
         } else {
-            Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
-            if (requiredMultiplicity == null) {
-                return null;
-            }
             if (requiredMultiplicity < 0) {
-                return null;            // unbounded
+                return null; // unbounded
             }
             for (QName relationToCheck : relationsToCheck) {
                 int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssigneesExceptMyself >= requiredMultiplicity) {
-                    return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                    return new EvaluatedMultiplicityTrigger(
+                            PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -145,8 +142,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
                                     requiredMultiplicity, relationToCheck.getLocalPart()));
                 }
             }
-            return null;
         }
+        return null;
     }
 
     private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger evaluateForAssignment(
@@ -202,7 +199,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             // Complain only if the situation is getting worse
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
-                return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                return new EvaluatedMultiplicityTrigger(
+                        PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself),
@@ -218,7 +216,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             // Complain only if the situation is getting worse
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
-                return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                return new EvaluatedMultiplicityTrigger(
+                        PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1),

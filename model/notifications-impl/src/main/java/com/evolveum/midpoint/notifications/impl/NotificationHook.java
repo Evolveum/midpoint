@@ -104,6 +104,7 @@ public class NotificationHook implements ChangeHook {
         for (EvaluatedPolicyRule rule : focusContext.getObjectPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
         }
+        // TODO why dealing only with non-negative assignments here?
         for (EvaluatedAssignment assignment : context.getNonNegativeEvaluatedAssignments()) {
             for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
                 emitPolicyEventIfPresent(rule, context, task, result);

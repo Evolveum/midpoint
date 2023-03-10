@@ -76,9 +76,10 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        return new EvaluatedAlwaysTrueTrigger(ALWAYS_TRUE, constraintElement.getValue(),
-                    createMessage(constraintElement, ctx, result),
-                    createShortMessage(constraintElement, ctx, result));
+        return new EvaluatedAlwaysTrueTrigger(
+                ALWAYS_TRUE, constraintElement.getValue(),
+                createMessage(constraintElement, ctx, result),
+                createShortMessage(constraintElement, ctx, result));
     }
 
     @NotNull

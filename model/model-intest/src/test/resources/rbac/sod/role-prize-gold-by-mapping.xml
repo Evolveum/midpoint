@@ -14,7 +14,7 @@
                 <expression>
                     <assignmentTargetSearch>
                         <targetType>RoleType</targetType>
-                        <oid>bbc22f82-df21-11e6-aa6b-4b1408befd10</oid>        <!-- prize-gold -->
+                        <oid>bbc22f82-df21-11e6-aa6b-4b1408befd10</oid> <!-- prize-gold -->
                     </assignmentTargetSearch>
                 </expression>
                 <target>

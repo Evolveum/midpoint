@@ -219,6 +219,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
         }
 
+        policyRuleProcessor.recordAssignmentPolicyRules(focusContext, task, result);
+
         // PROCESSING FOCUS
 
         evaluateFocusMappings(context, now, focusContext, evaluatedAssignmentTriple, task, result);

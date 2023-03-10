@@ -9,7 +9,6 @@ package com.evolveum.midpoint.wf.api;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,13 +26,13 @@ public class ChangesByState<F extends FocusType> implements DebugDumpable {
     @NotNull private final ObjectTreeDeltas<F> rejected;
     @NotNull private final ObjectTreeDeltas<F> canceled;
 
-    public ChangesByState(PrismContext prismContext) {
-        applied = new ObjectTreeDeltas<>(prismContext);
-        beingApplied = new ObjectTreeDeltas<>(prismContext);
-        waitingToBeApplied = new ObjectTreeDeltas<>(prismContext);
-        waitingToBeApproved = new ObjectTreeDeltas<>(prismContext);
-        rejected = new ObjectTreeDeltas<>(prismContext);
-        canceled = new ObjectTreeDeltas<>(prismContext);
+    public ChangesByState() {
+        applied = new ObjectTreeDeltas<>();
+        beingApplied = new ObjectTreeDeltas<>();
+        waitingToBeApplied = new ObjectTreeDeltas<>();
+        waitingToBeApproved = new ObjectTreeDeltas<>();
+        rejected = new ObjectTreeDeltas<>();
+        canceled = new ObjectTreeDeltas<>();
     }
 
     @NotNull

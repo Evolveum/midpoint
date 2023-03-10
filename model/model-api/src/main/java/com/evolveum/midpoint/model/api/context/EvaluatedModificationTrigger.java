@@ -22,7 +22,8 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
-    public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
+    public EvaluatedModificationTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
             @Nullable PrismObject<?> targetObject, LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         matchingTargets = targetObject != null ? singleton(targetObject) : emptySet();

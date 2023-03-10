@@ -15,7 +15,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 
 public class EvaluatedAlwaysTrueTrigger extends EvaluatedPolicyRuleTrigger<AlwaysTruePolicyConstraintType> {
 
-    public EvaluatedAlwaysTrueTrigger(@NotNull PolicyConstraintKindType kind, @NotNull AlwaysTruePolicyConstraintType constraint,
+    public EvaluatedAlwaysTrueTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull AlwaysTruePolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
     }

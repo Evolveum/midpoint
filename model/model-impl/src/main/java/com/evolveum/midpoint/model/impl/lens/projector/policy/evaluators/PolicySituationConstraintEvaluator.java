@@ -68,7 +68,8 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
             if (sourceRules.isEmpty()) {
                 return null;
             }
-            return new EvaluatedSituationTrigger(situationConstraint,
+            return new EvaluatedSituationTrigger(
+                    situationConstraint,
                     createMessage(sourceRules, constraint, rctx, result),
                     createShortMessage(sourceRules, constraint, rctx, result),
                     sourceRules);

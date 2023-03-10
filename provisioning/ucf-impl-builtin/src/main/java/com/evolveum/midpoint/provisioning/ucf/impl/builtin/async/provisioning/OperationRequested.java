@@ -234,7 +234,7 @@ public abstract class OperationRequested {
     }
 
     ObjectReferenceType getShadowAsReference() {
-        return ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext);
+        return ObjectTypeUtil.createObjectRefWithFullObject(shadow);
     }
 
     public String getObjectClassLocalName() {

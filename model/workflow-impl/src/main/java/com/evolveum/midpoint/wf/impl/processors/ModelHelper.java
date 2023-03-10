@@ -15,6 +15,8 @@ import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -85,7 +86,7 @@ public class ModelHelper {
      */
     private LocalizableMessage determineRootCaseName(ModelInvocationContext<?> ctx) {
         String operationKey;
-        ModelElementContext<?> focusContext = ctx.modelContext.getFocusContext();
+        LensFocusContext<?> focusContext = ctx.modelContext.getFocusContext();
         if (focusContext != null && focusContext.getPrimaryDelta() != null
                 && focusContext.getPrimaryDelta().getChangeType() != null) {
             switch (focusContext.getPrimaryDelta().getChangeType()) {

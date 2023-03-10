@@ -61,7 +61,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
                     evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
                             && evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
             if (match) {
-                return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
+                return new EvaluatedTransitionTrigger(
+                        PolicyConstraintKindType.TRANSITION, trans,
                         createMessage(constraintElement, rctx, result),
                         createShortMessage(constraintElement, rctx, result),
                         triggers);

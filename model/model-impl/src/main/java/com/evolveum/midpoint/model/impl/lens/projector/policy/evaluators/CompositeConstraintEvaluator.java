@@ -96,28 +96,35 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     }
 
     @NotNull
-    private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+    private EvaluatedCompositeTrigger createTrigger(
+            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
             List<EvaluatedPolicyRuleTrigger<?>> triggers,
             PolicyRuleEvaluationContext<?> rctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return new EvaluatedCompositeTrigger(kind, constraintElement.getValue(),
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return new EvaluatedCompositeTrigger(
+                kind, constraintElement.getValue(),
                 createMessage(kind, constraintElement, rctx, result),
                 createShortMessage(kind, constraintElement, rctx, result),
                 triggers);
     }
 
-    private LocalizableMessage createMessage(PolicyConstraintKindType kind,
-            JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createMessage(
+            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
                 .build();
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private LocalizableMessage createShortMessage(PolicyConstraintKindType kind,
-            JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createShortMessage(
+            PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
                 .build();

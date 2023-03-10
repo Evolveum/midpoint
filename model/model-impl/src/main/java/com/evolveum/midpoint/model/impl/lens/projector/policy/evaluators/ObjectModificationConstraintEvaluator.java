@@ -80,7 +80,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             if (modificationConstraintMatches(constraint, ctx, result)) {
                 LocalizableMessage message = createMessage(constraint, rctx, result);
                 LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
-                return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
+                return new EvaluatedModificationTrigger(
+                        PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
                         null, message, shortMessage);
             } else {
                 LOGGER.trace("No operation matches.");

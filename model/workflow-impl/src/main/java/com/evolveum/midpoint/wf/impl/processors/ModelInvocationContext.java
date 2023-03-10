@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -24,8 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Captures the information from the invocation of the approvals (workflow) hook.
@@ -34,16 +35,17 @@ public class ModelInvocationContext<T extends ObjectType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelInvocationContext.class);
 
-    @NotNull public final PrismContext prismContext;
-    @NotNull public final ModelContext<T> modelContext;
+    @NotNull public final LensContext<T> modelContext;
     @Nullable public final WfConfigurationType wfConfiguration;
     @NotNull public final Task task;
     @NotNull public final RepositoryService repositoryService;
 
-    public ModelInvocationContext(@NotNull ModelContext<T> modelContext, @Nullable WfConfigurationType wfConfiguration,
-            @NotNull PrismContext prismContext, @NotNull RepositoryService repositoryService, @NotNull Task task) {
-        this.prismContext = prismContext;
-        this.modelContext = modelContext;
+    public ModelInvocationContext(
+            @NotNull ModelContext<T> modelContext,
+            @Nullable WfConfigurationType wfConfiguration,
+            @NotNull RepositoryService repositoryService,
+            @NotNull Task task) {
+        this.modelContext = (LensContext<T>) modelContext;
         this.wfConfiguration = wfConfiguration;
         this.task = task;
         this.repositoryService = repositoryService;
@@ -58,7 +60,7 @@ public class ModelInvocationContext<T extends ObjectType> {
     }
 
     public String getFocusObjectOid() {
-        ModelElementContext<?> fc = modelContext.getFocusContext();
+        LensFocusContext<?> fc = modelContext.getFocusContext();
         if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
             return fc.getObjectNew().getOid();
         } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
@@ -69,7 +71,7 @@ public class ModelInvocationContext<T extends ObjectType> {
     }
 
     public ObjectType getFocusObjectNewOrOld() {
-        ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
+        LensFocusContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {
             throw new IllegalStateException("No object (new or old) in model context");

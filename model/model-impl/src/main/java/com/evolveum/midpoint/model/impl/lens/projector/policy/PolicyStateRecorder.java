@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
@@ -34,7 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 class PolicyStateRecorder {
 
-    <O extends ObjectType> void applyObjectState(LensElementContext<O> elementContext, List<EvaluatedPolicyRule> rulesToRecord)
+    <O extends ObjectType> void applyObjectState(
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull List<EvaluatedPolicyRuleImpl> rulesToRecord)
             throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
@@ -62,8 +66,8 @@ class PolicyStateRecorder {
     }
 
     void applyAssignmentState(
-            LensContext<?> context, EvaluatedAssignmentImpl<?> evaluatedAssignment, PlusMinusZero mode,
-            List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
+            LensContext<?> context, EvaluatedAssignmentImpl<?> evaluatedAssignment, List<EvaluatedPolicyRuleImpl> rulesToRecord)
+            throws SchemaException {
         LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
             return;
@@ -71,16 +75,24 @@ class PolicyStateRecorder {
         AssignmentType assignmentNew = evaluatedAssignment.getAssignment(false);
         AssignmentType assignmentOld = evaluatedAssignment.getAssignment(true);
         if (assignmentOld == null && assignmentNew == null) {
-            throw new IllegalStateException("Policy situation/rules for assignment cannot be updated, because the "
-                    + "assignment itself is missing in "+evaluatedAssignment+", in object "+focusContext.getObjectAny());
+            throw new IllegalStateException(String.format(
+                    "Policy situation/rules for assignment cannot be updated, because the assignment itself is missing"
+                            + " in %s, in object %s", evaluatedAssignment, focusContext.getObjectAny()));
         }
         // this value is to be used to find correct assignment in objectDelta to apply the modifications (if no ID is present)
         @NotNull AssignmentType assignmentToMatch = assignmentOld != null ? assignmentOld : assignmentNew;
         // this value is used to compute policy situation/rules modifications
         @NotNull AssignmentType assignmentToCompute = assignmentNew != null ? assignmentNew : assignmentOld;
 
+        // a bit of hack, but hopefully it will work
+        PlusMinusZero mode =
+                evaluatedAssignment.getOrigin().isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+
         Long id = assignmentToMatch.getId();
-        ComputationResult cr = compute(rulesToRecord, assignmentToCompute.getPolicySituation(), assignmentToCompute.getTriggeredPolicyRule());
+        ComputationResult cr = compute(
+                rulesToRecord,
+                assignmentToCompute.getPolicySituation(),
+                assignmentToCompute.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
             focusContext.addToPendingAssignmentPolicyStateModifications(
                     assignmentToMatch,
@@ -104,7 +116,7 @@ class PolicyStateRecorder {
     }
 
     private ComputationResult compute(
-            @NotNull List<EvaluatedPolicyRule> rulesToRecord,
+            @NotNull List<EvaluatedPolicyRuleImpl> rulesToRecord,
             @NotNull List<String> existingPolicySituation,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();

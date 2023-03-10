@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -52,83 +53,83 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     // Gold, silver and bronze: mutual exclusion (prune), directly in the roles
 
-    protected static final File ROLE_PRIZE_GOLD_FILE = new File(TEST_DIR, "role-prize-gold.xml");
-    protected static final String ROLE_PRIZE_GOLD_OID = "bbc22f82-df21-11e6-aa6b-4b1408befd10";
-    protected static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
-    protected static final File ROLE_PRIZE_GOLD_ENFORCED_FILE = new File(TEST_DIR, "role-prize-gold-enforced.xml");
-    protected static final String ROLE_PRIZE_GOLD_ENFORCED_OID = "6bff06a9-51b7-4a19-9e77-ee0701c5bfe2";
-    protected static final File ROLE_PRIZE_GOLD_BY_MAPPING_FILE = new File(TEST_DIR, "role-prize-gold-by-mapping.xml");
-    protected static final String ROLE_PRIZE_GOLD_BY_MAPPING_OID = "01348e8c-1a77-4619-b375-0a3701564550";
+    private static final File ROLE_PRIZE_GOLD_FILE = new File(TEST_DIR, "role-prize-gold.xml");
+    private static final String ROLE_PRIZE_GOLD_OID = "bbc22f82-df21-11e6-aa6b-4b1408befd10";
+    private static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
+    private static final File ROLE_PRIZE_GOLD_ENFORCED_FILE = new File(TEST_DIR, "role-prize-gold-enforced.xml");
+    private static final String ROLE_PRIZE_GOLD_ENFORCED_OID = "6bff06a9-51b7-4a19-9e77-ee0701c5bfe2";
+    private static final File ROLE_PRIZE_GOLD_BY_MAPPING_FILE = new File(TEST_DIR, "role-prize-gold-by-mapping.xml");
+    private static final String ROLE_PRIZE_GOLD_BY_MAPPING_OID = "01348e8c-1a77-4619-b375-0a3701564550";
 
-    protected static final File ROLE_PRIZE_SILVER_FILE = new File(TEST_DIR, "role-prize-silver.xml");
-    protected static final String ROLE_PRIZE_SILVER_OID = "dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71";
-    protected static final String ROLE_PRIZE_SILVER_SHIP = "Silver";
-    protected static final File ROLE_PRIZE_SILVER_ENFORCED_FILE = new File(TEST_DIR, "role-prize-silver-enforced.xml");
-    protected static final String ROLE_PRIZE_SILVER_ENFORCED_OID = "0c3b2e44-9387-4c7b-8262-a20fdea434ea";
+    private static final File ROLE_PRIZE_SILVER_FILE = new File(TEST_DIR, "role-prize-silver.xml");
+    private static final String ROLE_PRIZE_SILVER_OID = "dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71";
+    private static final String ROLE_PRIZE_SILVER_SHIP = "Silver";
+    private static final File ROLE_PRIZE_SILVER_ENFORCED_FILE = new File(TEST_DIR, "role-prize-silver-enforced.xml");
+    private static final String ROLE_PRIZE_SILVER_ENFORCED_OID = "0c3b2e44-9387-4c7b-8262-a20fdea434ea";
 
-    protected static final File ROLE_PRIZE_BRONZE_FILE = new File(TEST_DIR, "role-prize-bronze.xml");
-    protected static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
-    protected static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
-    protected static final File ROLE_PRIZE_BRONZE_ENFORCED_FILE = new File(TEST_DIR, "role-prize-bronze-enforced.xml");
+    private static final File ROLE_PRIZE_BRONZE_FILE = new File(TEST_DIR, "role-prize-bronze.xml");
+    private static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
+    private static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
+    private static final File ROLE_PRIZE_BRONZE_ENFORCED_FILE = new File(TEST_DIR, "role-prize-bronze-enforced.xml");
 
     // Red, green and blue: mutual exclusion (prune) in the metarole
 
-    protected static final File ROLE_META_COLOR_FILE = new File(TEST_DIR, "role-meta-color.xml");
+    private static final File ROLE_META_COLOR_FILE = new File(TEST_DIR, "role-meta-color.xml");
 
-    protected static final File ROLE_COLOR_RED_FILE = new File(TEST_DIR, "role-color-red.xml");
-    protected static final String ROLE_COLOR_RED_OID = "eaa4ec3e-df28-11e6-9cca-336e0346d5cc";
-    protected static final String ROLE_COLOR_RED_SHIP = "Red";
+    private static final File ROLE_COLOR_RED_FILE = new File(TEST_DIR, "role-color-red.xml");
+    private static final String ROLE_COLOR_RED_OID = "eaa4ec3e-df28-11e6-9cca-336e0346d5cc";
+    private static final String ROLE_COLOR_RED_SHIP = "Red";
 
-    protected static final File ROLE_COLOR_GREEN_FILE = new File(TEST_DIR, "role-color-green.xml");
-    protected static final String ROLE_COLOR_GREEN_OID = "2fd9e8f4-df29-11e6-9605-cfcedd703b9e";
-    protected static final String ROLE_COLOR_GREEN_SHIP = "Green";
+    private static final File ROLE_COLOR_GREEN_FILE = new File(TEST_DIR, "role-color-green.xml");
+    private static final String ROLE_COLOR_GREEN_OID = "2fd9e8f4-df29-11e6-9605-cfcedd703b9e";
+    private static final String ROLE_COLOR_GREEN_SHIP = "Green";
 
-    protected static final File ROLE_COLOR_BLUE_FILE = new File(TEST_DIR, "role-color-blue.xml");
-    protected static final String ROLE_COLOR_BLUE_OID = "553e8df2-df29-11e6-a7ca-cb7c1f38d89f";
-    protected static final String ROLE_COLOR_BLUE_SHIP = "Blue";
+    private static final File ROLE_COLOR_BLUE_FILE = new File(TEST_DIR, "role-color-blue.xml");
+    private static final String ROLE_COLOR_BLUE_OID = "553e8df2-df29-11e6-a7ca-cb7c1f38d89f";
+    private static final String ROLE_COLOR_BLUE_SHIP = "Blue";
 
-    protected static final File ROLE_COLOR_NONE_FILE = new File(TEST_DIR, "role-color-none.xml");
-    protected static final String ROLE_COLOR_NONE_OID = "662a997e-df2b-11e6-9bb3-5f235d1a8e60";
+    private static final File ROLE_COLOR_NONE_FILE = new File(TEST_DIR, "role-color-none.xml");
+    private static final String ROLE_COLOR_NONE_OID = "662a997e-df2b-11e6-9bb3-5f235d1a8e60";
 
     // Executive / controlling exclusion roles
 
-    protected static final File ROLE_META_EXECUTIVE_FILE = new File(TEST_DIR, "role-meta-executive.xml");
+    private static final File ROLE_META_EXECUTIVE_FILE = new File(TEST_DIR, "role-meta-executive.xml");
 
-    protected static final File ROLE_EXECUTIVE_1_FILE = new File(TEST_DIR, "role-executive-1.xml");
-    protected static final String ROLE_EXECUTIVE_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee01";
+    private static final File ROLE_EXECUTIVE_1_FILE = new File(TEST_DIR, "role-executive-1.xml");
+    private static final String ROLE_EXECUTIVE_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee01";
 
-    protected static final File ROLE_EXECUTIVE_2_FILE = new File(TEST_DIR, "role-executive-2.xml");
-    protected static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
+    private static final File ROLE_EXECUTIVE_2_FILE = new File(TEST_DIR, "role-executive-2.xml");
+    private static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
 
     // Has "executive" subtype but should not be part of exclusion relations (because it is not a role)
     private static final TestResource<OrgType> ORG_EXECUTIVE_RANDOM = new TestResource<>(TEST_DIR,
             "org-executive-random.xml", "723f327b-7c33-4e4f-92cd-80ed12de79b6");
 
-    protected static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
+    private static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
 
-    protected static final File ROLE_CONTROLLING_1_FILE = new File(TEST_DIR, "role-controlling-1.xml");
-    protected static final String ROLE_CONTROLLING_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc01";
+    private static final File ROLE_CONTROLLING_1_FILE = new File(TEST_DIR, "role-controlling-1.xml");
+    private static final String ROLE_CONTROLLING_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc01";
 
-    protected static final File ROLE_CONTROLLING_2_FILE = new File(TEST_DIR, "role-controlling-2.xml");
-    protected static final String ROLE_CONTROLLING_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc02";
+    private static final File ROLE_CONTROLLING_2_FILE = new File(TEST_DIR, "role-controlling-2.xml");
+    private static final String ROLE_CONTROLLING_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc02";
 
-    protected static final File ROLE_CITIZEN_SK_FILE = new File(TEST_DIR, "role-citizen-sk.xml");
-    protected static final String ROLE_CITIZEN_SK_OID = "88420574-5596-11e7-80e9-7f28005e6b39";
+    private static final File ROLE_CITIZEN_SK_FILE = new File(TEST_DIR, "role-citizen-sk.xml");
+    private static final String ROLE_CITIZEN_SK_OID = "88420574-5596-11e7-80e9-7f28005e6b39";
 
-    protected static final File ROLE_CITIZEN_US_FILE = new File(TEST_DIR, "role-citizen-us.xml");
-    protected static final String ROLE_CITIZEN_US_OID = "a58c5940-5596-11e7-a3a0-dba800ea7966";
+    private static final File ROLE_CITIZEN_US_FILE = new File(TEST_DIR, "role-citizen-us.xml");
+    private static final String ROLE_CITIZEN_US_OID = "a58c5940-5596-11e7-a3a0-dba800ea7966";
 
-    protected static final File ROLE_MINISTER_FILE = new File(TEST_DIR, "role-minister.xml");
-    protected static final String ROLE_MINISTER_OID = "95565b4a-55a3-11e7-918a-3f59a532dbfc";
+    private static final File ROLE_MINISTER_FILE = new File(TEST_DIR, "role-minister.xml");
+    private static final String ROLE_MINISTER_OID = "95565b4a-55a3-11e7-918a-3f59a532dbfc";
 
-    protected static final File ROLE_CRIMINAL_FILE = new File(TEST_DIR, "role-criminal.xml");
-    protected static final String ROLE_CRIMINAL_OID = "f6deb182-55a3-11e7-b519-27bdcd6d9490";
+    private static final File ROLE_CRIMINAL_FILE = new File(TEST_DIR, "role-criminal.xml");
+    private static final String ROLE_CRIMINAL_OID = "f6deb182-55a3-11e7-b519-27bdcd6d9490";
 
-    protected static final File ROLE_SELF_EXCLUSION_FILE = new File(TEST_DIR, "role-self-exclusion.xml");
-    protected static final String ROLE_SELF_EXCLUSION_OID = "9577bd6c-dd5d-48e5-bbb1-554bba5db9be";
+    private static final File ROLE_SELF_EXCLUSION_FILE = new File(TEST_DIR, "role-self-exclusion.xml");
+    private static final String ROLE_SELF_EXCLUSION_OID = "9577bd6c-dd5d-48e5-bbb1-554bba5db9be";
 
-    protected static final File ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE = new File(TEST_DIR, "role-self-exclusion-manager-member.xml");
-    protected static final String ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID = "aeed4751-fad6-4c4e-9ece-c793128e0c13";
+    private static final File ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE = new File(TEST_DIR, "role-self-exclusion-manager-member.xml");
+    private static final String ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID = "aeed4751-fad6-4c4e-9ece-c793128e0c13";
 
     private static final File CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE = new File(TEST_DIR, "global-policy-rules-exclusion.xml");
     private static final File CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE = new File(TEST_DIR, "global-policy-rules-sod-approval.xml");
@@ -435,6 +436,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedNoRole(USER_JACK_OID, result);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
         return assignment -> {
             PolicyExceptionType policyException = new PolicyExceptionType();
@@ -748,8 +750,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             fail("unexpected success");
         } catch (PolicyViolationException e) {
             System.out.println("Got expected exception: " + e.getMessage());
-            // fragile, depends on the evaluation internals ... if it would cause problems please adapt the following assert
-            assertMessage(e, "Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Silver\" and role \"Prize: Gold\"; Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Gold\" and role \"Prize: Silver\"");
+            // The violation messages are multiplied because of the details of evaluation.
+            // This can be seen as a cosmetic issue for now.
+            String[] violations = e.getMessage().split("; ");
+            List<String> expected = List.of(
+                    "Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Silver\" and role \"Prize: Gold\"",
+                    "Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Gold\" and role \"Prize: Silver\"");
+            assertThat(violations)
+                    .as("violations")
+                    .containsOnlyElementsOf(expected)
+                    .containsAll(expected)
+                    .hasSize(6); // adapt when fixed in code
             result.computeStatus();
             assertFailure(result);
         }
@@ -1275,7 +1286,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test260")
                 .beginAssignment()
                     .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
@@ -1635,7 +1646,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
-        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        EvaluatedPolicyRuleTrigger<?> situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         displayDumpable("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
@@ -1733,7 +1744,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         // GIVEN
 
-        UserType jim = new UserType(prismContext)
+        UserType jim = new UserType()
                 .name("jim")
                 .beginAssignment()
                 .targetRef(ROLE_PRIZE_SILVER_OID, RoleType.COMPLEX_TYPE)
@@ -1774,15 +1785,18 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         return triggers.iterator().next();
     }
 
-    private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(
+    @SuppressWarnings("SameParameterValue")
+    private EvaluatedPolicyRuleTrigger<?> getEvaluatedPolicyRuleTrigger(
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
         return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<? extends EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
         return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<UserType> assignRolePolicyFailure(
             String userOid, String roleOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,13 +34,15 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
     private final LocalizableMessage shortMessage;
 
     /**
-     * If true, this trigger is to be reported as PolicyViolationException regardless of specified policy rule action.
+     * If true, this trigger is to be reported as {@link PolicyViolationException} regardless of specified policy rule action.
      * Used e.g. for disallowing assignment of two pruned roles (MID-4766).
      */
     private final boolean enforcementOverride;
 
-    public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, boolean enforcementOverride) {
+    public EvaluatedPolicyRuleTrigger(
+            @NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage,
+            boolean enforcementOverride) {
         this.constraintKind = constraintKind;
         this.constraint = constraint;
         this.message = message;
@@ -76,14 +79,18 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof EvaluatedPolicyRuleTrigger))
+        }
+        if (!(o instanceof EvaluatedPolicyRuleTrigger)) {
             return false;
-        EvaluatedPolicyRuleTrigger that = (EvaluatedPolicyRuleTrigger) o;
-        return constraintKind == that.constraintKind &&
-                Objects.equals(constraint, that.constraint) &&
-                Objects.equals(message, that.message);
+        }
+        EvaluatedPolicyRuleTrigger<?> that = (EvaluatedPolicyRuleTrigger<?>) o;
+        return constraintKind == that.constraintKind
+                && Objects.equals(constraint, that.constraint)
+                && Objects.equals(message, that.message)
+                && Objects.equals(shortMessage, that.shortMessage)
+                && enforcementOverride == that.enforcementOverride;
     }
 
     @Override

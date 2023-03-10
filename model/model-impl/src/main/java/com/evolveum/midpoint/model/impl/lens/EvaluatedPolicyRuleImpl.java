@@ -23,7 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,7 +59,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
     @NotNull private final PolicyRuleType policyRuleBean;
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-    @NotNull private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
     /**
      * Information about exact place where the rule was found. This can be important for rules that are
@@ -77,8 +78,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Nullable private final AssignmentPath assignmentPath;
 
     /**
-     * Evaluated assignment that brought this policy rule to the focus or target.
-     * May be missing for artificially-crafted policy rules (to be reviewed!)
+     * See {@link EvaluatedPolicyRule#getEvaluatedAssignment()}.
      */
     private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
 
@@ -142,6 +142,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return assignmentPath;
     }
 
+    public @NotNull AssignmentPath getAssignmentPathRequired() {
+        return MiscUtil.requireNonNull(
+                assignmentPath,
+                () -> new IllegalStateException("No assignment path in " + this));
+    }
+
+    @Nullable
+    @Override
     public EvaluatedAssignmentImpl<?> getEvaluatedAssignment() {
         return evaluatedAssignment;
     }
@@ -201,23 +209,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         }
     }
 
-    void addTriggers(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    public void trigger(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        String ruleName = getName();
+        LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
+        LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
         this.triggers.addAll(triggers);
     }
 
     @Override
     public void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger) {
         triggers.add(trigger);
-    }
-
-    @NotNull
-    @Override
-    public Collection<PolicyExceptionType> getPolicyExceptions() {
-        return policyExceptions;
-    }
-
-    void addPolicyException(PolicyExceptionType exception) {
-        policyExceptions.add(exception);
     }
 
     @Override
@@ -325,13 +326,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         EvaluatedPolicyRuleImpl that = (EvaluatedPolicyRuleImpl) o;
         return java.util.Objects.equals(policyRuleBean, that.policyRuleBean) &&
                 Objects.equals(assignmentPath, that.assignmentPath) &&
-                Objects.equals(triggers, that.triggers) &&
-                Objects.equals(policyExceptions, that.policyExceptions);
+                Objects.equals(triggers, that.triggers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(policyRuleBean, assignmentPath, triggers, policyExceptions);
+        return Objects.hash(policyRuleBean, assignmentPath, triggers);
     }
 
     @Override
@@ -534,7 +534,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
     //experimental
     @Override
-    public String getPolicyRuleIdentifier() {
+    public @NotNull String getPolicyRuleIdentifier() {
         return ruleId;
     }
 
@@ -598,5 +598,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return policyRuleBean.getMarkRef().stream()
                 .map(AbstractReferencable::getOid)
                 .collect(Collectors.toSet());
+    }
+
+    public void registerAsForeignRuleIfNeeded() {
+        for (EvaluatedExclusionTrigger exclusionTrigger : getAllTriggers(EvaluatedExclusionTrigger.class)) {
+            ((EvaluatedAssignmentImpl<?>) exclusionTrigger.getConflictingAssignment())
+                    .registerForeignRule(this);
+        }
     }
 }

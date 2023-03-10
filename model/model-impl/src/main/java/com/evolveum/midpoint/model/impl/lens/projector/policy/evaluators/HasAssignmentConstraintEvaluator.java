@@ -127,7 +127,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             if (!matchingTargets.isEmpty()) {
                 if (shouldExist) {
                     PrismObject<?> anyTargetObject = matchingTargets.get(0);
-                    return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
+                    return new EvaluatedHasAssignmentTrigger(
+                            PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
                             createPositiveMessage(constraintElement, ctx, anyTargetObject, result),
                             createPositiveShortMessage(constraintElement, ctx, anyTargetObject, result));
                 } else {
@@ -210,9 +211,13 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
         if (shouldExist) {
             return null;
         } else {
-            return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
-                    createNegativeMessage(constraintElement, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result),
-                    createNegativeShortMessage(constraintElement, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result));
+            ObjectReferenceType targetRef = constraint.getTargetRef();
+            QName targetType = targetRef.getType();
+            String targetOid = targetRef.getOid();
+            return new EvaluatedHasAssignmentTrigger(
+                    PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                    createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
+                    createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result));
             // targetName seems to be always null, even if specified in the policy rule
         }
     }

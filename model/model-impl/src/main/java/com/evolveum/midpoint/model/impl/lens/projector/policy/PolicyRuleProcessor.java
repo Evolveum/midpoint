@@ -11,6 +11,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesEvaluator.FocusPolicyRulesEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRulesEvaluator.ProjectionPolicyRulesEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,6 +37,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     private static final String CLASS_DOT = PolicyRuleProcessor.class.getName() + ".";
     private static final String OP_EVALUATE_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "evaluateAssignmentPolicyRules";
+    private static final String OP_RECORD_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "recordAssignmentPolicyRules";
     private static final String OP_ENFORCE = CLASS_DOT + "enforce";
 
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(
@@ -55,14 +58,34 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         }
     }
 
+    /**
+     * This is separate because assignments can be evaluated before and after pruning.
+     */
+    public <AH extends AssignmentHolderType> void recordAssignmentPolicyRules(
+            @NotNull LensFocusContext<AH> focusContext,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(OP_RECORD_ASSIGNMENT_POLICY_RULES);
+        try {
+            new AssignmentPolicyRuleEvaluator<>(focusContext, task)
+                    .record(result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
     @ProcessorMethod
-    public <AH extends AssignmentHolderType> void evaluateFocusPolicyRules(
+    public <AH extends AssignmentHolderType> void evaluateAndRecordFocusPolicyRules(
             LensContext<AH> context, XMLGregorianCalendar ignoredNow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        // No need for custom operation result, as this already has one
-        new ObjectPolicyRulesEvaluator.FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task)
-                .evaluate(result);
+        // No need for custom operation result, as this already has one (because it's a projector component)
+        FocusPolicyRulesEvaluator<AH> evaluator = new FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task);
+        evaluator.evaluate(result);
+        evaluator.record(result);
     }
 
     @ProcessorMethod
@@ -75,9 +98,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        // No need for custom operation result, as this already has one
-        new ObjectPolicyRulesEvaluator.ProjectionPolicyRulesEvaluator(projectionContext, task)
-                .evaluate(result);
+        // No need for custom operation result, as this already has one (because it's a projector component)
+        ProjectionPolicyRulesEvaluator evaluator = new ProjectionPolicyRulesEvaluator(projectionContext, task);
+        evaluator.evaluate(result);
+        evaluator.record(result);
     }
 
     /** Updates counters for policy rules, with the goal of determining if rules' thresholds have been reached. */

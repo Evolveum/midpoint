@@ -272,11 +272,9 @@ public class ObjectTypeUtil {
         return ort;
     }
 
-    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType, PrismContext prismContext) {
-        if (objectType == null) {
-            return null;
-        }
-        return createObjectRefWithFullObject(objectType.asPrismObject());
+    @Deprecated
+    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object, PrismContext prismContext) {
+        return createObjectRefWithFullObject(object);
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType object) {

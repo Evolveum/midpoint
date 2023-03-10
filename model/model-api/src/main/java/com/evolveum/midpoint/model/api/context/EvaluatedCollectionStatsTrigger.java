@@ -13,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
-    public EvaluatedCollectionStatsTrigger(@NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,
+    public EvaluatedCollectionStatsTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull CollectionStatsPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
     }

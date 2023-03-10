@@ -33,15 +33,13 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
     private ObjectDelta<T> focusChange;
     private final Map<ProjectionContextKey, ObjectDelta<ShadowType>> projectionChangeMap = new HashMap<>();    // values are non null here
-    private final PrismContext prismContext;
+    private final PrismContext prismContext = PrismContext.get();
 
-    public ObjectTreeDeltas(PrismContext prismContext) {
-        this.prismContext = prismContext;
+    public ObjectTreeDeltas() {
     }
 
-    public ObjectTreeDeltas(ObjectDelta<T> focusChange, PrismContext prismContext) {
+    public ObjectTreeDeltas(ObjectDelta<T> focusChange) {
         this.focusChange = focusChange;
-        this.prismContext = prismContext;
     }
 
     public ObjectDelta<T> getFocusChange() {
@@ -100,7 +98,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectTreeDeltas<T> clone() {
-        ObjectTreeDeltas<T> clone = new ObjectTreeDeltas<>(prismContext);
+        ObjectTreeDeltas<T> clone = new ObjectTreeDeltas<>();
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());
         }
@@ -135,7 +133,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
     }
 
     @SuppressWarnings("unused")
-    public static String toObjectTreeDeltasTypeXml(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
+    public static String toObjectTreeDeltasTypeXml(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
         return objectTreeDeltas != null ? objectTreeDeltas.toObjectTreeDeltasTypeXml() : null;
     }
 
@@ -148,26 +146,23 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         }
     }
 
-    public static ObjectTreeDeltasType toObjectTreeDeltasType(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
+    public static ObjectTreeDeltasType toObjectTreeDeltasType(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
         return objectTreeDeltas != null ? objectTreeDeltas.toObjectTreeDeltasType() : null;
     }
 
     @Contract("null -> null; !null -> !null")
-    public static ObjectTreeDeltas fromObjectTreeDeltasType(ObjectTreeDeltasType deltasType) throws SchemaException {
+    public static <T extends ObjectType> ObjectTreeDeltas<T> fromObjectTreeDeltasType(ObjectTreeDeltasType deltasType) throws SchemaException {
         if (deltasType == null) {
             return null;
         }
-        PrismContext prismContext = PrismContext.get();
-        ObjectTreeDeltas deltas = new ObjectTreeDeltas(prismContext);
+        ObjectTreeDeltas<T> deltas = new ObjectTreeDeltas<>();
         if (deltasType.getFocusPrimaryDelta() != null) {
-            //noinspection unchecked
-            deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta(), prismContext));
+            deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta()));
         }
         for (ProjectionObjectDeltaType projectionObjectDeltaType : deltasType.getProjectionPrimaryDelta()) {
             ProjectionContextKey rsd = ProjectionContextKey.fromBean(
                     projectionObjectDeltaType.getResourceShadowDiscriminator());
-            ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext);
-            //noinspection unchecked
+            ObjectDelta<ShadowType> objectDelta = DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta());
             deltas.addProjectionChange(rsd, objectDelta);
         }
         return deltas;
@@ -263,7 +258,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return rv;
     }
 
-    public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge)
+    public static <T extends ObjectType> ObjectTreeDeltasType mergeDeltas(
+            ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge)
             throws SchemaException {
         if (deltaToMerge == null) {
             return deltaTree;
@@ -273,9 +269,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (deltaTree == null) {
             return deltaTreeToMerge;
         }
-        ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree);
-        ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge);
-        //noinspection unchecked
+        ObjectTreeDeltas<T> tree = fromObjectTreeDeltasType(deltaTree);
+        ObjectTreeDeltas<T> treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge);
         tree.merge(treeToMerge);
         return tree.toObjectTreeDeltasType();
     }

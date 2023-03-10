@@ -179,9 +179,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             }
         }
 
-        return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
-                    createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result),
-                    createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result));
+        return new EvaluatedStateTrigger(
+                OBJECT_STATE, constraint,
+                createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result),
+                createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result));
     }
 
     private <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluateForAssignment(
@@ -206,7 +207,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                         String.format("expression in assignment state constraint %s (%s)", constraint.getName(), ctx.state),
                         ctx, result);
         if (match) {
-            return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
+            return new EvaluatedStateTrigger(
+                    ASSIGNMENT_STATE, constraint,
                     createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result),
                     createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result));
         }

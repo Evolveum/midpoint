@@ -160,7 +160,7 @@ public class WfHook implements ChangeHook {
         try {
             modelContext.reportProgress(new ProgressInformation(WORKFLOWS, ENTERING));
             ModelInvocationContext<?> ctx =
-                    new ModelInvocationContext<>(modelContext, wfConfigurationType, prismContext, repositoryService, opTask);
+                    new ModelInvocationContext<>(modelContext, wfConfigurationType, repositoryService, opTask);
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 LOGGER.trace("Trying change processor: {}", changeProcessor.getClass().getName());
                 try {
