@@ -195,7 +195,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean wasSuccessfullyProcessedOtherThanUnsufficientModules() {
         long sufficientModuleCount = getAuthentications().stream()
                 .filter(module -> AuthenticationModuleState.SUCCESSFULLY == module.getState())
-                .filter(module -> !module.isSufficient())
+                .filter(module -> module.isSufficient())
                 .count();
         return sufficientModuleCount > 0;
     }
