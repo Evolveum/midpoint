@@ -275,7 +275,9 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     }
 
     private void showWarningIfSubreportsUsed(Component component) {
-        if (ReportTypeUtil.isSplitParentRowUsed(getModelObject())) {
+        // If not runnable, it is called from the popup preview and already has a warning
+        // taken care of with ReportOperationalButtonsPanel.showWarningIfSubreportsUsed().
+        if (isRunnable && ReportTypeUtil.isSplitParentRowUsed(getModelObject())) {
             component.warn(getString("ReportOperationalButtonsPanel.splitParentRowPreviewWarning"));
         }
     }
