@@ -1,22 +1,13 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import java.util.*;
-
+import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -26,21 +17,28 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupable {
 
@@ -78,11 +76,11 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     protected void initLayout() {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
+        showWarningIfSubreportsUsed(mainForm);
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
-        ReportObjectsListPanel table = new ReportObjectsListPanel(ID_TABLE, getModel()){
+        ReportObjectsListPanel<?> table = new ReportObjectsListPanel<>(ID_TABLE, getModel()) {
 
-            private final boolean checkViewAfterInitialize = true;
             @Override
             public Component getFeedbackPanel() {
                 return feedback;
@@ -90,10 +88,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
             @Override
             protected boolean checkViewAfterInitialize() {
-                if (checkViewAfterInitialize) {
-                    return true;
-                }
-                return super.checkViewAfterInitialize();
+                return true;
             }
         };
         table.setOutputMarkupId(true);
@@ -277,5 +272,11 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     private ReportObjectsListPanel getTable() {
         return (ReportObjectsListPanel) get(getPageBase().createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
+
+    private void showWarningIfSubreportsUsed(Component component) {
+        if (ReportTypeUtil.isSplitParentRowUsed(getModelObject())) {
+            component.warn(getString("ReportOperationalButtonsPanel.splitParentRowPreviewWarning"));
+        }
     }
 }
