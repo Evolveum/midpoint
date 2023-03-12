@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.api.*;
 
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
+import org.assertj.core.api.AssertProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -74,13 +75,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
     private static final String GROUP_CORSAIRS_NAME = "corsairs";
 
-    private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_MARK= TestObject.classPath(
-            "initial-objects/archetype", "702-archetype-shadow-mark.xml",
-            SystemObjectsType.ARCHETYPE_SHADOW_MARK.value());
-
-    private static final TestObject<MarkType> TAG_PROTECTED_SHADOW = TestObject.classPath(
-            "initial-objects/mark", "800-mark-protected.xml",
-            SystemObjectsType.MARK_PROTECTED.value());
+    private static final String MARK_PROTECTED_OID = SystemObjectsType.MARK_PROTECTED.value();
 
     String piratesIcfUid;
 
@@ -161,8 +156,11 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
         var accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
 
+        assertEquals("Provisioning: Effective mark references Protected", MARK_PROTECTED_OID, accountAfter.asObjectable().getEffectiveMarkRef().get(0).getOid());
         assertEquals("" + accountAfter + " is not protected", Boolean.TRUE, accountAfter.asObjectable().isProtectedObject());
 
+        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+        assertEquals("Repository: Effective mark references Protected", MARK_PROTECTED_OID, accountRepo.asObjectable().getEffectiveMarkRef().get(0).getOid());
         assertSteadyResource();
     }
 
@@ -246,6 +244,9 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
         PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
         assertEquals("Wrong situation", SynchronizationSituationType.DISPUTED, shadowAfter.asObjectable().getSynchronizationSituation());
+
+        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+        assertEquals("Repository: Effective mark references Protected", MARK_PROTECTED_OID, accountRepo.asObjectable().getEffectiveMarkRef().get(0).getOid());
 
         assertSteadyResource();
     }
@@ -411,6 +412,8 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         PrismObject<ShadowType> accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
         assertNull("" + accountAfter + " is not protected", accountAfter.asObjectable().isProtectedObject());
 
+        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+        assertTrue("Repository: Effective marks should be empty", accountRepo.asObjectable().getEffectiveMarkRef().isEmpty());
         assertSteadyResource();
     }
 
