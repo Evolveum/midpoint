@@ -8,10 +8,13 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -26,6 +29,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
+
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -33,15 +38,34 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.google.common.collect.Lists;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -50,7 +74,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(ProcessedObjectsPanel.class);
     private final IModel<List<MarkType>> availableMarksModel;
+
+    private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
+    private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
 
     public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -90,6 +118,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         ctx.setSelectedEventMark(getMarkOid());
 
         return ctx;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return createRowMenuItems();
     }
 
     @Override
@@ -158,6 +191,68 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                 });
             }
         };
+    }
+
+
+    private List<InlineMenuItem> createRowMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        markObjects(getRowModel(), target);
+                    }
+                };
+            }
+        });
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.warn("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                markObjects(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select");
+                            }
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
+                    }
+                };
+            }
+        });
+
+        return items;
     }
 
     private void onObjectNameClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
@@ -283,4 +378,64 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
         throw new RestartResponseException(getPage());
     }
+
+
+    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
+
+        List<SimulationResultProcessedObjectType> selected;
+        if (rowModel != null) {
+            selected = Collections.singletonList(rowModel.getObject().getValue());
+        } else {
+            selected = getSelectedRealObjects();
+        }
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+            for (var shadow : selected) {
+                List<PolicyStatementType> statements = new ArrayList<>();
+                if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
+                    // skip object, since it is added
+                    continue;
+                }
+                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+                // but for each delta we need separate statement
+                for (String oid : markOids) {
+                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+                }
+                try {
+                    var delta = getPageBase().getPrismContext().deltaFactory().object()
+                            .createModificationAddContainer(ObjectType.class,
+                                    shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
+                                    statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {
+        markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
+    }
+
 }
