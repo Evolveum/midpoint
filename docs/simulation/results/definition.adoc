@@ -1,3 +1,126 @@
 = Simulation Result Definition
 
-#TODO#
+There is a possibility to configure the way of how xref:index.adoc[simulation result] is computed and stored.
+MidPoint maintains a global configuration for simulation results, but - if needed - it is possible to configure the simulation result creation for each simulation activity independently.
+
+== Global Configuration
+
+The global configuration is stored in `simulation` container in the system configuration.
+There are currently two sub-items there:
+
+.Items in the global configuration of simulations
+[%autowidth]
+|====
+| Container | Description
+
+| `metric`
+| Explicitly defined xref:metrics.adoc[metrics].
+
+| `simulation`
+| Library of xref:#_library[global simulation result definitions].
+|====
+
+Please follow the links above to learn more about the respective topics.
+Now let us have a look at how individual simulation result can be configured.
+
+== Simulation Result Definition
+
+Individual simulation result creation is configured using the following configuration items:
+
+.Configuration items for simulation result creation
+[%autowidth]
+|====
+| Property | Description | Default value
+| `identifier`
+| Identifier of the definition.
+Useful when extending this definition using `super` property, when determining the name of the simulation result, and for diagnostics.
+If used in the global library of simulation result definitions, it must be unique.
+| none
+
+| `super`
+| Identifier of the "super-definition", i.e. the definition the current one is extending.
+| none
+
+| `default`
+| Is this the default definition?
+| see <<_library>> below
+
+| `metrics`
+| How should be the (globally-defined) xref:metrics.adoc[metrics] used in this particular simulation type?
+| "as they are", without any changes
+
+| `useOwnPartitionForProcessedObjects`
+| Should this simulation use its own database partition for processed objects?
+| no
+
+|====
+
+[#_partitions]
+== Database Partitions for Processed Objects
+
+As described in the xref:index.adoc[overview], a simulation result consists of metrics and other overview data, plus detailed information about individual processed objects.
+The latter can occupy substantial place in the repository.
+Moreover, there can be use cases when we want to keep historic records of the metrics and overview data, but we are not so interested in the details.
+
+Hence, midPoint allows to quickly delete processed objects from a simulation by placing them into separate PostgreSQL database table partition - one partition per one simulation result with this feature enabled.
+
+Whether a partition should be created for given simulation result, is driven by `useOwnPartitionForProcessedObjects` property in the definition for that simulation result.
+
+== An Example of Definition Reuse
+
+Let us have the following two global simulation result definitions:
+
+.Listing 1. Sample global simulation result definitions
+[source,xml]
+----
+<simulation>
+    <metric><!-- some metrics are defined here --></metric>
+    <simulation>
+        <identifier>small</identifier>
+        <description>Simulation result definition suitable for simulations with small number of processed objects.</description>
+        <default>true</default>
+        <useOwnPartitionForProcessedObjects>false</useOwnPartitionForProcessedObjects>
+    </simulation>
+    <simulation>
+        <identifier>large</identifier>
+        <description>Simulation result definition suitable for simulations with large number of processed objects.</description>
+        <metrics><!-- some metrics are disabled or enabled here --></metrics>
+        <useOwnPartitionForProcessedObjects>true</useOwnPartitionForProcessedObjects>
+    </simulation>
+</simulation>
+----
+
+The `small` one is the default.
+The `large` is suitable in special cases when large numbers of objects are processed, so it uses a different configuration.
+Now let us assume you want to create a simulation activity that would use the `large` definition but with some minor adjustments.
+We can do that like this:
+
+.Listing 2. A simulation activity extending the `large` simulation result definition
+[source,xml]
+----
+<activity>
+    <!-- ... -->
+    <reporting>
+        <simulationResult>
+            <definition>
+                <super>large</super>
+                <useOwnPartitionForProcessedObjects>false</useOwnPartitionForProcessedObjects>
+            </definition>
+        </simulationResult>
+    </reporting>
+</activity>
+----
+
+This activity will use the `large` definition, with all of its metrics tailoring, but setting `useOwnPartitionForProcessedObjects` value to `false`.
+
+[#_library]
+== Library of Global Simulation Result Definitions
+
+The library of global simulation result definitions can be used when configuring individual activities.
+An activity can use or extend any of these global definitions, or - if nothing is explicitly specified for that activity - it can use the default definition.
+The default definition is determined like this:
+
+. If there is no global definition, the default definition is the empty one (i.e. with all properties having their default values).
+. If there is a single global definition, it is used as the default one.
+. If there are more definitions, and exactly one of them is marked as `default`, it is used as such.
+. Otherwise, a configuration exception is signalled.
