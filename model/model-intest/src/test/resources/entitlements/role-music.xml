@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="1095efcd-6677-4adc-b1d7-984014b2b87b">
+    <name>music</name>
+    <assignment>
+        <targetRef oid="bf1178f4-d59a-47d1-b00b-f696b7bf6565" type="RoleType"/>
+    </assignment>
+</role>

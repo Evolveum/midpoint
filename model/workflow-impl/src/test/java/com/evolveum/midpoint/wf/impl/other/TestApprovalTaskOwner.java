@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -68,7 +70,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         OperationResult result = task.getResult();
 
         when();
-        assignRole(USER_JACK_OID, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
+        assignRole(USER_JACK.oid, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
 
         then();
         display("RESULT: \n" + result.debugDump());
@@ -101,7 +103,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
                 .assertOid(USER_MANAGER_OID);
 
         //assert assigned role
-        assertUserAfter(USER_JACK_OID).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
+        assertUserAfter(USER_JACK.oid).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
     }
 
     @Test
@@ -114,10 +116,10 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         OperationResult result = task.getResult();
 
         when();
-        unassignRole(USER_JACK_OID, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
+        unassignRole(USER_JACK.oid, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
 
         then();
-        assertUserAfter(USER_JACK_OID).assignments().assertNoRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
+        assertUserAfter(USER_JACK.oid).assignments().assertNoRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
     }
 
     @Test
@@ -137,7 +139,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         executeChanges(systemConfig, null, task, result);
 
         when();
-        assignRole(USER_JACK_OID, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
+        assignRole(USER_JACK.oid, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
 
         then();
         caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
@@ -166,11 +168,11 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
                 .owner()
                 .assertOid(USER_ADMINISTRATOR_OID);
 
-        assertUserAfter(USER_JACK_OID).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
+        assertUserAfter(USER_JACK.oid).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
     }
 
     private void approveCase(Task task, OperationResult result) throws Exception {
-        SearchResultList<CaseWorkItemType> caseWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
+        SearchResultList<CaseWorkItemType> caseWorkItems = modelService.searchContainers(CaseWorkItemType.class, ObjectQueryUtil.openItemsQuery(), null, task, result);
         assertThat(caseWorkItems.size()).isEqualTo(1);
 
         CaseWorkItemType caseWorkItemType = caseWorkItems.get(0);

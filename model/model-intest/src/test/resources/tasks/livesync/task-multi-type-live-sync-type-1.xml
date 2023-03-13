@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="9ca22b74-bde8-45ca-be4e-cc77d95924c9">
+    <name>task-multi-type-live-sync-type-1</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="1731de0c-b333-4f8e-abb1-eada3d38943d" />
+                    <kind>account</kind>
+                    <intent>type1</intent>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+</task>

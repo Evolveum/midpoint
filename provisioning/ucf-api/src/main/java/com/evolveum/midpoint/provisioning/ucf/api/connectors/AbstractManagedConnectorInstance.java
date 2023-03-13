@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 /**
  * @author semancik
  *
@@ -219,5 +221,14 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     public void setResourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
+    }
+
+    private String getConnectorObjectName() {
+        return connectorObject != null ? getOrig(connectorObject.getName()) : null;
+    }
+
+    @Override
+    public String getHumanReadableDescription() {
+        return getClass().getSimpleName() + " (" + getConnectorObjectName() + ", " + getInstanceName() + ")";
     }
 }

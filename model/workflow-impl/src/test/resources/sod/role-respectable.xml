@@ -9,6 +9,6 @@
     <!-- This is a hidden thief; not directly listed in criminal-exclusion participants. But should be excluded nevertheless. -->
     <name>Respectable</name>
     <inducement>
-        <targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/>         <!-- Thief -->
+        <targetRef oid="ee6a1809-a0ed-4983-a0b4-6eef24e8a76d" type="RoleType"/> <!-- Thief -->
     </inducement>
 </role>

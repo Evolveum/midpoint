@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import java.util.Objects;
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-
-import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 /**
  *

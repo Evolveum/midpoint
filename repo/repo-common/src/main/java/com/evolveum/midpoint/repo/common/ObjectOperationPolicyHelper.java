@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolic
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizeOperationPolicyConfigurationType;
@@ -54,6 +57,10 @@ public class ObjectOperationPolicyHelper {
                 ObjectType shadow, OperationResult result);
 
         protected abstract void setEffectiveMarks(ShadowType shadow, Collection<ObjectReferenceType> effectiveMarkRefs);
+
+        protected ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType repoShadow, ItemDelta<?, ?> modification) throws SchemaException {
+            return null;
+        }
 
     }
 
@@ -205,15 +212,19 @@ public class ObjectOperationPolicyHelper {
 
         @Override
         protected Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result) {
+            return computeEffectiveMarkRefs(shadow.getEffectiveMarkRef(), shadow);
+        }
+
+        private Collection<ObjectReferenceType> computeEffectiveMarkRefs(List<ObjectReferenceType> proposed, ObjectType object) {
             List<ObjectReferenceType> ret = new ArrayList<>();
-            for (var mark : shadow.getEffectiveMarkRef()) {
-                if (mark.getOid() != null && policyNotExcluded(shadow, mark.getOid())) {
+            for (var mark : proposed) {
+                if (mark.getOid() != null && policyNotExcluded(object, mark.getOid())) {
                     // Mark is effective if it was not excluded
                     ret.add(mark);
                 }
             }
 
-            for (var statement : shadow.getPolicyStatement()) {
+            for (var statement : object.getPolicyStatement()) {
                 if (APPLY.equals(statement.getType())
                         && statement.getMarkRef() != null && statement.getMarkRef().getOid() != null) {
                         // Add to effective refs
@@ -256,8 +267,6 @@ public class ObjectOperationPolicyHelper {
             var ret = new ObjectOperationPolicyType();
             Collection<MarkType>  marks = getShadowMarks(effectiveMarkRefs, result);
 
-
-
             ret.setSynchronize(new SynchronizeOperationPolicyConfigurationType()
                     .inbound(firstNonDefaultValue(marks,
                             m -> m.getSynchronize() != null ? m.getSynchronize().getInbound(): null,
@@ -265,15 +274,67 @@ public class ObjectOperationPolicyHelper {
                     .outbound(firstNonDefaultValue(marks,
                             m -> m.getSynchronize() != null ? m.getSynchronize().getOutbound(): null,
                                     true))
-
                     );
-
-
 
             ret.setAdd(firstNonDefaultValue(marks, ObjectOperationPolicyType::getAdd, true));
             ret.setModify(firstNonDefaultValue(marks, ObjectOperationPolicyType::getModify, true));
             ret.setDelete(firstNonDefaultValue(marks, ObjectOperationPolicyType::getDelete, true));
             return ret;
+        }
+
+        @Override
+        protected ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType orig, ItemDelta<?, ?> modification) throws SchemaException {
+            PrismObject<? extends ObjectType> after = orig.clone().asPrismObject();
+
+            var effectiveMarks = new ArrayList<>(orig.getEffectiveMarkRef());
+            List<ObjectReferenceType> refsToDelete = new ArrayList<>();
+            List<ObjectReferenceType> refsToAdd = new ArrayList<>();
+            var deletedStatements = (Collection<PolicyStatementType>) modification.getRealValuesToDelete();
+            if (deletedStatements != null) {
+                for (var deleted : deletedStatements) {
+                     if (APPLY.equals(deleted.getType())) {
+                         var valueToDelete = findEffectiveImpliedByStatement(effectiveMarks, deleted.getMarkRef().getOid());
+                         if (valueToDelete != null) {
+                             refsToDelete.add(valueToDelete.clone());
+                         }
+                     }
+                }
+            }
+            modification.applyTo(after);
+            ObjectType afterObj = after.asObjectable();
+            Collection<ObjectReferenceType> finalEffectiveMarks = computeEffectiveMarkRefs(effectiveMarks, afterObj);
+            for (var finalMark : finalEffectiveMarks) {
+                if (!containsRef(orig.getEffectiveMarkRef(), finalMark)) {
+                    refsToAdd.add(finalMark.clone());
+                }
+            }
+            if (refsToDelete.isEmpty() && refsToAdd.isEmpty()) {
+                // Nothing to add or remove.
+                return null;
+            }
+            return PrismContext.get().deltaFor(ObjectType.class)
+                    .item(ObjectType.F_EFFECTIVE_MARK_REF)
+                    .deleteRealValues(refsToDelete)
+                    .addRealValues(refsToAdd)
+                    .asItemDelta();
+        }
+
+        private ObjectReferenceType findEffectiveImpliedByStatement(ArrayList<ObjectReferenceType> effectiveMarks, String oid) {
+            for (ObjectReferenceType mark : effectiveMarks) {
+                if (oid.equals(mark.getOid()) && isImpliedByStatement(mark)) {
+                    return mark;
+                }
+            }
+            return null;
+        }
+
+        private boolean isImpliedByStatement(ObjectReferenceType mark) {
+            // Currently all marks are implied by statements
+            return true;
+        }
+
+        private boolean containsRef(List<ObjectReferenceType> effectiveMarkRef, ObjectReferenceType finalMark) {
+            return containsOid(effectiveMarkRef, finalMark.getOid());
         }
 
     }
@@ -349,5 +410,9 @@ public class ObjectOperationPolicyHelper {
             }
         }
         return new OperationPolicyConfigurationType().enabled(defaultValue);
+    }
+
+    public ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType repoShadow, ItemDelta<?, ?> modification) throws SchemaException {
+        return behaviour.computeEffectiveMarkDelta(repoShadow, modification);
     }
 }

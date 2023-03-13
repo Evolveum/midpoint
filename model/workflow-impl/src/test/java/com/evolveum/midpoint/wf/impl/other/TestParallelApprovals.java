@@ -122,11 +122,11 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDelta(userJackOid);
+                .asObjectDelta(USER_JACK.oid);
         executeChanges(assignDelta, executeOptions().executeImmediatelyAfterApproval(), task, result); // should start approval processes
-        assertNotAssignedRole(userJackOid, roleRole51aOid, result);
-        assertNotAssignedRole(userJackOid, roleRole52aOid, result);
-        assertNotAssignedRole(userJackOid, roleRole53aOid, result);
+        assertNotAssignedRole(USER_JACK.oid, roleRole51aOid, result);
+        assertNotAssignedRole(USER_JACK.oid, roleRole52aOid, result);
+        assertNotAssignedRole(USER_JACK.oid, roleRole53aOid, result);
 
         display("Task after operation", task);
 
@@ -148,7 +148,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         assertNull("Exception has occurred " + listener.getException(), listener.getException());
         assertEquals("Wrong root case status", SchemaConstants.CASE_STATE_CLOSED, rootCase.getState());
 
-        PrismObject<UserType> jack = getUser(userJackOid);
+        PrismObject<UserType> jack = getUser(USER_JACK.oid);
         assertAssignedRole(jack, roleRole50aOid);
         assertAssignedRole(jack, roleRole51aOid);
         assertAssignedRole(jack, roleRole52aOid);

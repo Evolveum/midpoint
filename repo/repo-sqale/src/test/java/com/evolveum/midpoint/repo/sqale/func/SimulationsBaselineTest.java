@@ -50,6 +50,7 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     private String firstResultOid;
     private String secondResultOid;
 
+    @Override
     @BeforeClass
     public void initDatabase() throws Exception {
         super.initDatabase();
@@ -384,19 +385,19 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                         .as("tx ID")
                         .isEqualTo("#3"));
 
-//        when("checking search by state");
-//        ObjectQuery byState =
-//                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-//                        .ownerId(secondResultOid)
-//                        .and()
-//                        .item(SimulationResultProcessedObjectType.F_STATE)
-//                        .eq(ObjectProcessingStateType.ADDED)
-//                        .build();
-//        checkCountAndSearch("by OID", byState, 1, result,
-//                po -> assertThat(po.getState())
-//                        .as("state")
-//                        .isEqualTo(ObjectProcessingStateType.ADDED));
-//
+        when("checking search by state");
+        ObjectQuery byState =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_STATE)
+                        .eq(ObjectProcessingStateType.ADDED)
+                        .build();
+        checkCountAndSearch("by OID", byState, 1, result,
+                po -> assertThat(po.getState())
+                        .as("state")
+                        .isEqualTo(ObjectProcessingStateType.ADDED));
+
 //        when("checking search by type");
 //        ObjectQuery byType =
 //                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)

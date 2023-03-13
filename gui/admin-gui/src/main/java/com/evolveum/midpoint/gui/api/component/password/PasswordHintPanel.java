@@ -111,8 +111,10 @@ public class PasswordHintPanel extends InputPanel {
         }
 
         private boolean hintEqualsOrSimilarToPassword(@NotNull String password, @NotNull String hint) {
-            return password.equals(hint) || password.contains(hint.trim().replaceAll(" ", ""))
-                    || hint.contains(password);
+            String passwordWithoutSpacesValue = password.trim().replaceAll(" ", "");
+            String hintWithoutSpacesValue = hint.trim().replaceAll(" ", "");
+            return passwordWithoutSpacesValue.contains(hintWithoutSpacesValue)
+                    || hintWithoutSpacesValue.contains(passwordWithoutSpacesValue);
         }
     }
 

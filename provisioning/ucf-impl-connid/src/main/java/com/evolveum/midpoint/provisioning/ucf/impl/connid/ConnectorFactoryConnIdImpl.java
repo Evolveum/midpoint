@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.configuration2.Configuration;
@@ -115,10 +116,20 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
             "ResultsHandlerConfigurationType");
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER = "enableNormalizingResultsHandler";
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER_ITEM_NAME =
+            new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER);
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER = "enableFilteredResultsHandler";
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER_ITEM_NAME =
+            new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER);
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE = "filteredResultsHandlerInValidationMode";
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE_ITEM_NAME =
+            new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE);
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER_ITEM_NAME =
+            new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER);
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER_ITEM_NAME =
+            new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER);
 
     static final Map<String, Collection<Class<? extends APIOperation>>> API_OP_MAP = new HashMap<>();
 

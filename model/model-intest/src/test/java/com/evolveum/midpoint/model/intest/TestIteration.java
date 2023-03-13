@@ -6,14 +6,19 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -53,53 +58,57 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/iteration");
 
     // Plain iteration, no iteration expressions
-    protected static final File RESOURCE_DUMMY_PINK_FILE = new File(TEST_DIR, "resource-dummy-pink.xml");
-    protected static final String RESOURCE_DUMMY_PINK_OID = "10000000-0000-0000-0000-00000000a104";
-    protected static final String RESOURCE_DUMMY_PINK_NAME = "pink";
+    private static final File RESOURCE_DUMMY_PINK_FILE = new File(TEST_DIR, "resource-dummy-pink.xml");
+    private static final String RESOURCE_DUMMY_PINK_OID = "10000000-0000-0000-0000-00000000a104";
+    private static final String RESOURCE_DUMMY_PINK_NAME = "pink";
 
     // Iteration with token expression, pre-iteration condition and post-iteration condition
-    protected static final File RESOURCE_DUMMY_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-violet.xml");
-    protected static final String RESOURCE_DUMMY_VIOLET_OID = "10000000-0000-0000-0000-00000000a204";
-    protected static final String RESOURCE_DUMMY_VIOLET_NAME = "violet";
+    private static final File RESOURCE_DUMMY_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-violet.xml");
+    private static final String RESOURCE_DUMMY_VIOLET_OID = "10000000-0000-0000-0000-00000000a204";
+    private static final String RESOURCE_DUMMY_VIOLET_NAME = "violet";
 
     // similar to violet but it works in the inbound direction
-    protected static final File RESOURCE_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-dark-violet.xml");
-    protected static final String RESOURCE_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-0000-0000000da204";
-    protected static final String RESOURCE_DUMMY_DARK_VIOLET_NAME = "darkViolet";
+    private static final File RESOURCE_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-dark-violet.xml");
+    private static final String RESOURCE_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-0000-0000000da204";
+    private static final String RESOURCE_DUMMY_DARK_VIOLET_NAME = "darkViolet";
 
     // iteration, token expression, post-iteration condition that invokes isUniquAccountValue()
-    protected static final File RESOURCE_DUMMY_MAGENTA_FILE = new File(TEST_DIR, "resource-dummy-magenta.xml");
-    protected static final String RESOURCE_DUMMY_MAGENTA_OID = "10000000-0000-0000-0000-00000000a304";
-    protected static final String RESOURCE_DUMMY_MAGENTA_NAME = "magenta";
+    private static final File RESOURCE_DUMMY_MAGENTA_FILE = new File(TEST_DIR, "resource-dummy-magenta.xml");
+    private static final String RESOURCE_DUMMY_MAGENTA_OID = "10000000-0000-0000-0000-00000000a304";
+    private static final String RESOURCE_DUMMY_MAGENTA_NAME = "magenta";
 
     // Plain iteration (no expressions). Has synchronization block.
-    protected static final File RESOURCE_DUMMY_FUCHSIA_FILE = new File(TEST_DIR, "resource-dummy-fuchsia.xml");
-    protected static final String RESOURCE_DUMMY_FUCHSIA_OID = "10000000-0000-0000-0000-0000000dd204";
-    protected static final String RESOURCE_DUMMY_FUCHSIA_NAME = "fuchsia";
+    private static final File RESOURCE_DUMMY_FUCHSIA_FILE = new File(TEST_DIR, "resource-dummy-fuchsia.xml");
+    private static final String RESOURCE_DUMMY_FUCHSIA_OID = "10000000-0000-0000-0000-0000000dd204";
+    private static final String RESOURCE_DUMMY_FUCHSIA_NAME = "fuchsia";
 
     // Source for "changing template" test (test820)
-    protected static final File RESOURCE_DUMMY_ASSOCIATE_FILE = new File(TEST_DIR, "resource-dummy-associate.xml");
-    protected static final String RESOURCE_DUMMY_ASSOCIATE_OID = "18c109fd-1287-4a9b-9086-9ab878931ac0";
-    protected static final String RESOURCE_DUMMY_ASSOCIATE_NAME = "associate";
+    private static final File RESOURCE_DUMMY_ASSOCIATE_FILE = new File(TEST_DIR, "resource-dummy-associate.xml");
+    private static final String RESOURCE_DUMMY_ASSOCIATE_OID = "18c109fd-1287-4a9b-9086-9ab878931ac0";
+    private static final String RESOURCE_DUMMY_ASSOCIATE_NAME = "associate";
 
-    protected static final File TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "task-dumy-dark-violet-livesync.xml");
-    protected static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
+    private static final File TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "task-dumy-dark-violet-livesync.xml");
+    private static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
 
     // Iteration with token expression and pre- and post-condition. Sequential suffix.
     // Configured in dark-violet dummy resource as account sync template
-    protected static final File USER_TEMPLATE_ITERATION_FILE = new File(TEST_DIR, "user-template-iteration.xml");
-    protected static final String USER_TEMPLATE_ITERATION_OID = "10000000-0000-0000-0000-0000000d0002";
+    private static final File USER_TEMPLATE_ITERATION_FILE = new File(TEST_DIR, "user-template-iteration.xml");
+    private static final String USER_TEMPLATE_ITERATION_OID = "10000000-0000-0000-0000-0000000d0002";
 
     // Iteration that generates random suffix. Token expression and post- and pre-conditions.
-    protected static final File USER_TEMPLATE_ITERATION_RANDOM_FILE = new File(TEST_DIR, "user-template-iteration-random.xml");
+    private static final File USER_TEMPLATE_ITERATION_RANDOM_FILE = new File(TEST_DIR, "user-template-iteration-random.xml");
 
     // Iteration with token expression (sequential) and post-condition that checks for e-mail uniquness.
-    protected static final File USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE = new File(TEST_DIR, "user-template-iteration-unique-email.xml");
-    protected static final String USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID = "10000000-0000-0000-0000-0000000d0004";
+    private static final File USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE = new File(TEST_DIR, "user-template-iteration-unique-email.xml");
+    private static final String USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID = "10000000-0000-0000-0000-0000000d0004";
 
     // Simple focus iteration (to be used with "changing template" test)
-    protected static final File USER_TEMPLATE_ITERATION_ASSOCIATE_FILE = new File(TEST_DIR, "user-template-iteration-associate.xml");
-    protected static final String USER_TEMPLATE_ITERATION_ASSOCIATE_OID = "c0ee8964-0d2a-45d5-8a8e-6ee4f31e1c12";
+    private static final File USER_TEMPLATE_ITERATION_ASSOCIATE_FILE = new File(TEST_DIR, "user-template-iteration-associate.xml");
+    private static final String USER_TEMPLATE_ITERATION_ASSOCIATE_OID = "c0ee8964-0d2a-45d5-8a8e-6ee4f31e1c12";
+
+    // Used e.g. in test910
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_SIMPLE_ITERATION = TestObject.file(
+            TEST_DIR, "user-template-simple-iteration.xml", "1f104a6b-f7f1-4a69-a68b-c71fa2f9f1ac");
 
     private static final String USER_ANGELICA_NAME = "angelica";
     private static final String ACCOUNT_SPARROW_NAME = "sparrow";
@@ -108,7 +117,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final String ACCOUNT_DEWATT_NAME = "DeWatt";
 
     private static final String USER_LARGO_NAME = "largo";
-    public static final String ACCOUNT_LARGO_DUMMY_USERNAME = "largo";
+    private static final String ACCOUNT_LARGO_DUMMY_USERNAME = "largo";
 
     private static final String DESCRIPTION_RUM = "Where's the rum?";
 
@@ -151,10 +160,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
     private static final String EMAIL_SUFFIX = "@example.com";
 
-    protected String jupiterUserOid;
+    private static final DummyTestResource RESOURCE_DUMMY_ASSOCIATIONS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-associations.xml", "64ae70db-2b2c-418e-b2bd-d167a28cfbd3",
+            "associations");
+    private static final TestObject<RoleType> METAROLE_DUMMY_ASSOCIATIONS = TestObject.file(
+            TEST_DIR, "metarole-dummy-associations.xml", "fc07a007-fdd4-44d3-99cf-d57b4df9509d");
+    private static final TestObject<RoleType> ROLE_CS_101 = TestObject.file(
+            TEST_DIR, "role-cs-101.xml", "4e8170d7-31e6-4c5f-b3c6-ad9f7c4bbb62");
 
-    String iterationTokenDiplomatico;
-    String iterationTokenMillonario;
+    private String jupiterUserOid;
+
+    private String iterationTokenDiplomatico;
+    private String iterationTokenMillonario;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -186,6 +203,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         addObject(USER_LARGO_FILE);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        USER_TEMPLATE_SIMPLE_ITERATION.init(this, initTask, initResult);
+
+        RESOURCE_DUMMY_ASSOCIATIONS.initAndTest(this, initTask, initResult);
+        METAROLE_DUMMY_ASSOCIATIONS.init(this, initTask, initResult);
+        ROLE_CS_101.init(this, initTask, initResult);
     }
 
     /**
@@ -521,6 +544,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         }
         assertTrue("result message is does not contain expected '" + exp + "', instead it is: '" + msg + "'", msg.contains(exp));
 
+        and("details are captured in the exception message (MID-6712)");
+        assertThat(msg).as("exception message")
+                .contains("Dummy Resource Pink")
+                .contains("AccountObjectClass")
+                .contains("Default Account")
+                .contains("DummyConnector");
+
         PrismObject<UserType> userHackerAfter = findUserByUsername("hacker");
         display("User after change execution", userHackerAfter);
         assertUser(userHackerAfter, null, "hacker", "Joe Hacker", null, null, null);
@@ -645,7 +675,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         cleanUpJupiter();
     }
 
-    protected void cleanUpJupiter()
+    private void cleanUpJupiter()
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException, SchemaViolationException,
@@ -2122,6 +2152,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong name of user 2", "jim-1", usersAfter.get(1).getName().getOrig());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<UserType> createUser(String username, String givenName,
             String familyName, String nickname, boolean enabled) throws SchemaException {
         PrismObject<UserType> user = createUser(username, givenName, familyName, enabled);
@@ -2210,5 +2241,45 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, CaseType.class);
         dummyAuditService.assertExecutionSuccess();
+    }
+
+    /** Simply adding (conflicting) user with an association. MID-8569. */
+    @Test
+    public void test910AddUserWithAssociation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_SIMPLE_ITERATION.oid);
+        try {
+            given("existing user 'Joe Smith' with CS-101 assignment");
+            UserType existingJoe = new UserType()
+                    .givenName("Joe")
+                    .familyName("Smith")
+                    .assignment(ROLE_CS_101.assignmentTo());
+            addObject(existingJoe.asPrismObject(), task, result);
+            assertUserWithAssociation("smith1");
+
+            when("conflicting 'John Smith' with CS-101 assignment is added");
+            UserType newJoe = new UserType()
+                    .givenName("John")
+                    .familyName("Smith")
+                    .assignment(ROLE_CS_101.assignmentTo());
+            addObject(newJoe.asPrismObject(), task, result);
+
+            then("second user is created");
+            assertUserWithAssociation("smith2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    private void assertUserWithAssociation(String name) throws Exception {
+        assertUserAfterByUsername(name)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .assertSize(1);
     }
 }

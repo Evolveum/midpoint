@@ -926,11 +926,14 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             // @formatter:on
         } else if (!isDevelopmentConfigurationSeen()) {
             // The resource is development mode only and task sees only the production configuration set:
-            // so, no classification, no correlation, no synchronization.
-            and("there are no classification nor correlation deltas (as the task uses the production configuration)");
+            // so, no classification, no correlation, no synchronization. Except for sync timestamp.
+            and("there are no real classification nor correlation deltas (as the task uses the production configuration)");
             assertProcessedObjects(simResult3)
                     .display()
-                    .assertSize(0);
+                    .assertSize(1)
+                    .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find(
+                            po -> po.assertEventMarks()
+                                    .delta(d -> d.assertModifiedExclusive(ShadowType.F_SYNCHRONIZATION_TIMESTAMP)));
         } else {
             // Resource is development mode, task sees the development configuration.
             // Hence, both re-classification and re-correlation occurs.

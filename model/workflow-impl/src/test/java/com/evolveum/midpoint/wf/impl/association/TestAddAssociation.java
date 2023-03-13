@@ -123,7 +123,7 @@ public class TestAddAssociation extends AbstractWfTest {
 
         systemObjectCache.invalidateCaches();
 
-        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_SHADOW_JACK_DUMMY_FILE, initTask, initResult);
+        modifyUserAddAccount(USER_JACK.oid, ACCOUNT_SHADOW_JACK_DUMMY_FILE, initTask, initResult);
 
         importObjectFromFile(USER_ELISABETH_FILE, initResult);
         modifyUserAddAccount(USER_ELISABETH_OID, SHADOW_ELISABETH_DUMMY_FILE, initTask, initResult);
@@ -139,7 +139,7 @@ public class TestAddAssociation extends AbstractWfTest {
      */
     @Test
     public void test010AddJackToTesters() throws Exception {
-        executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
+        executeTest("test010AddJackToTesters", USER_JACK.oid, new TestDetails() {
             @Override
             int subcasesCount() {
                 return 1;
@@ -163,7 +163,7 @@ public class TestAddAssociation extends AbstractWfTest {
             @Override
             public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
-                fillContextWithUser(context, USER_JACK_OID, result);
+                fillContextWithUser(context, USER_JACK.oid, result);
 
                 UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
                 AssertJUnit.assertEquals("Jack has wrong number of accounts", 1, jack.getLinkRef().size());
@@ -304,7 +304,7 @@ public class TestAddAssociation extends AbstractWfTest {
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         LensContext<UserType> context = createUserLensContext();
-        fillContextWithUser(context, USER_JACK_OID, result);
+        fillContextWithUser(context, USER_JACK.oid, result);
 
         UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
         AssertJUnit.assertEquals("Jack has wrong number of accounts", 1, jack.getLinkRef().size());

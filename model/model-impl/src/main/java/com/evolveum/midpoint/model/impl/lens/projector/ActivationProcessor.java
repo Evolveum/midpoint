@@ -395,7 +395,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private void setSynchronizationPolicyDecision(LensProjectionContext projCtx, SynchronizationPolicyDecision decision, OperationResult result) {
+    private void setSynchronizationPolicyDecision(
+            LensProjectionContext projCtx, SynchronizationPolicyDecision decision, OperationResult result) {
         projCtx.setSynchronizationPolicyDecision(decision);
         result.addReturn("decision", String.valueOf(decision));
     }
@@ -752,15 +753,17 @@ public class ActivationProcessor implements ProjectorProcessor {
                 DebugUtil.debugDumpLazily(outputTripleMap, 1));
 
         if (projCtx.isDoReconciliation()) {
-            reconcileOutboundValue(context, projCtx, outputTripleMap, desc);
+            reconcileOutboundValue(projCtx, outputTripleMap, desc);
         }
     }
 
     /**
      * TODO: can we align this with ReconciliationProcessor?
      */
-    private <T, F extends FocusType> void reconcileOutboundValue(LensContext<F> context, LensProjectionContext projCtx,
-            Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
+    private <T> void reconcileOutboundValue(
+            LensProjectionContext projCtx,
+            Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap,
+            String desc) throws SchemaException {
 
         // TODO: check for full shadow?
 

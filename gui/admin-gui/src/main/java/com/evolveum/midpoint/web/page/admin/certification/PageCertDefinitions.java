@@ -39,7 +39,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -60,13 +59,13 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
                 @Url(mountUrl = "/admin/certification/definitions", matchUrlForSecurity = "/admin/certification/definitions")
         },
         action = {
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
-                label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
-                label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
-})
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
+        })
 public class PageCertDefinitions extends PageAdminWorkItems {
 
     private static final long serialVersionUID = 1L;
@@ -87,40 +86,40 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
-                new MainObjectListPanel<AccessCertificationDefinitionType>(
-                ID_TABLE, AccessCertificationDefinitionType.class, null) {
+                new MainObjectListPanel<>(
+                        ID_TABLE, AccessCertificationDefinitionType.class, null) {
 
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL;
-            }
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL;
+                    }
 
-            @Override
-            protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
-                return null;
-            }
+                    @Override
+                    protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
+                        return null;
+                    }
 
-            @Override
-            public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
-                PageCertDefinitions.this.detailsPerformed(target, service);
-            }
+                    @Override
+                    public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
+                        PageCertDefinitions.this.detailsPerformed(service);
+                    }
 
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return PageCertDefinitions.this.createInlineMenu();
-            }
+                    @Override
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        return PageCertDefinitions.this.createInlineMenu();
+                    }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                navigateToNext(PageCertDefinition.class);
-            }
-        };
+                    @Override
+                    protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                        navigateToNext(PageCertDefinition.class);
+                    }
+                };
         mainPanel.setOutputMarkupId(true);
         mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
         mainForm.add(mainPanel);
@@ -132,14 +131,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     }
 
     private IModel<String> createDeleteConfirmString() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (singleDelete == null) {
-                    return "";
-                } else {
-                    return createStringResource("PageCertDefinitions.deleteDefinitionConfirmSingle", singleDelete.getName()).getString();
-                }
+        return () -> {
+            if (singleDelete == null) {
+                return "";
+            } else {
+                return createStringResource("PageCertDefinitions.deleteDefinitionConfirmSingle", singleDelete.getName()).getString();
             }
         };
     }
@@ -183,7 +179,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         AccessCertificationDefinitionType campaign = getRowModel().getObject().getValue();
-                        showCampaignsPerformed(target, campaign);
+                        showCampaignsPerformed(campaign);
                     }
                 };
             }
@@ -227,13 +223,13 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         return menu;
     }
 
-    protected void detailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
+    protected void detailsPerformed(AccessCertificationDefinitionType service) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
         navigateToNext(PageCertDefinition.class, parameters);
     }
 
-    private void showCampaignsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+    private void showCampaignsPerformed(AccessCertificationDefinitionType definition) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, definition.getOid());
         navigateToNext(PageCertCampaigns.class, parameters);
@@ -307,6 +303,5 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             }
         };
     }
-
 
 }

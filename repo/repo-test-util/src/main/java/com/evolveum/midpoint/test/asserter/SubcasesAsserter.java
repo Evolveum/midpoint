@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.IntegrationTestTools;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -80,5 +82,33 @@ public class SubcasesAsserter<RA> extends AbstractAsserter<CaseAsserter<RA>> {
                 .targetOid(targetOid)
                 .targetType(targetType)
                 .find();
+    }
+
+    public CaseAsserter<SubcasesAsserter<RA>> singleWithoutApprovalSchema() {
+        return by()
+                .approvalSchemaPresent(false)
+                .find();
+    }
+
+    public CaseAsserter<SubcasesAsserter<RA>> singleWithApprovalSchema() {
+        return by()
+                .approvalSchemaPresent(true)
+                .find();
+    }
+
+    public CaseAsserter<SubcasesAsserter<RA>> singleForTarget(String oid) {
+        return by()
+                .targetOid(oid)
+                .find();
+    }
+
+    public SubcasesAsserter<RA> display() {
+        display(desc());
+        return this;
+    }
+
+    public SubcasesAsserter<RA> display(String message) {
+        IntegrationTestTools.display(message, subcases);
+        return this;
     }
 }

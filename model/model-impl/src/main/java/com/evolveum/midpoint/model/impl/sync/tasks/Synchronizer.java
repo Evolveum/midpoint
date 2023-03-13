@@ -75,6 +75,8 @@ public class Synchronizer {
             Throwable fetchResultException = RepoCommonUtils.getResultException(fetchResult);
             throw new SystemException("Skipped malformed resource object: " + fetchResultException.getMessage(), fetchResultException);
         }
+        // TODO I think that "is shadow unknown" condition can be removed. All shadows should be classified by provisioning.
+        //  And, if any one is not, and the filter requires classification, we should not pass it.
         if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);

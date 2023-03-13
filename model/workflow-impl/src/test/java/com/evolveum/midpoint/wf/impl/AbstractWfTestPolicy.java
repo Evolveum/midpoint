@@ -18,6 +18,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -166,7 +168,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
         CaseType case0 = WfTestHelper.findAndRemoveCase0(subcases);
 
-        assertEquals("Incorrect number of subtasks", expectedSubTaskCount, subcases.size());
+        assertEquals("Incorrect number of sub-cases", expectedSubTaskCount, subcases.size());
 
         final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaService.getOperationOptionsBuilder()
                 .item(T_PARENT, F_OBJECT_REF).resolve()
@@ -178,7 +180,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         List<CaseWorkItemType> workItems = new ArrayList<>( // to assure modifiable result list
                 modelService.searchContainers(CaseWorkItemType.class,
-                        getOpenItemsQuery(), options1, opTask, result));
+                        ObjectQueryUtil.openItemsQuery(), options1, opTask, result));
 
         displayDumpable("changes by state after first clockwork run", approvalsManager
                 .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
@@ -225,7 +227,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             List<ApprovalInstruction> instructions = new ArrayList<>(testDetails.getApprovalSequence());
             while (!instructions.isEmpty()) {
                 List<CaseWorkItemType> currentWorkItems = modelService
-                        .searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
+                        .searchContainers(CaseWorkItemType.class, ObjectQueryUtil.openItemsQuery(), options1, opTask, result);
                 boolean matched = false;
 
                 Collection<ApprovalInstruction> instructionsToConsider = testDetails.strictlySequentialApprovals()

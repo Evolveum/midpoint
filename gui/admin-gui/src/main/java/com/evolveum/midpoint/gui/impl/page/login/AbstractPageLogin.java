@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -161,17 +163,33 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             return;
         }
 
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
+//        if (showErrorMessage()) {
+            String msg = ex.getMessage();
+            if (StringUtils.isEmpty(msg)) {
+                msg = "web.security.provider.unavailable";
+            }
+            String[] msgs = msg.split(";");
+            String message = getLocalizationService().translate(msgs[0], null, getLocale(), msgs[0]);
             error(message);
-        }
+//        }
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+    }
+
+    private boolean showErrorMessage() {
+        return !previousPrecessedModuleHasRequisiteNecessity();
+    }
+
+    private boolean previousPrecessedModuleHasRequisiteNecessity() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            int index = mpAuthentication.getIndexOfProcessingModule(false);
+            if (index > 0) {
+                ModuleAuthentication module = mpAuthentication.getAuthModules().get(index - 1).getBaseModuleAuthentication();
+                return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(module.getNecessity());
+            }
+        }
+        return false;
     }
 
     @Override

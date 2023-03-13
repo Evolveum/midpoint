@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -50,8 +50,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -67,58 +65,58 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/entitlements");
 
-    public static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
-    public static final String ROLE_SWASHBUCKLER_OID = "10000000-0000-0000-0000-000000001601";
+    private static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
+    private static final String ROLE_SWASHBUCKLER_OID = "10000000-0000-0000-0000-000000001601";
 
-    public static final File ROLE_SWASHBUCKLER_BLUE_FILE = new File(TEST_DIR, "role-swashbuckler-blue.xml");
-    public static final String ROLE_SWASHBUCKLER_BLUE_OID = "181a58ae-90dd-11e8-a371-77713d9f7a57";
+    private static final File ROLE_SWASHBUCKLER_BLUE_FILE = new File(TEST_DIR, "role-swashbuckler-blue.xml");
+    private static final String ROLE_SWASHBUCKLER_BLUE_OID = "181a58ae-90dd-11e8-a371-77713d9f7a57";
 
-    public static final File ROLE_LANDLUBER_FILE = new File(TEST_DIR, "role-landluber.xml");
-    public static final String ROLE_LANDLUBER_OID = "10000000-0000-0000-0000-000000001603";
+    private static final File ROLE_LANDLUBER_FILE = new File(TEST_DIR, "role-landluber.xml");
+    private static final String ROLE_LANDLUBER_OID = "10000000-0000-0000-0000-000000001603";
 
-    public static final File ROLE_WIMP_FILE = new File(TEST_DIR, "role-wimp.xml");
-    public static final String ROLE_WIMP_OID = "10000000-0000-0000-0000-000000001604";
+    private static final File ROLE_WIMP_FILE = new File(TEST_DIR, "role-wimp.xml");
+    private static final String ROLE_WIMP_OID = "10000000-0000-0000-0000-000000001604";
 
-    public static final File ROLE_MAPMAKER_FILE = new File(TEST_DIR, "role-mapmaker.xml");
-    public static final String ROLE_MAPMAKER_OID = "10000000-0000-0000-0000-000000001605";
+    private static final File ROLE_MAPMAKER_FILE = new File(TEST_DIR, "role-mapmaker.xml");
+    private static final String ROLE_MAPMAKER_OID = "10000000-0000-0000-0000-000000001605";
 
-    public static final File ROLE_BRUTE_FILE = new File(TEST_DIR, "role-brute.xml");
-    public static final String ROLE_BRUTE_OID = "10000000-0000-0000-0000-000000001606";
+    private static final File ROLE_BRUTE_FILE = new File(TEST_DIR, "role-brute.xml");
+    private static final String ROLE_BRUTE_OID = "10000000-0000-0000-0000-000000001606";
     public static final String ROLE_BRUTE_NAME = "Brute";
-    public static final String GROUP_BRUTE_NAME = "brute";
+    private static final String GROUP_BRUTE_NAME = "brute";
 
-    public static final File ROLE_THUG_FILE = new File(TEST_DIR, "role-thug.xml");
-    public static final String ROLE_THUG_OID = "10000000-0000-0000-0000-000000001607";
+    private static final File ROLE_THUG_FILE = new File(TEST_DIR, "role-thug.xml");
+    private static final String ROLE_THUG_OID = "10000000-0000-0000-0000-000000001607";
     public static final String ROLE_THUG_NAME = "Thug";
-    public static final String GROUP_THUG_NAME = "thug";
+    private static final String GROUP_THUG_NAME = "thug";
 
-    public static final File ROLE_ORG_GROUPING_FILE = new File(TEST_DIR, "role-org-grouping.xml");
-    public static final String ROLE_ORG_GROUPING_OID = "171add4c-25f4-11e8-9ea1-6f9ae2cfd841";
+    private static final File ROLE_ORG_GROUPING_FILE = new File(TEST_DIR, "role-org-grouping.xml");
+    private static final String ROLE_ORG_GROUPING_OID = "171add4c-25f4-11e8-9ea1-6f9ae2cfd841";
 
-    public static final File ROLE_ORG_GROUPING_REPO_FILE = new File(TEST_DIR, "role-org-grouping-repo.xml");
-    public static final String ROLE_ORG_GROUPING_REPO_OID = "02bdd108-261f-11e8-ac3a-bf48bd1c4e40";
+    private static final File ROLE_ORG_GROUPING_REPO_FILE = new File(TEST_DIR, "role-org-grouping-repo.xml");
+    private static final String ROLE_ORG_GROUPING_REPO_OID = "02bdd108-261f-11e8-ac3a-bf48bd1c4e40";
 
-    public static final File ROLE_CREW_OF_GUYBRUSH_FILE = new File(TEST_DIR, "role-crew-of-guybrush.xml");
-    public static final String ROLE_CREW_OF_GUYBRUSH_OID = "93d3e436-3c6c-11e7-8168-23796882a64e";
+    private static final File ROLE_CREW_OF_GUYBRUSH_FILE = new File(TEST_DIR, "role-crew-of-guybrush.xml");
+    private static final String ROLE_CREW_OF_GUYBRUSH_OID = "93d3e436-3c6c-11e7-8168-23796882a64e";
 
-    public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
-    public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
-    public static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
-    public static final String GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION = "Scurvy swashbucklers";
+    private static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
+    private static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
+    private static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
+    private static final String GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION = "Scurvy swashbucklers";
 
-    public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE = new File(TEST_DIR, "group-swashbucklers-blue.xml");
+    private static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE = new File(TEST_DIR, "group-swashbucklers-blue.xml");
     public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_OID = "20000000-0000-0000-3333-020400000001";
     public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_NAME = "swashbucklers";
     public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_DESCRIPTION = "Scurvy blue swashbucklers";
 
-    public static final File SHADOW_GROUP_DUMMY_LANDLUBERS_FILE = new File(TEST_DIR, "group-landlubers.xml");
-    public static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
-    public static final String GROUP_DUMMY_LANDLUBERS_NAME = "landlubers";
-    public static final String GROUP_DUMMY_LANDLUBERS_DESCRIPTION = "Earthworms";
-    public static final String GROUP_DUMMY_WIMPS_NAME = "wimps";
-    public static final String GROUP_DUMMY_MAPMAKERS_NAME = "mapmakers";
+    private static final File SHADOW_GROUP_DUMMY_LANDLUBERS_FILE = new File(TEST_DIR, "group-landlubers.xml");
+    private static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
+    private static final String GROUP_DUMMY_LANDLUBERS_NAME = "landlubers";
+    private static final String GROUP_DUMMY_LANDLUBERS_DESCRIPTION = "Earthworms";
+    private static final String GROUP_DUMMY_WIMPS_NAME = "wimps";
+    private static final String GROUP_DUMMY_MAPMAKERS_NAME = "mapmakers";
 
-    public static final String ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME = "guybrush";
+    private static final String ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME = "guybrush";
 
     private static final String USER_WALLY_NAME = "wally";
     private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
@@ -128,11 +126,31 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final String OU_CLUB_DIVERS = "divers";
     private static final String OU_CLUB_SCI_FI = "sci-fi";
 
-    private static final TestResource<ShadowType> SHADOW_MAPMAKERS_DEAD = new TestResource<>(
+    private static final TestObject<ShadowType> SHADOW_MAPMAKERS_DEAD = TestObject.file(
             TEST_DIR, "group-mapmakers-dead.xml", "1ff68c92-d526-4cfb-8df5-539bc5fdd097");
 
-    private static final TestResource<ShadowType> SHADOW_GUYBRUSH_DEAD = new TestResource<>(
+    private static final TestObject<ShadowType> SHADOW_GUYBRUSH_DEAD = TestObject.file(
             TEST_DIR, "account-guybrush-dead.xml", "2947d268-1d43-4114-bd4c-f4aa723d884a");
+
+    private static final String ATTR_GROUP_TYPE = "type";
+
+    private static final DummyTestResource RESOURCE_DUMMY_WILD_ASSOCIATIONS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-wild-associations.xml", "9437c94e-af47-4976-bbfc-cc7a59538ddf",
+            "wild-associations",
+            c -> {
+                c.populateWithDefaultSchema();
+                c.addAttrDef(
+                        c.getDummyResource().getGroupObjectClass(), ATTR_GROUP_TYPE, String.class, false, false);
+            });
+
+    private static final TestObject<RoleType> METAROLE_SPORT = TestObject.file(
+            TEST_DIR, "metarole-sport.xml", "8da65c58-063c-45be-9b97-3af9be1530b3");
+    private static final TestObject<RoleType> METAROLE_ART = TestObject.file(
+            TEST_DIR, "metarole-art.xml", "bf1178f4-d59a-47d1-b00b-f696b7bf6565");
+    private static final TestObject<RoleType> ROLE_BASKETBALL = TestObject.file(
+            TEST_DIR, "role-basketball.xml", "d2aa8c0f-7883-4c36-8446-7b4ddbf8b0a3");
+    private static final TestObject<RoleType> ROLE_MUSIC = TestObject.file(
+            TEST_DIR, "role-music.xml", "1095efcd-6677-4adc-b1d7-984014b2b87b");
 
     private ActivationType jackSwashbucklerAssignmentActivation;
 
@@ -147,6 +165,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
         importObjectFromFile(ROLE_ORG_GROUPING_FILE);
         importObjectFromFile(ROLE_ORG_GROUPING_REPO_FILE);
+
+        RESOURCE_DUMMY_WILD_ASSOCIATIONS.initAndTest(this, initTask, initResult);
+        initTestObjects(initTask, initResult,
+                METAROLE_SPORT,
+                METAROLE_ART,
+                ROLE_BASKETBALL,
+                ROLE_MUSIC);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2293,6 +2318,70 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackNoAccountNoSwashbuckler();
 
         assertSteadyResources();
+    }
+
+    /**
+     * MID-7991
+     */
+    @Test
+    public void test900DifferentIntentsUseFirst() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test900";
+
+        given("user exists");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(
+                        createConstructionAssignment(
+                                RESOURCE_DUMMY_WILD_ASSOCIATIONS.oid, ShadowKindType.ACCOUNT, "default"));
+        var userOid = addObject(user, task, result);
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+
+        when("role 'basketball' is assigned");
+        assignRole(userOid, ROLE_BASKETBALL.oid, task, result);
+
+        then("account with group membership exists");
+        assertGroupMember(ROLE_BASKETBALL.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+
+        when("role 'basketball' is unassigned");
+        unassignRole(userOid, ROLE_BASKETBALL.oid, task, result);
+
+        then("account exists but group membership does not");
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertNoGroupMember(ROLE_BASKETBALL.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+    }
+
+    /**
+     * MID-7991
+     */
+    @Test
+    public void test910DifferentIntentsUseSecond() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test910";
+
+        given("user exists");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(
+                        createConstructionAssignment(
+                                RESOURCE_DUMMY_WILD_ASSOCIATIONS.oid, ShadowKindType.ACCOUNT, "default"));
+        var userOid = addObject(user, task, result);
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+
+        when("role 'music' is assigned");
+        assignRole(userOid, ROLE_MUSIC.oid, task, result);
+
+        then("account with group membership exists");
+        assertGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+
+        when("role 'music' is unassigned");
+        unassignRole(userOid, ROLE_MUSIC.oid, task, result);
+
+        then("account exists but group membership does not");
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertNoGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
     }
 
     private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {

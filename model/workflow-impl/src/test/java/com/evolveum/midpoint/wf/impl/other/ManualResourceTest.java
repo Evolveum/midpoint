@@ -205,7 +205,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
         List<CaseWorkItemType> workItems = caseBefore.getWorkItem();
         assertEquals("Wrong # of work items", 2, workItems.size());
-        assertEquals("Wrong assignees", new HashSet<>(Arrays.asList(USER_ADMINISTRATOR_OID, userJackOid)), workItems.stream()
+        assertEquals("Wrong assignees", new HashSet<>(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK.oid)), workItems.stream()
                 .map(wi -> wi.getOriginalAssigneeRef().getOid())
                 .collect(Collectors.toSet()));
 

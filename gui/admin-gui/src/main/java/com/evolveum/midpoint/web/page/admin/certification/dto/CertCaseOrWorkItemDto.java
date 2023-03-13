@@ -15,6 +15,9 @@ import java.util.TreeSet;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * <p>
  * TODO cleanup a bit
  */
-public class CertCaseOrWorkItemDto extends Selectable {
+public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> implements SelectableRow<CertCaseOrWorkItemDto> {
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
@@ -53,23 +56,14 @@ public class CertCaseOrWorkItemDto extends Selectable {
 
     CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
-        this.objectName = getName(_case.getObjectRef());
-        this.targetName = getName(_case.getTargetRef());
+        this.objectName = getName(_case.getObjectRef(), page);
+        this.targetName = getName(_case.getTargetRef(), page);
         this.deadlineAsString = computeDeadlineAsString(page);
         this.defaultRelation = page.getPrismContext().getDefaultRelation();
     }
 
-    // ugly hack (for now) - we extract the name from serialization metadata
-    private String getName(ObjectReferenceType ref) {
-        if (ref == null) {
-            return null;
-        }
-        String name = ref.getTargetName() != null ? ref.getTargetName().getOrig() : null;
-        if (name == null) {
-            return "(" + ref.getOid() + ")";
-        } else {
-            return name.trim();
-        }
+    private String getName(ObjectReferenceType ref, PageBase pageBase) {
+        return WebModelServiceUtils.resolveReferenceName(ref, pageBase);
     }
 
     public String getObjectName() {
@@ -185,9 +179,13 @@ public class CertCaseOrWorkItemDto extends Selectable {
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil
+                                .formatDurationWordsForLocal(delta, true, true, page))
+                        .getString();
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
+                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil
+                                .formatDurationWordsForLocal(-delta, true, true, page))
+                        .getString();
             } else {
                 return page.getString("PageCert.now");
             }

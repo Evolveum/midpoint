@@ -589,9 +589,9 @@ public class ReportFunctions {
     public Collection<ProcessedObject.Metric> getProcessedObjectMetrics(
             @NotNull SimulationResultProcessedObjectType objectBean,
             @Nullable Boolean showEventMarks,
-            @Nullable Boolean showCustomMetrics) throws SchemaException {
+            @Nullable Boolean showExplicitMetrics) throws SchemaException {
         return getProcessedObject(objectBean)
-                .getMetrics(showEventMarks, showCustomMetrics);
+                .getMetrics(showEventMarks, showExplicitMetrics);
     }
 
     public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {

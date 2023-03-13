@@ -18,8 +18,7 @@
                 <q:inOid>
                     <c:expression>
                         <c:script>
-                            <!-- temporary hack -->
-                            <c:code>simulationResultRef ? simulationResultRef.oid : simulationResultOid</c:code>
+                            <c:code>simulationResultRef?.oid</c:code>
                         </c:script>
                     </c:expression>
                     <q:considerOwner>true</q:considerOwner>
@@ -88,6 +87,7 @@
                 <path>state</path>
                 <previousColumn>tag</previousColumn>
             </column>
+            <!-- for each metric -->
             <column>
                 <name>eventMark</name>
                 <display>
@@ -107,9 +107,9 @@
                 </export>
             </column>
             <column>
-                <name>customMetric</name>
+                <name>explicitMetric</name>
                 <display>
-                    <label>Custom metric</label>
+                    <label>Explicit metric</label>
                 </display>
                 <previousColumn>eventMark</previousColumn>
                 <export>
@@ -129,7 +129,7 @@
                 <display>
                     <label>Selected</label>
                 </display>
-                <previousColumn>customMetric</previousColumn>
+                <previousColumn>explicitMetric</previousColumn>
                 <export>
                     <expression>
                         <script>
@@ -166,18 +166,23 @@
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
-        </parameter>
-        <parameter> <!-- temporary hack -->
-            <name>simulationResultOid</name>
-            <type>xsd:string</type>
+            <display>
+                <label>Simulation result</label>
+            </display>
         </parameter>
         <parameter>
             <name>showEventMarks</name>
             <type>xsd:boolean</type>
+            <display>
+                <label>Show event marks</label>
+            </display>
         </parameter>
         <parameter>
-            <name>showCustomMetrics</name>
+            <name>showExplicitMetrics</name>
             <type>xsd:boolean</type>
+            <display>
+                <label>Show explicit metrics</label>
+            </display>
         </parameter>
         <subreport>
             <name>metric</name>
@@ -190,7 +195,7 @@
                         report.getProcessedObjectMetrics(
                                 object as SimulationResultProcessedObjectType,
                                 showEventMarks,
-                                showCustomMetrics)
+                                showExplicitMetrics)
                     </code>
                 </script>
             </expression>

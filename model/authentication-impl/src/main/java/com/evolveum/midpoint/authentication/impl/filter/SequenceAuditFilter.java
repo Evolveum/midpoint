@@ -68,7 +68,7 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        LOGGER.info("Running SequenceAuditFilter");
+        LOGGER.trace("Running SequenceAuditFilter");
 
         if (recordOnEndOfChain) {
             filterChain.doFilter(request, response);

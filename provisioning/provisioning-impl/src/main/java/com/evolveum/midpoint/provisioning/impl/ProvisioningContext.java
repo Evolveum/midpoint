@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
 
 /**
@@ -681,5 +682,36 @@ public class ProvisioningContext {
                     resource, task.getExecutionMode(), resourceObjectDefinition);
             throw new IllegalStateException("Invoking 'modifying' provisioning operation while being in a simulation mode");
         }
+    }
+
+    /** Convenience method for {@link #getExceptionDescription(ConnectorInstance)}. */
+    public String getExceptionDescription() {
+        return getExceptionDescription(null);
+    }
+
+    /** Provides basic information about the context in which an exception occurred. See MID-6712. */
+    public String getExceptionDescription(ConnectorInstance connector) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getOrig(resource.getName()));
+        if (resourceObjectDefinition != null) {
+            sb.append(": ");
+            ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
+            if (typeDefinition != null) {
+                String typeName = typeDefinition.getDisplayName();
+                if (typeName != null) {
+                    sb.append(typeName);
+                } else {
+                    sb.append(typeDefinition.getTypeIdentification());
+                }
+                // TODO consider using object class display name, if present
+                sb.append(" (").append(resourceObjectDefinition.getObjectClassName().getLocalPart()).append(")");
+            } else {
+                sb.append(resourceObjectDefinition.getObjectClassName().getLocalPart());
+            }
+        }
+        if (connector != null) {
+            sb.append(", ").append(connector.getHumanReadableDescription());
+        }
+        return sb.toString();
     }
 }

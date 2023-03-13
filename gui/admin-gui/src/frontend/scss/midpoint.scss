@@ -556,7 +556,7 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag-box {
-  max-width: 220px;
+  max-width: 250px;
 }
 
 .summary-tag-box-wide {
@@ -565,19 +565,11 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag {
-	display: block;
-	padding-left: 10px;
-	padding-right: 10px;
-	margin: 3px;
-	border: 1px solid #e0e0e0;
-	border-radius: 3px;
-	background-color: #fbfbfb;
-	margin-right: 0px;
+
 }
 
 .summary-tag-icon {
 	width: 20px;
-	margin-right: 2px;
 }
 
 // form input for binary data upload (used e.g. for photo)

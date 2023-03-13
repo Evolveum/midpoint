@@ -189,17 +189,22 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
 
     public CsvAsserter<RA> forRecord(
             int column, String value, Function<RecordAsserter, RecordAsserter> function) throws IOException {
-        return forRecords(r -> value.equals(r.get(column)), function);
+        return forRecords(1, r -> value.equals(r.get(column)), function);
     }
 
     public CsvAsserter<RA> forRecords(
-            Predicate<CSVRecord> selector, Function<RecordAsserter, RecordAsserter> function) throws IOException {
+            int minOccurrences,
+            Predicate<CSVRecord> selector,
+            Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        int matching = 0;
         for (int i = 0; i < records.size(); i++) {
             CSVRecord record = records.get(i);
             if (selector.test(record)) {
+                matching++;
                 record(i, function);
             }
         }
+        assertThat(matching).as("matching occurrences").isGreaterThanOrEqualTo(minOccurrences);
         return this;
     }
 

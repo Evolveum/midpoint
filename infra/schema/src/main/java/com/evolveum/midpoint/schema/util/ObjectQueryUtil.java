@@ -728,4 +728,10 @@ public class ObjectQueryUtil {
     public static ObjectPaging convertToObjectPaging(PagingType pagingType, PrismContext prismContext) {
         return PagingConvertor.createObjectPaging(pagingType, prismContext);
     }
+
+    public static @NotNull ObjectQuery openItemsQuery() {
+        return PrismContext.get().queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                .build();
+    }
 }

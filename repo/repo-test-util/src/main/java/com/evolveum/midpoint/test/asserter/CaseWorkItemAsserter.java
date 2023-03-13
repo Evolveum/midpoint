@@ -128,4 +128,8 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
     private long getDeadlineMillis() {
         return XmlTypeConverter.toMillis(getDeadline());
     }
+
+    public CaseWorkItemType getRealValue() {
+        return getWorkItem();
+    }
 }

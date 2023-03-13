@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.schema.reporting.ConnIdOperation.getIdentifier;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
@@ -2208,6 +2209,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public String toString() {
         return "ConnectorInstanceIcfImpl(" + connectorType + ")";
+    }
+
+    @Override
+    public String getHumanReadableDescription() {
+        return connectorType != null ?
+                getOrig(connectorType.getName()) : // should be descriptive enough
+                "no connector"; // can this even occur?
     }
 
     public String getHumanReadableName() {

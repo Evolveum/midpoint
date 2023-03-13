@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="9384e63f-9a68-4890-ae92-695aed8b4af3"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>user-template-byzantine-deleted</name>
+    <mapping>
+        <expression>
+            <value>deleted</value>
+        </expression>
+        <target>
+            <path>description</path>
+        </target>
+    </mapping>
+</objectTemplate>

@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="d2aa8c0f-7883-4c36-8446-7b4ddbf8b0a3">
+    <name>basketball</name>
+    <assignment>
+        <targetRef oid="8da65c58-063c-45be-9b97-3af9be1530b3" type="RoleType"/>
+    </assignment>
+</role>

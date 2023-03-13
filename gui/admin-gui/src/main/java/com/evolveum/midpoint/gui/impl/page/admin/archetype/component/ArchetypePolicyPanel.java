@@ -6,12 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype.component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import java.util.Arrays;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -21,15 +22,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "archetypePolicy")
 @PanelInstance(identifier = "archetypePolicy",
         applicableForType = ArchetypeType.class,
-        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageArchetype.archetypePolicy", order = 140))
 public class ArchetypePolicyPanel extends AbstractObjectMainPanel<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ArchetypePolicyPanel.class);
-    private static final String ID_PANEL = "panel";
+    private static final ItemPath[] MANDATORY_OVERRIDE_PATHS = {
+            ItemPath.create(
+                    ArchetypeType.F_ARCHETYPE_POLICY,
+                    ArchetypePolicyType.F_CONFLICT_RESOLUTION,
+                    ConflictResolutionType.F_ACTION),
+            ItemPath.create(
+                    ArchetypeType.F_ARCHETYPE_POLICY,
+                    ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION,
+                    ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS,
+                    GuiObjectDetailsPageType.F_TYPE)
+    };
 
-    private static final String DOT_CLASS = ArchetypePolicyPanel.class.getName() + ".";
+    private static final String ID_PANEL = "panel";
 
     public ArchetypePolicyPanel(String id, FocusDetailsModels<ArchetypeType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -37,11 +46,23 @@ public class ArchetypePolicyPanel extends AbstractObjectMainPanel<ArchetypeType,
 
     @Override
     protected void initLayout() {
-        ContainerOfSystemConfigurationPanel panel =
-                new ContainerOfSystemConfigurationPanel<ArchetypePolicyType>(ID_PANEL,
+        SingleContainerPanel panel =
+                new SingleContainerPanel<ArchetypePolicyType>(ID_PANEL,
                         PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ArchetypeType.F_ARCHETYPE_POLICY),
-                        ArchetypePolicyType.COMPLEX_TYPE);
+                        ArchetypePolicyType.COMPLEX_TYPE) {
+
+                    @Override
+                    protected ItemMandatoryHandler getMandatoryHandler() {
+                        return itemWrapper -> {
+                            ItemPath named = itemWrapper.getPath().namedSegmentsOnly();
+                            if (Arrays.stream(MANDATORY_OVERRIDE_PATHS).anyMatch(p -> p.equivalent(named))) {
+                                return false;
+                            }
+
+                            return itemWrapper.isMandatory();
+                        };
+                    }
+                };
         add(panel);
     }
-
 }
