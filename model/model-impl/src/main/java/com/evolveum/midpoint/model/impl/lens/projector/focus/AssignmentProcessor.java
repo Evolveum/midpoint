@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
@@ -1013,7 +1015,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
                 LOGGER.trace("Adding references from: {}", evalAssignment);
-                addRoleReferences(shouldBeRoleRefs, evalAssignment, operationResult);
+                addRoleReferences(shouldBeRoleRefs, evalAssignment, focusContext, operationResult);
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             } else {
@@ -1031,9 +1033,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
     }
 
-    private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
-            EvaluatedAssignmentImpl<?> evalAssignment, OperationResult operationResult) throws SchemaException {
-        addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+    private void addRoleReferences(
+            Collection<PrismReferenceValue> shouldBeRoleRefs, EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            LensFocusContext<?> focusContext, OperationResult operationResult) throws SchemaException {
+        addReferences(shouldBeRoleRefs, evaluatedAssignment.getMembershipRefVals());
 
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
@@ -1042,26 +1045,53 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
 
         for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets =
-                    findEvaluatedAssignmentTargets(roleRef, evalAssignment);
-            if (evaluatedAssignmentTargets.isEmpty()) {
-                LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
-                continue;
-            }
+            addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
+        }
+    }
 
-            for (EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
+    private void addAssignmentPathValueMetadataValues(PrismReferenceValue roleRef,
+            EvaluatedAssignmentImpl<?> evaluatedAssignment, LensFocusContext<?> focusContext)
+            throws SchemaException {
+        List<EvaluatedAssignmentTarget> evaluatedAssignmentTargets =
+                findEvaluatedAssignmentTargets(roleRef, evaluatedAssignment);
+        if (evaluatedAssignmentTargets.isEmpty()) {
+            // Cases like Approver relations, for which EvaluatedAssignment has empty roles DeltaSetTriple.
+            AssignmentType assignment = evaluatedAssignment.getAssignment();
+            ObjectReferenceType assignmentTargetRef = assignment.getTargetRef();
+            // We can get here with roleRef->X and assignment/targetRef->Y, in which case we do nothing.
+            if (assignmentTargetRef.getOid().equals(roleRef.getOid())
+                    && QNameUtil.match(assignmentTargetRef.getRelation(), roleRef.getRelation())) {
+                addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
+                        new AssignmentPathType().segment(new AssignmentPathSegmentType()
+                                .assignmentId(assignment.getId())
+                                .segmentOrder(1)
+                                .isAssignment(true)
+                                .matchingOrder(true)
+                                .sourceRef(focusContext.getOid(),
+                                        focusContext.getObjectDefinition().getTypeName(),
+                                        SchemaConstants.ORG_DEFAULT)
+                                .targetRef(assignmentTargetRef)));
+            }
+        } else {
+            for (EvaluatedAssignmentTarget evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
                 AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
                 // There can be some value metadata already created by previous assignment evaluation,
                 // but we will add new metadata container for each assignment path without touching any existing ones.
-                //noinspection unchecked
-                roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
-                        .provenance(new ProvenanceMetadataType()
-                                .assignmentPath(assignmentPathToMetadata(assignmentPath)))
-                        .storage(new StorageMetadataType()
-                                .createTimestamp(determineAssignmentSinceTimestamp(evalAssignment)))
-                        .asPrismContainerValue());
+                addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment, assignmentPath);
             }
         }
+    }
+
+    private void addAssignmentPathValueMetadataValue(
+            PrismReferenceValue roleRef, EvaluatedAssignment evaluatedAssignment, AssignmentPathType assignmentPath)
+            throws SchemaException {
+        //noinspection unchecked
+        roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .assignmentPath(assignmentPathToMetadata(assignmentPath)))
+                .storage(new StorageMetadataType()
+                        .createTimestamp(determineAssignmentSinceTimestamp(evaluatedAssignment)))
+                .asPrismContainerValue());
     }
 
     /**
@@ -1069,7 +1099,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
      * Normally, it is virtually the same date, but if metadata are created later, we want to "reconstruct" the date.
      * This also solves the problem for existing deployments.
      */
-    private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignmentImpl<?> evalAssignment) {
+    private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignment evalAssignment) {
         MetadataType assignmentMetadata = evalAssignment.getAssignment().getMetadata();
         if (assignmentMetadata != null) {
             XMLGregorianCalendar createTimestamp = assignmentMetadata.getCreateTimestamp();
@@ -1096,10 +1126,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
         return metadata;
     }
 
-    private @NotNull List<EvaluatedAssignmentTargetImpl> findEvaluatedAssignmentTargets(
-            PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evalAssignment) {
-        List<EvaluatedAssignmentTargetImpl> result = new ArrayList<>();
-        for (EvaluatedAssignmentTargetImpl eat : evalAssignment.getRoles().getNonNegativeValues()) {
+    private @NotNull List<EvaluatedAssignmentTarget> findEvaluatedAssignmentTargets(
+            PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+        List<EvaluatedAssignmentTarget> result = new ArrayList<>();
+        for (EvaluatedAssignmentTargetImpl eat : evaluatedAssignment.getRoles().getNonNegativeValues()) {
             ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
             if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
                     && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {

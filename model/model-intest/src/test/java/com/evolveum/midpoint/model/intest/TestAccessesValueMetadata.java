@@ -222,11 +222,11 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
     }
 
     @Test
-    public void test500AddUserWithAssignmentToRoleNonDefaultRelation() throws Exception {
+    public void test500AddUserWithManagerAssignment() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        given("new user with assignment to a role with different relation");
+        given("new user with assignment to a role with manager relation");
         UserType user = new UserType()
                 .name("user-" + getTestNumber())
                 .assignment(new AssignmentType().targetRef(
@@ -235,16 +235,71 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         when("user is added");
         String userOid = addObject(user, task, result);
 
-        then("roleMembershipRefs contain value metadata with accesses information");
+        then("roleMembershipRefs are created");
         UserAsserter<Void> userAsserter = assertUser(userOid, "after")
                 .displayXml() // XML also shows the metadata
                 .assertRoleMembershipRefs(2); // details are not interesting for this test
 
-        and("first segments have targetRef with manager relation");
+        and("first segments of assignment path metadata have targetRef with manager relation");
         segmentsHaveExpectedRelations(userAsserter, appRole1Oid,
                 SchemaConstants.ORG_MANAGER);
         segmentsHaveExpectedRelations(userAsserter, appService1Oid,
                 SchemaConstants.ORG_MANAGER, SchemaConstants.ORG_DEFAULT);
+    }
+
+    @Test
+    public void test550AddUserWithApproverAssignment() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("new user with assignment to a role with approver relation");
+        UserType user = new UserType()
+                .name("user-" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(
+                        createObjectReference(appRole1Oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER)));
+
+        when("user is added");
+        String userOid = addObject(user, task, result);
+
+        then("first segments of assignment path metadata have targetRef with approver relation");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(1); // details are not interesting for this test
+        segmentsHaveExpectedRelations(userAsserter, appRole1Oid, SchemaConstants.ORG_APPROVER);
+    }
+
+    @Test
+    public void test560AddUserAndThenAddApproverAssignment() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("user with business role 1 exists");
+        UserType user = newUserWithBusinessRole1();
+        String userOid = addObject(user, task, result);
+        assertUser(userOid, "before")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+
+        when("business role 1 with approver relation is added");
+        executeChanges(prismContext.deltaFor(UserType.class)
+                        .item(F_ASSIGNMENT).add(new AssignmentType()
+                                .targetRef(createObjectReference(businessRole1Oid,
+                                        RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER)))
+                        .<UserType>asObjectDelta(userOid),
+                null, task, result);
+
+        then("role membership ref with approver relation is added, including value metadata");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(4);
+        ValueMetadataType metadata = (ValueMetadataType) userAsserter
+                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(businessRole1Oid, SchemaConstants.ORG_APPROVER))
+                .assertSize(1)
+                .getRealValue();
+        AssignmentPathMetadataType assignmentPathMetadata = metadata.getProvenance().getAssignmentPath();
+        assertThat(assignmentPathMetadata.getSegment()).hasSize(1);
+        assertThat(assignmentPathMetadata.getSegment().get(0).getTargetRef().getRelation())
+                .isEqualTo(SchemaConstants.ORG_APPROVER);
     }
 
     private void segmentsHaveExpectedRelations(
