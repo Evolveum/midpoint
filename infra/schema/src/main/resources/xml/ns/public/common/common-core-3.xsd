@@ -2491,7 +2491,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <!--<a:operational>true</a:operational>-->
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
