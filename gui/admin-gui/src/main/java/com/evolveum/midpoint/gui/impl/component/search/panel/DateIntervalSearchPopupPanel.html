@@ -10,8 +10,8 @@
 <head/>
 <body>
 <wicket:panel>
-    <form wicket:id="popoverForm">
-        <div class="d-flex">
+    <form wicket:id="popoverForm" style="min-width: 400px;">
+        <div class="row">
             <label class="col-form-label-sm col-2" wicket:id="fromLabel">
                 <wicket:message key="UserReportConfigPanel.dateFrom"/>
             </label>
@@ -19,14 +19,16 @@
                 <div wicket:id="dateFromValue" />
             </div>
         </div>
-        <div class="d-flex" wicket:id="toDateContainer">
+        <div class="row" wicket:id="toDateContainer">
             <label class="col-form-label-sm col-2">
                 <wicket:message key="UserReportConfigPanel.dateTo"/>
             </label>
             <div class="col-10" wicket:id="dateToValue"/>
         </div>
-        <div class="d-flex flex-row-reverse">
-            <a wicket:id="confirmButton" class="btn btn-sm btn-default"/>
+        <div class="row justify-content-end">
+            <div class="col-auto">
+                <a wicket:id="confirmButton" class="btn btn-sm btn-default"/>
+            </div>
         </div>
     </form>
 </wicket:panel>
