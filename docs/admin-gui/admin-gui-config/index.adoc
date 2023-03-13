@@ -846,7 +846,9 @@ Panels applicable only for resources (detail page):
 
 WARNING: This feature is available since midPoint 4.6
 
-Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration].Only configuration for containers is supported and was tested. We can use container konfiguration for wizard panel which show panel with form.
+Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration].Only configuration for containers is supported and was tested. We can use container configuration for wizard panel which show panel with form.
+
+Very important attribute is _applicableForOperation_, that have to have value *_wizard_* for wizard panels.
 
 Example of configuration for wizard panel, which display form with basic configuration of resource object type (visible only attributes _displayName_, _description_, _kind_, _intent_, _securityPolicyRef_ and _default_):
 
