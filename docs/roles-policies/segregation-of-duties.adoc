@@ -54,6 +54,16 @@ In midPoint 3.5 and later the exclusion is defined by using the xref:/midpoint/r
 </role>
 ----
 
+[NOTE]
+====
+Currently, the role exclusion mechanism ignores the _time validity_ of individual assignments.
+Hence, if roles `A` and `B` are mutually exclusive, and a user has an assignment of `A` valid from Monday to Wednesday, and an assignment of `B` valid from Thursday to Sunday, these two are still considered to be in conflict.
+
+(Technically, both roles are still _assigned_ at the same time. The other things is that those two assignments cannot be _effectively active_ at any moment.)
+
+See also bug:MID-8299[].
+We are considering an improvement that would weaken this definition a bit (see bug:MID-8572[]).
+====
 
 == Policy Actions
 

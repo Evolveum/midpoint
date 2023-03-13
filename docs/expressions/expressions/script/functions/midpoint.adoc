@@ -5,18 +5,17 @@
 :page-wiki-metadata-create-date: 2013-12-06T17:44:19.709+01:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2021-02-24T10:42:46.079+01:00
+:page-toc: top
 
 MidPoint function library provides access to midPoint internals.
 It provides complex functions that contain IDM-specific and midPoint-specific logic.
 It also contains version of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] methods that are designed to be easy to use from the scripting languages.
-
 
 == IDM Model Interface Functions
 
 Following functions directly invoke the operations of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface].The library provides a simplified versions of the operations which are easier to use from scripts.
 The library implementation automatically supplies some required arguments (such as `task` and `result`), provide automatic type conversion and they are also designed to work with the form of xref:/midpoint/devel/prism/[prism objects] that is typically used in scripts (the JAXB-like compiled form).
 Therefore use of these functions from scripts is quite seamless.
-
 
 [%autowidth]
 |===
@@ -71,33 +70,30 @@ Searches through all object of a specified type and returns a count of such obje
 
 |===
 
-
 You may want to have a look at xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction] to see examples how to use these methods.
 Just keep in mind that the scripting library has a simplified versions of these methods therefore the task and result parameters are supplied automatically and do no need to be specified explicitly.
-
 
 === Examples
 
 [source]
 ----
-                <outbound>
-                    <expression>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-                                ship = midpoint.getObject(GenericObjectType.class, "54195419-5419-5419-5419-000000000001");
-                                'The crew of ' + ship.getName();
-                            </code>
-                        </script>
-                    </expression>
-                </outbound>
+<outbound>
+    <expression>
+        <script>
+            <code>
+                import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+                ship = midpoint.getObject(GenericObjectType.class, "54195419-5419-5419-5419-000000000001");
+                'The crew of ' + ship.getName();
+            </code>
+        </script>
+    </expression>
+</outbound>
 ----
 
 // TODO: more examples
 
 
 == JavaDoc and Source Code
-
 
 ++++
 {% versionlinks
@@ -112,7 +108,6 @@ columns:
     linkText: "Source"
 %}
 ++++
-
 
 == See Also
 

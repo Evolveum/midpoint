@@ -1,0 +1,69 @@
+= Objects with Metrics
+:page-toc: top
+:page-since: "4.7"
+
+This report lists objects processed by given simulation along with the values of individual metrics for these objects.
+
+== Report Columns
+
+.Individual columns
+[%autowidth]
+[%header]
+|===
+| Column | Description
+
+| ID
+.10+| Please see xref:objects.adoc[] for the description.
+
+| OID
+| Name
+| Type
+| Structural archetype
+| Resource
+| Kind
+| Intent
+| Tag
+| State
+
+2+|
+{zwsp} +
+_The following part of the report is instantiated once per each simulation xref:../results/metrics.adoc[metric] (event mark-based or explicit one)._ +
+{zwsp}
+
+| Event mark
+| Event mark corresponding to the metric row. (If applicable.)
+
+| Explicit metric
+| Explicit metric identifier corresponding to the metric row. (If applicable.)
+
+| Selected
+| Was this object selected by given metric?
+(The meaning of this field is metric-dependent.
+The default meaning is "the metric has value greater than zero for this object".)
+
+| Value
+| The value of the metric for this object.
+(For event marks it is always 0 if not matching or 1 if matching.)
+|===
+
+== Parameters
+
+.Report parameters
+[%autowidth]
+[%header]
+|===
+| Parameter | Description | Default value
+| Simulation result | The specific simulation result we report on. | Required
+| Show event marks | Should the event marks be included in the report? | `true`
+| Show explicit metrics | Should the explicit metrics be included in the report? | `true`
+|===
+
+Note that built-in metrics currently have no values at the level of individual objects.
+
+== An Example
+
+#TODO#
+
+== Definition
+
+The definition can be found on https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resources/initial-objects/report/171-report-simulation-objects-with-metrics.xml[GitHub].

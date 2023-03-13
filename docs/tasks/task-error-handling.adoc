@@ -308,7 +308,7 @@ Generally, the `errorHandlingStrategy` contains a list of entries. Each entry ha
 | Item | Description | Default
 | `order` | Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
 go first. Entries with no order go last. | No order.
-| `situation` | A situation that can occur. | Any error.
+| `situation` | A situation that can occur. | Any error. (Not same as errorCategory = generic)
 | `reaction` | What should a task do when a given situation is encountered? | `ignore` or `stop` (see below)
 |===
 

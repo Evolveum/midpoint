@@ -200,7 +200,9 @@ This was the main motivation to separate customization of self-service profile a
 For example, since 4.6 it is possible to set, that the logged-in user when looking into their profile they will see theirs assignments, but after opening details of another user, no assignments will be shown.
 
 To configure self-service profile, the same rules and same panels can be used as described in xref:/midpoint/reference/admin-gui/admin-gui-config/#object-details[object details] page.
-The only different is the place, where it is configured. So it is not configured in `adminGuiConfiguration/objectDetails/*DetailsPage`, but in `adminGuiConfiguration/selfProfilePage`. The example of the configuration is listed bellow:
+The only different is the place, where it is configured.
+So it is not configured in `adminGuiConfiguration/objectDetails/*DetailsPage`, but in `adminGuiConfiguration/selfProfilePage`.
+The example of the configuration is listed below:
 
 [source,xml]
 ----
