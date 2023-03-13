@@ -1059,7 +1059,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
             AssignmentType assignment = evaluatedAssignment.getAssignment();
             ObjectReferenceType assignmentTargetRef = assignment.getTargetRef();
             // We can get here with roleRef->X and assignment/targetRef->Y, in which case we do nothing.
-            if (assignmentTargetRef.getOid().equals(roleRef.getOid())
+            if (assignmentTargetRef != null
+                    // assignmentTargetRef.getOid can be null?! e.g. during TestAssignmentApprovalGlobal#initSystem
+                    && roleRef.getOid().equals(assignmentTargetRef.getOid())
                     && QNameUtil.match(assignmentTargetRef.getRelation(), roleRef.getRelation())) {
                 addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
                         new AssignmentPathType().segment(new AssignmentPathSegmentType()
