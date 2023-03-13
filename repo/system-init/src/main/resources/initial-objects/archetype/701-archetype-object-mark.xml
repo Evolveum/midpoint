@@ -15,4 +15,29 @@
         </assignmentRelation>
     </assignment>
     <archetypeType>structural</archetypeType>
+    <archetypePolicy>
+        <display>
+            <label>Object Mark</label>
+            <pluralLabel>Object Marks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-tag</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel>
+                    <identifier>shadowMarksList</identifier>
+                    <display>
+                        <label>Marked shadows</label>
+                    </display>
+                    <panelType>markedShadowList</panelType>
+                </panel>
+                <panel>
+                    <identifier>eventMarkInformationPanel</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
 </archetype>
