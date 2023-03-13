@@ -57,7 +57,7 @@ See xref:../results/aggregation-functions.adoc[].
 
 2+|
 {zwsp} +
-_The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition]._ +
+_The following part of the report is instantiated once per each xref:../results/definition.adoc#_partitions[metric partition]._ +
 {zwsp}
 
 | Scope: type

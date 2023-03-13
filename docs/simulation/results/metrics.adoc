@@ -1,4 +1,75 @@
 = Metrics
 
+Metrics are numeric values attached to individual processed objects or their aggregations.
+
+Currently, there are three types of metrics:
+
+.Metrics types
+[%autowidth]
+|===
+| Metric type | Description | Example | Values | Searchable
+
+| Built-in
+| Metrics that are automatically evaluated, without any need to define them.
+| `added`, `deleted`, `modified`
+| 0 or 1
+| yes
+
+| Event mark-based
+| Bound to the presence of given event mark.
+| `Focus activated`, `Projection renamed`
+| 0 or 1
+| yes
+
+| Explicit
+| Explicitly defined by the engineer or administrator
+| `number-of-modifications`
+| any number (integer or non-integer)
+| no
+|===
+
+== Built-in Metrics
+
+There are the following built-in metrics.
+Each corresponds to a single value of `SimulationResultProcessedObjectType.state` property.
+
+.Metrics types
+[%autowidth]
+|===
+| Metric | Description | State property value
+
+| `added`
+| 1 if the object would be added, 0 otherwise
+| `added`
+
+| `deleted`
+| 1 if the object would be deleted, 0 otherwise
+| `deleted`
+
+| `modified`
+| 1 if the object would be modified, 0 otherwise
+| `modified`
+|===
+
+When searching for an object with given built-in metric set to 1, the query on the `state` property should be used.
+This metric is not recorded on individual processed objects explicitly.
+
+== Event Mark-based Metrics
+
+Each xref:../../mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
+Values of such metric are either 1 (mark is present) or 0 (mark is not present).
+It is possible to select individual processed objects by querying the `SimulationResultProcessedObjectType.eventMarkRef` item.
+
+== Explicit Metrics
+
 #TODO#
 
+== Metric Values Partitioning and Aggregation
+
+=== Domain and Selection
+
+#TODO#
+
+=== Metric Partitioning
+
+#TODO#
