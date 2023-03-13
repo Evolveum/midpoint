@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectModification
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <itemDelta>
+        <t:modificationType>add</t:modificationType>
+        <t:path>c:behavior/c:authentication</t:path>
+        <t:value>
+            <c:sequenceIdentifier>admin-gui-default</c:sequenceIdentifier>
+            <c:authenticationAttempt>
+                <c:sequenceIdentifier>admin-gui-default</c:sequenceIdentifier>
+                <c:moduleIdentifier>loginForm</c:moduleIdentifier>
+                <c:lastSuccessfulAuthentication>
+                    <c:timestamp>2023-03-13T15:10:12.710+01:00</c:timestamp>
+                    <c:from>127.0.0.1</c:from>
+                </c:lastSuccessfulAuthentication>
+            </c:authenticationAttempt>
+        </t:value>
+    </itemDelta>
+</objectModification>
