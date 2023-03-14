@@ -101,6 +101,10 @@ public class Resolver {
     }
 
     public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        if (objectDelta == null) {
+            return;
+        }
+
         if (objectDelta.isAdd()) {
             resolve(objectDelta.getObjectToAdd(), task, result);
         } else if (objectDelta.isDelete()) {
