@@ -76,4 +76,12 @@ public class ContainerTableDeltaProcessor<
                 .where(c.isOwnedBy(context.row()))
                 .execute();
     }
+
+    protected QContainerMapping<T, Q, R, OR> getContainerTableMapping() {
+        return containerTableMapping;
+    }
+
+    protected SqaleUpdateContext<?, OQ, OR> getContext() {
+        return context;
+    }
 }

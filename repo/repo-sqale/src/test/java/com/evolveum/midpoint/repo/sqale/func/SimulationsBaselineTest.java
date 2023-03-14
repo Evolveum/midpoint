@@ -304,6 +304,9 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         assertProcessedObjects(simResult2.getOid(), 2, result);
         assertProcessedObjects(simResult3.getOid(), 1, result);
 
+        when("POs in first one are deleted (explicitly)");
+        repositoryService.deleteSimulatedProcessedObjects(simResult1.getOid(), null, result);
+        assertProcessedEmptyOrNoPartition(simResult1.getOid(), result);
         when("POs in second result are deleted (via delta)");
         var modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                 .item(SimulationResultType.F_PROCESSED_OBJECT)
@@ -312,9 +315,13 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         repositoryService.modifyObject(SimulationResultType.class, simResult2.getOid(), modifications, null, result);
 
         then("POs in first two results are deleted, the third one is intact");
-        assertProcessedObjects(simResult1.getOid(), 0, result);
-        assertProcessedObjects(simResult2.getOid(), 0, result);
+        assertProcessedEmptyOrNoPartition(simResult1.getOid(), result);
+        assertProcessedEmptyOrNoPartition(simResult2.getOid(), result);
         assertProcessedObjects(simResult3.getOid(), 1, result);
+    }
+
+    protected void assertProcessedEmptyOrNoPartition(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assertProcessedObjects(oid, 0, result);
     }
 
     /** Searching for POs. */
