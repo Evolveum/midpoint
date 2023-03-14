@@ -43,6 +43,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -463,9 +464,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, ServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
             if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
+                if(AuthSequenceUtil.isUrlForAuthProcessing(httpRequest)) {
+                    new DefaultRedirectStrategy().sendRedirect(httpRequest, (HttpServletResponse) response, "/");
+                    return;
+                }
                 int i = mpAuthentication.getIndexOfModule(moduleAuthentication);
                 VirtualFilterChain vfc = new VirtualFilterChain(chain,
                         ((AuthModuleImpl) mpAuthentication.getAuthModules().get(i)).getSecurityFilterChain().getFilters());
