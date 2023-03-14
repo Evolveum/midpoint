@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -26,19 +22,21 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
-import org.apache.wicket.model.PropertyModel;
 
 public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper> extends AbstractSearchItemPanel<S> {
 
@@ -195,17 +193,17 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        getModelObject().setVisible(false);
-        getModelObject().setValue(getModelObject().getDefaultValue());
+        AbstractSearchItemWrapper wrapper = getModelObject();
+        wrapper.setVisible(false);
+        wrapper.clearValue();
+
         SearchPanel panel = findParent(SearchPanel.class);
         target.add(panel);
-//        panel.displayedSearchItemsModelReset();
-//        panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }
 
     protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, String lookupTableOid) {
-        AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<String>(id, model, String.class,
+        AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<>(id, model, String.class,
                 true, lookupTableOid) {
 
             private static final long serialVersionUID = 1L;
