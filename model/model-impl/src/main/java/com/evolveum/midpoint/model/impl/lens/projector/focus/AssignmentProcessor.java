@@ -1060,8 +1060,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
             ObjectReferenceType assignmentTargetRef = assignment.getTargetRef();
             // We can get here with roleRef->X and assignment/targetRef->Y, in which case we do nothing.
             if (assignmentTargetRef != null
-                    // assignmentTargetRef.getOid can be null?! e.g. during TestAssignmentApprovalGlobal#initSystem
-                    && roleRef.getOid().equals(assignmentTargetRef.getOid())
+                    // assignmentTargetRef.getOid can be null, e.g. for dynamically evaluated refs with filter
+                    // TODO: This actually means that this is not the best place for this metadata logic.
+                    //  It probably really should be somewhere in TargetEvaluation/TargetMembershipCollector#collect.
+                    //  That would also fix the case of metadata for such refs with filter - which is now BROKEN.
+                    // TestPreviewChangesCoD.test150 also randomly creates state when roleRef.getOid() is null.
+                    && Objects.equals(roleRef.getOid(), assignmentTargetRef.getOid())
                     && QNameUtil.match(assignmentTargetRef.getRelation(), roleRef.getRelation())) {
                 addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
                         new AssignmentPathType().segment(new AssignmentPathSegmentType()

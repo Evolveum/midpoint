@@ -302,6 +302,8 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 .isEqualTo(SchemaConstants.ORG_APPROVER);
     }
 
+    // TODO add assignment with targetRef with filter
+
     private void segmentsHaveExpectedRelations(
             UserAsserter<Void> userAsserter, String membershipTargetOid, QName... expectedRelations)
             throws SchemaException {
