@@ -103,7 +103,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             }
         } else {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
-            throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
@@ -126,7 +126,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (!checkCredentials(principal, authnCtx, connEnv)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
-            throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         checkAuthorizations(principal, connEnv, authnCtx);
         recordModuleAuthenticationSuccess(principal, connEnv, false);
@@ -149,7 +149,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialsType credentials = focusType.getCredentials();
         if (credentials == null || getCredential(credentials) == null) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, getCredentialsPolicy(principal, authnCtx), "no credentials in user");
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid.credentials");
+            throw new AuthenticationCredentialsNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
@@ -263,7 +263,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             principal = focusProfileService.getPrincipal(query, clazz);
         } catch (ObjectNotFoundException e) {
             recordModuleAuthenticationFailure(username, null, connEnv, null, "no focus");
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+            throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         } catch (SchemaException e) {
             recordModuleAuthenticationFailure(username, null, connEnv, null, "schema error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
@@ -283,7 +283,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (principal == null) {
             recordModuleAuthenticationFailure(username, null, connEnv, null, "no focus");
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+            throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
         if (supportActivationCheck && !principal.isEnabled()) {

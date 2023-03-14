@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -263,4 +264,18 @@ public class AuthUtil {
 //        data.setChannel(connectionEnvironment.getChannel());
         return data;
     }
+
+    public static String generateBadCredentialsMessageKey(Authentication authentication) {
+        String defaultPrefix = "web.security.provider.";
+        String defaultSuffix = "invalid.credentials";
+        if (!(authentication instanceof MidpointAuthentication)) {
+            return defaultPrefix + defaultSuffix;
+        }
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        //todo generate another message keys for self registration?
+        if (SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(mpAuthentication.getAuthenticationChannel().getChannelId())) {
+            return defaultPrefix + SchemaConstants.CHANNEL_RESET_PASSWORD_QNAME.getLocalPart() + "." + defaultSuffix;
+        }
+        return defaultPrefix + defaultSuffix;
+   }
 }
