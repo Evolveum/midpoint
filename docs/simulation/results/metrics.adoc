@@ -45,7 +45,7 @@ Built-in metrics cannot be customized; they are required for correct functioning
 There are the following built-in metrics.
 Each corresponds to a single value of `SimulationResultProcessedObjectType.state` property.
 
-.Metrics types
+.Built-in metrics types
 [%autowidth]
 |===
 | Metric | Description | State property value
@@ -84,6 +84,7 @@ It is possible to define any metrics over the set of processed objects.
 
 For example, if we want to report on a number of modified resource object attributes, the following custom metric may be defined:
 
+[#_attribute_modifications_metric]
 .Listing 1. Custom metric example
 [source, xml]
 ----
@@ -148,7 +149,7 @@ The metric definition has the following items:
 | required, unless this metric is computed from a different (source) object-level metric
 
 | `aggregation`
-| How are the metric values aggregated?
+| How are the metric values xref:#_aggregation[aggregated]?
 | plain summation
 |===
 
@@ -278,20 +279,159 @@ Currently, there is only a single variable available:
 
 Values computed for individual processed objects are _aggregated_ into a form that can be presented for the simulation result as a whole.
 The default aggregation is a plain summation: the resulting value is a sum of values for individual objects.
-However, there are other aggregation functions, as listed in the table below.
+However, there are other aggregation functions.
+They refer to the following basic elements.
+
+.Elements for aggregation functions
+[%autowidth]
+|===
+| Element | Description
+
+| `selectionSize`
+| Number of objects selected by this metric.
+
+| `selectionTotalValue`
+| Sum of metric values for all objects selected by this metric.
+
+| `domainSize`
+| Number of objects in the domain of this metric.
+
+| `domainTotalValue`
+| Sum of metric values for all objects in the domain of this metric.
+|===
+
+And the aggregation functions are:
 
 .Aggregation functions
 [%autowidth]
 |===
-| Function
+| Function | Value is computed as
+
+| `none`
+| The metric should not be aggregated.
+
+| `selectionSize`
+| `selectionSize`
+
+| `selectionTotalValue`
+| `selectionTotalValue`
+
+| `domainSize`
+| `domainSize`
+
+| `domainTotalValue`
+| `domainTotalValue`
+
+| `domainTotalValueToDomainSize`
+| `domainTotalValue` / `domainSize`
+
+| `selectionTotalValueToDomainSize`
+| `selectionTotalValue` / `domainSize`
+
+| `selectionSizeToDomainSize`
+| `selectionSize` / `domainSize`
+
+| `selectionTotalValueToDomainTotalValue`
+| `selectionTotalValue` / `domainTotalValue`
+
+| `domainMinValue`
+| minimal metric value in the domain
+
+| `selectionMinValue`
+| minimal metric value in the selection
+
+| `domainMaxValue`
+| maximum metric value in the domain
+
+| `selectionMaxValue`
+| maximum metric value in the selection
 |===
 
-== Metric Values Partitioning and Aggregation
+==== Definition of Metric Aggregation
 
-=== Domain and Selection
+.Metric aggregation definition items
+[%autowidth]
+|===
+| Item | Description | Default
 
-#TODO#
+| `aggregationFunction`
+| An aggregation function used to compute the (aggregated) metric value.
+| `selectionTotalValue`
 
-=== Metric Partitioning
+| `source`
+| Source metric that is to be aggregated.
+The metric must be present on individual processed objects, i.e. it is not possible to aggregate the aggregation-only metric.
+| The metric being defined, i.e. by default, we are defining an aggregation for the current metric being defined.
 
-#TODO#
+| `domainRestriction`
+| Restriction of the domain of original metric.
+We may focus the aggregation on a subset of original objects.
+| original domain is not changed
+
+| `selectionRestriction`
+| Restriction of the object selection of original metric.
+| original selection is not changed
+|===
+
+==== Examples
+
+This is how we would compute the average number of attribute modifications per single shadow seen by the simulation activity.
+We refer to the `attribute-modifications` metric defined in xref:_attribute_modifications_metric[] above.
+
+.Listing 4. Computation of average number of attribute modifications per account seen
+[source,xml]
+----
+<metric>
+    <identifier>avg-modifications-per-account-seen</identifier>
+    <aggregation>
+        <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+    </aggregation>
+</metric>
+----
+
+However, we might be interested in the average number of modifications per shadows that were modified.
+We may now utilize the fact that shadows modified are, in fact, the objects selected by the source `attribute-modifications` metric.
+
+.Listing 5. Computation of average number of attribute modifications per account modified
+[source,xml]
+----
+<metric>
+    <identifier>avg-modifications-per-account-modified</identifier>
+    <aggregation>
+        <aggregationFunction>domainTotalValueToSelectionSize</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+    </aggregation>
+</metric>
+----
+
+Imagine now that we are interested in total number of changes in accounts in 'Security services' department.
+We can restrict the selection (or domain) of the original metric to cover only selected shadows.
+
+.Listing 6. Computation of total number of attribute modifications in Security services department
+[source,xml]
+----
+<metric>
+    <identifier>modifications-of-security-services-accounts</identifier>
+    <aggregation>
+        <aggregationFunction>selectionTotalValue</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+        <selectionRestriction>
+            <filter>
+                <q:equal>
+                    <q:path>after/attributes/ri:department</q:path> <!--1-->
+                    <q:value>Security services</q:value>
+                </q:equal>
+            </filter>
+        </selectionRestriction>
+    </aggregation>
+</metric>
+----
+<1> The `after` item represents the object state after the operation.
+(Note that if the `department` attribute itself is modified to a value other than "Security services", this change is not seen by this simple filter.)

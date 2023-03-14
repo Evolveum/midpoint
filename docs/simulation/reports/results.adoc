@@ -53,7 +53,7 @@ _The following part of the report is instantiated once per each simulation xref:
 
 | Aggregation function
 | Aggregation function used for given metric.
-See xref:../results/aggregation-functions.adoc[].
+See xref:../results/metrics.adoc#_aggregation[].
 
 2+|
 {zwsp} +
