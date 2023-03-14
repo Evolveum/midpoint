@@ -15854,14 +15854,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <!-- Do we want also these tags? -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
                     <xsd:appinfo>
