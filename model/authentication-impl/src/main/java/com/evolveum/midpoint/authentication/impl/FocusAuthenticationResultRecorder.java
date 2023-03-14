@@ -149,7 +149,7 @@ public class FocusAuthenticationResultRecorder {
     public void recordSequenceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
         FocusType focusBefore = principal.getFocus().clone();
 
-        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
         Integer failedLogins = behavior.getFailedLogins();
 
@@ -193,7 +193,7 @@ public class FocusAuthenticationResultRecorder {
         FocusType focusAfter = principal.getFocus();
         FocusType focusBefore = focusAfter.clone();
 
-        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
         Integer failedLogins = behavior.getFailedLogins();
         LoginEventType lastFailedLogin = behavior.getLastFailedLogin();

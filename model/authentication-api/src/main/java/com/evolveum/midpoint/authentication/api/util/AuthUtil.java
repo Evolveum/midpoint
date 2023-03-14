@@ -205,6 +205,9 @@ public class AuthUtil {
             return null;
         }
         AuthenticationBehavioralDataType behavioralDataType = getBehavioralDataForSequence(focus, sequenceIdentifier);
+        if (behavioralDataType == null) {
+            return null;
+        }
         List<AuthenticationAttemptDataType> authAttempts = behavioralDataType.getAuthenticationAttempt();
         return authAttempts.stream()
                 .filter(attempt -> sequenceIdentifier.equals(attempt.getSequenceIdentifier())
@@ -212,12 +215,23 @@ public class AuthUtil {
                 .findFirst().orElse(null);
     }
 
-    public static AuthenticationBehavioralDataType getBehavioralDataForSequence(MidPointPrincipal principal, String sequenceId) {
+    public static AuthenticationBehavioralDataType getOrCreateBehavioralDataForSequence(MidPointPrincipal principal, String sequenceId) {
         FocusType focus = principal.getFocus();
-        return getBehavioralDataForSequence(focus, sequenceId);
+        return getOrCreateBehavioralDataForSequence(focus, sequenceId);
     }
 
     public static AuthenticationBehavioralDataType getBehavioralDataForSequence(FocusType focus, String sequenceId) {
+        if (focus.getBehavior() == null){
+            focus.setBehavior(new BehaviorType());
+        }
+        return focus.getBehavior().getAuthentication()
+                .stream()
+                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static AuthenticationBehavioralDataType getOrCreateBehavioralDataForSequence(FocusType focus, String sequenceId) {
         if (focus.getBehavior() == null){
             focus.setBehavior(new BehaviorType());
         }
@@ -242,7 +256,7 @@ public class AuthUtil {
             data = new AuthenticationAttemptDataType();
             data.setSequenceIdentifier(connectionEnvironment.getSequenceIdentifier());
             data.setModuleIdentifier(connectionEnvironment.getModuleIdentifier());
-            AuthenticationBehavioralDataType behavior = getBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
+            AuthenticationBehavioralDataType behavior = getOrCreateBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
             behavior.getAuthenticationAttempt().add(data);
         }
 

@@ -226,7 +226,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     public void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal) {
         String channel = getChannel();
         ConnectionEnvironment connectionEnvironment = createConnectEnvironment(channel);
-        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal.getFocus(), connectionEnvironment.getSequenceIdentifier());
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal.getFocus(), connectionEnvironment.getSequenceIdentifier());
 
         FocusType focusBefore = principal.getFocus().clone();
         Integer failedLogins = behavior.getFailedLogins();
@@ -268,7 +268,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         }
         ConnectionEnvironment connectionEnvironment = createConnectEnvironment(channel);
         if (principal != null && focus != null) {
-            AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
+            AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(focus, connectionEnvironment.getSequenceIdentifier());
 
             FocusType focusBefore = focus.clone();
             Integer failedLogins = behavior.getFailedLogins();
