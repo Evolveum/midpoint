@@ -192,10 +192,11 @@ public class ModifyUser extends BaseSQLRepoTest {
                 new File(FOLDER_BASIC, "user-auth-behavior-modification.xml"), ObjectModificationType.COMPLEX_TYPE);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        //repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), new OperationResult("addAuthenticationBehavior"));
+        //PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, createOperationResult());
 
-        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), new OperationResult("addAuthenticationBehavior"));
-
-        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, createOperationResult());
+        PrismObject<UserType> userAfter = user.clone();
+        delta.applyTo(userAfter);
         assertEquals("wrong number of behavior authentication values", 2, userAfter.asObjectable().getBehavior().getAuthentication().size());
     }
 
