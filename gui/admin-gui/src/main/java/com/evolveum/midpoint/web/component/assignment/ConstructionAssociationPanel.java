@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -77,7 +76,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
     }
 
     private void initModels() {
-        resourceModel = new LoadableDetachableModel<PrismObject<ResourceType>>() {
+        resourceModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismObject<ResourceType> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
@@ -94,13 +93,11 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 return resource;
             }
         };
-        refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<ResourceAssociationDefinition>>() {
+        refinedAssociationDefinitionsModel = new LoadableDetachableModel<>() {
             @Override
             protected List<ResourceAssociationDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
-                if (construction == null) {
-                    return new ArrayList<>();
-                }
+
                 return WebComponentUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
                         construction.getIntent());
             }
@@ -108,90 +105,82 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
     }
 
     protected void initLayout() {
-        ListView<ResourceAssociationDefinition> associationsPanel =
-                new ListView<ResourceAssociationDefinition>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
+        ListView<ResourceAssociationDefinition> associationsPanel = new ListView<>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
+            @Override
+            protected void populateItem(ListItem<ResourceAssociationDefinition> item) {
+                GenericMultiValueLabelEditPanel associationReferencesPanel = new GenericMultiValueLabelEditPanel<>(ID_ASSOCIATION_REFERENCE_PANEL,
+                        getShadowReferencesModel(item.getModelObject()),
+                        Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())),
+                        ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    protected void populateItem(ListItem<ResourceAssociationDefinition> item) {
-                        GenericMultiValueLabelEditPanel associationReferencesPanel = new GenericMultiValueLabelEditPanel<ObjectReferenceType>(ID_ASSOCIATION_REFERENCE_PANEL,
-                                getShadowReferencesModel(item.getModelObject()),
-                                Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())),
-                                ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
-                            private static final long serialVersionUID = 1L;
+                    protected boolean isEditButtonEnabled() {
+                        return false;
+                    }
 
-                            @Override
-                            protected boolean isEditButtonEnabled() {
-                                return false;
+                    @Override
+                    protected void addValuePerformed(AjaxRequestTarget target) {
+                        addNewShadowRefValuePerformed(target, item.getModelObject());
+                    }
+
+                    protected void addFirstPerformed(AjaxRequestTarget target) {
+                        addNewShadowRefValuePerformed(target, item.getModelObject());
+                    }
+
+                    @Override
+                    protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
+                        return () -> {
+                            ObjectReferenceType obj = model.getObject();
+                            if (obj == null) {
+                                return "";
                             }
-
-                            @Override
-                            protected void addValuePerformed(AjaxRequestTarget target) {
-                                addNewShadowRefValuePerformed(target, item.getModelObject());
-                            }
-
-                            protected void addFirstPerformed(AjaxRequestTarget target) {
-                                addNewShadowRefValuePerformed(target, item.getModelObject());
-                            }
-
-                            @Override
-                            protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
-                                return new IModel<String>() {
-                                    private static final long serialVersionUID = 1L;
-
-                                    @Override
-                                    public String getObject() {
-                                        ObjectReferenceType obj = model.getObject();
-                                        if (obj == null) {
-                                            return "";
-                                        }
-                                        return WebComponentUtil.getDisplayNameOrName(obj, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
-                                    }
-                                };
-                            }
-
-                            @Override
-                            protected void removeValuePerformed(AjaxRequestTarget target, ListItem<ObjectReferenceType> item) {
-                                try {
-                                    ObjectReferenceType removedShadowRef = item.getModelObject();
-                                    PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
-                                    PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionContainerWrapper
-                                            .findContainer(ConstructionType.F_ASSOCIATION);
-                                    associationWrapper.getValues().forEach(associationValueWrapper -> {
-                                        if (ValueStatus.DELETED.equals(associationValueWrapper.getStatus())) {
-                                            return;
-                                        }
-                                        ResourceObjectAssociationType associationValue = associationValueWrapper.getRealValue();
-//                                        ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
-                                        if (associationValue == null || associationValue.getOutbound() == null || associationValue.getOutbound().getExpression() == null ||
-                                                ExpressionUtil.getShadowRefValue(associationValue.getOutbound().getExpression(),
-                                                        ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null) {
-                                            return;
-                                        }
-                                        List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(associationValue.getOutbound().getExpression(),
-                                                ConstructionAssociationPanel.this.getPageBase().getPrismContext());
-                                        shadowRefList.forEach(shadowRef -> {
-                                            if (shadowRef.equals(removedShadowRef)) {
-                                                associationValueWrapper.setStatus(ValueStatus.DELETED);
-                                            }
-                                        });
-                                    });
-                                } catch (SchemaException ex) {
-                                    LOGGER.error("Couldn't remove association value: {}", ex.getLocalizedMessage());
-                                }
-                                super.removeValuePerformed(target, item);
-                            }
-
+                            return WebComponentUtil.getDisplayNameOrName(obj, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
                         };
-                        associationReferencesPanel.setOutputMarkupId(true);
-                        item.add(associationReferencesPanel);
+                    }
+
+                    @Override
+                    protected void removeValuePerformed(AjaxRequestTarget target, ListItem<ObjectReferenceType> item) {
+                        try {
+                            ObjectReferenceType removedShadowRef = item.getModelObject();
+                            PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
+                            PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionContainerWrapper
+                                    .findContainer(ConstructionType.F_ASSOCIATION);
+                            associationWrapper.getValues().forEach(associationValueWrapper -> {
+                                if (ValueStatus.DELETED.equals(associationValueWrapper.getStatus())) {
+                                    return;
+                                }
+                                ResourceObjectAssociationType associationValue = associationValueWrapper.getRealValue();
+                                if (associationValue == null || associationValue.getOutbound() == null || associationValue.getOutbound().getExpression() == null ||
+                                        ExpressionUtil.getShadowRefValue(associationValue.getOutbound().getExpression(),
+                                                ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null) {
+                                    return;
+                                }
+                                List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(associationValue.getOutbound().getExpression(),
+                                        ConstructionAssociationPanel.this.getPageBase().getPrismContext());
+                                shadowRefList.forEach(shadowRef -> {
+                                    if (shadowRef.equals(removedShadowRef)) {
+                                        associationValueWrapper.setStatus(ValueStatus.DELETED);
+                                    }
+                                });
+                            });
+                        } catch (SchemaException ex) {
+                            LOGGER.error("Couldn't remove association value: {}", ex.getLocalizedMessage());
+                        }
+                        super.removeValuePerformed(target, item);
                     }
                 };
+                associationReferencesPanel.setOutputMarkupId(true);
+                item.add(associationReferencesPanel);
+            }
+        };
 
         associationsPanel.setOutputMarkupId(true);
         add(associationsPanel);
     }
 
     private IModel<List<ObjectReferenceType>> getShadowReferencesModel(ResourceAssociationDefinition def) {
-        return new LoadableModel<List<ObjectReferenceType>>() {
+        return new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -227,36 +216,6 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 return null;
             }
         };
-    }
-
-    private List<ObjectReferenceType> getAssociationsShadowRefs(boolean compareName, QName name) {
-        List<ObjectReferenceType> shadowsList = new ArrayList<>();
-        try {
-            PrismContainerWrapper associationWrapper = getModelObject().findContainer(ConstructionType.F_ASSOCIATION);
-            associationWrapper.getValues().forEach(associationValueWrapper -> {
-                if (ValueStatus.DELETED.equals(((PrismContainerValueWrapper) associationValueWrapper).getStatus())) {
-                    return;
-                }
-                PrismContainerValue associationValue = ((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
-                ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
-                if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                        || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()) == null) {
-                    return;
-                }
-                if (compareName) {
-                    QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
-                    if (name != null && name.equals(assocRef)) {
-                        shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()));
-                    }
-                } else {
-                    shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()));
-                }
-            });
-        } catch (SchemaException ex) {
-            // nothing?
-        }
-        return shadowsList;
-
     }
 
     private void addNewShadowRefValuePerformed(AjaxRequestTarget target, ResourceAssociationDefinition def) {
@@ -297,6 +256,5 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
         };
 
         getPageBase().showMainPopup(objectBrowserPanel, target);
-
     }
 }

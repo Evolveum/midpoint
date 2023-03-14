@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -103,7 +104,13 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         questionsModel = new LoadableModel<List<SecurityQuestionDto>>(false) {
             @Override
             protected List<SecurityQuestionDto> load() {
-                return createUsersSecurityQuestionsList();
+                try {
+                    return createUsersSecurityQuestionsList();
+                } catch (BadCredentialsException e) {
+                    LOGGER.error(getString(e.getMessage()));
+                    saveException(e);
+                    throw new RestartResponseException(getMidpointApplication().getHomePage());
+                }
             }
         };
     }
@@ -241,7 +248,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         target.add(getMainForm());
     }
 
-    private List<SecurityQuestionDto> createUsersSecurityQuestionsList() {
+    private List<SecurityQuestionDto> createUsersSecurityQuestionsList() throws BadCredentialsException {
         UserType user = userModel.getObject();
 
         if (user == null) {
@@ -253,9 +260,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         if (credentialsPolicyType == null || credentialsPolicyType.getQuestionAnswer() == null
                 || credentialsPolicyType.getQuestionAnswer().isEmpty()) {
             String key = "web.security.flexAuth.any.security.questions";
-            error(getString(key));
-            LOGGER.error(getString(key));
-            throw new RestartResponseException(PageSecurityQuestions.class);
+            throw new BadCredentialsException(key);
         }
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
@@ -298,9 +303,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         }
         if (questionsDto.size() < questionNumber) {
             String key = "pageForgetPassword.message.ContactAdminQuestionsNotSetEnough";
-            error(getString(key));
-            LOGGER.error(getString(key));
-            throw new RestartResponseException(PageSecurityQuestions.class);
+            throw new BadCredentialsException(key);
         }
 
         return questionsDto;

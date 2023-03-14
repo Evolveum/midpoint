@@ -74,7 +74,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
     private static final String OPERATION_IMPORT_PREVIEW_OBJECT = DOT_CLASS + "importPreviewObject";
-    private static final String OPERATION_MARK_PROTECTED = DOT_CLASS + "markProtectedShadow";
     private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
 
     public ShadowTablePanel(String id) {

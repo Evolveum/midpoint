@@ -35,6 +35,9 @@ public class ItemPathSearchItemWrapper extends PropertySearchItemWrapper<ItemPat
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         ItemPathType itemPath = getValue().getValue();
+        if (itemPath == null) {
+            return null;
+        }
         return PrismContext.get().queryFor(type)
                     .item(getPath()).eq(itemPath).buildFilter();
     }
