@@ -56,7 +56,7 @@ As of 4.7, there are the following standard event marks.
 | Marks an operation that changed the identifier (primary or secondary) of a projection.
 
 | Projection entitlement changed
-| This is an operation that changed the entitlement of a projection.
+| Marks an operation that changed the entitlement of a projection.
 
 | Projection password changed
 | Marks an operation that changed the password of a projection.
