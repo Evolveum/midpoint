@@ -1,6 +1,7 @@
 = Objects
 :page-toc: top
 :page-since: "4.7"
+:page-display-order: 200
 
 This report lists objects processed by given simulation.
 One processed object corresponds to one report row.
