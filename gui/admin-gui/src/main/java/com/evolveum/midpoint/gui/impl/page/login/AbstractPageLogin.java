@@ -223,6 +223,13 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         }
     }
 
+    protected void saveException(Exception exception) {
+        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = req.getContainerRequest();
+        HttpSession httpSession = httpReq.getSession();
+        httpSession.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+    }
+
     protected void cancelPerformed() {
         setResponsePage(getMidpointApplication().getHomePage());
     }
