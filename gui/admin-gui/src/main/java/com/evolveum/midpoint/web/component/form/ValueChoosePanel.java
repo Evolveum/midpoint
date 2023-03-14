@@ -164,7 +164,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     protected IModel<String> createTextModel() {
         final IModel<R> model = getModel();
-        return new IModel<String>() {
+        return new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 
