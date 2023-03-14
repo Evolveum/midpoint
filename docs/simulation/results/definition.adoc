@@ -1,4 +1,6 @@
 = Simulation Result Definition
+:page-toc: top
+:page-since: "4.7"
 
 There is a possibility to configure the way of how xref:index.adoc[simulation result] is computed and stored.
 MidPoint maintains a global configuration for simulation results, but - if needed - it is possible to configure the simulation result creation for each simulation activity independently.

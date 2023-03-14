@@ -1,4 +1,6 @@
 = Metrics
+:page-toc: top
+:page-since: "4.7"
 
 Metrics are numeric values attached to individual processed objects or their aggregations.
 

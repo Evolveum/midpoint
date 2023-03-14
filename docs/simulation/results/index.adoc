@@ -1,4 +1,5 @@
 = Simulation Result
+:page-since: "4.7"
 
 Each activity, regardless of whether it is running on foreground or on background, may create so-called _simulation result_.
 It is a special type of objects in the midPoint repository.
