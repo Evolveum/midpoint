@@ -54,7 +54,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'), false)
                         </code>
                     </script>
                 </expression>
@@ -109,7 +109,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'), false)
                         </code>
                     </script>
                 </expression>
@@ -162,7 +162,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'), false)
                         </code>
                     </script>
                 </expression>
@@ -204,7 +204,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'), false)
                         </code>
                     </script>
                 </expression>

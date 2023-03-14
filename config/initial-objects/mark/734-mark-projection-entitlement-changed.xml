@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000734">
+    <name>Projection entitlement changed</name>
+    <description>Operation that made the projection entitlement changed</description>
+    <documentation>
+        This is an operation that changed the entitlement of a projection.
+        TODO we may or may not be able to assess the original value
+    </documentation>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>340</displayOrder>
+    <policyRule>
+        <name>projection-entitlement-changed</name>
+        <policyConstraints>
+            <modification>
+                <name>$projection-entitlement-changed</name>
+                <operation>modify</operation>
+                <specialItem>resourceObjectEntitlement</specialItem>
+            </modification>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+    </policyRule>
+</mark>

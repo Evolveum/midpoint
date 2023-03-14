@@ -1,12 +1,12 @@
-MidPoint 4.6 "Baumgarten"
--------------------------
+MidPoint 4.7 "Johnson" RC1
+--------------------------
 
-Release 4.6 is a forty-third midPoint release code-named Baumgarten.
-The 4.6 release brings substantial GUI improvements, smart correlation, resource inheritance, and many smaller enhancements.
+Release 4.7 is a forty-fourth midPoint release code-named Johnson.
+The 4.7 release brings simulation and preview features, object marks and improvements to identity governance reporting, password reset and user experience.
 
-Release date: 21st October 2022
+Release date: April 2023
 Release type: Feature release
-End of support: 21st October 2023
+End of support: April 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.6/
+https://docs.evolveum.com/midpoint/release/4.7/

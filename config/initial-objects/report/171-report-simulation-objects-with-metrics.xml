@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="00000000-0000-0000-0000-616a5c5dbca8">
+    <name>Simulation report: Objects with metrics</name>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+            <filter>
+                <q:inOid>
+                    <c:expression>
+                        <c:script>
+                            <c:code>simulationResultRef?.oid</c:code>
+                        </c:script>
+                    </c:expression>
+                    <q:considerOwner>true</q:considerOwner>
+                </q:inOid>
+            </filter>
+        </collection>
+        <view>
+            <column>
+                <name>id</name>
+                <display>
+                    <label>ID</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.id</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>oid</name>
+                <path>oid</path>
+                <display>
+                    <label>OID</label>
+                </display>
+                <previousColumn>id</previousColumn>
+            </column>
+            <column>
+                <name>name</name>
+                <path>name</path>
+                <previousColumn>oid</previousColumn>
+            </column>
+            <column>
+                <name>type</name>
+                <path>type</path>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>archetype</name>
+                <path>structuralArchetypeRef</path>
+                <previousColumn>type</previousColumn>
+            </column>
+            <column>
+                <name>resourceRef</name>
+                <path>resourceObjectCoordinates/resourceRef</path>
+                <previousColumn>archetype</previousColumn>
+            </column>
+            <column>
+                <name>kind</name>
+                <path>resourceObjectCoordinates/kind</path>
+                <previousColumn>resourceRef</previousColumn>
+            </column>
+            <column>
+                <name>intent</name>
+                <path>resourceObjectCoordinates/intent</path>
+                <previousColumn>kind</previousColumn>
+            </column>
+            <column>
+                <name>tag</name>
+                <path>resourceObjectCoordinates/tag</path>
+                <previousColumn>intent</previousColumn>
+            </column>
+            <column>
+                <name>state</name>
+                <path>state</path>
+                <previousColumn>tag</previousColumn>
+            </column>
+            <!-- for each metric -->
+            <column>
+                <name>eventMark</name>
+                <display>
+                    <label>Event mark</label>
+                </display>
+                <previousColumn>state</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric)?.eventMarkRef
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>explicitMetric</name>
+                <display>
+                    <label>Explicit metric</label>
+                </display>
+                <previousColumn>eventMark</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric)?.id
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selected</name>
+                <display>
+                    <label>Selected</label>
+                </display>
+                <previousColumn>explicitMetric</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric)?.selected
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>value</name>
+                <display>
+                    <label>Value</label>
+                </display>
+                <previousColumn>selected</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.api.simulation.ProcessedObject
+
+                                (metric as ProcessedObject.Metric)?.value
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>c:SimulationResultProcessedObjectType</type>
+        </view>
+        <parameter>
+            <name>simulationResultRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>SimulationResultType</targetType>
+            <display>
+                <label>Simulation result</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>showEventMarks</name>
+            <type>xsd:boolean</type>
+            <display>
+                <label>Show event marks</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>showExplicitMetrics</name>
+            <type>xsd:boolean</type>
+            <display>
+                <label>Show explicit metrics</label>
+            </display>
+        </parameter>
+        <subreport>
+            <name>metric</name>
+            <!-- Non-prism type of ProcessedObject.Metric -->
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getProcessedObjectMetrics(
+                                object as SimulationResultProcessedObjectType,
+                                showEventMarks,
+                                showExplicitMetrics)
+                    </code>
+                </script>
+            </expression>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+    </objectCollection>
+</report>

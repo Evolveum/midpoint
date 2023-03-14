@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="00000000-0000-0000-0000-000000001005">
+    <name>Standard functions</name>
+    <description>Set of standard functions to be used e.g. in mappings or policy rules.</description>
+    <function>
+        <name>isEffectivelyEnabled</name>
+        <description>
+            Returns true if the object (of FocusType) is effectively enabled.
+            Assumes that the object underwent standard computation and the activation/effectiveStatus is set.
+        </description>
+        <parameter>
+            <name>focus</name>
+            <type>FocusType</type>
+        </parameter>
+        <returnType>xsd:boolean</returnType>
+        <script>
+            <!--
+                EXPERIMENTAL. Currently not used, because:
+
+                1) It does not work for policy constraints (currently, as there is no "focus" variable yet).
+                2) What is worse is that using "focus" variable is slow because of repeated object cloning.
+            -->
+            <code>midpoint.isEffectivelyEnabled(focus)</code>
+        </script>
+    </function>
+</functionLibrary>

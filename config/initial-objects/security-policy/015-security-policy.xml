@@ -12,14 +12,14 @@
     <authentication>
         <modules>
             <loginForm>
-                <name>loginForm</name>
+                <identifier>loginForm</identifier>
             </loginForm>
             <httpBasic>
-                <name>httpBasic</name>
+                <identifier>httpBasic</identifier>
             </httpBasic>
         </modules>
         <sequence>
-            <name>admin-gui-default</name>
+            <identifier>admin-gui-default</identifier>
             <displayName>Default gui sequence</displayName>
             <channel>
                 <default>true</default>
@@ -27,33 +27,33 @@
                 <urlSuffix>gui-default</urlSuffix>
             </channel>
             <module>
-                <name>loginForm</name>
+                <identifier>loginForm</identifier>
                 <order>1</order>
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
         <sequence>
-            <name>rest-default</name>
+            <identifier>rest-default</identifier>
             <channel>
                 <default>true</default>
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
                 <urlSuffix>rest-default</urlSuffix>
             </channel>
             <module>
-                <name>httpBasic</name>
+                <identifier>httpBasic</identifier>
                 <order>1</order>
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
         <sequence>
-            <name>actuator-default</name>
+            <identifier>actuator-default</identifier>
             <channel>
                 <default>true</default>
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator</channelId>
                 <urlSuffix>actuator-default</urlSuffix>
             </channel>
             <module>
-                <name>httpBasic</name>
+                <identifier>httpBasic</identifier>
                 <order>1</order>
                 <necessity>sufficient</necessity>
             </module>

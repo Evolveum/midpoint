@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="00000000-0000-0000-0000-61bc8211947c">
+    <name>Simulation report: Values changed</name>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+            <filter>
+                <q:inOid>
+                    <c:expression>
+                        <c:script>
+                            <c:code>simulationResultRef?.oid</c:code>
+                        </c:script>
+                    </c:expression>
+                    <q:considerOwner>true</q:considerOwner>
+                </q:inOid>
+            </filter>
+        </collection>
+        <view>
+            <column>
+                <name>id</name>
+                <display>
+                    <label>ID</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.id</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>oid</name>
+                <path>oid</path>
+                <display>
+                    <label>OID</label>
+                </display>
+                <previousColumn>id</previousColumn>
+            </column>
+            <column>
+                <name>name</name>
+                <path>name</path>
+                <previousColumn>oid</previousColumn>
+            </column>
+            <column>
+                <name>type</name>
+                <path>type</path>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>archetype</name>
+                <path>structuralArchetypeRef</path>
+                <previousColumn>type</previousColumn>
+            </column>
+            <column>
+                <name>resourceRef</name>
+                <path>resourceObjectCoordinates/resourceRef</path>
+                <previousColumn>archetype</previousColumn>
+            </column>
+            <column>
+                <name>kind</name>
+                <path>resourceObjectCoordinates/kind</path>
+                <previousColumn>resourceRef</previousColumn>
+            </column>
+            <column>
+                <name>intent</name>
+                <path>resourceObjectCoordinates/intent</path>
+                <previousColumn>kind</previousColumn>
+            </column>
+            <column>
+                <name>tag</name>
+                <path>resourceObjectCoordinates/tag</path>
+                <previousColumn>intent</previousColumn>
+            </column>
+            <column>
+                <name>state</name>
+                <path>state</path>
+                <previousColumn>tag</previousColumn>
+            </column>
+            <column>
+                <name>eventMarkRef</name>
+                <path>eventMarkRef</path>
+                <previousColumn>state</previousColumn>
+            </column>
+            <!-- for each changed item -->
+            <column>
+                <name>itemChanged</name>
+                <display>
+                    <label>Item changed</label>
+                </display>
+                <previousColumn>eventMarkRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
+
+                                (itemDelta as ProcessedObjectItemDelta)?.path
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>valueState</name>
+                <display>
+                    <label>Value state</label>
+                </display>
+                <previousColumn>itemChanged</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
+
+                                (valueWithState as ValueWithState)?.state
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>value</name>
+                <display>
+                    <label>Value</label>
+                </display>
+                <previousColumn>valueState</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
+
+                                (valueWithState as ValueWithState)?.value
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignment</name>
+                <display>
+                    <label>Related assignment</label>
+                </display>
+                <previousColumn>value</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentId</name>
+                <display>
+                    <label>Related assignment ID</label>
+                </display>
+                <previousColumn>relatedAssignment</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.id</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentTarget</name>
+                <display>
+                    <label>Related assignment target</label>
+                </display>
+                <previousColumn>relatedAssignmentId</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.targetRef</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentTargetRelation</name>
+                <display>
+                    <label>Related assignment relation</label>
+                </display>
+                <previousColumn>relatedAssignmentTarget</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.targetRef?.relation</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentResource</name>
+                <display>
+                    <label>Related assignment resource</label>
+                </display>
+                <previousColumn>relatedAssignmentTargetRelation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.resourceRef</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentKind</name>
+                <display>
+                    <label>Related assignment kind</label>
+                </display>
+                <previousColumn>relatedAssignmentResource</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.kind</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relatedAssignmentIntent</name>
+                <display>
+                    <label>Related assignment intent</label>
+                </display>
+                <previousColumn>relatedAssignmentKind</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>relatedAssignment?.construction?.intent</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>c:SimulationResultProcessedObjectType</type>
+        </view>
+        <parameter>
+            <name>simulationResultRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>SimulationResultType</targetType>
+            <display>
+                <label>Simulation result</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>pathsToInclude</name>
+            <type>t:ItemPathType</type>
+            <display>
+                <label>Paths to include</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>pathsToExclude</name>
+            <type>t:ItemPathType</type>
+            <display>
+                <label>Paths to exclude</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>includeOperationalItems</name>
+            <type>xsd:boolean</type>
+            <display>
+                <label>Include operational items</label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>showIfNoDetails</name>
+            <type>xsd:boolean</type>
+            <display>
+                <label>Show rows with no details</label>
+            </display>
+        </parameter>
+        <subreport>
+            <name>itemDelta</name>
+            <!-- Returns a list of non-prism ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+                        import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
+
+                        report.getProcessedObjectItemDeltas(
+                                object as SimulationResultProcessedObjectType,
+                                pathsToInclude,
+                                pathsToExclude,
+                                includeOperationalItems)
+                    </code>
+                </script>
+            </expression>
+            <order>10</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+        <subreport>
+            <name>valueWithState</name>
+            <!-- Returns a list of non-prism ValueWithState objects (EXPERIMENTAL, may change in the future) -->
+            <expression>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
+
+                        (itemDelta as ProcessedObjectItemDelta)?.valuesWithStates
+                    </code>
+                </script>
+            </expression>
+            <order>20</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+        <subreport>
+            <!-- Eliminates rows with no details - if requested so -->
+            <name>detailsPresent</name>
+            <type>xsd:boolean</type>
+            <expression>
+                <script>
+                    <code>showIfNoDetails != false || valueWithState != null ? true : null</code>
+                </script>
+            </expression>
+            <order>30</order>
+            <resultHandling>
+                <noValues>removeParentRow</noValues>
+            </resultHandling>
+        </subreport>
+        <subreport>
+            <name>relatedAssignment</name>
+            <type>AssignmentType</type>
+            <expression>
+                <script>
+                    <code>report.getRelatedAssignment(itemDelta, valueWithState?.value)</code>
+                </script>
+            </expression>
+            <order>40</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+    </objectCollection>
+</report>
