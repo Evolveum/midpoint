@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -26,6 +31,7 @@ public class TitleWithDescriptionPanel extends BasePanel {
 
     private static final String ID_LINK = "link";
     private static final String ID_TITLE = "title";
+    private static final String ID_DESCRIPTION_CONTAINER ="descriptionContainer";
     private static final String ID_DESCRIPTION = "description";
 
     private IModel<String> description;
@@ -52,9 +58,13 @@ public class TitleWithDescriptionPanel extends BasePanel {
         Label title = new Label(ID_TITLE, getModel());
         link.add(title);
 
+        WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
+        descriptionContainer.add(AttributeAppender.append("class", () -> StringUtils.isEmpty(this.description.getObject()) ? "invisible" : null));
+        link.add(descriptionContainer);
+
         Label description = new Label(ID_DESCRIPTION, this.description);
         description.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.description.getObject())));
-        link.add(description);
+        descriptionContainer.add(description);
     }
 
     protected boolean isTitleLinkEnabled() {

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -285,7 +286,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         return createDetailsItemForBuiltInMetric(nameModel, valueModel, target -> redirectToProcessedObjects(identifier));
     }
 
-    private DetailsTableItem createDetailsItemForBuiltInMetric(IModel<String> name, IModel<String> value, Consumer<AjaxRequestTarget> onClickHandler) {
+    private DetailsTableItem createDetailsItemForBuiltInMetric(IModel<String> name, IModel<String> value, SerializableConsumer<AjaxRequestTarget> onClickHandler) {
         return new DetailsTableItem(name, value) {
 
             @Override
