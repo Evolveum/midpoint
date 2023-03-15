@@ -17,6 +17,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -34,11 +40,16 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
+@PanelType(name = "rw-types")
+@PanelInstance(identifier = "rw-types",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "ResourceObjectTypeTableWizardPanel.title", icon = "fa fa-object-group"))
 public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeTableWizardPanel.class);
 
-    private static final String PANEL_TYPE = "schemaHandling";
+    private static final String PANEL_TYPE = "rw-types";
     private static final String ID_TABLE = "table";
 
     public ResourceObjectTypeTableWizardPanel(String id, ResourceDetailsModel model) {

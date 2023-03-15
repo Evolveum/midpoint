@@ -21,8 +21,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "roleWizard-construction-mapping")
-@PanelInstance(identifier = "roleWizard-construction-mapping",
+@PanelType(name = "arw-construction-mappings")
+@PanelInstance(identifier = "arw-construction-mappings",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-arrow-right-from-bracket"),
@@ -32,7 +32,7 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionOutboundMappingsStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-mapping";
+    public static final String PANEL_TYPE = "arw-construction-mappings";
 
     protected static final String ID_PANEL = "panel";
     private final IModel<PrismContainerValueWrapper<ConstructionType>> constructionModel;
@@ -50,7 +50,7 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
     }
 
     private void initLayout() {
-        add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel()) {
+        add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
                 @Override
                 protected void editItemPerformed(
                         AjaxRequestTarget target,

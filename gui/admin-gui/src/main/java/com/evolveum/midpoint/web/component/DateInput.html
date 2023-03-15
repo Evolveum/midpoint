@@ -7,10 +7,12 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <span class="d-flex flex-wrap gap-1">
-        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="date" size="14"/>
-        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="hours" size="2" maxlength="2"/>
+        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="date" size="12"/>
+        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="hours" size="2" maxlength="2"
+                style="width: 2rem !important;"/>
         <label class="mb-0 col-form-label-sm font-weight-normal" wicket:id="hoursSeparator">:</label>
-        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="minutes" size="2" maxlength="2"/>
+        <input class="form-control form-control-sized form-control-sm" type="text" wicket:id="minutes" size="2" maxlength="2"
+                style="width: 2rem !important;"/>
         <select class="form-control form-control-sized form-control-sm" wicket:id="amOrPmChoice"></select>
     </span>
 </wicket:panel>

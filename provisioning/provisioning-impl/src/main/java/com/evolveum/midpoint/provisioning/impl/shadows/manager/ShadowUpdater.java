@@ -112,7 +112,7 @@ public class ShadowUpdater {
             ObjectNotFoundException, ConfigurationException {
 
         Collection<? extends ItemDelta<?, ?>> repoModifications =
-                new ShadowDeltaComputerRelative(ctx, modifications, protector)
+                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
                         .computeShadowModifications();
 
         executeRepoShadowModifications(ctx, repoShadow, repoModifications, result);

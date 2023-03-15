@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@PanelType(name = "roleWizard-construction-objectType")
-@PanelInstance(identifier = "roleWizard-construction-objectType",
+@PanelType(name = "arw-construction-objectType")
+@PanelInstance(identifier = "arw-construction-objectType",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.objectType", icon = "fa fa-database"),
@@ -48,7 +48,7 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceObjectTypeStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-objectType";
+    public static final String PANEL_TYPE = "arw-construction-objectType";
 
     private static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";

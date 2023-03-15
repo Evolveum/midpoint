@@ -65,8 +65,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@PanelType(name = "roleWizard-construction-group")
-@PanelInstance(identifier = "roleWizard-construction-group",
+@PanelType(name = "arw-construction-associations")
+@PanelInstance(identifier = "arw-construction-associations",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
@@ -76,7 +76,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-group";
+    public static final String PANEL_TYPE = "arw-construction-associations";
 
     private static final String ID_FOOTER_FRAGMENT = "footerFragment";
     private static final String ID_SEARCH_ON_RESOURCE_BUTTON = "searchOnResourceButton";

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.util;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -79,6 +79,14 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     }
 
     private void handleLocalization(Component component) {
+        if ("org.apache.wicket.markup.resolver.WicketMessageResolver$MessageContainer".equals(component.getClass().getName())) {
+            String resourceKey = component.getDefaultModelObjectAsString();
+            if (resourceKey != null) {
+                writeDataAttribute(component, ATTR_RESOURCE_KEY, resourceKey);
+            }
+            return;
+        }
+
         if (component instanceof PrismPropertyPanel || component instanceof PrismReferencePanel) {
             ItemPanel ppp = (ItemPanel) component;
             ItemWrapper iw = (ItemWrapper) ppp.getModel().getObject();
@@ -87,18 +95,9 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             QName qname = iw.getItemName();
 
             writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
-            writeDataAttribute(component, ATTR_QNAME, qnameToString(qname));
+            writeDataAttribute(component, ATTR_QNAME, QNameUtil.qNameToUri(qname));
             return;
         }
-
-        //TODO still needed?
-//        if (component instanceof PrismHeaderPanel) {
-//            PrismHeaderPanel php = (PrismHeaderPanel) component;
-//            String key = php.getLabel();
-//
-//            writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
-//            return;
-//        }
 
         IModel model = null;
         if (component.getDefaultModel() instanceof StringResourceModel) {
@@ -133,13 +132,5 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
         } catch (Exception ex) {
             // we don't care, should be all right, unless selenium tests starts failing
         }
-    }
-
-    private String qnameToString(QName qname) {
-        if (qname == null) {
-            return null;
-        }
-
-        return StringUtils.join(new Object[] { qname.getNamespaceURI(), qname.getLocalPart() }, "#");
     }
 }

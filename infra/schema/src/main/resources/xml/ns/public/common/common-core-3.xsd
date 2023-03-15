@@ -2406,6 +2406,11 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:appinfo>
+                   <a:alwaysUseForEquals>tns:sequenceIdentifier</a:alwaysUseForEquals>
+                </xsd:appinfo>
+              </xsd:annotation>
             </xsd:element>
             <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
                  Even compiled data may appear here, e.g. last access of user to any of his accounts.
@@ -2491,7 +2496,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <!--<a:operational>true</a:operational>-->
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15854,14 +15859,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <!-- Do we want also these tags? -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
                     <xsd:appinfo>

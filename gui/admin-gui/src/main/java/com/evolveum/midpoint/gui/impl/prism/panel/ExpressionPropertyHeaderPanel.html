@@ -8,19 +8,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="row">
-        <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
-                    class="btn btn-tool expand-collapse-button pull-left" trigger="hover" />
+    <div class="d-flex align-items-center">
+        <a wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                    class="btn btn-tool expand-collapse-button" trigger="hover"/>
 
         <a class="prism-title" wicket:id="label"/>
-        <span wicket:id="required" style="color: #f00; font-weight: bold;"
-                  wicket:message="title:prismPropertyPanel.required">*</span>
+
+        <span wicket:id="required" class="text-danger text-bold" wicket:message="title:prismPropertyPanel.required">*</span>
+
         <i wicket:id="help"/>
 
-        <button wicket:id="addButton" wicket:message="title:ExpressionPropertyHeaderPanel.addNewExpressionValue" class="btn btn-tool fa fa-plus-circle" trigger="hover"/>
+        <a wicket:id="addButton" wicket:message="title:ExpressionPropertyHeaderPanel.addNewExpressionValue" class="btn btn-tool" trigger="hover">
+            <i class="fa fa-plus-circle"/>
+        </a>
 
-        <button wicket:id="removeButton" wicket:message="title:ExpressionPropertyHeaderPanel.removeExpressionValue" class="btn btn-tool fa fa-minus-circle" trigger="hover"/>
-
+        <a wicket:id="removeButton" wicket:message="title:ExpressionPropertyHeaderPanel.removeExpressionValue" class="btn btn-tool" trigger="hover">
+            <i class="fa fa-minus-circle"/>
+        </a>
     </div>
 </wicket:panel>
 </html>

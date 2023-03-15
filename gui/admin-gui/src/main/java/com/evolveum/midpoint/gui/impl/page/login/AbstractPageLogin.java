@@ -163,18 +163,15 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             return;
         }
 
-        if (showErrorMessage()) {
+//        if (showErrorMessage()) {
             String msg = ex.getMessage();
             if (StringUtils.isEmpty(msg)) {
                 msg = "web.security.provider.unavailable";
             }
-
             String[] msgs = msg.split(";");
-            for (String message : msgs) {
-                message = getLocalizationService().translate(message, null, getLocale(), message);
-                error(message);
-            }
-        }
+            String message = getLocalizationService().translate(msgs[0], null, getLocale(), msgs[0]);
+            error(message);
+//        }
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
@@ -224,6 +221,13 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }
+    }
+
+    protected void saveException(Exception exception) {
+        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = req.getContainerRequest();
+        HttpSession httpSession = httpReq.getSession();
+        httpSession.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
     }
 
     protected void cancelPerformed() {

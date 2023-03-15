@@ -93,6 +93,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         super(params);
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 

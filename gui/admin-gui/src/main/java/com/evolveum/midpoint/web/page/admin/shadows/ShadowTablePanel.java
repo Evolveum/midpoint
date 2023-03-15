@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.page.admin.shadows;
 
 import java.util.*;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -58,6 +61,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.google.common.collect.Lists;
 
 public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
@@ -70,7 +74,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
     private static final String OPERATION_IMPORT_PREVIEW_OBJECT = DOT_CLASS + "importPreviewObject";
-    private static final String OPERATION_MARK_PROTECTED = DOT_CLASS + "markProtectedShadow";
+    private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
 
     public ShadowTablePanel(String id) {
         super(id, ShadowType.class);
@@ -282,6 +286,45 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
                         markProtectedShadow(getRowModel(), target);
+                    }
+                };
+            }
+        });
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.warn("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                markShadows(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select");
+                            }
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
                     }
                 };
             }
@@ -658,38 +701,42 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         changeOwnerInternal(ownerToChange.getOid(), ownerToChange.getClass(), Collections.singletonList(delta), target);
     }
 
-    private void markProtectedShadow(IModel<SelectableBean<ShadowType>> model, AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_MARK_PROTECTED);
-        Task task = getPageBase().createSimpleTask(OPERATION_MARK_PROTECTED);
+    private void markShadows(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
 
-        var selected = getSelectedShadowsList(model);
+        var selected = getSelectedShadowsList(rowModel);
         if (selected == null || selected.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowProtectedPerformed.warning").getString());
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
             getPageBase().showResult(result);
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
 
-        for (SelectableBean<ShadowType> shadow : selected) {
-            try {
-                var policyStat = new PolicyStatementType()
-                        .markRef(SystemObjectsType.MARK_PROTECTED.value(), MarkType.COMPLEX_TYPE)
-                        .type(PolicyStatementTypeType.APPLY);
-                var delta = getPageBase().getPrismContext().deltaFactory().object()
-                        .createModificationAddContainer(ShadowType.class,
-                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
-                                policyStat);
-                getPageBase().getModelService().executeChanges(
-                        MiscUtil.createCollection(delta), null, task, result);
+            for (SelectableBean<ShadowType> shadow : selected) {
+                List<PolicyStatementType> statements = new ArrayList<>();
+                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+                // but for each delta we need separate statement
+                for (String oid : markOids) {
+                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+                }
+                try {
+                    var delta = getPageBase().getPrismContext().deltaFactory().object()
+                            .createModificationAddContainer(ShadowType.class,
+                                    shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
+                                    statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                     | PolicyViolationException | SecurityViolationException e) {
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
-                                "ResourceContentPanel.message.markShadowProtectedPerformed.partialError", shadow)
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
                                 .getString(),
                         e);
-                LOGGER.error("Could not mark shadow {} as protected", shadow, e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
             }
         }
 
@@ -697,6 +744,10 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         getPageBase().showResult(result);
         refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void markProtectedShadow(IModel<SelectableBean<ShadowType>> model, AjaxRequestTarget target) {
+        markShadows(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
 
     private boolean isSatisfyConstraints(List selected) {

@@ -34,8 +34,8 @@ public abstract class AssociationsTable extends AbstractResourceWizardTable<Reso
 
     public AssociationsTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, valueModel, ResourceObjectAssociationType.class);
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, ResourceObjectAssociationType.class);
     }
 
     @Override

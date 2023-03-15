@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -58,8 +56,8 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
 
     public CorrelationItemsTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, valueModel, ItemsSubCorrelatorType.class);
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, ItemsSubCorrelatorType.class);
     }
 
     @Override

@@ -10,6 +10,11 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -21,13 +26,18 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 
 /**
  * @author lskublik
  */
+@PanelType(name = "rw-synchronization-reactions")
+@PanelInstance(identifier = "rw-synchronization-reactions",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "SynchronizationReactionTableWizardPanel.headerLabel", icon = "fa fa-arrows-rotate"))
 public abstract class SynchronizationReactionTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
+
+    private static final String PANEL_TYPE = "rw-synchronization-reactions";
 
     private static final String ID_TABLE = "table";
 
@@ -47,7 +57,8 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractRe
 
     private void initLayout() {
 
-        SynchronizationReactionTable table = new SynchronizationReactionTable(ID_TABLE, getValueModel()) {
+        SynchronizationReactionTable table = new SynchronizationReactionTable(
+                ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
@@ -108,5 +119,9 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractRe
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-10";
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 }

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 
@@ -18,11 +19,17 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
-
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -42,7 +49,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
+@PanelType(name = "rw-attribute-mappings")
+@PanelInstance(identifier = "rw-attribute-inbounds",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.inboundTable", icon = "fa fa-arrow-right-to-bracket"))
+@PanelInstance(identifier = "rw-attribute-outbounds",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
 public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+
+    private static final String INBOUND_PANEL_TYPE = "rw-attribute-inbounds";
+    private static final String OUTBOUND_PANEL_TYPE = "rw-attribute-outbounds";
 
     private static final String ID_TAB_TABLE = "tabTable";
 
@@ -104,7 +123,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new InboundAttributeMappingsTable<>(panelId, getValueModel()) {
+                return new InboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(INBOUND_PANEL_TYPE)) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -134,7 +153,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OutboundAttributeMappingsTable<>(panelId, getValueModel()) {
+                return new OutboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(OUTBOUND_PANEL_TYPE)) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -232,5 +251,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-11";
+    }
+
+    protected ContainerPanelConfigurationType getConfiguration(String panelType){
+        return WebComponentUtil.getContainerConfiguration(
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                panelType);
     }
 }

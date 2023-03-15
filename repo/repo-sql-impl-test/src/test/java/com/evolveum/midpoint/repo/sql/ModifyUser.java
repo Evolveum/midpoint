@@ -10,15 +10,16 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -26,10 +27,8 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * This is not real test, it's just used to check how hibernate handles insert/modify of different objects.
@@ -182,6 +181,23 @@ public class ModifyUser extends BaseSQLRepoTest {
                 itemFactory().createReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
 
         repositoryService.modifyObject(UserType.class, userOid, Arrays.asList(delta1, delta2), new OperationResult("asdf"));
+    }
+
+    @Test
+    public void test120ModifyUserAddAuthenticationBehavior() throws Exception {
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user-auth-behavior.xml"));
+        String userOid = repositoryService.addObject(user, null, new OperationResult("addUser"));
+
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
+                new File(FOLDER_BASIC, "user-auth-behavior-modification.xml"), ObjectModificationType.COMPLEX_TYPE);
+
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        //repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), new OperationResult("addAuthenticationBehavior"));
+        //PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, createOperationResult());
+
+        PrismObject<UserType> userAfter = user.clone();
+        delta.applyTo(userAfter);
+        assertEquals("wrong number of behavior authentication values", 2, userAfter.asObjectable().getBehavior().getAuthentication().size());
     }
 
 }

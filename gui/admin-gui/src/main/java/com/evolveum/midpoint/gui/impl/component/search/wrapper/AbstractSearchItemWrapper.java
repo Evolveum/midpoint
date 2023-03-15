@@ -29,8 +29,20 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
 
     private DisplayableValue<T> value;
     private boolean applyFilter;
+
+    /**
+     * flag that stores whether wrapper item is "selected" via checkbox in "More" popup in search bar
+     */
     private boolean selected;
+    /**
+     * information about whether wrapper item (or in case of UI some panel) is visible in search bar
+     */
     private boolean visible;
+    /**
+     * whether wrapper item (or in case of UI some panel) can be removed from search bar
+     *
+     * todo rename to canHide
+     */
     private boolean canConfigure = true;
     private SearchFilterType predefinedFilter;
     private ExpressionType filterExpression;
@@ -73,6 +85,10 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
             setValue(getDefaultValue());
         }
         return value;
+    }
+
+    public void clearValue() {
+        setValue(getDefaultValue());
     }
 
     public String getParameterName() {
@@ -142,5 +158,4 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
     public int hashCode() {
         return Objects.hash();
     }
-
 }

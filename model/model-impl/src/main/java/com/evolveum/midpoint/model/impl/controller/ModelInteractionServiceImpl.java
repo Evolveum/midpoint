@@ -840,7 +840,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
             addIgnoreNull(primaryDeltas, primaryDelta);
 
-            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+            ObjectDelta executable = CloneUtil.clone(projCtx.getExecutableDelta());
+            if (executable != null && !isEquivalentWithoutOperationAttr(primaryDelta, executable)) {
                 projectionContexts.add(projCtx);
             }
         }

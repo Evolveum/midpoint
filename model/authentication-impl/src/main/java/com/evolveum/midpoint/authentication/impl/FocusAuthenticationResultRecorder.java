@@ -65,6 +65,9 @@ public class FocusAuthenticationResultRecorder {
         //authAttemptData.(behavioralData.getLastSuccessfulLogin());
         authAttemptData.setLastSuccessfulAuthentication(event);
 
+        authAttemptData.setLockoutTimestamp(null);
+        authAttemptData.setLockoutExpirationTimestamp(null);
+
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
             if (LockoutStatusType.LOCKED.equals(activation.getLockoutStatus())) {
@@ -130,6 +133,8 @@ public class FocusAuthenticationResultRecorder {
                 lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
             }
             activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
+            authAttemptData.setLockoutExpirationTimestamp(lockoutExpirationTs);
+            authAttemptData.setLockoutTimestamp(event.getTimestamp());
             focusAfter.getTrigger().add(
                     new TriggerType()
                             .handlerUri(ModelPublicConstants.UNLOCK_TRIGGER_HANDLER_URI)
@@ -144,7 +149,7 @@ public class FocusAuthenticationResultRecorder {
     public void recordSequenceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
         FocusType focusBefore = principal.getFocus().clone();
 
-        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
         Integer failedLogins = behavior.getFailedLogins();
 
@@ -188,7 +193,7 @@ public class FocusAuthenticationResultRecorder {
         FocusType focusAfter = principal.getFocus();
         FocusType focusBefore = focusAfter.clone();
 
-        AuthenticationBehavioralDataType behavior = AuthUtil.getBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
         Integer failedLogins = behavior.getFailedLogins();
         LoginEventType lastFailedLogin = behavior.getLastFailedLogin();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,37 +7,38 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.report.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.StringResourceModel;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<ReportType> {
 
@@ -176,7 +177,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false){
+                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false) {
                     @Override
                     public StringResourceModel getTitle() {
                         return createStringResource("PageReport.reportPreview");
@@ -210,7 +211,6 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         runReport.setOutputMarkupId(true);
         repeatingView.add(runReport);
 
-
         iconBuilder = new CompositedIconBuilder()
                 .setBasicIcon(GuiStyleConstants.CLASS_UPLOAD, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconButton importReport = new AjaxCompositedIconButton(repeatingView.newChildId(), iconBuilder.build(),
@@ -228,19 +228,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
     }
 
     private void showWarningIfSubreportsUsed(Component component) {
-        PrismObject<ReportType> object = getModelObject().getObject();
-        ReportType report = object.asObjectable();
-        ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
-        if (collection == null) {
-            return;
-        }
-
-        boolean match = collection.getSubreport().stream()
-                .map(s -> s.getResultHandling())
-                .filter(rh -> rh != null)
-                .anyMatch(rh -> MultipleSubreportResultValuesHandlingType.SPLIT_PARENT_ROW.equals(rh.getMultipleValues()));
-
-        if (match) {
+        if (ReportTypeUtil.isSplitParentRowUsed(getModelObject().getObject().asObjectable())) {
             component.warn(getString("ReportOperationalButtonsPanel.splitParentRowPreviewWarning"));
         }
     }

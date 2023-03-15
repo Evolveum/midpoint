@@ -37,8 +37,9 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
 
     public SynchronizationReactionTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, valueModel, SynchronizationReactionType.class);
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, SynchronizationReactionType.class);
     }
 
     @Override

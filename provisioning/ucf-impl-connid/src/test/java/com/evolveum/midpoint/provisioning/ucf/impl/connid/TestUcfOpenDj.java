@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -562,9 +563,11 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // THEN
 
         AssertJUnit.assertNotNull(ro);
-        System.out.println("Fetched object " + ro);
+        System.out.println("Fetched object:\n" + ro.debugDump());
         System.out.println("Result:");
         System.out.println(result.debugDump());
+
+        assertEquals("Wrong LDAP uid", "Teell", IntegrationTestTools.getAttributeValue(ro.asObjectable(), new QName(NS_RI, "uid")));
 
     }
 

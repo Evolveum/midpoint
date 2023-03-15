@@ -453,7 +453,7 @@ public class AuthSequenceUtil {
     }
 
     public static Map<String, String> obtainAnswers(String answers, String idParameter, String answerParameter) {
-        if (answers == null) {
+        if (StringUtils.isEmpty(answers)) {
             return null;
         }
 
@@ -642,4 +642,8 @@ public class AuthSequenceUtil {
         return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 
+    public static boolean isUrlForAuthProcessing(HttpServletRequest httpRequest) {
+        String localPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        return localPath != null && !localPath.isEmpty() && localPath.startsWith(SchemaConstants.AUTH_MODULE_PREFIX);
+    }
 }

@@ -12,8 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -34,11 +33,16 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -228,11 +232,17 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                             @Override
                             protected String load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-                                if (object.getStructuralArchetypeRef() == null) {
+                                ObjectReferenceType archetypeRef = object.getStructuralArchetypeRef();
+                                if (archetypeRef == null) {
                                     return null;
                                 }
 
-                                return WebModelServiceUtils.resolveReferenceName(object.getStructuralArchetypeRef(), PageSimulationResultObject.this);
+                                PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(archetypeRef, PageSimulationResultObject.this);
+                                if (archetype == null) {
+                                    return WebComponentUtil.getName(archetypeRef);
+                                }
+
+                                return WebComponentUtil.getDisplayNameOrName(archetype);
                             }
                         }) {
 
@@ -370,12 +380,22 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
         changesNew.setShowOperationalItems(true);
-        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
+        changesNew.add(new VisibleBehaviour(() -> !isExperimentalFeaturesDisabled()));
         add(changesNew);
 
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && !WebComponentUtil.isEnabledExperimentalFeatures()));
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && isExperimentalFeaturesDisabled()));
         add(changes);
+    }
+
+    private boolean isExperimentalFeaturesDisabled() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal == null) {
+            return false;
+        }
+
+        CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+        return profile != null && BooleanUtils.isFalse(profile.isEnableExperimentalFeatures());
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
@@ -391,12 +411,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null || obj.getName() == null) {
-                        return getString("ProcessedObjectsPanel.unnamed");
-                    }
+                    ProcessedObject<?> obj = SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), PageSimulationResultObject.this);
 
-                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
+                    return SimulationsGuiUtil.getProcessedObjectName(obj, PageSimulationResultObject.this);
                 };
             }
         });

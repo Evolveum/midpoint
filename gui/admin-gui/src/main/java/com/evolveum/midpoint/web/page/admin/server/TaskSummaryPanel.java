@@ -284,7 +284,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getLiveSyncTokenIcon() {
-        return "fa fa-hand-o-right";
+        return "fa-regular fa-hand-point-right fa-fw";
     }
 
     private String getLiveSyncToken(TaskType taskType) {

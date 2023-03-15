@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,7 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueObjectChoosePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,12 +49,11 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
     private static final String ID_TARGET_SEARCH_VALUE_INPUT = "targetSearchValueInput";
     private static final String ID_FEEDBACK = "feedback";
 
-    ConstructionType construction;
+    private ConstructionType construction;
 
     public AssociationExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction) {
         super(id, model);
         this.construction = construction;
-
     }
 
     @Override
@@ -75,28 +76,21 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
     private void initShadowRefExpressionPanel() {
         WebMarkupContainer shadowRefValueContainer = new WebMarkupContainer(ID_SHADOW_REF_VALUE_CONTAINER);
         shadowRefValueContainer.setOutputMarkupId(true);
-        shadowRefValueContainer.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject());
-            }
-        });
+        shadowRefValueContainer.add(new VisibleBehaviour(() -> ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject())));
         add(shadowRefValueContainer);
 
-        LoadableModel<List<ObjectReferenceType>> loadableModel = new LoadableModel<List<ObjectReferenceType>>() {
+        LoadableModel<List<ObjectReferenceType>> loadableModel = new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ObjectReferenceType> load() {
-                List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(AssociationExpressionValuePanel.this.getModelObject(),
-                        AssociationExpressionValuePanel.this.getPageBase().getPrismContext());
-                return shadowRefList;
+                List<ObjectReferenceType> refs =  ExpressionUtil.getShadowRefValue(AssociationExpressionValuePanel.this.getModelObject(), getPageBase().getPrismContext());
+                refs.forEach(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()));
+
+                return refs;
             }
         };
-        MultiValueObjectChoosePanel<ObjectReferenceType> multiShadowRefPanel = new MultiValueObjectChoosePanel<ObjectReferenceType>(
-                ID_MULTI_SHADOW_REF_PANEL, loadableModel) {
+        MultiValueObjectChoosePanel<ObjectReferenceType> multiShadowRefPanel = new MultiValueObjectChoosePanel<>(ID_MULTI_SHADOW_REF_PANEL, loadableModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -129,15 +123,8 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
     private void initAssociationTargetSearchExpressionPanel() {
         WebMarkupContainer targetSearchContainer = new WebMarkupContainer(ID_ASSOCIATION_TARGET_SEARCH_CONTAINER);
         targetSearchContainer.setOutputMarkupId(true);
-        targetSearchContainer.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return ExpressionUtil.findFirstEvaluatorByName(AssociationExpressionValuePanel.this.getModelObject(),
-                        SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH) != null;
-            }
-        });
+        targetSearchContainer.add(new VisibleBehaviour(() ->
+                ExpressionUtil.findFirstEvaluatorByName(AssociationExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH) != null));
         add(targetSearchContainer);
 
         TextPanel<String> targetSearchFilterPathInput = new TextPanel<>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(ExpressionUtil.getTargetSearchExpPathValue(getModelObject())));
@@ -148,19 +135,6 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 updateAssociationTargetSearchExpressionValue(target);
-//
-//                String pathValue = targetSearchFilterPathInput.getBaseFormComponent().getValue();
-//                if (AssociationExpressionValuePanel.this.getModelObject() == null){
-//                    AssociationExpressionValuePanel.this.getModelService().setObject(new ExpressionType());
-//                }
-//                try {
-//                    ExpressionUtil.updateAssociationTargetSearchPath(AssociationExpressionValuePanel.this.getModelObject(),
-//                            getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
-//                } catch (Exception ex){
-//                    AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(AssociationExpressionValuePanel.this,
-//                            ex.getLocalizedMessage(), 0));
-//                    target.add(AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel());
-//                }
             }
         });
         targetSearchContainer.add(targetSearchFilterPathInput);
@@ -176,7 +150,6 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
             }
         });
         targetSearchContainer.add(targetSearchFilterValueInput);
-
     }
 
     private void updateAssociationTargetSearchExpressionValue(AjaxRequestTarget target) {
