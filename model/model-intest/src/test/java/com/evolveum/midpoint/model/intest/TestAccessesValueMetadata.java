@@ -32,6 +32,7 @@ import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -45,6 +46,8 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
     // alternative business role 1b inducing app role 1b inducing the app service 1 from above
     private String businessRole1bOid;
     private String appRole1bOid;
+    // alternative business role that induces two app roles, both inducing a single service ("diamond")
+    private String businessRole1cOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -73,6 +76,15 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 initTask, initResult);
         businessRole1bOid = addObject(new RoleType()
                         .name("business-role-1b")
+                        .inducement(new AssignmentType()
+                                .targetRef(createObjectReference(appRole1bOid,
+                                        RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT))),
+                initTask, initResult);
+        businessRole1cOid = addObject(new RoleType()
+                        .name("business-role-1c")
+                        .inducement(new AssignmentType()
+                                .targetRef(createObjectReference(appRole1Oid,
+                                        RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)))
                         .inducement(new AssignmentType()
                                 .targetRef(createObjectReference(appRole1bOid,
                                         RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT))),
@@ -141,6 +153,36 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         assertAssignmentPath(userAsserter, appService1Oid,
                 new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid),
                 new ExpectedAssignmentPath(businessRole1bOid, appRole1bOid, appService1Oid));
+    }
+
+    @Test
+    public void test250AddUserWithOneRoleInducingOneServiceViaTwoPaths() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("new user with assignments to business role 1c");
+        UserType user = new UserType()
+                .name("user-" + getTestNumber())
+                .assignment(new AssignmentType()
+                        .targetRef(createObjectReference(businessRole1cOid,
+                                RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)));
+
+        when("user is added");
+        String userOid = addObject(user, task, result);
+
+        then("roleMembershipRefs contain value metadata with accesses information");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(4);
+        assertAssignmentPath(userAsserter, businessRole1cOid,
+                new ExpectedAssignmentPath(businessRole1cOid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1cOid, appRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1bOid,
+                new ExpectedAssignmentPath(businessRole1cOid, appRole1bOid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1cOid, appRole1Oid, appService1Oid),
+                new ExpectedAssignmentPath(businessRole1cOid, appRole1bOid, appService1Oid));
     }
 
     @Test
@@ -302,22 +344,72 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                 .isEqualTo(SchemaConstants.ORG_APPROVER);
     }
 
-    // TODO add assignment with targetRef with filter
+    @Test
+    public void test600AddUserWithDefaultAssignmentWithTargetRefFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-    private void segmentsHaveExpectedRelations(
-            UserAsserter<Void> userAsserter, String membershipTargetOid, QName... expectedRelations)
-            throws SchemaException {
-        ValueMetadataType metadata = (ValueMetadataType) userAsserter
-                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(membershipTargetOid))
-                .assertSize(1)
-                .getRealValue();
-        List<AssignmentPathSegmentMetadataType> segments = metadata.getProvenance().getAssignmentPath().getSegment();
-        assertThat(segments).hasSameSizeAs(expectedRelations);
-        for (int i = 0; i < expectedRelations.length; i++) {
-            assertThat(segments.get(i).getTargetRef().getRelation())
-                    .describedAs("segment #%d for role membership ref to %s", i, membershipTargetOid)
-                    .isEqualTo(expectedRelations[i]);
-        }
+        given("new user with assignment with target ref filter");
+        SearchFilterType targetSearchFilter = getQueryConverter().createSearchFilterType(
+                prismContext.queryFor(RoleType.class)
+                        .id(businessRole1Oid)
+                        .buildFilter());
+        ObjectReferenceType targetRef = new ObjectReferenceType()
+                .filter(targetSearchFilter)
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+        UserType user = new UserType()
+                .name("user-" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(targetRef));
+
+        when("user is added");
+        String userOid = addObject(user, task, result);
+
+        then("roleMembershipRefs are created");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(3);
+
+        and("their metadata are populated");
+        // This first case proves that AssignmentProcessor#processMembershipAndDelegatedRefs is too late
+        // for metadata creation because assignment/targetRef/oid is null there.
+        assertAssignmentPath(userAsserter, businessRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid));
+        assertAssignmentPath(userAsserter, appRole1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid));
+        assertAssignmentPath(userAsserter, appService1Oid,
+                new ExpectedAssignmentPath(businessRole1Oid, appRole1Oid, appService1Oid));
+    }
+
+    @Test
+    public void test610AddUserWithApproverAssignmentWithTargetRefFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("new user with assignment with target ref filter");
+        SearchFilterType targetSearchFilter = getQueryConverter().createSearchFilterType(
+                prismContext.queryFor(RoleType.class)
+                        .id(businessRole1Oid)
+                        .buildFilter());
+        ObjectReferenceType targetRef = new ObjectReferenceType()
+                .filter(targetSearchFilter)
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_APPROVER);
+        UserType user = new UserType()
+                .name("user-" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(targetRef));
+
+        when("user is added");
+        String userOid = addObject(user, task, result);
+
+        then("roleMembershipRefs are created");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(1);
+
+        and("their metadata are populated");
+        assertAssignmentPath(userAsserter, businessRole1Oid, new ExpectedAssignmentPath(businessRole1Oid));
+        segmentsHaveExpectedRelations(userAsserter, businessRole1Oid, SchemaConstants.ORG_APPROVER);
     }
 
     @Test
@@ -402,8 +494,6 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         assertAllStorageTimestampsAreBefore(userAsserter.getObjectable(), afterAddTs);
     }
 
-    // TODO add check of no phantom deltas when no metadata change on refs
-
     private UserType newUserWithBusinessRole1() {
         return new UserType()
                 .name("user-" + getTestNumber())
@@ -477,6 +567,22 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                                 .as("storage/createTimestamp of value metadata for ref " + ref)
                                 .isLessThan(referenceMillis));
             }
+        }
+    }
+
+    private void segmentsHaveExpectedRelations(
+            UserAsserter<Void> userAsserter, String membershipTargetOid, QName... expectedRelations)
+            throws SchemaException {
+        ValueMetadataType metadata = (ValueMetadataType) userAsserter
+                .valueMetadata(F_ROLE_MEMBERSHIP_REF, ValueSelector.refEquals(membershipTargetOid))
+                .assertSize(1)
+                .getRealValue();
+        List<AssignmentPathSegmentMetadataType> segments = metadata.getProvenance().getAssignmentPath().getSegment();
+        assertThat(segments).hasSameSizeAs(expectedRelations);
+        for (int i = 0; i < expectedRelations.length; i++) {
+            assertThat(segments.get(i).getTargetRef().getRelation())
+                    .describedAs("segment #%d for role membership ref to %s", i, membershipTargetOid)
+                    .isEqualTo(expectedRelations[i]);
         }
     }
 

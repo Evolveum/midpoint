@@ -35,7 +35,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
@@ -1036,48 +1035,40 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private void addRoleReferences(
             Collection<PrismReferenceValue> shouldBeRoleRefs, EvaluatedAssignmentImpl<?> evaluatedAssignment,
             LensFocusContext<?> focusContext, OperationResult operationResult) throws SchemaException {
-        addReferences(shouldBeRoleRefs, evaluatedAssignment.getMembershipRefVals());
-
+        Collection<PrismReferenceValue> membershipRefVals = evaluatedAssignment.getMembershipRefVals();
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
-        if (!SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
-            return;
+        if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+            for (PrismReferenceValue roleRef : membershipRefVals) {
+                addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
+            }
         }
 
-        for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
-        }
+        addReferences(shouldBeRoleRefs, membershipRefVals);
     }
 
     private void addAssignmentPathValueMetadataValues(PrismReferenceValue roleRef,
-            EvaluatedAssignmentImpl<?> evaluatedAssignment, LensFocusContext<?> focusContext)
+            EvaluatedAssignment evaluatedAssignment, LensFocusContext<?> focusContext)
             throws SchemaException {
         List<EvaluatedAssignmentTarget> evaluatedAssignmentTargets =
                 findEvaluatedAssignmentTargets(roleRef, evaluatedAssignment);
         if (evaluatedAssignmentTargets.isEmpty()) {
             // Cases like Approver relations, for which EvaluatedAssignment has empty roles DeltaSetTriple.
-            AssignmentType assignment = evaluatedAssignment.getAssignment();
-            ObjectReferenceType assignmentTargetRef = assignment.getTargetRef();
-            // We can get here with roleRef->X and assignment/targetRef->Y, in which case we do nothing.
-            if (assignmentTargetRef != null
-                    // assignmentTargetRef.getOid can be null, e.g. for dynamically evaluated refs with filter
-                    // TODO: This actually means that this is not the best place for this metadata logic.
-                    //  It probably really should be somewhere in TargetEvaluation/TargetMembershipCollector#collect.
-                    //  That would also fix the case of metadata for such refs with filter - which is now BROKEN.
-                    // TestPreviewChangesCoD.test150 also randomly creates state when roleRef.getOid() is null.
-                    && Objects.equals(roleRef.getOid(), assignmentTargetRef.getOid())
-                    && QNameUtil.match(assignmentTargetRef.getRelation(), roleRef.getRelation())) {
-                addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
-                        new AssignmentPathType().segment(new AssignmentPathSegmentType()
-                                .assignmentId(assignment.getId())
-                                .segmentOrder(1)
-                                .isAssignment(true)
-                                .matchingOrder(true)
-                                .sourceRef(focusContext.getOid(),
-                                        focusContext.getObjectDefinition().getTypeName(),
-                                        SchemaConstants.ORG_DEFAULT)
-                                .targetRef(assignmentTargetRef)));
-            }
+            // Sometimes we have target available (e.g. Approver with filter), sometimes not (when targetRef has OID).
+            PrismObject<?> assignmentTarget = evaluatedAssignment.getTarget();
+            ObjectReferenceType assignmentTargetRef = evaluatedAssignment.getAssignment().getTargetRef();
+            String assignmentTargetOid = assignmentTarget != null ? assignmentTarget.getOid() : assignmentTargetRef.getOid();
+            addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
+                    new AssignmentPathType()
+                            .segment(new AssignmentPathSegmentType()
+                                    .assignmentId(evaluatedAssignment.getAssignmentId())
+                                    .segmentOrder(1)
+                                    .isAssignment(true)
+                                    .matchingOrder(true)
+                                    .sourceRef(focusContext.getOid(),
+                                            focusContext.getObjectDefinition().getTypeName(),
+                                            SchemaConstants.ORG_DEFAULT)
+                                    .targetRef(assignmentTargetOid, roleRef.getTargetType(), roleRef.getRelation())));
         } else {
             for (EvaluatedAssignmentTarget evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
                 AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
@@ -1133,9 +1124,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private @NotNull List<EvaluatedAssignmentTarget> findEvaluatedAssignmentTargets(
-            PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+            PrismReferenceValue roleRef, EvaluatedAssignment evaluatedAssignment) {
         List<EvaluatedAssignmentTarget> result = new ArrayList<>();
-        for (EvaluatedAssignmentTargetImpl eat : evaluatedAssignment.getRoles().getNonNegativeValues()) {
+        for (EvaluatedAssignmentTarget eat : evaluatedAssignment.getRoles().getNonNegativeValues()) {
             ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
             if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
                     && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {
@@ -1190,12 +1181,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     (a, b) -> Objects.equals(a.getOid(), b.getOid())
                             && Objects.equals(a.getRelation(), b.getRelation()));
             if (oldRefMatch != null) {
-                mergeAssignmentPathMetadata(ref, oldRefMatch);
+                adoptExistingStorageCreateTimestampValueMetadata(ref, oldRefMatch);
             }
         }
     }
 
-    private void mergeAssignmentPathMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
+    private void adoptExistingStorageCreateTimestampValueMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
         List<PrismContainerValue<Containerable>> originalMetadataValues = originalRef.getValueMetadata().getValues();
         if (originalMetadataValues.isEmpty()) {
             return;
@@ -1231,23 +1222,27 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {
+    private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references)
+            throws SchemaException {
         for (PrismReferenceValue reference : references) {
-            boolean found = false;
             for (PrismReferenceValue exVal : extractedReferences) {
                 if (MiscUtil.equals(exVal.getOid(), reference.getOid())
                         && prismContext.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
-                    found = true;
-                    break;
+                    // Reference is already there, but we want to merge value metadata (roleMembershipRefs).
+                    ValueMetadata existingRefMetadata = exVal.getValueMetadata();
+                    for (PrismContainerValue<Containerable> metadataValue : reference.getValueMetadata().getValues()) {
+                        existingRefMetadata.add(metadataValue.clone());
+                    }
+                    return;
                 }
             }
-            if (!found) {
-                PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);        // clone without full object instead of calling canonicalize()
-                if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
-                    ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
-                }
-                extractedReferences.add(ref);
+
+            // clone without full object instead of calling canonicalize()
+            PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);
+            if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
+                ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
             }
+            extractedReferences.add(ref);
         }
     }
 
