@@ -536,6 +536,9 @@ Authorization applies only to objects that are members of a specific xref:/midpo
 
 This is good for delegated administration to fixed organizational subtrees.
 
+NOTE: The organization object itself (`1f82e908-0072-11e4-9532-001e8c717e5b` in the above example) is _not_ covered by the authorization.
+In fact, it is not a member of itself.
+
 === Object Selection by Organization Structure Relation
 
 Authorization applies only to objects that are members of any org, for which the subject has a specific relation.
