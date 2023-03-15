@@ -12,7 +12,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -25,8 +31,17 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
+
+
 @Experimental
+@PanelType(name = "rw-associations")
+@PanelInstance(identifier = "rw-associations",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "AssociationsTableWizardPanel.headerLabel", icon = "fa fa-shield"))
 public abstract class AssociationsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
+
+    private static final String PANEL_TYPE = "rw-association";
 
     private static final String ID_TABLE = "table";
 
@@ -43,7 +58,7 @@ public abstract class AssociationsTableWizardPanel extends AbstractResourceWizar
     }
 
     private void initLayout() {
-        AssociationsTable table = new AssociationsTable(ID_TABLE, getValueModel()) {
+        AssociationsTable table = new AssociationsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
@@ -90,5 +105,9 @@ public abstract class AssociationsTableWizardPanel extends AbstractResourceWizar
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-11";
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 }

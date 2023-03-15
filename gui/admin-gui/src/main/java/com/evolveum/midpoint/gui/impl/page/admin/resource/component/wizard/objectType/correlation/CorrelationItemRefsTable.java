@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,8 +54,8 @@ public class CorrelationItemRefsTable extends AbstractResourceWizardTable<Correl
 
     public CorrelationItemRefsTable(
             String id,
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-        super(id, valueModel, CorrelationItemType.class);
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, CorrelationItemType.class);
     }
 
     @Override

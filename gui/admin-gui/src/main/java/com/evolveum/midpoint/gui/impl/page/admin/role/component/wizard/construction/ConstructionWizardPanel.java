@@ -121,7 +121,7 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), rowModel) {
+        steps.add(new ConstructionOutboundBasicStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);

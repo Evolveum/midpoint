@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReact
  */
 @PanelInstance(identifier = "rw-synchronization-reaction-optional",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.optionalSettings", icon = "fa fa-wrench"),
         expanded = true)
 public class ReactionOptionalSettingStepPanel

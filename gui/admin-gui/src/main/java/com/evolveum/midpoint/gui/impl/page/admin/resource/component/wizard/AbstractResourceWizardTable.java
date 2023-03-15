@@ -20,6 +20,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,8 +41,9 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
     public AbstractResourceWizardTable(
             String id,
             IModel<PrismContainerValueWrapper<CV>> valueModel,
+            ContainerPanelConfigurationType config,
             Class<C> type) {
-        super(id, type);
+        super(id, type, config);
         this.valueModel = valueModel;
     }
 
