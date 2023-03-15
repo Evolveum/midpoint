@@ -29,13 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
@@ -44,14 +40,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,7 +70,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
     private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
-    private static final String OPERATION_PARSE_PROCESSED_OBJECT = DOT_CLASS + "parserProcessedObject";
 
     public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -148,24 +139,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
                     @Override
                     protected ProcessedObject<?> load() {
-                        PageBase page = getPageBase();
-                        Task task = page.createSimpleTask(OPERATION_PARSE_PROCESSED_OBJECT);
-                        OperationResult result = task.getResult();
-
-                        try {
-                            return getPageBase().getModelService().parseProcessedObject(rowModel.getObject().getValue(), task, result);
-                        } catch (Exception ex) {
-                            result.computeStatusIfUnknown();
-                            result.recordFatalError("Couldn't parse processed object", ex);
-
-                            page.showResult(result);
-
-                            return null;
-                        }
+                        return SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
                     }
                 };
 
-                IModel<String> title = () -> createProcessedObjectName(model.getObject());
+                IModel<String> title = () -> SimulationsGuiUtil.getProcessedObjectName(model.getObject(), getPageBase());
                 IModel<String> description = () -> createProcessedObjectDescription(model.getObject());
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
 
@@ -206,54 +184,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                 .toArray();
 
         return StringUtils.joinWith(", ", names);
-    }
-
-    private String createProcessedObjectName(ProcessedObject<?> object) {
-        if (object == null || object.getName() == null) {
-            return getString("ProcessedObjectsPanel.unnamed");
-        }
-
-        ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
-        if (obj == null) {
-            return LocalizationUtil.translatePolyString(obj.getName());
-        }
-
-        if (obj instanceof ShadowType) {
-            try {
-                return createProcessedShadowName((ShadowType) obj);
-            } catch (SystemException ex) {
-                LOGGER.debug("Couldn't create processed shadow name", ex);
-            }
-        }
-
-        return WebComponentUtil.getDisplayNameAndName(obj.asPrismObject());
-    }
-
-    private String createProcessedShadowName(ShadowType shadow) {
-        ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
-
-        ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
-        Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-        String name = realName != null ? realName.toString() : "";
-
-        String intent = shadow.getIntent() != null ? shadow.getIntent() : "";
-
-        ObjectReferenceType resourceRef = shadow.getResourceRef();
-
-        Object resourceName = WebModelServiceUtils.resolveReferenceName(resourceRef, getPageBase(), false);
-        if (resourceName == null) {
-            resourceName = new SingleLocalizableMessage("ProcessedObjectsPanel.unknownResource",
-                    new Object[] { resourceRef != null ? resourceRef.getOid() : null });
-        }
-
-        LocalizableMessage msg = new SingleLocalizableMessage("ProcessedObjectsPanel.shadow", new Object[] {
-                new SingleLocalizableMessage("ShadowKindType." + kind.name()),
-                name,
-                intent,
-                resourceName
-        });
-
-        return LocalizationUtil.translateMessage(msg);
     }
 
     private List<InlineMenuItem> createRowMenuItems() {
