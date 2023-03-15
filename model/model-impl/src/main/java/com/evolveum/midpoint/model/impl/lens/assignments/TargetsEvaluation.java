@@ -128,6 +128,9 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         if (segment.isNonNegativeRelativeRelativityMode() && Util.shouldCollectMembership(segment)) {
             if (segment.assignment.getTargetRef().getOid() != null) {
                 ctx.membershipCollector.collect(segment.assignment.getTargetRef(), segment.relation);
+                // This branch does not set target for cases like Approver assignments, but saves one resolve.
+                // This means that in EvaluatedAssignment you can later either have target,
+                // or - if null - assignment/targetRef should have OID filled in.
             } else {
                 // no OID, so we have to resolve the filter
 //                resolvedTargets = true;

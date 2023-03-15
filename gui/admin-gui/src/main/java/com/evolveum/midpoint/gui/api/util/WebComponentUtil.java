@@ -4760,7 +4760,7 @@ public final class WebComponentUtil {
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
                 ExpressionEvaluationException e) {
-            result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
+            result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {
             mainResult.recomputeStatus();
@@ -4776,6 +4776,34 @@ public final class WebComponentUtil {
 //        pageBase.resetWorkItemCountModel();
         target.add(pageBase);
 
+    }
+
+    public static void releaseWorkItemActionPerformed(CaseWorkItemType workItemToClaim,
+            String operation, AjaxRequestTarget target, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask(operation);
+        OperationResult mainResult = task.getResult();
+        CaseService caseService = pageBase.getCaseService();
+        OperationResult result = mainResult.createSubresult(operation);
+
+        try {
+            caseService.releaseWorkItem(WorkItemId.of(workItemToClaim), task, result);
+            result.computeStatusIfUnknown();
+        } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
+                ExpressionEvaluationException e) {
+            result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
+        }
+        if (mainResult.isUnknown()) {
+            mainResult.recomputeStatus();
+        }
+
+        if (mainResult.isSuccess()) {
+            mainResult.recordStatus(OperationResultStatus.SUCCESS,
+                    pageBase.createStringResource("pageWorkItems.message.success.simple.released").getString());
+        }
+
+        pageBase.showResult(mainResult);
+        target.add(pageBase);
     }
 
     public static void assumePowerOfAttorneyIfRequested(OperationResult result, PrismObject<UserType> powerDonor, PageBase pageBase) {
@@ -5385,7 +5413,7 @@ public final class WebComponentUtil {
     }
 
     public static <T> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model,
-                                                                IModel<List<DisplayableValue<T>>> choices, boolean allowNull) {
+            IModel<List<DisplayableValue<T>>> choices, boolean allowNull) {
         return new DropDownChoicePanel(id, model, choices, new DisplayableChoiceRenderer(), allowNull);
     }
 
