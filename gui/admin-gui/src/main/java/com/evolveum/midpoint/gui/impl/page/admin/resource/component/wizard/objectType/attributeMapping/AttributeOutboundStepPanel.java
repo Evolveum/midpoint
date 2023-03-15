@@ -32,7 +32,7 @@ import org.apache.wicket.model.IModel;
 public class AttributeOutboundStepPanel<ODM extends ObjectDetailsModels>
         extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
-    public static final String PANEL_TYPE = "rw-attribute-outbound";
+    private static final String PANEL_TYPE = "rw-attribute-outbound";
 
     public AttributeOutboundStepPanel(ODM model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
