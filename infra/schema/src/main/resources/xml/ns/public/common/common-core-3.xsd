@@ -2406,6 +2406,11 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:appinfo>
+                   <a:alwaysUseForEquals>tns:sequenceIdentifier</a:alwaysUseForEquals>
+                </xsd:appinfo>
+              </xsd:annotation>
             </xsd:element>
             <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
                  Even compiled data may appear here, e.g. last access of user to any of his accounts.

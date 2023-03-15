@@ -79,10 +79,11 @@ public class BasicQueryWrapper extends AbstractQueryWrapper {
 
     private <T> List<ObjectFilter> getSearchItemFilterList(PageBase pageBase, Class<T> typeClass, VariablesMap defaultVariables) {
         List<ObjectFilter> conditions = new ArrayList<>();
-//        if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
-//            return conditions;
-//        }
         for (FilterableSearchItemWrapper item : itemsList) {
+            // todo this should be uncommented after 4.7 release (release too close to "try" to fix something like this)
+            // if (!item.isApplyFilter(SearchBoxModeType.BASIC)) {
+            //     continue;
+            // }
 
             ObjectFilter filter = item.createFilter(typeClass, pageBase, defaultVariables);
             if (filter != null) {

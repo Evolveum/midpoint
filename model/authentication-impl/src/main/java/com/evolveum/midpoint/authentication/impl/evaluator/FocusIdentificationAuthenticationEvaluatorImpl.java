@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -31,12 +33,12 @@ public class FocusIdentificationAuthenticationEvaluatorImpl extends Authenticati
         if (StringUtils.isBlank(authCtx.getUsername())) {
             recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
 //            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+            throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
             recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
 //            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }
 

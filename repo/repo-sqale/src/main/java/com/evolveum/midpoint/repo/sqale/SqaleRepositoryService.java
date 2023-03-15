@@ -757,19 +757,30 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     @Override
     public ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid,
             @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        // Should we select
+        if (transactionId == null) {
+            // Transaction ID is null, we can delegate to normal modifyObjectOperation, which takes care
+            // of partition drops if necessary
+
+            var modifications = PrismContext.get().deltaFor(SimulationResultType.class)
+                    .item(SimulationResultType.F_PROCESSED_OBJECT)
+                    .replace()
+                    .asItemDeltas();
+            try {
+                return modifyObject(SimulationResultType.class, oid, modifications, parentResult);
+            } catch (ObjectAlreadyExistsException e) {
+                throw new SystemException(e);
+            }
+        }
+
         var operationResult = parentResult.createSubresult("deleteSimulatedProcessedObjects");
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<SimulationResultType, QObject<MObject>, MObject> update = prepareUpdateContext(jdbcSession, SimulationResultType.class, SqaleUtils.oidToUuidMandatory(oid));
 
             QProcessedObject alias = QProcessedObjectMapping.getProcessedObjectMapping().defaultAlias();
 
-            var predicate = alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid));
-            // If transactionId is null, delete all processed objects
-            // otherwise delete only ones in particular transaction
-            predicate = transactionId != null ?
-                    predicate.and(alias.transactionId.eq(transactionId)) :
-                    predicate;
+            // transactionId is not null, delete only ones in particular transaction
+            var predicate = alias.ownerOid.eq(SqaleUtils.oidToUuidMandatory(oid))
+                    .and(alias.transactionId.eq(transactionId));
 
             jdbcSession.newDelete(alias).where(predicate).execute();
             update.finishExecutionOwn();

@@ -21,6 +21,8 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     public static final String DEFAULT_ALIAS_NAME = "po";
 
+    public static final String PARTITION_PREFIX = "m_sr_processed_object_";
+
     private static QProcessedObjectMapping instance;
 
     public static @NotNull QProcessedObjectMapping initProcessedResultMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -119,5 +121,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         // We store event marks
         storeRefs(row, object.getEventMarkRef(), QProcessedObjectEventMarkReferenceMapping.getInstance(), jdbcSession);
         return row;
+    }
+
+    public static String partitionName(String oid) {
+        return PARTITION_PREFIX + oid.replace('-', '_');
     }
 }
