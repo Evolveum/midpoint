@@ -12,10 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -37,12 +33,15 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -233,11 +232,17 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                             @Override
                             protected String load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-                                if (object.getStructuralArchetypeRef() == null) {
+                                ObjectReferenceType archetypeRef = object.getStructuralArchetypeRef();
+                                if (archetypeRef == null) {
                                     return null;
                                 }
 
-                                return WebModelServiceUtils.resolveReferenceName(object.getStructuralArchetypeRef(), PageSimulationResultObject.this);
+                                PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(archetypeRef, PageSimulationResultObject.this);
+                                if (archetype == null) {
+                                    return WebComponentUtil.getName(archetypeRef);
+                                }
+
+                                return WebComponentUtil.getDisplayNameOrName(archetype);
                             }
                         }) {
 
