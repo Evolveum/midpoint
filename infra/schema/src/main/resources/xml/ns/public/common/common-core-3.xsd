@@ -11624,8 +11624,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Top node of an organizational hierarchy. This node and all of its subnodes
-                            (transitively, unlimited depth) are considered selected.
+                            Top node of an organizational hierarchy. All the subnodes (transitively, unlimited depth,
+                            excluding the top node) are considered selected.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
