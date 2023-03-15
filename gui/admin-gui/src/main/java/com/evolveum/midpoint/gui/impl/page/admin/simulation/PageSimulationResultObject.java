@@ -12,6 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -370,12 +375,22 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
         changesNew.setShowOperationalItems(true);
-        changesNew.add(new VisibleBehaviour(() -> WebComponentUtil.isEnabledExperimentalFeatures()));
+        changesNew.add(new VisibleBehaviour(() -> !isExperimentalFeaturesDisabled()));
         add(changesNew);
 
         VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && !WebComponentUtil.isEnabledExperimentalFeatures()));
+        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && isExperimentalFeaturesDisabled()));
         add(changes);
+    }
+
+    private boolean isExperimentalFeaturesDisabled() {
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal == null) {
+            return false;
+        }
+
+        CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+        return profile != null && BooleanUtils.isFalse(profile.isEnableExperimentalFeatures());
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
