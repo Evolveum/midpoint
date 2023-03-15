@@ -429,7 +429,7 @@ For simplicity, let us use a CSV resource instead.
 
 === Step LDAP-1: Viewing the Raw LDAP Data
 
-. Copy the link:https://github.com/Evolveum/midpoint-samples/simulation/tutorial/ldap.csv[LDAP CSV file] to the directory for CSV files for this tutorial (e.g. `~/sim-tutorial`).
+. Copy the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/ldap.csv[LDAP CSV file] to the directory for CSV files for this tutorial (e.g. `~/sim-tutorial`).
 . Check that the `filePath` in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-ldap-1.xml[LDAP definition #1] matches the location of the copied LDAP CSV file.
 . Import the LDAP definition #1 into midPoint.
 Note that the lifecycle state of the resource is `proposed`, so the whole resource definition is in the development mode.

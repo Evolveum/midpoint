@@ -846,9 +846,10 @@ Panels applicable only for resources (detail page):
 
 WARNING: This feature is available since midPoint 4.6
 
-Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration].Only configuration for containers is supported and was tested. We can use container configuration for wizard panel which show panel with form.
+Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration]. We can use configuration for collection with definitions for columns, or we can use container configuration for wizard panel, which show panel with form.
 
 Very important attribute is _applicableForOperation_, that have to have value *_wizard_* for wizard panels.
+This enum value is available since midPoint 4.7. This value specifies that the panel will only be used in the wizard and this panel will not appear in the detail menu.
 
 Example of configuration for wizard panel, which display form with basic configuration of resource object type (visible only attributes _displayName_, _description_, _kind_, _intent_, _securityPolicyRef_ and _default_):
 
@@ -921,6 +922,10 @@ Panels applicable for resource wizard:
 | `rw-connectorConfiguration-partial`
 | Configuration after discovering that can contains suggestions for configuration attributes
 
+| Resource object types
+| `rw-types`
+| Panel display a table with all the objects available in the selected resource, manage existing or create a new one
+
 | Basic information about the object type
 | `rw-type-basic`
 | Basic configuration of resource object type
@@ -953,13 +958,26 @@ Panels applicable for resource wizard:
 | `rw-activation-validTo`
 | Definition of the circumstances for the end of the object's validity
 
+| Associations
+| `rw-associations`
+| Panel display table of associations for selected object type, you can delete or modify existing or create new association
+
 | Configuration of the association
 | `rw-association`
 | Configuration of the settings for association
 
+| Inbound mappings
+| `rw-attribute-inbounds`
+| Table of inbound mappings of selected object type
+
 | Configuration of inbound mapping
 | `rw-attribute-inbound`
 | Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to
+
+| Outbound mappings
+| `rw-attribute-outbounds`
+| Table of outbound mappings of selected object type
+
 
 | Configuration of outbound mapping
 | `rw-attribute-outbound`
@@ -969,6 +987,11 @@ Panels applicable for resource wizard:
 | `rw-attribute-limitations`
 | Configuration of the limitations, that are used to restrict some properties of an attribute
 
+| Attributes
+| `rw-attributes`
+| Attributes table of selected object type
+
+
 | Configuration of the override
 | `rw-attribute`
 | Configuration of the basic settings for override attribute
@@ -977,6 +1000,10 @@ Panels applicable for resource wizard:
 | `rw-credentials`
 | Configuration of the credentials that defines how account credentials are synchronized for current object type
 
+| Reactions
+| `rw-synchronization-reactions`
+| Table of synchronization reactions of selected object type
+
 | Main settings of reaction
 | `rw-synchronization-reaction-main`
 | Basic main configuration about the reaction
@@ -984,6 +1011,63 @@ Panels applicable for resource wizard:
 | Optional reaction configuration
 | `rw-synchronization-reaction-optional`
 | Panel contains more advanced optional configuration for enrichment of the synchronization reaction
+
+| Correlation rules
+| `rw-correlationRules`
+| Table of correlation rules of selected object type
+
+| Correlators
+| `rw-correlators`
+| Table of correlators of selected correlation rule
+|===
+
+Panels applicable for role wizard:
+
+WARNING: This panels are available since midPoint 4.7
+[%autowidth]
+
+|===
+| Panel | Identifier | Description
+
+| Basic information
+| `arw-basic`
+| Basic information about your abstract role
+
+| Select application
+| `apprw-access`
+| Select application your role will grant access to
+
+| Select application roles
+| `brw-access`
+| Select application roles your role will include
+
+| Configure governance
+| `arw-governance`
+| Select governance users of your new role
+
+| Configure members
+| `arw-members`
+| Select members of your new role
+
+| Construction resource
+| `arw-construction-resource`
+| Select resource in which your role will manage access
+
+| Resource object type
+| `arw-construction-objectType`
+| Select type of object your role will modify
+
+| Association
+| `arw-construction-associations`
+| Select object(s) on resource to be associated with the user when your role is assigned
+
+| Outbound mappings
+| `arw-construction-mappings`
+| Create mappings for setting specific values when your role is assigned
+
+| Outbound mappings basic information
+| `arw-construction-mapping`
+| Basic information about outbound mapping created in panel `Outbound mappings`
 |===
 
 
