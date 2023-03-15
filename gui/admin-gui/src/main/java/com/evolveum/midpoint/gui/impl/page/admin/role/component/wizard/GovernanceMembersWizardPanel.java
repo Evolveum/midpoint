@@ -13,6 +13,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -20,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.behavior.Behavior;
@@ -33,9 +37,15 @@ import java.util.List;
 /**
  * @author lskublik
  */
+
+@PanelType(name = "arw-governance")
+@PanelInstance(identifier = "arw-governance",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "GovernanceMembersWizardPanel.title", icon = "fa fa-users"))
 public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    public static final String PANEL_TYPE = "roleWizard-governance";
+    public static final String PANEL_TYPE = "arw-governance";
     private static final String ID_TABLE = "table";
 
     public GovernanceMembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {

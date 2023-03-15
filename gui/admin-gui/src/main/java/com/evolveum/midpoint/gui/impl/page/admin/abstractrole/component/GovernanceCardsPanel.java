@@ -283,11 +283,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected String getTilesHeaderCssClasses() {
-                        return getTilesFooterCssClasses();
-                    }
-
-                    @Override
                     protected IModel<Search> createSearchModel() {
                         return (IModel) searchModel;
                     }

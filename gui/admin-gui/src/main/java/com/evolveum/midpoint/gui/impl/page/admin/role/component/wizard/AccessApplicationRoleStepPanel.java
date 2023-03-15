@@ -28,8 +28,8 @@ import org.apache.wicket.model.Model;
 
 import java.util.*;
 
-@PanelType(name = "roleWizard-access-application-role")
-@PanelInstance(identifier = "roleWizard-access-application-role",
+@PanelType(name = "brw-access")
+@PanelInstance(identifier = "brw-access",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.applicationRole", icon = "fa fa-list"),
@@ -39,7 +39,7 @@ public class AccessApplicationRoleStepPanel
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessApplicationRoleStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-access-application-role";
+    public static final String PANEL_TYPE = "brw-access";
 
     private IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
 

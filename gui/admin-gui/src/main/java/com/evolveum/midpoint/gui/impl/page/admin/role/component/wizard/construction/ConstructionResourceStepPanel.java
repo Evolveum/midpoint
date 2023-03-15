@@ -39,8 +39,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-@PanelType(name = "roleWizard-construction-resource")
-@PanelInstance(identifier = "roleWizard-construction-resource",
+@PanelType(name = "arw-construction-resource")
+@PanelInstance(identifier = "arw-construction-resource",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.resource", icon = "fa fa-database"),
@@ -49,7 +49,7 @@ public class ConstructionResourceStepPanel<AR extends AbstractRoleType> extends 
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-resource";
+    public static final String PANEL_TYPE = "arw-construction-resource";
 
     public ConstructionResourceStepPanel(
             FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {

@@ -10,29 +10,18 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.*;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import org.apache.wicket.model.IModel;
-
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,7 +59,6 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSavePerformed(target);
         if (!result.isError()) {
-//            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }
@@ -104,13 +92,6 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
                 new ConstructionWizardPanel(getIdOfChoicePanel(), createHelper())
         );
 
-//        WizardModel wizardModel = new WizardModel(createConstructionSteps(valueModel));
-//        if (StringUtils.isNotEmpty(stepId)) {
-//            wizardModel.setActiveStepById(stepId);
-//        }
-//        showWizardFragment(
-//                target,
-//                new WizardPanel(getIdOfWizardPanel(), wizardModel));
     }
 
     private WizardPanelHelper<AssignmentType, FocusDetailsModels<RoleType>> createHelper() {
@@ -126,81 +107,6 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
             }
         };
     }
-
-//    private List<WizardStep> createConstructionSteps(IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
-//        List<WizardStep> steps = new ArrayList<>();
-//
-//        ConstructionResourceStepPanel selectResource =
-//                new ConstructionResourceStepPanel(getHelper().getDetailsModel(), valueModel) {
-//
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        };
-//
-//        steps.add(selectResource);
-//
-//        steps.add(new ConstructionResourceObjectTypeStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        });
-//
-//        steps.add(new ConstructionGroupStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        });
-//
-//        steps.add( new ConstructionOutboundMappingsStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()) {
-//            @Override
-//            protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
-//                showOutboundAttributeMappingWizardFragment(target, rowModel, selectResource.getValueModel());
-//            }
-//
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//
-//            @Override
-//            protected void onSubmitPerformed(AjaxRequestTarget target) {
-//                super.onSubmitPerformed(target);
-//                ApplicationRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
-//            }
-//        });
-//
-//        return steps;
-//    }
-//
-//    private void showOutboundAttributeMappingWizardFragment(
-//            AjaxRequestTarget target,
-//            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-//            IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
-//        showWizardFragment(
-//                target,
-//                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(rowModel, valueModel))));
-//    }
-//
-//    private List<WizardStep> createOutboundAttributeMappingSteps(
-//            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-//            IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
-//        List<WizardStep> steps = new ArrayList<>();
-//        steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), rowModel) {
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
-//            }
-//        });
-//        return steps;
-//    }
 
     private void showGovernanceMembersPanel(AjaxRequestTarget target) {
         showChoiceFragment(target, new GovernanceMembersWizardPanel(
