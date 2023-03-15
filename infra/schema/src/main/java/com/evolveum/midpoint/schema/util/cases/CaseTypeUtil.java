@@ -128,6 +128,12 @@ public class CaseTypeUtil {
                 && !doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
     }
 
+    public static boolean isWorkItemReleasable(CaseWorkItemType workItem) {
+        return workItem != null
+                && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
+                && doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
+    }
+
     public static boolean doesAssigneeExist(CaseWorkItemType workItem) {
         if (workItem == null || CollectionUtils.isEmpty(workItem.getAssigneeRef())) {
             return false;

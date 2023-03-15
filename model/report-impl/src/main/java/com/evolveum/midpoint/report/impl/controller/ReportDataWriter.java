@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.report.impl.controller;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +87,6 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
      */
     @NotNull
     default Charset getEncoding() {
-        return Charset.defaultCharset();
-//        return StandardCharsets.UTF_8; TODO wouldn't this be better? Definitely more predictable.
+        return StandardCharsets.UTF_8;
     }
 }

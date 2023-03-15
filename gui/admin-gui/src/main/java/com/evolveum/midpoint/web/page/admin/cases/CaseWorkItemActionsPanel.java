@@ -41,6 +41,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
     private static final String DOT_CLASS = CaseWorkItemActionsPanel.class.getName() + ".";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItem";
+    private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseWorkItem";
     private static final String OPERATION_FORWARD_WORK_ITEM = DOT_CLASS + "forwardWorkItem";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
     private static final String OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION = DOT_CLASS + "isAuthorizedToApproveAndReject";
@@ -50,6 +51,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_WORK_ITEM_REJECT_BUTTON = "workItemRejectButton";
     private static final String ID_WORK_ITEM_FORWARD_BUTTON = "workItemForwardButton";
     private static final String ID_WORK_ITEM_CLAIM_BUTTON = "workItemClaimButton";
+    private static final String ID_WORK_ITEM_RELEASE_BUTTON = "workItemReleaseButton";
 
     public CaseWorkItemActionsPanel(String id, IModel<CaseWorkItemType> caseWorkItemModel) {
         super(id, caseWorkItemModel);
@@ -81,6 +83,21 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         workItemApproveButton.setOutputMarkupId(true);
         add(workItemApproveButton);
+
+        AjaxButton workItemUnclaimedButton = new AjaxButton(ID_WORK_ITEM_RELEASE_BUTTON,
+                    createStringResource("pageWorkItems.button.reconsider")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                releaseWorkItemPerformed(ajaxRequestTarget);
+                afterActionFinished(ajaxRequestTarget);
+
+            }
+        };
+        workItemUnclaimedButton.add(new VisibleBehaviour(this::isReleaseButtonVisible));
+        workItemUnclaimedButton.setOutputMarkupId(true);
+        add(workItemUnclaimedButton);
 
         AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON, getRejectButtonTitleModel()) {
             private static final long serialVersionUID = 1L;
@@ -117,9 +134,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 claimWorkItemPerformed(ajaxRequestTarget);
+                afterActionFinished(ajaxRequestTarget);
             }
         };
-        workItemClaimButton.add(new VisibleBehaviour(() -> isClaimButtonVisible()));
+        workItemClaimButton.add(new VisibleBehaviour(this::isClaimButtonVisible));
         workItemClaimButton.setOutputMarkupId(true);
 
         add(workItemClaimButton);
@@ -181,6 +199,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private void claimWorkItemPerformed(AjaxRequestTarget target) {
         WebComponentUtil.claimWorkItemActionPerformed(getModelObject(), OPERATION_CLAIM_ITEMS, target, getPageBase());
 
+    }
+
+    private void releaseWorkItemPerformed(AjaxRequestTarget target) {
+        WebComponentUtil.releaseWorkItemActionPerformed(getModelObject(), OPERATION_RELEASE_ITEMS, target, getPageBase());
     }
 
     protected void afterActionFinished(AjaxRequestTarget target) {
@@ -248,6 +270,12 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
             return false;
         }
+    }
+
+    private boolean isReleaseButtonVisible() {
+        return CaseTypeUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                CaseTypeUtil.isWorkItemReleasable(getModelObject()) &&
+                getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject());
     }
 
     private boolean isClaimButtonVisible() {
