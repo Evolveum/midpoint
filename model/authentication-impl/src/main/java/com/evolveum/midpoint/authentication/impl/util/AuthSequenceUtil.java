@@ -453,7 +453,7 @@ public class AuthSequenceUtil {
     }
 
     public static Map<String, String> obtainAnswers(String answers, String idParameter, String answerParameter) {
-        if (answers == null) {
+        if (StringUtils.isEmpty(answers)) {
             return null;
         }
 
