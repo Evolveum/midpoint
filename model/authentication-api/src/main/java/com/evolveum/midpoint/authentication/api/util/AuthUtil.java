@@ -271,11 +271,17 @@ public class AuthUtil {
         if (!(authentication instanceof MidpointAuthentication)) {
             return defaultPrefix + defaultSuffix;
         }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         //todo generate another message keys for self registration?
-        if (SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(mpAuthentication.getAuthenticationChannel().getChannelId())) {
+        if (isPasswordResetAuthChannel((MidpointAuthentication) authentication)) {
             return defaultPrefix + SchemaConstants.CHANNEL_RESET_PASSWORD_QNAME.getLocalPart() + "." + defaultSuffix;
         }
         return defaultPrefix + defaultSuffix;
+   }
+
+   private static boolean isPasswordResetAuthChannel(MidpointAuthentication authentication) {
+        if (authentication.getAuthenticationChannel() == null) {
+            return false;
+        }
+       return SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authentication.getAuthenticationChannel().getChannelId());
    }
 }
