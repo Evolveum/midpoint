@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -1004,7 +1005,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             for (SimulationProcessedObjectMetricValueType valueBean : values) {
                 valueMap.put(
                         SimulationMetricReference.forExplicit(valueBean.getIdentifier()),
-                        new MetricValue(valueBean.getValue(), valueBean.isSelected()));
+                        new MetricValue(valueBean.getValue(), BooleanUtils.toBooleanDefaultIfNull(valueBean.isSelected(), false)));
             }
         }
 

@@ -11,12 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -28,26 +22,33 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,6 +74,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
     private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
+    private static final String OPERATION_PARSE_PROCESSED_OBJECT = DOT_CLASS + "parserProcessedObject";
 
     public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -138,33 +140,29 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                IModel<String> title = () -> createProcessedObjectName(rowModel.getObject().getValue());
+                IModel<ProcessedObject<?>> model = new LoadableDetachableModel<>() {
 
-                IModel<String> description = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null) {
-                        return null;
+                    @Override
+                    protected ProcessedObject<?> load() {
+                        PageBase page = getPageBase();
+                        Task task = page.createSimpleTask(OPERATION_PARSE_PROCESSED_OBJECT);
+                        OperationResult result = task.getResult();
+
+                        try {
+                            return getPageBase().getModelService().parseProcessedObject(rowModel.getObject().getValue(), task, result);
+                        } catch (Exception ex) {
+                            result.computeStatusIfUnknown();
+                            result.recordFatalError("Couldn't parse processed object", ex);
+
+                            page.showResult(result);
+
+                            return null;
+                        }
                     }
-
-                    List<ObjectReferenceType> eventMarkRefs = obj.getEventMarkRef();
-                    // resolve names from markRefs
-                    Object[] names = eventMarkRefs.stream()
-                            .map(ref -> {
-                                List<MarkType> marks = availableMarksModel.getObject();
-                                MarkType mark = marks.stream()
-                                        .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
-                                        .findFirst().orElse(null);
-                                if (mark == null) {
-                                    return null;
-                                }
-                                return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
-                            })
-                            .filter(Objects::nonNull)
-                            .sorted(Comparator.naturalOrder())
-                            .toArray();
-
-                    return StringUtils.joinWith(", ", names);
                 };
+
+                IModel<String> title = () -> createProcessedObjectName(model.getObject());
+                IModel<String> description = () -> createProcessedObjectDescription(model.getObject());
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
 
                     @Override
@@ -181,7 +179,32 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         };
     }
 
-    private String createProcessedObjectName(SimulationResultProcessedObjectType object) {
+    private String createProcessedObjectDescription(ProcessedObject<?> obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        Collection<String> eventMarkOids = obj.getMatchingEventMarks();
+        // resolve names from markRefs
+        Object[] names = eventMarkOids.stream()
+                .map(oid -> {
+                    List<MarkType> marks = availableMarksModel.getObject();
+                    MarkType mark = marks.stream()
+                            .filter(t -> Objects.equals(t.getOid(), oid))
+                            .findFirst().orElse(null);
+                    if (mark == null) {
+                        return null;
+                    }
+                    return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.naturalOrder())
+                .toArray();
+
+        return StringUtils.joinWith(", ", names);
+    }
+
+    private String createProcessedObjectName(ProcessedObject<?> object) {
         if (object == null || object.getName() == null) {
             return getString("ProcessedObjectsPanel.unnamed");
         }
@@ -191,10 +214,12 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return LocalizationUtil.translatePolyString(obj.getName());
         }
 
-        obj = ObjectTypeUtil.fix(obj);
-
         if (obj instanceof ShadowType) {
-            return createProcessedShadowName((ShadowType) obj);
+            try {
+                return createProcessedShadowName((ShadowType) obj);
+            } catch (SystemException ex) {
+                LOGGER.debug("Couldn't create processed shadow name", ex);
+            }
         }
 
         return WebComponentUtil.getDisplayNameAndName(obj.asPrismObject());
@@ -217,7 +242,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     new Object[] { resourceRef != null ? resourceRef.getOid() : null });
         }
 
-        LocalizableMessage msg =  new SingleLocalizableMessage("ProcessedObjectsPanel.shadow", new Object[] {
+        LocalizableMessage msg = new SingleLocalizableMessage("ProcessedObjectsPanel.shadow", new Object[] {
                 new SingleLocalizableMessage("ShadowKindType." + kind.name()),
                 name,
                 intent,
