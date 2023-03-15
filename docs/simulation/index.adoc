@@ -49,13 +49,8 @@ We are looking for a better one.
 Here, no actions that could have persistent externally-visible effects are executed.
 Accordingly, nothing is written to the system audit log.
 
-The changes are computed, just like in <<Persistent-Effects Mode>> but instead of their application, they are written to so-called simulation result.
-This is a special type of objects in the midPoint repository.
-A simulation result collects information about:
-
-. objects seen by the activity (both midPoint repository objects and resource objects),
-. changes computed against these objects,
-. values of so-called _simulation metrics_ that provide high-level view of the activity being simulated.
+The changes are computed, just like in <<Persistent-Effects Mode>> but instead of their application, they are written to so-called xref:/midpoint/reference/simulation/results/[simulation result].
+It is a special kind of objects in midPoint repository, collecting both statistical and detailed information about changes that would be applied.
 
 == Production vs Development Configuration
 

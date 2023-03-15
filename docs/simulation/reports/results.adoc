@@ -1,6 +1,7 @@
 = Results
 :page-toc: top
 :page-since: "4.7"
+:page-display-order: 100
 
 This is the most high-level report on simulation results.
 It shows individual results, along with metric values, decomposed into individual partitions
@@ -53,11 +54,11 @@ _The following part of the report is instantiated once per each simulation xref:
 
 | Aggregation function
 | Aggregation function used for given metric.
-See xref:../results/aggregation-functions.adoc[].
+See xref:../results/metrics.adoc#_aggregation[].
 
 2+|
 {zwsp} +
-_The following part of the report is instantiated once per each xref:../results/partitions.adoc[metric partition]._ +
+_The following part of the report is instantiated once per each metric partition._ +
 {zwsp}
 
 | Scope: type

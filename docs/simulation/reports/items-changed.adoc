@@ -1,6 +1,7 @@
 = Items Changed
 :page-toc: top
 :page-since: "4.7"
+:page-display-order: 300
 
 This report lists items changed within individual processed objects.
 

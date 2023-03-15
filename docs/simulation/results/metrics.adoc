@@ -1,4 +1,439 @@
 = Metrics
+:page-toc: top
+:page-since: "4.7"
 
-#TODO#
+Metrics are numeric values attached to individual processed objects or their aggregations.
 
+Currently, there are three types of metrics:
+
+.Metrics types
+[%autowidth]
+|===
+| Metric type | Description | Example | Values | Searchable | Customizable
+
+| Built-in
+| Metrics that are automatically evaluated, without any need to define them.
+| `added`, `deleted`, `modified`
+| 0 or 1
+| yes
+| no
+
+| Event mark-based
+| Bound to the presence of given event mark.
+| `Focus activated`, `Projection renamed`
+| 0 or 1
+| yes
+| yes
+
+| Explicit
+| Explicitly defined by the engineer or administrator
+| `number-of-modifications`
+| any number (integer or non-integer)
+| no
+| yes
+|===
+
+Notes:
+
+. By "searchable" we mean whether it is possible to select processed objects with a specific value of given metric using midPoint query.
+Built-in and event mark-based metrics are searchable in this respect.
+Explicit ones are currently not.
+(However, they are still automatically fully processable in external tools after being exported in the form of a xref:../reports/objects-with-metrics.adoc[report].)
+. By "customizable" we mean whether it is possible to change the definitions of individual metrics (event marks or explicit ones), as well as whether it is possible to enable or disable processing of these metrics for individual simulation runs.
+Built-in metrics cannot be customized; they are required for correct functioning of the midPoint GUI.
+
+== Built-in Metrics
+
+There are the following built-in metrics.
+Each corresponds to a single value of `SimulationResultProcessedObjectType.state` property.
+
+.Built-in metrics types
+[%autowidth]
+|===
+| Metric | Description | State property value
+
+| `added`
+| 1 if the object would be added, 0 otherwise
+| `added`
+
+| `deleted`
+| 1 if the object would be deleted, 0 otherwise
+| `deleted`
+
+| `modified`
+| 1 if the object would be modified, 0 otherwise
+| `modified`
+|===
+
+When searching for an object with given built-in metric set to 1, the query on the `state` property should be used.
+(This metric is not recorded on individual processed objects explicitly.)
+
+== Event Mark-based Metrics
+
+Each xref:../../mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
+Values of such metric are either 1 (mark is present) or 0 (mark is not present).
+
+There is a set of default event marks present among midPoint initial objects.
+You can fully customize these, remove those that are not needed, and add your own ones.
+
+Individual event marks can be enabled and disabled in a xref:definition.adoc[simulation result definition].
+
+After simulation is run, it is possible to select individual processed objects carrying given event mark(s) by querying the `SimulationResultProcessedObjectType.eventMarkRef` item.
+
+== Explicit Metrics
+
+It is possible to define any metrics over the set of processed objects.
+
+For example, if we want to report on a number of modified resource object attributes, the following custom metric may be defined:
+
+[#_attribute_modifications_metric]
+.Listing 1. Custom metric example
+[source, xml]
+----
+<metric>
+    <identifier>attribute-modifications</identifier>
+    <computation>
+        <domain>
+            <expression>
+                <script>
+                    <code>processedObject.shadow</code> <!--1-->
+                </script>
+            </expression>
+        </domain>
+        <valueExpression>
+            <script>
+                <code>processedObject.attributeModificationsCount</code> <!--2-->
+            </script>
+        </valueExpression>
+    </computation>
+</metric>
+----
+<1> Tells midPoint to apply this metric only to shadows (resource object).
+<2> Computes the value by calling built-in `getAttributeModificationsCount()` method on `ProcessedObject` instance.
+This method counts the number of attribute modifications that would be applied to the given resource object.
+Please see the Java documentation and/or the source code of `ProcessedObject` class to learn more.
+
+== Metric Definition
+
+The metric definition has the following items:
+
+.Metric definition items
+[%autowidth]
+|===
+| Item | Description | Default
+
+| `identifier`
+| Identifier of the metric.
+| required
+
+| `description`
+| User-level description of the metric.
+| -
+
+| `documentation`
+| Technical documentation of the metric.
+| -
+
+| `display`
+| Display style of the metric.
+| -
+
+| `displayOrder`
+| An order in which this metric should be displayed relative to other metrics within the same context.
+| at the end
+
+| `enabledByDefault`
+| Is this metric enabled by default?
+| `true`
+
+| `computation`
+| How is the metric value computed for individual "processed objects"?
+| required, unless this metric is computed from a different (source) object-level metric
+
+| `aggregation`
+| How are the metric values xref:#_aggregation[aggregated]?
+| plain summation
+|===
+
+The `computation` element has the following items:
+
+.Metric computation definition items
+[%autowidth]
+|===
+| Item | Description | Default
+
+| `domain`
+| Domain of the metric.
+It denotes objects that should be considered by the metric.
+| all objects
+
+| `selection`
+| A xref:#_predicate[predicate] that determines whether the object is "selected" by the metric.
+| if `valueExpression` is present: true` if computed value is greater than 0, `false` otherwise
+
+| `valueExpression`
+| An expression providing the value for the metric.
+(See xref:#_value_expression[below] for detailed description.)
+| if selection criteria are present: 1 if the object matches the criteria, 0 otherwise
+|===
+
+=== Metric Domain and Selected Objects
+There are two relevant object sets for each metric:
+
+. _Domain_ of the metric.
+These are all objects on which it makes sense to compute the metric value.
+Any objects outside the domain are simply ignored by the metric.
+
+. Objects _selected_ by the metric.
+The default interpretation is that these objects have above-zero value of the metric.
+However, you can modify the selection criteria to create custom xref:#_aggregation[aggregations] over simple metrics, like "the number of VIP users with more than 5 modifications".
+
+[#_value_expression]
+=== Metric Value Expression
+
+The `valueExpression` is any midPoint expression - typically, a Groovy script - that computes the value of the metric for given object.
+
+There are the following input variables:
+
+.Value expression input variables
+[%autowidth]
+|===
+| Variable | Description
+
+| `processedObject`
+| Instance of `ProcessedObject` type.
+
+| `modelElementContext`
+| Instance of `ModelElementContext` object after the (simulated) processing.
+Normally, it does not need to be used.
+But it can provide some extra information if needed.
+|===
+
+Please see the Java documentation and/or the source code of `ProcessedObject` class to learn more about what information it can provide and how to access it.
+
+The expression should return a numeric value - e.g. integer, float, double, up to `BigDecimal`.
+
+If it returns nothing, the value of the selection predicate is used to determine the result.
+If the selection predicate is not defined or returns nothing as well, the object is considered to be out of the domain of this metric.
+
+[#_predicate]
+=== Simulation Objects Predicates
+
+MidPoint allows to specify metric domain and selection (and their further restrictions) by using so-called _simulation object predicates_.
+
+A predicate contains any or all of the following:
+
+.Simulation object predicate components
+[%autowidth]
+|===
+| Item | Description
+
+| `filter`
+| A filter over `SimulationResultProcessedObjectType` objects that denotes the matching ones.
+
+| `expression`
+| An expression evaluated on `ProcessedObject` instances that denotes the matching ones.
+|===
+
+An example of the filter-based predicate that is used to specify the domain of a metric as the set of all users:
+
+.Listing 2. Specifying domain using filter
+[source, xml]
+----
+<domain>
+    <filter>
+        <q:equal>
+            <q:path>type</q:path>
+            <q:value>c:UserType</q:value>
+        </q:equal>
+    </filter>
+</domain>
+----
+
+.Listing 3. Specifying domain using expression
+[source, xml]
+----
+<domain>
+    <expression>
+        <script>
+            <code>
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+                processedObject.isOfType(UserType.class)
+            </code>
+        </script>
+    </expression>
+</domain>
+----
+
+Currently, there is only a single variable available:
+
+.Selection expression input variables
+[%autowidth]
+|===
+| Variable | Description
+
+| `processedObject`
+| Instance of `ProcessedObject` type.
+|===
+
+[#_aggregation]
+=== Metric Values Aggregation
+
+Values computed for individual processed objects are _aggregated_ into a form that can be presented for the simulation result as a whole.
+The default aggregation is a plain summation: the resulting value is a sum of values for individual objects.
+However, there are other aggregation functions.
+They refer to the following basic elements.
+
+.Elements for aggregation functions
+[%autowidth]
+|===
+| Element | Description
+
+| `selectionSize`
+| Number of objects selected by this metric.
+
+| `selectionTotalValue`
+| Sum of metric values for all objects selected by this metric.
+
+| `domainSize`
+| Number of objects in the domain of this metric.
+
+| `domainTotalValue`
+| Sum of metric values for all objects in the domain of this metric.
+|===
+
+And the aggregation functions are:
+
+.Aggregation functions
+[%autowidth]
+|===
+| Function | Value is computed as
+
+| `none`
+| The metric should not be aggregated.
+
+| `selectionSize`
+| `selectionSize`
+
+| `selectionTotalValue`
+| `selectionTotalValue`
+
+| `domainSize`
+| `domainSize`
+
+| `domainTotalValue`
+| `domainTotalValue`
+
+| `domainTotalValueToDomainSize`
+| `domainTotalValue` / `domainSize`
+
+| `selectionTotalValueToDomainSize`
+| `selectionTotalValue` / `domainSize`
+
+| `selectionSizeToDomainSize`
+| `selectionSize` / `domainSize`
+
+| `selectionTotalValueToDomainTotalValue`
+| `selectionTotalValue` / `domainTotalValue`
+
+| `domainMinValue`
+| minimal metric value in the domain
+
+| `selectionMinValue`
+| minimal metric value in the selection
+
+| `domainMaxValue`
+| maximum metric value in the domain
+
+| `selectionMaxValue`
+| maximum metric value in the selection
+|===
+
+==== Definition of Metric Aggregation
+
+.Metric aggregation definition items
+[%autowidth]
+|===
+| Item | Description | Default
+
+| `aggregationFunction`
+| An aggregation function used to compute the (aggregated) metric value.
+| `selectionTotalValue`
+
+| `source`
+| Source metric that is to be aggregated.
+The metric must be present on individual processed objects, i.e. it is not possible to aggregate the aggregation-only metric.
+| The metric being defined, i.e. by default, we are defining an aggregation for the current metric being defined.
+
+| `domainRestriction`
+| Restriction of the domain of original metric.
+We may focus the aggregation on a subset of original objects.
+| original domain is not changed
+
+| `selectionRestriction`
+| Restriction of the object selection of original metric.
+| original selection is not changed
+|===
+
+==== Examples
+
+This is how we would compute the average number of attribute modifications per single shadow seen by the simulation activity.
+We refer to the `attribute-modifications` metric defined in xref:_attribute_modifications_metric[] above.
+
+.Listing 4. Computation of average number of attribute modifications per account seen
+[source,xml]
+----
+<metric>
+    <identifier>avg-modifications-per-account-seen</identifier>
+    <aggregation>
+        <aggregationFunction>domainTotalValueToDomainSize</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+    </aggregation>
+</metric>
+----
+
+However, we might be interested in the average number of modifications per shadows that were modified.
+We may now utilize the fact that shadows modified are, in fact, the objects selected by the source `attribute-modifications` metric.
+
+.Listing 5. Computation of average number of attribute modifications per account modified
+[source,xml]
+----
+<metric>
+    <identifier>avg-modifications-per-account-modified</identifier>
+    <aggregation>
+        <aggregationFunction>domainTotalValueToSelectionSize</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+    </aggregation>
+</metric>
+----
+
+Imagine now that we are interested in total number of changes in accounts in 'Security services' department.
+We can restrict the selection (or domain) of the original metric to cover only selected shadows.
+
+.Listing 6. Computation of total number of attribute modifications in Security services department
+[source,xml]
+----
+<metric>
+    <identifier>modifications-of-security-services-accounts</identifier>
+    <aggregation>
+        <aggregationFunction>selectionTotalValue</aggregationFunction>
+        <source>
+            <identifier>attribute-modifications</identifier>
+        </source>
+        <selectionRestriction>
+            <filter>
+                <q:equal>
+                    <q:path>after/attributes/ri:department</q:path> <!--1-->
+                    <q:value>Security services</q:value>
+                </q:equal>
+            </filter>
+        </selectionRestriction>
+    </aggregation>
+</metric>
+----
+<1> The `after` item represents the object state after the operation.
+(Note that if the `department` attribute itself is modified to a value other than "Security services", this change is not seen by this simple filter.)

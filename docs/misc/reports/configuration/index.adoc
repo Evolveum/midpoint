@@ -94,7 +94,7 @@ Possible values: _csv_ and _html_.
 
 | csv
 | *CsvFileFormatType*
-| Configuration attribute for csv export.
+| Configuration attribute for CSV export.
 
 
 | html
@@ -167,14 +167,20 @@ Possible values is _all, allNonNull, minimal, nonNumeric_ and _none._
 
 | _createHeader_
 | *boolean*
-| Create header in csv output file.
+| Create header in CSV output file.
 | true
 
 
 | _encoding_
 | *string*
-| Encoding of csv file.
-| utf-8
+| Encoding of CSV file.
+Most common encodings (UTF-8, windows-125x, ISO-8859-x) are supported.
+
+See https://www.iana.org/assignments/character-sets/character-sets.xml[IANA list of charsets]
+for proper values - generally, both IANA and MIME names are supported as well as many aliases.
+Details of supported character sets depend on the concrete JDK used to run midPoint,
+but it is unlikely that your charset is not supported.
+| UTF-8
 
 
 |===

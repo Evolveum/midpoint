@@ -1,0 +1,110 @@
+= Event Marks
+:page-toc: top
+:page-since: "4.7"
+
+MidPoint can classify individual operations, or events, by attaching one or more marks to each of them.
+Examples of such a mark are "Focus activated", "Focus renamed", "Projection entitlement changed".
+Some marks are available as standard initial objects, so that they can be customized, supplemented by customer-defined ones, or even removed.
+
+Conceptually, they are related to xref:index.adoc[object marks], but the major difference is that while object marks are attached to individual _objects_ (currently, shadows), event marks are attached to _operations_ on objects (currently both focal objects and shadows).
+What is common is that both object and event marks are defined using xref:/midpoint/reference/roles-policies/policy-rules.adoc[policy rules].
+
+== List of Standard Event Marks
+
+As of 4.7, there are the following standard event marks.
+
+.Standard event marks
+[%autowidth]
+|===
+| Name | Description
+
+| Focus activated
+| Marks an operation that brought the focus into existence and being effectively enabled.
+(So, previously it was either non-existent or effectively disabled.)
+
+| Focus deactivated
+| Marks an operation that deleted or effectively disabled the focus.
+(So, previously it existed and was effectively enabled.)
+
+| Focus renamed
+| Marks an operation that changed the focus name.
+
+| Focus assignments changed
+| Marks an operation that changed one or more of the focus assignments.
+
+| Focus archetype changed
+| Marks an operation that changed the focus archetype or archetypes.
+
+| Focus parent organization reference changed
+| Marks an operation that changed the focus parent organization reference (`parentOrgRef` item).
+
+| Focus role membership changed
+| Marks an operation that changed the focus role membership (`roleMembershipRef` item).
+
+| Projection activated
+| Marks an operation that brought the projection into existence and being effectively enabled.
+(So, previously it was either non-existent or effectively disabled.)
+
+| Projection deactivated
+| Marks an operation that deleted or effectively disabled the projection.
+(So, previously it existed and was effectively enabled.)
+
+| Projection renamed
+| Marks an operation that changed the name (naming attribute) of a projection.
+
+| Projection identifier changed
+| Marks an operation that changed the identifier (primary or secondary) of a projection.
+
+| Projection entitlement changed
+| This is an operation that changed the entitlement of a projection.
+
+| Projection password changed
+| Marks an operation that changed the password of a projection.
+
+| Resource object affected
+| Marks an operation that made any change (addition, modification, deletion) to a resource object.
+
+| Shadow classification changed
+| Marks an operation that changed the classification (kind, intent) of a shadow.
+Experimental.
+
+| Shadow correlation state changed
+| Marks an operation that changed the correlation state of a shadow.
+The synchronization situation is considered to be part of that state.
+Experimental.
+|===
+
+== Use
+
+In 4.7, the event marks are used exclusively in connection with xref:../simulation/[simulations].
+In the future we plan to extend their use to operations that are really executed, so they might be found in audit logs or on operational dashboards.
+
+== Definition
+
+Event marks are defined using standard policy rules.
+
+.Listing 1. An example of event mark definition
+[source,xml]
+----
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000712">
+    <name>Focus renamed</name>
+    <description>Operation that changed the focus name</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/> <!--1-->
+    </assignment>
+    <policyRule>
+        <policyConstraints>
+            <modification> <!--2-->
+                <operation>modify</operation>
+                <item>name</item>
+            </modification>
+        </policyConstraints>
+    </policyRule>
+</mark>
+----
+<1> This is an archetype for event marks.
+The other one is for object marks.
+<2> This constraint triggers when it "sees" a modification of focus object that changes the `name` property.
+
+Please see the initial objects for more examples.
