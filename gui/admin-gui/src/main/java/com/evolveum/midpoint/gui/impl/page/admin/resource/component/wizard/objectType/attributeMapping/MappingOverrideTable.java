@@ -54,8 +54,9 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
 
     public MappingOverrideTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, valueModel, ResourceAttributeDefinitionType.class);
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, ResourceAttributeDefinitionType.class);
     }
 
     protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {

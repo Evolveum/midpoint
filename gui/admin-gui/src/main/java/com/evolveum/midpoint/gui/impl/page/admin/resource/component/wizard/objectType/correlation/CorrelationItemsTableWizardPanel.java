@@ -10,8 +10,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -22,7 +28,14 @@ import java.util.List;
 /**
  * @author lskublik
  */
+@PanelType(name = "rw-correlationRules")
+@PanelInstance(identifier = "rw-correlationRules",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "CorrelationWizardPanelWizardPanel.headerLabel", icon = "fa fa-code-branch"))
 public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
+
+    private static final String PANEL_TYPE = "rw-correlationRules";
 
     private static final String ID_TABLE = "table";
 
@@ -39,7 +52,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     }
 
     private void initLayout() {
-        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, getValueModel()) {
+        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
@@ -88,5 +101,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-11";
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 }

@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActio
  */
 @PanelInstance(identifier = "rw-synchronization-reaction-action",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.action", icon = "fa fa-wrench"),
         expanded = true)
 public class ActionStepPanel extends AbstractWizardStepPanel {

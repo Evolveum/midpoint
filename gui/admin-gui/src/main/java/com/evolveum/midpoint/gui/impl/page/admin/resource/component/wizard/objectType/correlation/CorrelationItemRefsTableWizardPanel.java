@@ -8,6 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -22,7 +28,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorTy
 /**
  * @author lskublik
  */
+
+@PanelType(name = "rw-correlators")
+@PanelInstance(identifier = "rw-correlators",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "CorrelationItemRefsTableWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
 public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardBasicPanel<ItemsSubCorrelatorType> {
+
+    private static final String PANEL_TYPE = "rw-correlators";
 
     private static final String ID_TABLE = "table";
 
@@ -39,7 +53,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     }
 
     private void initLayout() {
-        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel());
+        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration());
         table.setOutputMarkupId(true);
         add(table);
     }
@@ -90,5 +104,9 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     @Override
     protected boolean isExitButtonVisible() {
         return false;
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 }

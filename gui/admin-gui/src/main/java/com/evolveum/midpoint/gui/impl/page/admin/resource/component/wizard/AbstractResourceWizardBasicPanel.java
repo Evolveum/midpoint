@@ -14,8 +14,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -87,5 +89,18 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-8";
+    }
+
+    protected ContainerPanelConfigurationType getConfiguration(){
+        if (StringUtils.isEmpty(getPanelType())) {
+            return null;
+        }
+        return WebComponentUtil.getContainerConfiguration(
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                getPanelType());
+    }
+
+    protected String getPanelType() {
+        return null;
     }
 }

@@ -16,15 +16,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.IModel;
 
-@PanelType(name = "arw-construction-mapping-basic")
-@PanelInstance(identifier = "arw-construction-mapping-basic",
+@PanelType(name = "arw-construction-mapping")
+@PanelInstance(identifier = "arw-construction-mapping",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
         containerPath = "empty")
 public class ConstructionOutboundBasicStepPanel<AHD extends AssignmentHolderDetailsModel> extends AttributeOutboundStepPanel<AHD> {
 
-    private static final String PANEL_TYPE = "arw-construction-mapping-basic";
+    private static final String PANEL_TYPE = "arw-construction-mapping";
 
     public ConstructionOutboundBasicStepPanel(AHD model, IModel newValueModel) {
         super(model, newValueModel);

@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-synchronization-reaction-main",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.mainSettings", icon = "fa fa-wrench"),
         expanded = true)
 public class ReactionMainSettingStepPanel

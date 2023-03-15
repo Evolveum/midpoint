@@ -46,8 +46,9 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
 
-    public OutboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
-        super(id, valueModel);
+    public OutboundAttributeMappingsTable(
+            String id, IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config);
     }
 
     @Override

@@ -47,8 +47,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
     public AttributeMappingsTable(
             String id,
-            IModel<PrismContainerValueWrapper<P>> valueModel) {
-        super(id, valueModel, MappingType.class);
+            IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, MappingType.class);
     }
 
     protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
