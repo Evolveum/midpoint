@@ -24,8 +24,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,6 +39,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -158,14 +164,23 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
             SimulationResultType simResult = object.getValue();
 
             try {
-                getPageBase().getRepositoryService().deleteSimulatedProcessedObjects(simResult.getOid(), null, subResult);
+                Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
+
+                ObjectDelta<SimulationResultType> delta = getPrismContext().deltaFactory().object()
+                        .createModificationReplaceContainer(SimulationResultType.class, simResult.getOid(), SimulationResultType.F_PROCESSED_OBJECT, new Containerable[0]);
+
+                ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
+                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
+
+                LOGGER.debug("Using options {}.", executeOptions);
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
+                subResult.computeStatus();
             } catch (Exception ex) {
                 String name = WebComponentUtil.getName(simResult);
 
+                subResult.recomputeStatus();
                 subResult.recordFatalError(getString("SimulationResultsPanel.message.deleteResultObjectsFailed", name), ex);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete processed objects for simulation result {}", ex, name);
-            } finally {
-                subResult.computeStatusIfUnknown();
             }
         }
         result.computeStatusComposite();
