@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -28,7 +30,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
-
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
@@ -43,17 +44,11 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -65,7 +60,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.google.common.collect.Lists;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -144,14 +138,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                IModel<String> title = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null || obj.getName() == null) {
-                        return getString("ProcessedObjectsPanel.unnamed");
-                    }
+                IModel<String> title = () -> createProcessedObjectName(rowModel.getObject().getValue());
 
-                    return LocalizationUtil.translatePolyString(obj.getName());
-                };
                 IModel<String> description = () -> {
                     SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
                     if (obj == null) {
@@ -193,6 +181,51 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         };
     }
 
+    private String createProcessedObjectName(SimulationResultProcessedObjectType object) {
+        if (object == null || object.getName() == null) {
+            return getString("ProcessedObjectsPanel.unnamed");
+        }
+
+        ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
+        if (obj == null) {
+            return LocalizationUtil.translatePolyString(obj.getName());
+        }
+
+        obj = ObjectTypeUtil.fix(obj);
+
+        if (obj instanceof ShadowType) {
+            return createProcessedShadowName((ShadowType) obj);
+        }
+
+        return WebComponentUtil.getDisplayNameAndName(obj.asPrismObject());
+    }
+
+    private String createProcessedShadowName(ShadowType shadow) {
+        ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
+
+        ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+        Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+        String name = realName != null ? realName.toString() : "";
+
+        String intent = shadow.getIntent() != null ? shadow.getIntent() : "";
+
+        ObjectReferenceType resourceRef = shadow.getResourceRef();
+
+        Object resourceName = WebModelServiceUtils.resolveReferenceName(resourceRef, getPageBase(), false);
+        if (resourceName == null) {
+            resourceName = new SingleLocalizableMessage("ProcessedObjectsPanel.unknownResource",
+                    new Object[] { resourceRef != null ? resourceRef.getOid() : null });
+        }
+
+        LocalizableMessage msg =  new SingleLocalizableMessage("ProcessedObjectsPanel.shadow", new Object[] {
+                new SingleLocalizableMessage("ShadowKindType." + kind.name()),
+                name,
+                intent,
+                resourceName
+        });
+
+        return LocalizationUtil.translateMessage(msg);
+    }
 
     private List<InlineMenuItem> createRowMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
@@ -379,7 +412,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         throw new RestartResponseException(getPage());
     }
 
-
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
@@ -398,23 +430,23 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return;
         }
 
-            for (var shadow : selected) {
-                List<PolicyStatementType> statements = new ArrayList<>();
-                if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
-                    // skip object, since it is added
-                    continue;
-                }
-                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-                // but for each delta we need separate statement
-                for (String oid : markOids) {
-                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+        for (var shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
+                // skip object, since it is added
+                continue;
+            }
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
                         .type(PolicyStatementTypeType.APPLY));
-                }
-                try {
-                    var delta = getPageBase().getPrismContext().deltaFactory().object()
-                            .createModificationAddContainer(ObjectType.class,
-                                    shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
-                                    statements.toArray(new PolicyStatementType[0]));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(ObjectType.class,
+                                shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException

@@ -1433,6 +1433,21 @@ public final class WebComponentUtil {
         return StringUtils.isNotEmpty(displayName) ? displayName : getName(ref, translate);
     }
 
+    public static String getDisplayNameAndName(PrismObject<?> object) {
+        String displayName = getDisplayName(object);
+        String name = getName(object);
+
+        if (StringUtils.isEmpty(displayName)) {
+            return name;
+        }
+
+        if (StringUtils.isEmpty(name)) {
+            return displayName;
+        }
+
+        return displayName + " (" + name + ")";
+    }
+
     // <display-name> (<name>) OR simply <name> if there's no display name
     public static String getDisplayNameAndName(ObjectReferenceType ref) {
         return getDisplayNameOrName(ref, true);
