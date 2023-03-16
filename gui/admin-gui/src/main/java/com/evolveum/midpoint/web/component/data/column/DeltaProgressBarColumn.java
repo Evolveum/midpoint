@@ -116,10 +116,11 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                         .filter(StringUtils::isNotEmpty)
                         .toArray();
 
-                String msg = StringUtils.joinWith(" / ", texts);
-                if (StringUtils.isEmpty(msg)) {
-                    return null;
+                if (texts.length == 0) {
+                    return LocalizationUtil.translate("DeltaProgressBarColumn.noChanges");
                 }
+
+                String msg = StringUtils.joinWith(" / ", texts);
 
                 ObjectDelta<?> delta = createObjectDeltaModel(rowModel).getObject();
                 if (delta == null) {
