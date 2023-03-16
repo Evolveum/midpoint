@@ -45,6 +45,7 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -377,6 +378,25 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 createStringResource("PageSimulationResultObject.details"),
                 detailsModel);
         add(details);
+
+        IModel<List<ObjectDeltaType>> deltas = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<ObjectDeltaType> load() {
+                ObjectDeltaType delta = objectModel.getObject().getDelta();
+                try {
+                    ProcessedObject<?> object = SimulationsGuiUtil.parseProcessedObject(objectModel.getObject(), PageSimulationResultObject.this);
+
+                    // this should provide better delta - with proper estimated old values, since simulation processed object
+                    // contains before/after state of object together with delta
+                    delta = DeltaConvertor.toObjectDeltaType(object.getDelta());
+                } catch (Exception ex) {
+                    // intentionally empty
+                }
+
+                return List.of(delta);
+            }
+        };
 
         ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
         changesNew.setShowOperationalItems(true);
