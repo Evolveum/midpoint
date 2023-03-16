@@ -5,15 +5,14 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation;
+package com.evolveum.midpoint.gui.impl.component.search.factory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.factory.AbstractSearchItemWrapperFactory;
-import com.evolveum.midpoint.gui.impl.component.search.factory.SearchItemContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 

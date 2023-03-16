@@ -6,28 +6,26 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ObjectTypeSearchItemPanel;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QName> {
 
-    private QName oldType;
     private boolean typeChanged;
     private boolean allowAllTypesSearch;
 
@@ -54,8 +52,8 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
             return;
         }
         this.supportedTypeList = supportedTypeList.stream()
-                        .map(qName ->  WebComponentUtil.qnameToAnyClass(PrismContext.get(), qName))
-                                .collect(Collectors.toList());
+                .map(qName -> WebComponentUtil.qnameToAnyClass(PrismContext.get(), qName))
+                .collect(Collectors.toList());
     }
 
     public Class<ObjectTypeSearchItemPanel> getSearchItemPanelClass() {
@@ -104,7 +102,7 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
 
     @Override
     public String getHelp() {
-        return StringUtils.isNotEmpty(help) ? help :  "";
+        return StringUtils.isNotEmpty(help) ? help : "";
     }
 
     public void setHelp(String help) {
