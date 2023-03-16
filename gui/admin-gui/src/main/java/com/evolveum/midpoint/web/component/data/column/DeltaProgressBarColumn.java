@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,11 +13,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 public abstract class DeltaProgressBarColumn<R extends Serializable, S extends Serializable> extends ProgressBarColumn<R, S> {
 
@@ -28,7 +28,7 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
         super(displayModel);
     }
 
-    protected abstract @NotNull IModel<ObjectDeltaType> createObjectDeltaModel(IModel<R> rowModel);
+    protected abstract @NotNull IModel<ObjectDelta<?>> createObjectDeltaModel(IModel<R> rowModel);
 
     @Override
     protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(IModel<R> rowModel) {
@@ -36,14 +36,15 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
 
             @Override
             protected List<ProgressBar> load() {
-                ObjectDeltaType delta = createObjectDeltaModel(rowModel).getObject();
+                ObjectDelta<?> delta = createObjectDeltaModel(rowModel).getObject();
+
                 if (delta == null) {
                     return Collections.emptyList();
                 }
 
                 switch (delta.getChangeType()) {
                     case ADD:
-                        int size = getSizeForAddDelta(delta);
+                        long size = getSizeForAddDelta(delta);
 
                         return Collections.singletonList(new ProgressBar(100, ProgressBar.State.SUCCESS,
                                 new SingleLocalizableMessage(KEY_ADDED, new Object[] { size }, KEY_ADDED)));
@@ -52,23 +53,23 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                     default:
                 }
 
-                List<ItemDeltaType> deltas = delta.getItemDelta();
-                int total = deltas.size();
+                Collection<? extends ItemDelta<?, ?>> deltas = delta.getModifications();
+                long total = deltas.stream().filter(i -> !i.isOperational()).count();
                 int add = 0;
                 int modify = 0;
                 int delete = 0;
 
-                for (ItemDeltaType id : deltas) {
-                    switch (id.getModificationType()) {
-                        case ADD:
-                            add++;
-                            break;
-                        case REPLACE:
-                            modify++;
-                            break;
-                        case DELETE:
-                            delete++;
-                            break;
+                for (ItemDelta<?, ?> id : deltas) {
+                    if (id.isOperational()) {
+                        continue;
+                    }
+
+                    if (id.isAdd()) {
+                        add++;
+                    } else if (id.isReplace()) {
+                        modify++;
+                    } else if (id.isDelete()) {
+                        delete++;
                     }
                 }
 
@@ -80,7 +81,7 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                 return bars;
             }
 
-            private void addProgressBar(List<ProgressBar> bars, ProgressBar.State state, int size, int total, String key) {
+            private void addProgressBar(List<ProgressBar> bars, ProgressBar.State state, int size, long total, String key) {
                 if (size == 0) {
                     return;
                 }
@@ -93,13 +94,13 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
         };
     }
 
-    private int getSizeForAddDelta(ObjectDeltaType delta) {
-        ObjectType obj = delta.getObjectToAdd();
-        if (obj == null || obj.asPrismObject().isEmpty()) {
+    private long getSizeForAddDelta(ObjectDelta<?> delta) {
+        PrismObject<?> obj = delta.getObjectToAdd();
+        if (obj == null || obj.isEmpty()) {
             return 0;
         }
 
-        return delta.getObjectToAdd().asPrismObject().getValue().getItems().size();
+        return obj.getValue().getItems().stream().filter(i -> !i.isOperational()).count();
     }
 
     @Override
@@ -111,7 +112,7 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                 List<ProgressBar> bars = model.getObject();
                 Object[] texts = bars.stream()
                         .filter(bar -> bar.getText() != null)
-                        .map(bar -> WebComponentUtil.translateMessage(bar.getText()))
+                        .map(bar -> LocalizationUtil.translateMessage(bar.getText()))
                         .filter(StringUtils::isNotEmpty)
                         .toArray();
 
@@ -120,19 +121,19 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                     return null;
                 }
 
-                ObjectDeltaType delta = createObjectDeltaModel(rowModel).getObject();
+                ObjectDelta<?> delta = createObjectDeltaModel(rowModel).getObject();
                 if (delta == null) {
                     return msg;
                 }
 
-                int count;
+                long count;
                 switch (delta.getChangeType()) {
                     case ADD:
                         count = getSizeForAddDelta(delta);
                         break;
                     case DELETE:
                     default:
-                        count = delta.getItemDelta().size();
+                        count = delta.getModifications().size();
                 }
 
                 return LocalizationUtil.translate("ProcessedObjectsPanel.progressMessage", new Object[] { msg, count });
