@@ -1,0 +1,79 @@
+= Cases and Work Items Notifications
+:page-toc: top
+
+== Overview
+
+The case management module provides the following notifications.
+They are generated for all kinds of cases: approvals, manual resources, and correlation (in respective versions of midPoint).
+
+.Types of case management notifications
+[%autowidth]
+|===
+| Event | Categoryfootnote:[These names are still legacy ones from pre-4.0 era. They will be updated in the future.] | Operation | Description
+
+| Case is opened
+| `workflowProcessEvent`
+| `add`
+| Generated when a case is opened.
+
+| Case is closed
+| `workflowProcessEvent`
+| `delete`
+| Generated when a case is closed, either by manual action, or automatically.
+May or may not be generated if the case is deleted without being correctly closed first.
+
+| Work item is created
+| `workItemLifecycleEvent`
+| `add`
+| Generated when a work item is created.
+
+| Work item is closed
+| `workItemLifecycleEvent`
+| `delete`
+| Generated when a work item is completed, either by manual action, or automatically.
+May or may not be generated if the work item is deleted without being correctly closed first.
+
+| Work item is allocated
+| `workItemAllocationEvent`
+| `add`
+| Generated when a work item is allocated to a new actor.
+
+| Work item will be deallocated
+| `workItemAllocationEvent`
+| `modify`
+| Generated when a work item is going to be deallocated from the current actor.
+(E.g. because of approaching escalation or auto-completion.)
+
+| Work item is deallocated
+| `workItemAllocationEvent`
+| `delete`
+| Generated when a work item is deallocated from the current actor.
+(For example, because of work item closure, delegation, escalation, and so on.)
+
+| Custom notification is sent
+| `workItemCustomEvent`
+| any
+| Generated when a custom event is sent by `notify` timed action.
+|===
+
+The category can be used to filter events e.g. using `<category>` event filter.
+The operation can be used to filter events e.g. using `<operation>` event filter.
+
+The hierarchy of event categories is the following:
+
+* `workflowEvent`
+** `workflowProcessEvent`
+** `workItemEvent`
+*** `workItemLifecycleEvent`
+*** `workItemAllocationEvent`
+*** `workItemCustomEvent`
+
+So, for example, each `workItemAllocationEvent` is also a `workItemEvent` and `workflowEvent`.
+
+== For More Information
+
+This documentation is not complete yet.
+
+For more information about notifications in general, please see xref:/midpoint/reference/misc/notifications/configuration.adoc[].
+
+For more information about approval notifications - that may or may not be applicable in the current version of midPoint - please see (now obsolete) xref:workflow-3/workflow-notifications.adoc[].
