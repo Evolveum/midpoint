@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
@@ -29,6 +34,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
+import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -223,5 +230,36 @@ public class SimulationsGuiUtil {
 
             return null;
         }
+    }
+
+    public static Map<BuiltInSimulationMetricType, Integer> getBuiltInMetrics(SimulationResultType result) {
+        List<SimulationMetricValuesType> metrics = result.getMetric();
+        List<SimulationMetricValuesType> builtIn = metrics.stream().filter(m -> m.getRef() != null && m.getRef().getBuiltIn() != null)
+                .collect(Collectors.toList());
+
+        Map<BuiltInSimulationMetricType, Integer> map = new HashMap<>();
+
+        for (SimulationMetricValuesType metric : builtIn) {
+            BuiltInSimulationMetricType identifier = metric.getRef().getBuiltIn();
+
+            BigDecimal value = SimulationMetricValuesTypeUtil.getValue(metric);
+            map.put(identifier, value != null ? value.intValue() : 0);
+        }
+
+        return map;
+    }
+
+    public static int getUnmodifiedProcessedObjectCount(SimulationResultType result, Map<BuiltInSimulationMetricType, Integer> builtInMetrics) {
+        int totalCount = SimulationResultTypeUtil.getObjectsProcessed(result);
+        int unmodifiedCount = totalCount;
+
+        for (Map.Entry<BuiltInSimulationMetricType, Integer> entry : builtInMetrics.entrySet()) {
+            BuiltInSimulationMetricType identifier = entry.getKey();
+            int value = entry.getValue();
+
+            unmodifiedCount = unmodifiedCount - value;
+        }
+
+        return unmodifiedCount;
     }
 }

@@ -333,7 +333,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {
-        return new AbstractColumn<>(displayModel) {
+        return new AbstractColumn<>(displayModel, SimulationResultProcessedObjectType.F_STATE.getLocalPart()) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
@@ -344,7 +344,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
+        return new LambdaColumn<>(displayModel, SimulationResultProcessedObjectType.F_TYPE.getLocalPart(),
+                row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
     }
 
     @Override

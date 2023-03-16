@@ -7,6 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -36,30 +56,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -242,31 +238,26 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void addBuiltInMetrics(List<DetailsTableItem> result) {
-        List<SimulationMetricValuesType> metrics = resultModel.getObject().getMetric();
-        List<SimulationMetricValuesType> builtIn = metrics.stream().filter(m -> m.getRef() != null && m.getRef().getBuiltIn() != null)
-                .collect(Collectors.toList());
+        SimulationResultType simResult = resultModel.getObject();
+        Map<BuiltInSimulationMetricType, Integer> builtIn = SimulationsGuiUtil.getBuiltInMetrics(simResult);
 
         List<DetailsTableItem> items = new ArrayList<>();
 
         int totalCount = SimulationResultTypeUtil.getObjectsProcessed(resultModel.getObject());
-        int unmodifiedCount = totalCount;
-
-        for (SimulationMetricValuesType metric : builtIn) {
-            BuiltInSimulationMetricType identifier = metric.getRef().getBuiltIn();
-
-            BigDecimal value = SimulationMetricValuesTypeUtil.getValue(metric);
-            unmodifiedCount = unmodifiedCount - value.intValue();
+        for (Map.Entry<BuiltInSimulationMetricType, Integer> entry : builtIn.entrySet()) {
+            BuiltInSimulationMetricType identifier = entry.getKey();
+            int value = entry.getValue();
 
             items.add(createDetailsItemForBuiltInMetric(identifier, value));
         }
 
-        final int finalUnmodified = unmodifiedCount;
+        int unmodifiedCount = SimulationsGuiUtil.getUnmodifiedProcessedObjectCount(simResult, builtIn);
 
         items.sort(Comparator.comparing(d -> d.getLabel().getObject(), Comparator.naturalOrder()));
 
         items.add(createDetailsItemForBuiltInMetric(
                 createStringResource("PageSimulationResultObject.UnmodifiedObjects"),
-                () -> Integer.toString(finalUnmodified),
+                () -> Integer.toString(unmodifiedCount),
                 target -> redirectToProcessedObjects((BuiltInSimulationMetricType) null))
         );
 
@@ -279,7 +270,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         result.addAll(items);
     }
 
-    private DetailsTableItem createDetailsItemForBuiltInMetric(BuiltInSimulationMetricType identifier, BigDecimal value) {
+    private DetailsTableItem createDetailsItemForBuiltInMetric(BuiltInSimulationMetricType identifier, Number value) {
         IModel<String> nameModel = createStringResource("PageSimulationResultObject." + WebComponentUtil.createEnumResourceKey(identifier));
         IModel<String> valueModel = () -> MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
 
@@ -353,7 +344,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected AjaxLink<?> createNextButton(String id, IModel<String> nextTitle) {
-                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> "View results") {
+                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> getString("PageSimulationResult.viewProcessedObjects")) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         onViewAllPerformed();
