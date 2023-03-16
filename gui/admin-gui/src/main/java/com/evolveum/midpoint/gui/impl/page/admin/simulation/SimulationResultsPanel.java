@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -61,6 +63,11 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
     public SimulationResultsPanel(String id, ContainerPanelConfigurationType config) {
         super(id, SimulationResultType.class, null, config);
+    }
+
+    @Override
+    protected ISelectableDataProvider<SelectableBean<SimulationResultType>> createProvider() {
+        return super.createProvider();
     }
 
     @Override
@@ -243,7 +250,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     }
 
     private IColumn<SelectableBean<SimulationResultType>, String> createStartTimestampColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> {
+        return new LambdaColumn<>(displayModel, SimulationResultType.F_START_TIMESTAMP.getLocalPart(), row -> {
             XMLGregorianCalendar start = row.getValue().getStartTimestamp();
             return start != null ? WebComponentUtil.getLongDateTimeFormattedValue(start, getPageBase()) : null;
         });

@@ -353,7 +353,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected AjaxLink<?> createNextButton(String id, IModel<String> nextTitle) {
-                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> "View results") {
+                AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2", () -> getString("PageSimulationResult.viewProcessedObjects")) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         onViewAllPerformed();
