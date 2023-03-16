@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.wf.impl.other;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -14,6 +16,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.query.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,8 +32,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+import javax.xml.namespace.QName;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -92,6 +96,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
             TEST_DIR, "org-approvers.xml", "8b928d45-bb91-4a02-8418-6ae0d3b6a7d2");
     private static final TestObject<RoleType> ROLE_APPROVED_BY_ORG = TestObject.file(
             TEST_DIR, "role-approved-by-org.xml", "9a563d3e-12aa-4dc1-a6ee-de9e9b33974e");
+    private static final TestObject<RoleType> ROLE_APPROVED_BY_MULTIPLE_RELATIONS = TestObject.file(
+            TEST_DIR, "role-approved-by-multiple-relations.xml", "62d7fcdf-92b0-4c49-ae40-33b0a814ed56");
+    private static final TestObject<UserType> USER_APPROVER_BY_MULTIPLE_RELATIONS = TestObject.file(
+            TEST_DIR, "user-approver-by-multiple-relations.xml", "a9aca7bb-923e-4be6-9aa4-5c90af978207");
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {
@@ -127,6 +135,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         ORG_APPROVERS.init(this, initTask, initResult);
         ROLE_APPROVED_BY_ORG.init(this, initTask, initResult);
+        ROLE_APPROVED_BY_MULTIPLE_RELATIONS.init(this, initTask, initResult);
+        USER_APPROVER_BY_MULTIPLE_RELATIONS.init(this, initTask, initResult);
     }
 
     @Test
@@ -817,7 +827,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 .assignment(ROLE_AUTOCOMPLETIONS.assignmentTo());
         addObject(user, task, result);
 
-        then("role is not assigned, and a case is created");
+        then("user is not created but case exists");
         assertNoUserByUsername(name);
         assertCase(result, "after")
                 .display();
@@ -857,8 +867,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         OperationResult result = task.getResult();
         login(userAdministrator);
 
-        dummyTransport.clearMessages();
-
         when("a user with role assignment is created");
         String name = "test410";
         UserType user = new UserType()
@@ -872,7 +880,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                         r -> r.getTraces().stream().anyMatch(
                                 t -> isUserNullDeputyRefSearch(t)));
 
-        then("role is not assigned, and a case is created");
+        then("user is not created but case exists");
         assertNoUserByUsername(name);
         assertCase(result, "after")
                 .display();
@@ -906,5 +914,84 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 && refFilter.hasNoValue();
     }
 
+    /** Checks that there are separate queries if multiple approver relations are searched for. MID-8134. */
+    @Test
+    public void test420SeparateRelationQueries() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
 
+        when("a user with role assignment is created");
+        String name = "test420";
+        UserType user = new UserType()
+                .name(name)
+                .assignment(ROLE_APPROVED_BY_MULTIPLE_RELATIONS.assignmentTo());
+
+        setTracing(task, createDefaultTracingProfile()); // just to get the whole operation result
+        addObject(user, task, result);
+        OperationResultRepoSearchAsserter.forResult(result)
+                .forEachRepoSearch(
+                        r -> r.getTraces().forEach(
+                                t -> checkNoMultiRelationsOrFilter(t)));
+
+        then("user is not created but case exists");
+        assertNoUserByUsername(name);
+        var workItem = assertCase(result, "after")
+                .display()
+                .subcases()
+                .assertSubcases(2)
+                .singleWithoutApprovalSchema().display().end() // user ADD
+                .singleWithApprovalSchema() // assignment ADD
+                .display()
+                .workItems()
+                .single()
+                .assertAssignees(USER_APPROVER_BY_MULTIPLE_RELATIONS.oid)
+                .getRealValue();
+
+        when("work item is approved");
+        approveWorkItem(workItem, task, result);
+
+        CaseType parentCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getParentRef().getOid());
+        waitForCaseClose(parentCase);
+
+        then("user with assignment exists");
+        assertUserAfterByUsername(name)
+                .assignments()
+                .assertRole(ROLE_APPROVED_BY_MULTIPLE_RELATIONS.oid);
+    }
+
+    private void checkNoMultiRelationsOrFilter(TraceType t) {
+        if (!(t instanceof RepositorySearchObjectsTraceType)) {
+            return;
+        }
+        RepositorySearchObjectsTraceType trace = (RepositorySearchObjectsTraceType) t;
+        QueryType queryBean = trace.getQuery();
+        if (queryBean == null) {
+            return;
+        }
+        ObjectQuery query;
+        try {
+            query = prismContext.getQueryConverter().createObjectQuery(
+                    prismContext.getSchemaRegistry().determineCompileTimeClass(trace.getObjectType()),
+                    queryBean);
+        } catch (SchemaException e) {
+            throw new AssertionError(e);
+        }
+        ObjectFilter filter = query.getFilter();
+        if (filter == null) {
+            return;
+        }
+        filter.accept(f -> {
+            if (f instanceof OrFilter) {
+                Set<QName> relations = ((OrFilter) f).getConditions().stream()
+                        .filter(cond -> cond instanceof RefFilter)
+                        .flatMap(cond -> emptyIfNull(((RefFilter) cond).getValues()).stream())
+                        .map(value -> value.getRelation())
+                        .collect(Collectors.toSet());
+                if (relations.size() > 1) {
+                    throw new AssertionError("Multi-relation filter found: " + relations + ", " + f);
+                }
+            }
+        });
+    }
 }
