@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="a2570ee8-6c13-48b9-9a33-d8e88c4fe618">
+    <name>autocompletions</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <number>1</number>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                            <automaticallyCompleted>
+                                <script>
+                                    <code>'approve'</code>
+                                </script>
+                            </automaticallyCompleted>
+                        </stage>
+                        <stage>
+                            <number>2</number>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                            <automaticallyCompleted>
+                                <script>
+                                    <code>'skip'</code>
+                                </script>
+                            </automaticallyCompleted>
+                        </stage>
+                        <stage>
+                            <number>3</number>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
