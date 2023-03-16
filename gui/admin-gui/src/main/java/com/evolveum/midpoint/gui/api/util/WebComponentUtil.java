@@ -3114,6 +3114,35 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
+    public static void switchObjectMode(
+            @NotNull PrismObject<ResourceType> resource,
+            String operation,
+            AjaxRequestTarget target,
+            PageBase pageBase,
+            String lifecycleState) {
+        Task task = pageBase.createSimpleTask(operation);
+        OperationResult parentResult = new OperationResult(operation);
+
+        try {
+            ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
+                    .createModificationReplaceProperty(
+                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, lifecycleState);
+
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
+
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource lifecycle state", e);
+            parentResult.recordFatalError(
+                    pageBase.createStringResource("OperationalButtonsPanel.setSimulationMode.failed").getString(), e);
+        }
+
+        parentResult.computeStatus();
+        pageBase.showResult(parentResult, "OperationalButtonsPanel.setSimulationMode.failed");
+        target.add(pageBase.getFeedbackPanel());
+    }
+
     public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult result = new OperationResult(operation);

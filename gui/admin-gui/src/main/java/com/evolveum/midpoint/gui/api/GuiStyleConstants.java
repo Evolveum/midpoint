@@ -143,6 +143,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer-alt";
     public static final String CLASS_ICON_COLLAPSE_CONTAINER = "fa fa-caret-down fa-lg";
     public static final String CLASS_ICON_EXPAND_CONTAINER = "fa fa-caret-right fa-lg";
+    public static final String ClASS_ICON_TOOGLE = "fa fa-solid fa-toggle-off";
 
     public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";

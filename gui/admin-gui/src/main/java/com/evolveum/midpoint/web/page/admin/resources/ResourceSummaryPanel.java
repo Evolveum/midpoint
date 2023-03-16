@@ -9,10 +9,12 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -69,6 +71,31 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
             }
         };
         summaryTagList.add(summaryTag);
+
+        SummaryTag<ResourceType> modeTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void initialize(ResourceType object) {
+                String lifecycleState = getModelObject().getLifecycleState();
+                if (StringUtils.isEmpty(lifecycleState)) {
+                    lifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
+                }
+
+                if (!SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)
+                        && !SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)) {
+                    setHideTag(true);
+                    return;
+                } else {
+                    setHideTag(false);
+                }
+
+                String mode = ResourceSummaryPanel.this.getString("SimulationMode." + lifecycleState);
+                setLabel(ResourceSummaryPanel.this.getString("ObjectSummaryPanel.mode", mode));
+                setIconCssClass("fa fa-dna");
+            }
+        };
+        summaryTagList.add(modeTag);
         return summaryTagList;
     }
 

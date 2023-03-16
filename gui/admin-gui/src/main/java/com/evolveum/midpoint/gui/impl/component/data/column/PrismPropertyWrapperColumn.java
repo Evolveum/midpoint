@@ -90,6 +90,10 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
     protected boolean isHelpTextVisible(boolean originalHelpTextVisible) {
         return originalHelpTextVisible;
     }
+
+    PageBase getPageBase() {
+        return pageBase;
+    }
 }
 
 

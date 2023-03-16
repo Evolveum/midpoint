@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -184,6 +185,8 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
 //                ItemPath.create(ResourceAttributeDefinitionType.F_CORRELATOR, ItemCorrelatorDefinitionType.),
 //                AbstractItemWrapperColumn.ColumnType.VALUE,
 //                getPageBase()));
+
+        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }
