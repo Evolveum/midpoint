@@ -110,6 +110,7 @@ xref:/midpoint/reference/tasks/activities/distribution/[`distribution/subtasks`]
 </task>
 ----
 
+[#_limitations]
 == Limitations
 
 The validity scanner uses a simple _recomputation_ to update the object state. In particular, this means that

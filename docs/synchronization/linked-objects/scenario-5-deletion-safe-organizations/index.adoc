@@ -15,12 +15,14 @@ Is it possible to delete an organization in such a way that all its members (use
 
 Yes, using a simple policy rule this can be easily implemented.
 
+WARNING: This solution has limitations that may prevent it from being usable in some environments.
+Please see <<Limitations>> section at the end.
 
-== An implementation
+== An Implementation On Foreground
 
 Implementation of this scenario consists of a single global policy rule.
 
-.Global policy rule that ensures unassigning of org being deleted
+.Listing 1. Global policy rule that ensures unassigning of org being deleted (on foreground)
 [source,xml]
 ----
 <globalPolicyRule>
@@ -65,13 +67,104 @@ Implementation of this scenario consists of a single global policy rule.
 </globalPolicyRule>
 ----
 
-Complete configuration for this scenario is in link:https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs] directory (and associated link:https://github.com/Evolveum/midpoint/blob/2ddd16ca4e482c26d5e95fd3bf1356bcf7a2b136/model/model-intest/src/test/resources/linked/system-configuration.xml#L109-L147[system configuration] file).
+== An Implementation On Background
 
+++++
+{% include since.html since="4.7" %}
+++++
+
+If we expect more than a couple of members, we can use the following rule to execute the unassignment operation on the background.
+
+.Listing 2. Global policy rule that ensures unassigning of org being deleted (on background)
+[source,xml]
+----
+<globalPolicyRule>
+    <focusSelector>
+        <type>OrgType</type>
+        <!-- finer selection (e.g. based on archetype) can be used here if needed -->
+    </focusSelector>
+    <name>unassign-children-async-on-org-deletion</name>
+    <documentation>
+        Unassigns members (asynchronously) when an org is deleted.
+    </documentation>
+    <policyConstraints>
+        <modification>
+            <operation>delete</operation>
+        </modification>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+                <linkSource/>
+            </object>
+            <executeScript>
+                <s:unassign>
+                    <s:filter>
+                        <q:ref>
+                            <q:path>targetRef</q:path>
+                            <expression>
+                                <script>
+                                    <code> <!--1-->
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+
+                                        new ObjectReferenceType()
+                                                .oid(orgBeingDeleted as String)
+                                    </code>
+                                </script>
+                            </expression>
+                        </q:ref>
+                    </s:filter>
+                </s:unassign>
+            </executeScript>
+            <asynchronousExecution>
+                <taskCustomizer>
+                    <script>
+                        <code> <!--2-->
+                            import com.evolveum.midpoint.schema.util.expression.ExpressionUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                            import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType
+                            import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariablesDefinitionType
+
+                            def req = (preparedTask as TaskType).activity.work.iterativeScripting.scriptExecutionRequest
+                            req.setVariables(new ScriptingVariablesDefinitionType()
+                                    .variable(new ScriptingVariableDefinitionType()
+                                            .name('orgBeingDeleted')
+                                            .expression(ExpressionUtil.forValue(midpoint.focusContextRequired.oid))))
+                            preparedTask
+                        </code>
+                    </script>
+                </taskCustomizer>
+            </asynchronousExecution>
+        </scriptExecution>
+    </policyActions>
+</globalPolicyRule>
+----
+<1> We don't have the `focus` variable available here (as in Listing 1).
+We must obtain its value through scripting variable `orgBeingDeleted` that is filled in the task customizer below.
+<2> This prepares the `orgBeingDeleted` variable.
+
+In the future we consider making the data passing between policy rule and the background task easier.
+
+Complete configuration for this scenario is in https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs[https://github.com/Evolveum/midpoint/tree/master/model/model-intest/src/test/resources/linked/orgs] directory (and associated https://github.com/Evolveum/midpoint/blob/6ce16bd75862b7cd7a421bf9f2bc4d3efc88473d/model/model-intest/src/test/resources/linked/system-configuration.xml#L108-L208[system configuration] file).
 
 == Limitations
 
-This scenario works in the majority of cases.
-More specifically, it assumes that "assigned" is the same as "linked":
+=== Unassignment After Deletion
+
+The main issue is that when the policy rule is triggered, it is simply too late for any un-assignments to take place: the role object no longer exists.
+This has some negative consequences:
+
+. Errors are reported in GUI, in audit records (as handled errors in both cases), and in the logfootnote:[Since 4.7, we suppressed the message in the log file, see bug:MID-8366[].].
+. In some cases, the results of such "forced unassignment" can be different from the unassignment done while before role deletion.footnote:[The reason is that when unassigning the role in the regular way, midPoint has complete information about what the role is adding, so it can correctly remove that.
+When first deleting the role and then unassigning it, the deployment must assume that "what is not computed should not exist" (using e.g. non-tolerant attributes and associations, mapping ranges, and so on) in order to ensure that what was provisioned via the role will be de-provisioned.
+This is somewhat similar to the known xref:/midpoint/reference/tasks/specific/focus-validity-scan.adoc#_limitations[limitation of Focus Validity Scan activity].]
+
+What we'd need is to unassign the members before the role is deleted.
+This would most probably involve implementing some kind of lifecycle state transition for the role, e.g. switching the state to `retired`, then unassigning members, and then (probably automatically) deleting the role object.
+
+=== Other Limitations
+
+The simple policy rules presented assume that "assigned" is the same as "linked", i.e. that:
 
 . All assignments are effective (valid and conditions evaluated to true), so they are reflected in links.
 
@@ -82,7 +175,3 @@ But the scenario can be extended and made more robust, by:
 . Replacing `linkSource` specification by custom query looking after `assignment/targetRef` filters.
 
 . Creating additional global policy rule that will clean up the inducements for organization being deleted.
-
-An additional limitation is that the process of unassignment is not quite "clean":
-Because the assigned Org object does no longer exist, there are errors reported in the log and in the audit.
-See also bug:MID-8366[].
