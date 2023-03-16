@@ -525,6 +525,8 @@ public class OperationResult
      * identifier of a ticket in ITSM system or anything else. The exact
      * format of this reference depends on the operation which is being
      * executed.
+     *
+     * Looks only in the current result. See {@link #findAsynchronousOperationReference()} for the recursive version.
      */
     public String getAsynchronousOperationReference() {
         return asynchronousOperationReference;

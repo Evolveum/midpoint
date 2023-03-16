@@ -620,6 +620,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
             return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
+            // Actually, "not found" exceptions during targetRef resolution are not propagated here,
+            // so this code maybe should be adapted.
             LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
                     lazy(() -> SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld))));
             if (ModelExecuteOptions.isForce(context.getOptions())) {

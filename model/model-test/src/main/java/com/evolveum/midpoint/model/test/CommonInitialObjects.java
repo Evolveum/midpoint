@@ -47,6 +47,10 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
+            ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
+            SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
 
