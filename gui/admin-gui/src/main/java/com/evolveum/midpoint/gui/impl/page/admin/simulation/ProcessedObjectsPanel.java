@@ -7,15 +7,42 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import javax.xml.namespace.QName;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -26,46 +53,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.google.common.collect.Lists;
+import javax.xml.namespace.QName;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -144,39 +138,16 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                IModel<String> title = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null || obj.getName() == null) {
-                        return getString("ProcessedObjectsPanel.unnamed");
+                IModel<ProcessedObject<?>> model = new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected ProcessedObject<?> load() {
+                        return SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
                     }
-
-                    return LocalizationUtil.translatePolyString(obj.getName());
                 };
-                IModel<String> description = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null) {
-                        return null;
-                    }
 
-                    List<ObjectReferenceType> eventMarkRefs = obj.getEventMarkRef();
-                    // resolve names from markRefs
-                    Object[] names = eventMarkRefs.stream()
-                            .map(ref -> {
-                                List<MarkType> marks = availableMarksModel.getObject();
-                                MarkType mark = marks.stream()
-                                        .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
-                                        .findFirst().orElse(null);
-                                if (mark == null) {
-                                    return null;
-                                }
-                                return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
-                            })
-                            .filter(Objects::nonNull)
-                            .sorted(Comparator.naturalOrder())
-                            .toArray();
-
-                    return StringUtils.joinWith(", ", names);
-                };
+                IModel<String> title = () -> SimulationsGuiUtil.getProcessedObjectName(model.getObject(), getPageBase());
+                IModel<String> description = () -> createProcessedObjectDescription(model.getObject());
                 item.add(new TitleWithDescriptionPanel(id, title, description) {
 
                     @Override
@@ -193,12 +164,41 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         };
     }
 
+    private String createProcessedObjectDescription(ProcessedObject<?> obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        Collection<String> eventMarkOids = obj.getMatchingEventMarks();
+        // resolve names from markRefs
+        Object[] names = eventMarkOids.stream()
+                .map(oid -> {
+                    List<MarkType> marks = availableMarksModel.getObject();
+                    MarkType mark = marks.stream()
+                            .filter(t -> Objects.equals(t.getOid(), oid))
+                            .findFirst().orElse(null);
+                    if (mark == null) {
+                        return null;
+                    }
+                    return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.naturalOrder())
+                .toArray();
+
+        return StringUtils.joinWith(", ", names);
+    }
 
     private List<InlineMenuItem> createRowMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED);
+            }
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -213,8 +213,13 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             }
         });
 
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_MARK);
+            }
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -321,17 +326,30 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return new DeltaProgressBarColumn<>(createStringResource("ProcessedObjectsPanel.deltaColumn")) {
 
             @Override
-            protected @NotNull IModel<ObjectDeltaType> createObjectDeltaModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+            protected @NotNull IModel<ObjectDelta<?>> createObjectDeltaModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
                     SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
-                    return object != null ? object.getDelta() : null;
+                    ObjectDeltaType delta = object != null ? object.getDelta() : null;
+                    if (delta == null) {
+                        return null;
+                    }
+
+                    try {
+                        return DeltaConvertor.createObjectDelta(delta);
+                    } catch (SchemaException ex) {
+                        LOGGER.debug("Couldn't parse object delta", ex);
+
+                        getPageBase().error(ex.getMessage());
+
+                        return null;
+                    }
                 };
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {
-        return new AbstractColumn<>(displayModel) {
+        return new AbstractColumn<>(displayModel, SimulationResultProcessedObjectType.F_STATE.getLocalPart()) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
@@ -342,7 +360,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
+        return new LambdaColumn<>(displayModel, SimulationResultProcessedObjectType.F_TYPE.getLocalPart(),
+                row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
     }
 
     @Override
@@ -379,7 +398,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         throw new RestartResponseException(getPage());
     }
 
-
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
@@ -398,23 +416,23 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return;
         }
 
-            for (var shadow : selected) {
-                List<PolicyStatementType> statements = new ArrayList<>();
-                if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
-                    // skip object, since it is added
-                    continue;
-                }
-                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-                // but for each delta we need separate statement
-                for (String oid : markOids) {
-                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+        for (var shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
+                // skip object, since it is added
+                continue;
+            }
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
                         .type(PolicyStatementTypeType.APPLY));
-                }
-                try {
-                    var delta = getPageBase().getPrismContext().deltaFactory().object()
-                            .createModificationAddContainer(ObjectType.class,
-                                    shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
-                                    statements.toArray(new PolicyStatementType[0]));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(ObjectType.class,
+                                shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException

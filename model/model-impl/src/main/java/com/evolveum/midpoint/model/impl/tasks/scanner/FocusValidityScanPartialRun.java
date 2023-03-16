@@ -216,13 +216,14 @@ public final class FocusValidityScanPartialRun
         EvaluatedPolicyRuleImpl policyRule =
                 new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, TargetType.OBJECT);
         policyRule.computeEnabledActions(null, focus.asPrismObject(), workerTask, result);
-        EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
-                Boolean.TRUE.equals(constraint.isAssignment()) ?
-                        PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY :
-                        PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
-                constraint,
-                LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
-                LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
+        EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger =
+                new EvaluatedTimeValidityTrigger(
+                        Boolean.TRUE.equals(constraint.isAssignment()) ?
+                                PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY :
+                                PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
+                        constraint,
+                        LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
+                        LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
         policyRule.getTriggers().add(evaluatedTrigger);
         lensContext.getFocusContext().addObjectPolicyRule(policyRule);
     }

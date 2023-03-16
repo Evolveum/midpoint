@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="08893534-3ab3-4209-8702-d21e5492813f">
+    <name>deletion-safe-org-async</name>
+    <documentation>
+        Marks an organization that is "deletion-safe". If such an organization is deleted, all its
+        members (e.g. users or child organizations) are updated so that the now-invalid assignments
+        are removed. This update is done asynchronously.
+    </documentation>
+</archetype>

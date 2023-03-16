@@ -56,6 +56,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Provides rich information about an operation being executed; mainly for the sake of error reporting and functional/performance troubleshooting.
  *
@@ -523,6 +525,8 @@ public class OperationResult
      * identifier of a ticket in ITSM system or anything else. The exact
      * format of this reference depends on the operation which is being
      * executed.
+     *
+     * Looks only in the current result. See {@link #findAsynchronousOperationReference()} for the recursive version.
      */
     public String getAsynchronousOperationReference() {
         return asynchronousOperationReference;
@@ -530,6 +534,12 @@ public class OperationResult
 
     public void setAsynchronousOperationReference(String asynchronousOperationReference) {
         this.asynchronousOperationReference = asynchronousOperationReference;
+    }
+
+    @VisibleForTesting
+    public void clearAsynchronousOperationReferencesDeeply() {
+        setAsynchronousOperationReference(null);
+        getSubresults().forEach(OperationResult::clearAsynchronousOperationReferencesDeeply);
     }
 
     /**

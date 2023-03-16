@@ -12,6 +12,8 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -25,9 +27,6 @@ import java.util.stream.Collectors;
 
 /**
  * Context related to evaluation and processing of policy rules.
- *
- * Although placed in {@link LensElementContext}, support for this data is currently implemented only
- * for focus, not for projections.
  */
 public class PolicyRulesContext implements Serializable, DebugDumpable {
 
@@ -41,7 +40,7 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
 
     /**
      * Policy state modifications that should be applied.
-     * Currently we apply them in ChangeExecutor.executeChanges only.
+     * Currently we apply them in {@link ChangeExecutor#executeChanges(LensContext, Task, OperationResult)}  only.
      *
      * In the future we plan to be able to apply some state modifications even
      * if the clockwork is exited in non-standard way (e.g. in primary state or with an exception).
@@ -49,6 +48,8 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
      * because of expectation of future state (like conflicting assignment is added etc.)
      *
      * Life cycle: Cleared in the `processFocus` iteration as well as after state modifications are flushed.
+     *
+     * NOTE: Will be replaced by object marks.
      */
     @NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 
@@ -147,7 +148,7 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
         counterMap.put(policyRuleIdentifier, value);
     }
 
-    public Integer getCounter(String policyRuleIdentifier) {
+    Integer getCounter(String policyRuleIdentifier) {
         return counterMap.get(policyRuleIdentifier);
     }
 

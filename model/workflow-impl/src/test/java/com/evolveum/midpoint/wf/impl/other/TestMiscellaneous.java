@@ -15,6 +15,8 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,6 +79,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private static final TestResource<RoleType> ROLE_TEST380 = new TestResource<>(TEST_RESOURCE_DIR, "role-test380.xml", "8f39e4ad-298a-4d9a-b793-56ad2f0fc7ce");
     private static final TestResource<UserType> USER_TEST380 = new TestResource<>(TEST_RESOURCE_DIR, "user-test380.xml", "1994a4d0-4151-4260-82da-bcd1866c296a");
 
+    private static final TestResource<RoleType> ROLE_AUTOCOMPLETIONS = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-autocompletions.xml", "a2570ee8-6c13-48b9-9a33-d8e88c4fe618");
+
     @Override
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
@@ -106,6 +111,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         addAndRecompute(USER_SCROOGE, initTask, initResult);
         addAndRecompute(USER_GIZMODUCK, initTask, initResult);
         addAndRecompute(USER_LAUNCHPAD, initTask, initResult);
+
+        addObject(ROLE_AUTOCOMPLETIONS, initTask, initResult);
     }
 
     @Test
@@ -665,11 +672,14 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
      * Marks one root and one non-root case as indestructible, just to check if they survive the cleanup.
      *
      * Expected survivors:
+     *
      * - indestructible root and all of its children,
      * - indestructible child (selected in such a way that it has no children).
+     *
+     * Depends on previous test methods.
      */
     @Test
-    public void test999CaseCleanup() throws Exception {
+    public void test399CaseCleanup() throws Exception {
         given("mark indestructible cases");
         OperationResult result = getTestOperationResult();
 
@@ -771,5 +781,58 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private boolean isChildLess(CaseType aCase, List<CaseType> closedCases) {
         return closedCases.stream()
                 .noneMatch(c -> c.getParentRef() != null && c.getParentRef().getOid().equals(aCase.getOid()));
+    }
+
+    /**
+     * Checks that the notifications are sent out correctly even with auto-completed stages.
+     *
+     * MID-8587
+     */
+    @Test
+    public void test400NotificationsWithAutoCompletion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
+
+        dummyTransport.clearMessages();
+
+        when("a user with role assignment is created");
+        String name = "test390";
+        UserType user = new UserType()
+                .name(name)
+                .assignment(ROLE_AUTOCOMPLETIONS.assignmentTo());
+        addObject(user, task, result);
+
+        then("role is not assigned, and a case is created");
+        assertNoUserByUsername(name);
+        assertCase(result, "after")
+                .display();
+
+        and("case notifications are OK");
+        List<Message> casesNotifications = dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES);
+        displayCollection("notifications - cases", casesNotifications);
+        //noinspection AssertBetweenInconvertibleTypes
+        assertThat(casesNotifications).as("cases notifications")
+                .singleElement()
+                .extracting(m -> m.getSubject())
+                .isEqualTo("An approval case has been opened");
+
+        and("work items notifications are OK");
+        List<Message> workItemsNotifications =
+                new ArrayList<>(dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS));
+        workItemsNotifications.sort(
+                Comparator.comparing(m -> m.getSubject()));
+        displayCollection("notifications - work items", workItemsNotifications);
+        assertThat(workItemsNotifications).as("work item notifications").hasSize(2);
+        Message first = workItemsNotifications.get(0);
+        assertThat(first.getSubject()).as("first work item notification subject")
+                .isEqualTo("A new work item has been created");
+        assertThat(first.getBody()).as("first work item notification body")
+                .contains("Stage: 3/3");
+        Message second = workItemsNotifications.get(1);
+        assertThat(second.getSubject()).as("second work item notification subject")
+                .isEqualTo("Work item has been allocated to you");
+        assertThat(second.getBody()).as("second work item notification body")
+                .contains("Stage: 3/3");
     }
 }

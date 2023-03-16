@@ -405,18 +405,18 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                         .as("state")
                         .isEqualTo(ObjectProcessingStateType.ADDED));
 
-//        when("checking search by type");
-//        ObjectQuery byType =
-//                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-//                        .ownerId(secondResultOid)
-//                        .and()
-//                        .item(SimulationResultProcessedObjectType.F_TYPE)
-//                        .eq(ShadowType.COMPLEX_TYPE)
-//                        .build();
-//        checkCountAndSearch("by type", byType, 1, result,
-//                po -> assertThat(po.getType())
-//                        .as("type")
-//                        .isEqualTo(ShadowType.COMPLEX_TYPE));
+        when("checking search by type");
+        ObjectQuery byType =
+                PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownerId(secondResultOid)
+                        .and()
+                        .item(SimulationResultProcessedObjectType.F_TYPE)
+                        .eq(ShadowType.COMPLEX_TYPE)
+                        .build();
+        checkCountAndSearch("by type", byType, 1, result,
+                po -> assertThat(po.getType())
+                        .as("type")
+                        .isEqualTo(ShadowType.COMPLEX_TYPE));
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -22,8 +22,12 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
-    public EvaluatedCompositeTrigger(@NotNull PolicyConstraintKindType kind, @NotNull PolicyConstraintsType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+    public EvaluatedCompositeTrigger(
+            @NotNull PolicyConstraintKindType kind,
+            @NotNull PolicyConstraintsType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage,
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
@@ -44,12 +48,15 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof EvaluatedCompositeTrigger))
+        }
+        if (!(o instanceof EvaluatedCompositeTrigger)) {
             return false;
-        if (!super.equals(o))
+        }
+        if (!super.equals(o)) {
             return false;
+        }
         EvaluatedCompositeTrigger that = (EvaluatedCompositeTrigger) o;
         return Objects.equals(innerTriggers, that.innerTriggers);
     }

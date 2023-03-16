@@ -3723,7 +3723,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 || !lastKnownTimestamp.equals(realTimestamp);
     }
 
-    public void waitForCaseClose(String caseOid) throws Exception {
+    public void waitForCaseClose(String caseOid) throws CommonException {
         CaseType aCase = repositoryService
                 .getObject(CaseType.class, caseOid, null, getTestOperationResult())
                 .asObjectable();
@@ -3734,7 +3734,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         waitForCaseClose(aCase, 60000);
     }
 
-    public void waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
+    public void waitForCaseClose(CaseType aCase, final int timeout) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForCaseClose");
         Checker checker = new Checker() {
             @Override

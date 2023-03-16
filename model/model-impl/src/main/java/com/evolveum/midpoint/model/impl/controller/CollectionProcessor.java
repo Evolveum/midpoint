@@ -138,7 +138,8 @@ public class CollectionProcessor {
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
             if (isThresholdTriggered(stats, collection, policyThreshold)) {
-                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
+                EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedCollectionStatsTrigger(
+                        PolicyConstraintKindType.COLLECTION_STATS, collectionStatsPolicy,
                         new LocalizableMessageBuilder()
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
@@ -148,8 +149,7 @@ public class CollectionProcessor {
                                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
                                 .arg(ObjectTypeUtil.createDisplayInformation(collection, false))
                                 .args(/* TODO */)
-                                .build()
-                );
+                                .build());
                 evaluatedPolicyRule.addTrigger(trigger);
             }
         }

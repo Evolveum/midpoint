@@ -7,16 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 /**
  * Evaluation context for object-based policy rule.
@@ -26,30 +23,23 @@ public class ObjectPolicyRuleEvaluationContext<O extends ObjectType>
         implements Cloneable {
 
     ObjectPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRule policyRule,
-            RulesEvaluationContext globalCtx,
+            @NotNull EvaluatedPolicyRuleImpl policyRule,
             LensElementContext<O> elementContext,
             Task task) {
-        this(policyRule, globalCtx, elementContext, task, ObjectState.AFTER);
+        this(policyRule, elementContext, task, ObjectState.AFTER);
     }
 
     private ObjectPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRule policyRule,
-            RulesEvaluationContext globalCtx,
+            @NotNull EvaluatedPolicyRuleImpl policyRule,
             LensElementContext<O> elementContext,
             Task task,
             ObjectState state) {
-        super(policyRule, elementContext, task, globalCtx, state);
+        super(policyRule, elementContext, task, state);
     }
 
     @Override
     public PolicyRuleEvaluationContext<O> cloneWithStateConstraints(ObjectState state) {
-        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, elementContext, task, state);
-    }
-
-    @Override
-    public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        elementContext.triggerRule(policyRule, triggers);
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, elementContext, task, state);
     }
 
     @Override
@@ -60,7 +50,7 @@ public class ObjectPolicyRuleEvaluationContext<O extends ObjectType>
     @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
     public ObjectPolicyRuleEvaluationContext<O> clone() {
-        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, elementContext, task);
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, elementContext, task);
     }
 
     @Override

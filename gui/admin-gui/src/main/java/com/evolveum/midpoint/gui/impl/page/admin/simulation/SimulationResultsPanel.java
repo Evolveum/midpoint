@@ -7,25 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,11 +27,28 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -55,6 +65,15 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
     public SimulationResultsPanel(String id, ContainerPanelConfigurationType config) {
         super(id, SimulationResultType.class, null, config);
+    }
+
+    @Override
+    protected ISelectableDataProvider<SelectableBean<SimulationResultType>> createProvider() {
+        ISelectableDataProvider<SelectableBean<SimulationResultType>> provider = super.createProvider();
+        if (provider instanceof SortableDataProvider) {
+            ((SortableDataProvider) provider).setSort(SimulationResultType.F_START_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
+        }
+        return provider;
     }
 
     @Override
@@ -158,14 +177,23 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
             SimulationResultType simResult = object.getValue();
 
             try {
-                getPageBase().getRepositoryService().deleteSimulatedProcessedObjects(simResult.getOid(), null, subResult);
+                Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
+
+                ObjectDelta<SimulationResultType> delta = getPrismContext().deltaFactory().object()
+                        .createModificationReplaceContainer(SimulationResultType.class, simResult.getOid(), SimulationResultType.F_PROCESSED_OBJECT, new Containerable[0]);
+
+                ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
+                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
+
+                LOGGER.debug("Using options {}.", executeOptions);
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
+                subResult.computeStatus();
             } catch (Exception ex) {
                 String name = WebComponentUtil.getName(simResult);
 
+                subResult.recomputeStatus();
                 subResult.recordFatalError(getString("SimulationResultsPanel.message.deleteResultObjectsFailed", name), ex);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete processed objects for simulation result {}", ex, name);
-            } finally {
-                subResult.computeStatusIfUnknown();
             }
         }
         result.computeStatusComposite();
@@ -204,6 +232,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 item.add(label);
             }
         });
+        columns.add(createProcessedObjectsColumn());
 
         return columns;
     }
@@ -227,8 +256,48 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
         return super.createCustomExportableColumn(displayModel, customColumn, expression);
     }
 
+    private IColumn<SelectableBean<SimulationResultType>, String> createProcessedObjectsColumn() {
+        return new ProcessedObjectsCountColumn<>(createStringResource("SimulationResultsPanel.processedObjects")) {
+
+            @Override
+            protected @NotNull IModel<ObjectCounts> createCountModel(IModel<SelectableBean<SimulationResultType>> rowModel) {
+                return new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected ObjectCounts load() {
+                        ObjectCounts counts = new ObjectCounts();
+
+                        SimulationResultType result = rowModel.getObject().getValue();
+                        int total = SimulationResultTypeUtil.getObjectsProcessed(result);
+                        counts.setTotal(total);
+
+                        Map<BuiltInSimulationMetricType, Integer> builtIn = SimulationsGuiUtil.getBuiltInMetrics(result);
+                        builtIn.forEach((k, v) -> {
+                            switch (k) {
+                                case ADDED:
+                                    counts.setAdded(v);
+                                    break;
+                                case MODIFIED:
+                                    counts.setModified(v);
+                                    break;
+                                case DELETED:
+                                    counts.setDeleted(v);
+                                    break;
+                            }
+                        });
+
+                        int unmodified = SimulationsGuiUtil.getUnmodifiedProcessedObjectCount(result, builtIn);
+                        counts.setUnmodified(unmodified);
+
+                        return counts;
+                    }
+                };
+            }
+        };
+    }
+
     private IColumn<SelectableBean<SimulationResultType>, String> createStartTimestampColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> {
+        return new LambdaColumn<>(displayModel, SimulationResultType.F_START_TIMESTAMP.getLocalPart(), row -> {
             XMLGregorianCalendar start = row.getValue().getStartTimestamp();
             return start != null ? WebComponentUtil.getLongDateTimeFormattedValue(start, getPageBase()) : null;
         });

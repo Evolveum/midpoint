@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
@@ -32,25 +33,22 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @NotNull private final LensFocusContext<AH> focusContext;
 
     AssignmentPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedPolicyRuleImpl policyRule,
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
             @NotNull LensFocusContext<AH> focusContext,
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            Task task,
-            RulesEvaluationContext globalCtx) {
-        this(policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple,
-                task, ObjectState.AFTER, globalCtx);
+            Task task) {
+        this(policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, ObjectState.AFTER);
     }
 
     private AssignmentPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRule policyRule,
+            @NotNull EvaluatedPolicyRuleImpl policyRule,
             @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment,
             @NotNull LensFocusContext<AH> focusContext,
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Task task,
-            ObjectState state,
-            RulesEvaluationContext globalCtx) {
-        super(policyRule, focusContext, task, globalCtx, state);
+            ObjectState state) {
+        super(policyRule, focusContext, task, state);
         this.evaluatedAssignment = evaluatedAssignment;
         AssignmentOrigin origin = evaluatedAssignment.getOrigin();
         this.isAdded = origin.isBeingAdded();
@@ -63,12 +61,13 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
         return new AssignmentPolicyRuleEvaluationContext<>(
-                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, state, globalCtx);
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, state);
     }
 
     @Override
-    public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        evaluatedAssignment.triggerRule(policyRule, triggers);
+    boolean hasPolicyRuleExceptions(
+            @NotNull EvaluatedPolicyRuleImpl policyRule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        return evaluatedAssignment.hasPolicyRuleException(policyRule, triggers);
     }
 
     @Override
@@ -103,7 +102,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> clone() {
         return new AssignmentPolicyRuleEvaluationContext<>(
-                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task, globalCtx);
+                policyRule, evaluatedAssignment, focusContext, evaluatedAssignmentTriple, task);
     }
 
     @Override

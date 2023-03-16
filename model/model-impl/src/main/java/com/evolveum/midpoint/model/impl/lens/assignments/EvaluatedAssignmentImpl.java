@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -53,7 +55,10 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  */
 public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment {
 
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
+
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+
     private final boolean evaluatedOld;
 
     /**
@@ -99,6 +104,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * They may or may not be really applicable during the current clockwork operation.
      */
     @NotNull private final List<EvaluatedPolicyRuleImpl> targetPolicyRules = new ArrayList<>();
+
+    /**
+     * Policy rules from other assignments relevant to this one, typically those with an exclusion constraint.
+     * Used to implement one-way-defined exclusion policy rules, see e.g. MID-8269.
+     *
+     * Some of them may be the same as in {@link #targetPolicyRules}.
+     *
+     * Any given policy rule is here only once.
+     * But beware of non-determinism, see {@link #registerForeignRule(EvaluatedPolicyRuleImpl)}.
+     *
+     * Set up during policy rules evaluation.
+     */
+    @NotNull private final List<EvaluatedPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
 
     private String tenantOid;
 
@@ -426,34 +444,68 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return targetPolicyRules.size();
     }
 
-    @Override
-    public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        boolean hasException = processRuleExceptions(this, rule, triggers);
+    public @NotNull List<EvaluatedPolicyRuleImpl> getForeignPolicyRules() {
+        return Collections.unmodifiableList(foreignPolicyRules);
+    }
 
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            if (trigger instanceof EvaluatedExclusionTrigger) {
-                EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-                //noinspection unchecked
-                hasException = hasException
-                        || processRuleExceptions(
-                                (EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(), rule, triggers);
+    @Override
+    public @NotNull List<EvaluatedPolicyRuleImpl> getAllTargetsAndForeignPolicyRules() {
+        var unique = new ArrayList<>(targetPolicyRules);
+        for (EvaluatedPolicyRuleImpl foreignRule : foreignPolicyRules) {
+            if (!EvaluatedPolicyRule.contains(unique, foreignRule)) {
+                unique.add(foreignRule);
             }
         }
+        return unique;
+    }
 
-        if (!hasException) {
-            LensUtil.triggerRule(rule, triggers);
+    /**
+     * Registers a foreign policy rule.
+     *
+     * In theory, the result of this operation may be non-deterministic. Let us assume we have the same policy rule
+     * with multiple occurrences pointing to this assignment (as foreign rules). Whatever is evaluated first, ends
+     * in this collection. This may result in phantom updates if full policy situation recording is enabled. However,
+     * that is an experimental feature anyway.
+     */
+    public void registerForeignRule(EvaluatedPolicyRuleImpl rule) {
+        if (!EvaluatedPolicyRule.contains(foreignPolicyRules, rule)) {
+            foreignPolicyRules.add(rule);
         }
     }
 
-    private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        boolean hasException = false;
-        for (PolicyExceptionType policyException: evaluatedAssignment.getAssignment().getPolicyException()) {
-            if (policyException.getRuleName().equals(rule.getName())) {
-                LensUtil.processRuleWithException(rule, triggers, policyException);
-                hasException = true;
+    public boolean hasPolicyRuleException(
+            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+
+        if (hasDirectPolicyRuleException(rule, triggers)) {
+            return true;
+        }
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                EvaluatedAssignmentImpl<?> conflictingAssignment =
+                        (EvaluatedAssignmentImpl<?>) ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                if (conflictingAssignment.hasDirectPolicyRuleException(rule, triggers)) {
+                    return true;
+                }
             }
         }
-        return hasException;
+
+        return false;
+    }
+
+    private boolean hasDirectPolicyRuleException(
+            @NotNull EvaluatedPolicyRule rule,
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        for (PolicyExceptionType policyException: getAssignment().getPolicyException()) {
+            String ruleName = rule.getName();
+            if (policyException.getRuleName().equals(ruleName)) {
+                LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering.", ruleName);
+                LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTriggers:\n{}\nException:\n{}",
+                        ruleName, DebugUtil.debugDumpLazily(triggers, 1), policyException);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -647,6 +699,4 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public void addAdminGuiDependency(String oid) {
         adminGuiDependencies.add(oid);
     }
-
-
 }

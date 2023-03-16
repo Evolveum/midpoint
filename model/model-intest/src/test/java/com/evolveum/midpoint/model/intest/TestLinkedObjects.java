@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -93,7 +95,10 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     // endregion
 
     // region Orgs scenario
-    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG = new TestResource<>(ORGS_DIR, "archetype-deletion-safe-org.xml", "b8a973e0-f645-490b-a2ac-b69bd4103bf8");
+    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG = new TestResource<>(
+            ORGS_DIR, "archetype-deletion-safe-org.xml", "b8a973e0-f645-490b-a2ac-b69bd4103bf8");
+    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG_ASYNC = new TestResource<>(
+            ORGS_DIR, "archetype-deletion-safe-org-async.xml", "08893534-3ab3-4209-8702-d21e5492813f");
     // endregion
 
     @Override
@@ -139,6 +144,9 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         // Initialization for Orgs scenario
 
         addObject(ARCHETYPE_DELETION_SAFE_ORG, initTask, initResult);
+        addObject(ARCHETYPE_DELETION_SAFE_ORG_ASYNC, initTask, initResult);
+
+        addObject(CommonInitialObjects.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK, initTask, initResult);
 
 //        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
@@ -845,6 +853,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
     /**
      * Deletes org and checks if it's unassigned from its former members.
+     * MID-8366
      */
     @Test
     public void test800DeleteOrg() throws Exception {
@@ -878,6 +887,59 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
         then();
         assertSuccess(result); // in fact this is HANDLED_ERROR because of missing parent org
+
+        assertOrgAfter(child.getOid())
+                .assertAssignments(0);
+
+        assertUserAfter(user.getOid())
+                .assertAssignments(0);
+    }
+
+    /**
+     * Deletes org and checks if it's (asynchronously) unassigned from its former members.
+     * MID-8366
+     */
+    @Test
+    public void test810DeleteOrgAsync() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        OrgType root = new OrgType()
+                .name("root")
+                .beginAssignment()
+                .targetRef(ARCHETYPE_DELETION_SAFE_ORG_ASYNC.oid, ArchetypeType.COMPLEX_TYPE)
+                .end();
+        addObject(root, task, result);
+
+        OrgType child = new OrgType()
+                .name("child")
+                .beginAssignment()
+                .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .end();
+        addObject(child, task, result);
+
+        UserType user = new UserType()
+                .name("user")
+                .beginAssignment()
+                .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .end();
+        addObject(user, task, result);
+
+        when();
+        deleteObject(OrgType.class, root.getOid(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        String taskOid = OperationResult.referenceToTaskOid(result.findAsynchronousOperationReference());
+        assertThat(taskOid).as("background task OID").isNotNull();
+
+        waitForTaskFinish(taskOid, false);
+        assertTask(taskOid, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess();
 
         assertOrgAfter(child.getOid())
                 .assertAssignments(0);

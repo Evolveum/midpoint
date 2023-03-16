@@ -16,7 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 
 public class EvaluatedOrphanedTrigger extends EvaluatedPolicyRuleTrigger<OrphanedPolicyConstraintType> {
 
-    public EvaluatedOrphanedTrigger(@NotNull PolicyConstraintKindType kind, @NotNull OrphanedPolicyConstraintType constraint,
+    public EvaluatedOrphanedTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull OrphanedPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
     }

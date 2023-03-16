@@ -6,11 +6,10 @@
   -->
 <role oid="dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Prize: Silver</name>
     <assignment>
-        <policyRule>
+        <policyRule> <!-- intentionally keeping this as a duplicate of gold-silver -->
             <name>prize exclusion: silver-gold</name>
             <policyConstraints>
                 <exclusion>

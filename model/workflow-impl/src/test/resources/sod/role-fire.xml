@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="61d1db1b-41a7-44f3-9c1a-0605b489f955"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>fire</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="fd3dd8cf-24d7-46e7-9b73-e28ea74fc9ae" type="RoleType"/>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef type="UserType">
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>sod-approver</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </approverRef>
+                </approval>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

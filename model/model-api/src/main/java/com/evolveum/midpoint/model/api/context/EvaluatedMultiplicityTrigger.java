@@ -13,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> {
 
-    public EvaluatedMultiplicityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull MultiplicityPolicyConstraintType constraint,
+    public EvaluatedMultiplicityTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull MultiplicityPolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
     }

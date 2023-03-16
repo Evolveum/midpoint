@@ -77,12 +77,12 @@ public class ObjectPolicyAspectPart {
         }
         try {
             ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
-            LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
+            LensFocusContext<T> focusContext = ctx.modelContext.getFocusContext();
             PrismObject<T> object = focusContext.getObjectOld() != null ?
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
-            List<? extends EvaluatedPolicyRule> triggeredApprovalActionRules = main
-                    .selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
+            List<? extends EvaluatedPolicyRule> triggeredApprovalActionRules =
+                    main.selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));
 
@@ -94,7 +94,7 @@ public class ObjectPolicyAspectPart {
                 LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
                 for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
                     if (focusDelta.isEmpty()) {
-                        break;  // we're done
+                        break; // we're done
                     }
                     WfProcessSpecificationType processSpecification = processSpecificationEntry.basicSpec;
                     List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
@@ -105,9 +105,14 @@ public class ObjectPolicyAspectPart {
                     LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
                     ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
                     builder.setProcessSpecification(processSpecificationEntry);
-                    for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
+                    for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule :
+                            processSpecificationEntry.actionsWithRules) {
                         ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
-                        builder.add(main.getSchemaFromAction(approvalAction), approvalAction, object, actionWithRule.getRight());
+                        builder.add(
+                                main.getSchemaFromAction(approvalAction),
+                                approvalAction,
+                                object,
+                                actionWithRule.getRight());
                     }
                     buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
                 }
@@ -125,7 +130,7 @@ public class ObjectPolicyAspectPart {
             }
             if (trace != null) {
                 for (PcpStartInstruction newInstruction : newInstructions) {
-                    trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase(), prismContext));
+                    trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase()));
                 }
             }
             instructions.addAll(newInstructions);
@@ -153,7 +158,7 @@ public class ObjectPolicyAspectPart {
             @NotNull OperationResult result, List<ObjectDelta<T>> deltasToApprove,
             ApprovalSchemaBuilder builder) throws SchemaException {
         ApprovalSchemaBuilder.Result builderResult = builder.buildSchema(ctx, result);
-        if (!approvalSchemaHelper.shouldBeSkipped(builderResult.schemaType)) {
+        if (!approvalSchemaHelper.shouldBeSkipped(builderResult.schema)) {
             prepareObjectRelatedTaskInstructions(instructions, builderResult, deltasToApprove, requester, ctx, result);
         }
     }
@@ -168,11 +173,13 @@ public class ObjectPolicyAspectPart {
             if (sourceSpec == null || sourceSpec.getItem().isEmpty() && sourceSpec.getItemValue() == null) {
                 return takeWholeDelta(focusDelta, rv);
             } else if (!sourceSpec.getItem().isEmpty()) {
-                ObjectDelta.FactorOutResultSingle<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
+                ObjectDelta.FactorOutResultSingle<T> out =
+                        focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
                 addIgnoreNull(rv, out.offspring);
             } else {
                 assert sourceSpec.getItemValue() != null;
-                ObjectDelta.FactorOutResultMulti<T> out = focusDelta.factorOutValues(prismContext.toUniformPath(sourceSpec.getItemValue()), false);
+                ObjectDelta.FactorOutResultMulti<T> out =
+                        focusDelta.factorOutValues(prismContext.toUniformPath(sourceSpec.getItemValue()), false);
                 rv.addAll(out.offsprings);
             }
         }
@@ -191,8 +198,6 @@ public class ObjectPolicyAspectPart {
             List<ObjectDelta<T>> deltasToApprove, PrismObject<? extends FocusType> requester, ModelInvocationContext<T> ctx,
             OperationResult result) throws SchemaException {
 
-        ModelContext<T> modelContext = ctx.modelContext;
-
         for (ObjectDelta<T> deltaToApprove : deltasToApprove) {
             LocalizableMessage processName = main.createProcessName(builderResult, null, ctx, result);
             if (main.useDefaultProcessName(processName)) {
@@ -203,9 +208,9 @@ public class ObjectPolicyAspectPart {
             PcpStartInstruction instruction =
                     PcpStartInstruction
                             .createItemApprovalInstruction(main.getChangeProcessor(),
-                                    builderResult.schemaType, builderResult.attachedRules);
+                                    builderResult.schema, builderResult.attachedRules);
 
-            instruction.prepareCommonAttributes(main, modelContext, requester);
+            instruction.prepareCommonAttributes(main, ctx.modelContext, requester);
             instruction.setDeltasToApprove(deltaToApprove);
             instruction.setObjectRef(ctx);
             instruction.setName(processNameInDefaultLocale, processName);

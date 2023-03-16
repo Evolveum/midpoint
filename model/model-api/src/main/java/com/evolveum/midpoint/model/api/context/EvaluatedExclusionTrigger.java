@@ -15,32 +15,53 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-
+/**
+ * Represents triggered exclusion constraint.
+ *
+ * [NOTE]
+ * ====
+ * When present in "foreign policy rules" ({@link EvaluatedAssignment#getAllTargetsAndForeignPolicyRules()}), then the
+ * values in {@link #conflictingAssignment}, {@link #conflictingTarget}, {@link #thisTarget} and so on may be misleading.
+ * They are correct with regards to the original evaluated assignment, but not for the other one.
+ *
+ * Hence, to get the correct values, use {@link #getRealConflictingAssignment(EvaluatedAssignment)}.
+ * ====
+ */
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
+    // See warning in class javadoc
+
     @NotNull private final EvaluatedAssignment conflictingAssignment;
-    private final ObjectType conflictingTarget;
-    private final AssignmentPath conflictingPath;
+    @NotNull private final ObjectType conflictingTarget;
+    @NotNull private final AssignmentPath conflictingPath;
+
+    @NotNull private final EvaluatedAssignment thisAssignment;
+    @NotNull private final ObjectType thisTarget;
+    @NotNull private final AssignmentPath thisPath;
 
     // we keep thisTarget and thisPath here because in the future they might be useful
-    public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
-            ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
-        this(constraint, message, shortMessage, conflictingAssignment, conflictingTarget, conflictingPath, false);
-    }
-
-    public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
-            ObjectType conflictingTarget, AssignmentPath conflictingPath, boolean enforcementOverride) {
+    public EvaluatedExclusionTrigger(
+            @NotNull ExclusionPolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage,
+            @NotNull EvaluatedAssignment thisAssignment,
+            @NotNull EvaluatedAssignment conflictingAssignment,
+            @NotNull ObjectType thisTarget,
+            @NotNull ObjectType conflictingTarget,
+            @NotNull AssignmentPath thisPath,
+            @NotNull AssignmentPath conflictingPath,
+            boolean enforcementOverride) {
         super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, enforcementOverride);
+        this.thisAssignment = thisAssignment;
         this.conflictingAssignment = conflictingAssignment;
+        this.thisTarget = thisTarget;
         this.conflictingTarget = conflictingTarget;
+        this.thisPath = thisPath;
         this.conflictingPath = conflictingPath;
     }
 
@@ -48,22 +69,49 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
         return conflictingAssignment;
     }
 
-    public ObjectType getConflictingTarget() {
+    public @NotNull EvaluatedAssignment getRealConflictingAssignment(@NotNull EvaluatedAssignment owner) {
+        // We are relying on equals method here, but most probably the identity is (in fact) checked there, and it should be OK.
+        if (conflictingAssignment.equals(owner)) {
+            // This is a "foreign rule" situation; the owner perceived by the client is - in fact - the conflicting side here
+            // So, the "real" conflicting side is the owning assignment.
+            return thisAssignment;
+        } else {
+            // Standard situation.
+            return conflictingAssignment;
+        }
+    }
+
+    public @NotNull ObjectType getConflictingTarget() {
         return conflictingTarget;
     }
 
-    public AssignmentPath getConflictingPath() {
+    public @NotNull AssignmentPath getConflictingPath() {
         return conflictingPath;
+    }
+
+    public @NotNull EvaluatedAssignment getThisAssignment() {
+        return thisAssignment;
+    }
+
+    public @NotNull ObjectType getThisTarget() {
+        return thisTarget;
+    }
+
+    public @NotNull AssignmentPath getThisPath() {
+        return thisPath;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof EvaluatedExclusionTrigger))
+        }
+        if (!(o instanceof EvaluatedExclusionTrigger)) {
             return false;
-        if (!super.equals(o))
+        }
+        if (!super.equals(o)) {
             return false;
+        }
         EvaluatedExclusionTrigger that = (EvaluatedExclusionTrigger) o;
         return Objects.equals(conflictingAssignment, that.conflictingAssignment);
     }
@@ -89,9 +137,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
         if (options.getTriggeredRulesStorageStrategy() == FULL) {
             rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
-            if (conflictingPath != null) {
-                rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
-            }
+            rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
             if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignment() != null) {
                 rv.setConflictingAssignment(conflictingAssignment.getAssignment().clone());
             }
@@ -101,7 +147,6 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 
     @Override
     public Collection<? extends PrismObject<?>> getTargetObjects() {
-        // conflicting target should be non-empty ... but who knows for sure?
-        return conflictingTarget != null ? singleton(conflictingTarget.asPrismObject()) : emptySet();
+        return List.of(conflictingTarget.asPrismObject());
     }
 }

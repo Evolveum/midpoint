@@ -521,10 +521,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         policyRulesContext.addObjectPolicyRule(policyRule);
     }
-
-    public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        LensUtil.triggerRule(rule, triggers);
-    }
     //endregion
 
     //region Kinds of operations

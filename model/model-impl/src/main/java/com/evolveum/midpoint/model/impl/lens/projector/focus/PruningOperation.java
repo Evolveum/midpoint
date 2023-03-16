@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -79,7 +78,6 @@ public class PruningOperation<F extends AssignmentHolderType> {
                     pruneNewAssignment(existingOrNewAssignment);
                 }
             }
-
             return prunedViaSecondaryDelta && !enforcementOverrideGenerated;
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -91,25 +89,24 @@ public class PruningOperation<F extends AssignmentHolderType> {
 
     private void pruneNewAssignment(EvaluatedAssignmentImpl<F> newAssignment) {
         LOGGER.trace("Checking for pruning of new assignment: {}", newAssignment);
-        for (EvaluatedPolicyRuleImpl newAssignmentRule : newAssignment.getAllTargetsPolicyRules()) {
+        for (EvaluatedPolicyRuleImpl newAssignmentRule : newAssignment.getAllTargetsAndForeignPolicyRules()) {
             if (newAssignmentRule.containsEnabledAction(PrunePolicyActionType.class)) {
+                LOGGER.trace("Found rule with enabled pruning action: {}", newAssignmentRule);
                 Collection<EvaluatedExclusionTrigger> exclusionTriggers =
                         newAssignmentRule.getAllTriggers(EvaluatedExclusionTrigger.class);
-                LOGGER.trace("Exclusion triggers: {}", exclusionTriggers);
                 for (EvaluatedExclusionTrigger exclusionTrigger : exclusionTriggers) {
+                    LOGGER.trace("Found exclusion trigger: {}", exclusionTrigger);
                     processPruneRuleExclusionTrigger(newAssignment, newAssignmentRule, exclusionTrigger);
                 }
             }
         }
     }
 
-    private void processPruneRuleExclusionTrigger(EvaluatedAssignmentImpl<F> newAssignment, EvaluatedPolicyRuleImpl pruneRule,
+    private void processPruneRuleExclusionTrigger(
+            EvaluatedAssignmentImpl<F> newAssignment,
+            EvaluatedPolicyRuleImpl pruneRule,
             EvaluatedExclusionTrigger exclusionTrigger) {
-        EvaluatedAssignment conflictingAssignment = exclusionTrigger.getConflictingAssignment();
-        if (conflictingAssignment == null) {
-            throw new SystemException("Added assignment " + newAssignment
-                    + ", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");
-        }
+        EvaluatedAssignment conflictingAssignment = exclusionTrigger.getRealConflictingAssignment(newAssignment);
         LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, newAssignment);
         if (conflictingAssignment.isPresentInOldObject()) {
             // This is the usual (good) case. The conflicting assignment was present in the old object so we can remove it
@@ -126,6 +123,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
             context.getFocusContext().swallowToSecondaryDeltaUnchecked(assignmentDelta);
             prunedViaSecondaryDelta = true;
         } else {
+            LOGGER.debug("Conflicting assignment was not present in old object! Are we adding two pruned assignments at once?");
             // Conflicting assignment was not present in old object i.e. it was added in the meanwhile into secondary delta.
             // We create trigger for this with enforcementOverride = true, so it will be reported as policy violation
             // even if not enforcement policy action is present. See also MID-4766.
@@ -135,9 +133,16 @@ public class PruningOperation<F extends AssignmentHolderType> {
                     .arg(ObjectTypeUtil.createDisplayInformation(conflictingAssignment.getTarget(), false))
                     .build();
             pruneRule.addTrigger(
-                    new EvaluatedExclusionTrigger(exclusionTrigger.getConstraint(),
-                            message, null, exclusionTrigger.getConflictingAssignment(),
-                            exclusionTrigger.getConflictingTarget(), exclusionTrigger.getConflictingPath(), true)
+                    new EvaluatedExclusionTrigger(
+                            exclusionTrigger.getConstraint(),
+                            message, null,
+                            exclusionTrigger.getThisAssignment(),
+                            exclusionTrigger.getConflictingAssignment(),
+                            exclusionTrigger.getThisTarget(),
+                            exclusionTrigger.getConflictingTarget(),
+                            exclusionTrigger.getThisPath(),
+                            exclusionTrigger.getConflictingPath(),
+                            true)
             );
             enforcementOverrideGenerated = true;
         }

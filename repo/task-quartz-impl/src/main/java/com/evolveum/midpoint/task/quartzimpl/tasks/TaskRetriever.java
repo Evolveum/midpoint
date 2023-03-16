@@ -228,10 +228,10 @@ public class TaskRetriever {
         if (task instanceof Task) {
             ((TaskQuartzImpl) task).addSubtask(subtaskBean);
         } else if (task instanceof TaskType) {
-            TaskTreeUtil.addSubtask((TaskType) task, subtaskBean, prismContext);
+            TaskTreeUtil.addSubtask((TaskType) task, subtaskBean);
         } else if (task instanceof PrismObject<?>) {
             //noinspection unchecked
-            TaskTreeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, prismContext);
+            TaskTreeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean);
         } else {
             throw new IllegalArgumentException("task: " + task);
         }

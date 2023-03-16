@@ -9,7 +9,6 @@ package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -32,6 +31,11 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
+/**
+ * Creates complete approval schema and related information ({@link Result}) from partial information collected from
+ * individual policy rules via {@link #add(ApprovalSchemaType, ApprovalPolicyActionType, PrismObject, EvaluatedPolicyRule)}
+ * and {@link #addPredefined(PrismObject, RelationKindType, OperationResult)} methods.
+ */
 class ApprovalSchemaBuilder {
 
     private ProcessSpecification processSpecification;
@@ -41,16 +45,16 @@ class ApprovalSchemaBuilder {
     }
 
     static class Result {
-        @NotNull final ApprovalSchemaType schemaType;
+        @NotNull final ApprovalSchemaType schema;
         @NotNull final SchemaAttachedPolicyRulesType attachedRules;
         @Nullable final ProcessSpecification processSpecification;
         @Nullable final LocalizableMessageTemplateType approvalDisplayName;
 
-        Result(@NotNull ApprovalSchemaType schemaType,
+        Result(@NotNull ApprovalSchemaType schema,
                 @NotNull SchemaAttachedPolicyRulesType attachedRules,
                 @Nullable ProcessSpecification processSpecification,
                 @Nullable LocalizableMessageTemplateType approvalDisplayName) {
-            this.schemaType = schemaType;
+            this.schema = schema;
             this.attachedRules = attachedRules;
             this.processSpecification = processSpecification;
             this.approvalDisplayName = approvalDisplayName;
@@ -66,8 +70,11 @@ class ApprovalSchemaBuilder {
         final ApprovalCompositionStrategyType compositionStrategy;
         final LocalizableMessageTemplateType approvalDisplayName;
 
-        private Fragment(ApprovalCompositionStrategyType compositionStrategy, PrismObject<?> target,
-                @NotNull ApprovalSchemaType schema, EvaluatedPolicyRule policyRule,
+        private Fragment(
+                ApprovalCompositionStrategyType compositionStrategy,
+                PrismObject<?> target,
+                @NotNull ApprovalSchemaType schema,
+                EvaluatedPolicyRule policyRule,
                 LocalizableMessageTemplateType approvalDisplayName) {
             this.compositionStrategy = compositionStrategy;
             this.target = target;
@@ -77,13 +84,22 @@ class ApprovalSchemaBuilder {
         }
 
         private boolean isMergeableWith(Fragment other) {
-            return compositionStrategy != null && BooleanUtils.isTrue(compositionStrategy.isMergeable())
-                    && other.compositionStrategy != null && BooleanUtils.isTrue(other.compositionStrategy.isMergeable())
-                    && compositionStrategy.getOrder() != null && compositionStrategy.getOrder().equals(other.compositionStrategy.getOrder());
+            return isMergeable()
+                    && other.isMergeable()
+                    && hasSameExplicitOrderAs(other);
         }
 
         public boolean isExclusive() {
             return compositionStrategy != null && BooleanUtils.isTrue(compositionStrategy.isExclusive());
+        }
+
+        private boolean isMergeable() {
+            return compositionStrategy != null && BooleanUtils.isTrue(compositionStrategy.isMergeable());
+        }
+
+        private boolean hasSameExplicitOrderAs(Fragment other) {
+            Integer myOrder = getOrder();
+            return myOrder != null && myOrder.equals(other.getOrder());
         }
 
         public Integer getOrder() {
@@ -93,7 +109,7 @@ class ApprovalSchemaBuilder {
 
     private final List<Fragment> predefinedFragments = new ArrayList<>();
     private final List<Fragment> standardFragments = new ArrayList<>();
-    private final List<Fragment> addOnFragments = new ArrayList<>();            // fragments to be merged into other ones
+    private final List<Fragment> addOnFragments = new ArrayList<>(); // fragments to be merged into other ones
 
     private final Set<Integer> exclusiveOrders = new HashSet<>();
     private final Set<Integer> nonExclusiveOrders = new HashSet<>();
@@ -107,10 +123,14 @@ class ApprovalSchemaBuilder {
     }
 
     // TODO target
-    void add(ApprovalSchemaType schema, ApprovalPolicyActionType approvalAction, PrismObject<?> defaultTarget,
+    void add(
+            ApprovalSchemaType schema,
+            ApprovalPolicyActionType approvalAction,
+            PrismObject<?> defaultTarget,
             EvaluatedPolicyRule policyRule) throws SchemaException {
         ApprovalCompositionStrategyType compositionStrategy = approvalAction.getCompositionStrategy();
-        Fragment fragment = new Fragment(compositionStrategy, defaultTarget, schema, policyRule, approvalAction.getApprovalDisplayName());
+        Fragment fragment = new Fragment(
+                compositionStrategy, defaultTarget, schema, policyRule, approvalAction.getApprovalDisplayName());
         if (isAddOnFragment(compositionStrategy)) {
             if (compositionStrategy.getOrder() != null) {
                 throw new SchemaException("Both order and mergeIntoOrder/mergeIntoAll are set for " + schema);
@@ -158,7 +178,7 @@ class ApprovalSchemaBuilder {
         allFragments.addAll(predefinedFragments);
         allFragments.addAll(standardFragments);
 
-        ApprovalSchemaType schemaType = new ApprovalSchemaType(ctx.prismContext);
+        ApprovalSchemaType schemaBean = new ApprovalSchemaType();
         SchemaAttachedPolicyRulesType attachedRules = new SchemaAttachedPolicyRulesType();
 
         LocalizableMessageTemplateType approvalDisplayName = null;
@@ -178,10 +198,10 @@ class ApprovalSchemaBuilder {
             List<Fragment> fragmentMergeGroup = getMergeGroup(allFragments, i);
             i += fragmentMergeGroup.size();
             checkExclusivity(fragmentMergeGroup);
-            processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
+            processFragmentGroup(fragmentMergeGroup, schemaBean, attachedRules, ctx, result);
         }
 
-        return new Result(schemaType, attachedRules, processSpecification, approvalDisplayName);
+        return new Result(schemaBean, attachedRules, processSpecification, approvalDisplayName);
     }
 
     private void checkExclusivity(List<Fragment> fragmentMergeGroup) {
@@ -205,7 +225,7 @@ class ApprovalSchemaBuilder {
         while (j < fragments.size() && fragments.get(i).isMergeableWith(fragments.get(j))) {
             j++;
         }
-        return new ArrayList<>(fragments.subList(i, j));        // result should be modifiable independently on the master list
+        return new ArrayList<>(fragments.subList(i, j)); // result should be modifiable independently on the master list
     }
 
     private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType,
@@ -215,7 +235,7 @@ class ApprovalSchemaBuilder {
         appendAddOnFragments(fragments);
         List<ApprovalStageDefinitionType> fragmentStageDefs = cloneAndMergeStages(fragments);
         if (fragmentStageDefs.isEmpty()) {
-            return;        // probably shouldn't occur
+            return; // probably shouldn't occur
         }
         fragmentStageDefs.sort(Comparator.comparing(this::getNumber, Comparator.nullsLast(naturalOrder())));
         RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(firstFragment.target, result);
@@ -231,7 +251,9 @@ class ApprovalSchemaBuilder {
         if (firstFragment.policyRule != null) {
             List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
             firstFragment.policyRule.addToEvaluatedPolicyRuleBeans(
-                    rules, new PolicyRuleExternalizationOptions(FULL, false, true), null);
+                    rules,
+                    new PolicyRuleExternalizationOptions(FULL, false, true),
+                    null);
             for (EvaluatedPolicyRuleType rule : rules) {
                 SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
                 attachedRule.setStageMin(from);
@@ -267,7 +289,7 @@ class ApprovalSchemaBuilder {
         if (fragments.size() == 1) {
             return CloneUtil.cloneCollectionMembers(getStages(fragments.get(0).schema));
         }
-        ApprovalStageDefinitionType resultingStageDef = new ApprovalStageDefinitionType(PrismContext.get());
+        ApprovalStageDefinitionType resultingStageDef = new ApprovalStageDefinitionType();
         fragments.sort((f1, f2) ->
             Comparator.nullsLast(Comparator.<Integer>naturalOrder())
                 .compare(f1.compositionStrategy.getMergePriority(), f2.compositionStrategy.getMergePriority()));
@@ -277,15 +299,18 @@ class ApprovalSchemaBuilder {
         return Collections.singletonList(resultingStageDef);
     }
 
-    private void mergeStageDefFromFragment(ApprovalStageDefinitionType resultingStageDef, Fragment fragment) throws SchemaException {
+    private void mergeStageDefFromFragment(ApprovalStageDefinitionType resultingStageDef, Fragment fragment)
+            throws SchemaException {
         List<ApprovalStageDefinitionType> stages = getStages(fragment.schema);
         if (stages.size() != 1) {
-            throw new IllegalStateException("Couldn't merge approval schema fragment with stage count of not 1: " + fragment.schema);
+            throw new IllegalStateException(
+                    "Couldn't merge approval schema fragment with stage count of not 1: " + fragment.schema);
         }
         ApprovalStageDefinitionType stageDefToMerge = stages.get(0);
         List<QName> overwriteItems = fragment.compositionStrategy.getMergeOverwriting();
         //noinspection unchecked
-        resultingStageDef.asPrismContainerValue().mergeContent(stageDefToMerge.asPrismContainerValue(), overwriteItems);
+        resultingStageDef.asPrismContainerValue().mergeContent(
+                stageDefToMerge.asPrismContainerValue(), overwriteItems);
     }
 
     private void sortFragments(List<Fragment> fragments) {
@@ -322,5 +347,4 @@ class ApprovalSchemaBuilder {
             }
         });
     }
-
 }

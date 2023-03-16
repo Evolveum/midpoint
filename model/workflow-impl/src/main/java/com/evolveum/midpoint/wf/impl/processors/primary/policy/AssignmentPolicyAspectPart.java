@@ -7,14 +7,33 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
+import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultApprovalPolicyRulesUsageType.NEVER;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -25,7 +44,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -33,13 +51,7 @@ import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
@@ -47,21 +59,6 @@ import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
-import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static java.util.Collections.singleton;
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * Part of PolicyRuleBasedAspect related to assignments.
@@ -89,28 +86,29 @@ public class AssignmentPolicyAspectPart {
                 .build();
         ApprovalProcessStartInstructionCreationTraceType trace;
         if (result.isTracingNormal(ApprovalProcessStartInstructionCreationTraceType.class)) {
-            trace = new ApprovalProcessStartInstructionCreationTraceType(prismContext);
+            trace = new ApprovalProcessStartInstructionCreationTraceType();
             result.addTrace(trace);
         } else {
             trace = null;
         }
         try {
-            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
-                    .getEvaluatedAssignmentTriple();
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple =
+                    ctx.modelContext.getEvaluatedAssignmentTriple();
             LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
             if (evaluatedAssignmentTriple == null) {
                 return;
             }
 
             List<PcpStartInstruction> newInstructions = new ArrayList<>();
-            for (EvaluatedAssignment assignmentAdded : evaluatedAssignmentTriple.union()) {
+            for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignmentTriple.union()) {
                 addIgnoreNull(newInstructions,
-                        createInstructionFromAssignment(assignmentAdded, objectTreeDeltas, requester, ctx, result));
+                        createInstructionFromAssignment(evaluatedAssignment, objectTreeDeltas, requester, ctx, result));
             }
             int newInstructionsCount = newInstructions.size();
             if (trace != null) {
                 for (PcpStartInstruction newInstruction : newInstructions) {
-                    trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase(), prismContext));
+                    trace.getCaseRef().add(
+                            ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase()));
                 }
             }
             instructions.addAll(newInstructions);
@@ -142,24 +140,35 @@ public class AssignmentPolicyAspectPart {
         }
     }
 
-    private PcpStartInstruction createInstructionFromAssignment(
+    private @Nullable PcpStartInstruction createInstructionFromAssignment(
             EvaluatedAssignment evaluatedAssignment, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
-            PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result)
+            throws SchemaException {
+
+        LOGGER.trace("-------------------------------------------------------------");
+        LOGGER.trace("Creating process start instruction for an assignment to be {}: {}",
+                getAssignmentChangeVerb(evaluatedAssignment), evaluatedAssignment);
 
         // We collect all target rules; hoping that only relevant ones are triggered.
         // For example, if we have assignment policy rule on induced role, it will get here.
         // But projector will take care not to trigger it unless the rule is capable (e.g. configured)
-        // to be triggered in such a situation
-        List<EvaluatedPolicyRule> triggeredApprovalActionRules =
-                main.selectTriggeredApprovalActionRules(evaluatedAssignment.getAllTargetsPolicyRules());
-        logApprovalActions(evaluatedAssignment, triggeredApprovalActionRules);
+        // to be triggered in such a situation.
+        //
+        // Also note that these rules may be empty but we still can want to process the assignment,
+        // e.g. if default rules are to be applied.
+        List<EvaluatedPolicyRule> triggeredApprovalRules =
+                main.selectTriggeredApprovalActionRules(evaluatedAssignment.getAllTargetsAndForeignPolicyRules());
 
-        // Currently we can deal only with assignments that have a specific target
+        logApprovalActions(evaluatedAssignment, triggeredApprovalRules);
+
+        // Currently we can deal only with assignments that have a specific target.
+        // (Today, there is no way of providing policy rules to other kinds of assignments.)
         PrismObject<?> targetObject = evaluatedAssignment.getTarget();
         if (targetObject == null) {
-            if (!triggeredApprovalActionRules.isEmpty()) {
-                throw new IllegalStateException("No target in " + evaluatedAssignment + ", but with "
-                        + triggeredApprovalActionRules.size() + " triggered approval action rule(s)");
+            if (!triggeredApprovalRules.isEmpty()) {
+                throw new IllegalStateException(String.format(
+                        "No target in %s, but with %d triggered approval action rule(s)",
+                        evaluatedAssignment, triggeredApprovalRules.size()));
             } else {
                 return null;
             }
@@ -170,11 +179,11 @@ public class AssignmentPolicyAspectPart {
             return null;
         }
 
-        // Let's construct the approval schema plus supporting triggered approval policy rule information
+        // Let's construct the approval schema plus supporting triggered approval policy rule information.
         // Here we also treat default "rules" when no policy rules match.
-        ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules,
-                evaluatedAssignment, ctx, result);
-        if (approvalSchemaHelper.shouldBeSkipped(approvalSchemaResult.schemaType)) {
+        ApprovalSchemaBuilder.Result approvalSchemaResult =
+                createSchemaWithRules(triggeredApprovalRules, evaluatedAssignment, ctx, result);
+        if (approvalSchemaHelper.shouldBeSkipped(approvalSchemaResult.schema)) {
             return null;
         }
 
@@ -193,8 +202,8 @@ public class AssignmentPolicyAspectPart {
         if (focusDelta.isAdd()) {
             generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
         }
-        return prepareAssignmentRelatedStartInstruction(approvalSchemaResult, evaluatedAssignment, deltaToApprove, requester,
-                ctx, result);
+        return prepareAssignmentRelatedStartInstruction(
+                approvalSchemaResult, evaluatedAssignment, deltaToApprove, requester, ctx, result);
     }
 
     private void generateFocusOidIfNeeded(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change) {
@@ -215,8 +224,8 @@ public class AssignmentPolicyAspectPart {
         ((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
     }
 
-    private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(EvaluatedAssignment evaluatedAssignment,
-            ObjectTreeDeltas<T> objectTreeDeltas) {
+    private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(
+            EvaluatedAssignment evaluatedAssignment, ObjectTreeDeltas<T> objectTreeDeltas) {
         Long id = evaluatedAssignment.getAssignmentId();
         if (id == null) {
             // Should never occur: assignments to be modified must have IDs.
@@ -226,7 +235,8 @@ public class AssignmentPolicyAspectPart {
 
         ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
         assert focusDelta != null;
-        ObjectDelta.FactorOutResultSingle<T> factorOutResult = focusDelta.factorOut(singleton(assignmentValuePath), false);
+        ObjectDelta.FactorOutResultSingle<T> factorOutResult =
+                focusDelta.factorOut(singleton(assignmentValuePath), false);
         if (factorOutResult.offspring == null) {
             LOGGER.trace("No modifications for an assignment, skipping approval action(s). Assignment = {}", evaluatedAssignment);
             return null;
@@ -234,38 +244,44 @@ public class AssignmentPolicyAspectPart {
         return factorOutResult.offspring;
     }
 
-    private ObjectDelta<? extends ObjectType> factorOutAssignmentValue(EvaluatedAssignment evaluatedAssignment,
-            @NotNull ObjectTreeDeltas<?> objectTreeDeltas, ModelInvocationContext<?> ctx) throws SchemaException {
+    private ObjectDelta<? extends ObjectType> factorOutAssignmentValue(
+            EvaluatedAssignment evaluatedAssignment, @NotNull ObjectTreeDeltas<?> objectTreeDeltas, ModelInvocationContext<?> ctx)
+            throws SchemaException {
         assert evaluatedAssignment.isBeingAdded() || evaluatedAssignment.isBeingDeleted();
         @SuppressWarnings("unchecked")
         PrismContainerValue<AssignmentType> assignmentValue = evaluatedAssignment.getAssignment().asPrismContainerValue();
         boolean assignmentRemoved = evaluatedAssignment.isBeingDeleted();
-        boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, false);
+        boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(
+                FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, false);
         if (!reallyRemoved) {
             ObjectDelta<?> secondaryDelta = ctx.modelContext.getFocusContext().getSecondaryDelta();
-            if (secondaryDelta != null && secondaryDelta.subtract(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, true)) {
-                LOGGER.trace("Assignment to be added/deleted was not found in primary delta. It is present in secondary delta, so there's nothing to be approved.");
+            if (secondaryDelta != null
+                    && secondaryDelta.subtract(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, true)) {
+                LOGGER.trace("Assignment to be added/deleted was not found in primary delta. It is present in secondary delta, "
+                        + "so there's nothing to be approved.");
                 return null;
             }
-            String message = "Assignment to be added/deleted was not found in primary nor secondary delta."
-                    + "\nAssignment:\n" + assignmentValue.debugDump()
-                    + "\nPrimary delta:\n" + objectTreeDeltas.debugDump();
-            throw new IllegalStateException(message);
+            throw new IllegalStateException(
+                    String.format("Assignment to be added/deleted was not found in primary nor secondary delta."
+                            + "\nAssignment:\n%s\nPrimary delta:\n%s",
+                            assignmentValue.debugDump(), objectTreeDeltas.debugDump()));
         }
         String objectOid = ctx.getFocusObjectOid();
-        return assignmentToDelta(ctx.modelContext.getFocusClass(),
-                evaluatedAssignment.getAssignment(), assignmentRemoved, objectOid);
+        return assignmentToDelta(
+                ctx.modelContext.getFocusClass(),
+                evaluatedAssignment.getAssignment(),
+                assignmentRemoved,
+                objectOid);
     }
 
-    private void logApprovalActions(EvaluatedAssignment assignment,
+    private void logApprovalActions(
+            EvaluatedAssignment assignment,
             List<EvaluatedPolicyRule> triggeredApprovalActionRules) {
-        if (LOGGER.isDebugEnabled() && !triggeredApprovalActionRules.isEmpty()) {
-            LOGGER.trace("-------------------------------------------------------------");
-            String verb = assignment.isBeingAdded() ? "added" :
-                                assignment.isBeingDeleted() ? "deleted" :
-                                        "modified";
-            LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval actions:",
-                    verb, assignment, assignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
+        if (LOGGER.isDebugEnabled()
+                && (!triggeredApprovalActionRules.isEmpty())) {
+            LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval action rules:",
+                    getAssignmentChangeVerb(assignment), assignment, assignment.getThisTargetPolicyRules().size(),
+                    triggeredApprovalActionRules.size());
             for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
                 LOGGER.debug(" - Approval actions: {}", t.getEnabledActions(ApprovalPolicyActionType.class));
                 for (EvaluatedPolicyRuleTrigger<?> trigger : t.getTriggers()) {
@@ -275,36 +291,56 @@ public class AssignmentPolicyAspectPart {
         }
     }
 
-    private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-            @NotNull EvaluatedAssignment evaluatedAssignment, ModelInvocationContext<?> ctx,
-            OperationResult result) throws SchemaException {
+    private static String getAssignmentChangeVerb(EvaluatedAssignment assignment) {
+        if (assignment.isBeingAdded()) {
+            return "added";
+        } else if (assignment.isBeingDeleted()) {
+            return "deleted";
+        } else {
+            return "kept";
+        }
+    }
+
+    private ApprovalSchemaBuilder.Result createSchemaWithRules(
+            @NotNull List<EvaluatedPolicyRule> triggeredApprovalRules,
+            @NotNull EvaluatedAssignment evaluatedAssignment,
+            @NotNull ModelInvocationContext<?> ctx,
+            @NotNull OperationResult result) throws SchemaException {
 
         PrismObject<?> targetObject = evaluatedAssignment.getTarget();
         ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 
-        // default policy action (only if adding)
-        if (triggeredApprovalRules.isEmpty() && evaluatedAssignment.isBeingAdded() &&
-                configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+        // default policy action (only if adding); we do not care about "triggeredForeignExclusionApprovalRules" here
+        if (triggeredApprovalRules.isEmpty()
+                && evaluatedAssignment.isBeingAdded()
+                && configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != NEVER) {
             if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {
                 LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
             }
         }
 
-        // (3) actions from triggered rules
+        // actions from triggered rules on this assignment
         for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
             for (ApprovalPolicyActionType approvalAction : approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
-                builder.add(main.getSchemaFromAction(approvalAction), approvalAction, targetObject, approvalRule);
+                builder.add(
+                        main.getSchemaFromAction(approvalAction),
+                        approvalAction,
+                        targetObject,
+                        approvalRule);
             }
         }
+
         return builder.buildSchema(ctx, result);
     }
 
     private PcpStartInstruction prepareAssignmentRelatedStartInstruction(
             ApprovalSchemaBuilder.Result builderResult,
-            EvaluatedAssignment evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
-            PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            EvaluatedAssignment evaluatedAssignment,
+            ObjectDelta<? extends ObjectType> deltaToApprove,
+            PrismObject<? extends FocusType> requester,
+            ModelInvocationContext<?> ctx,
+            OperationResult result) throws SchemaException {
 
-        ModelContext<?> modelContext = ctx.modelContext;
         @SuppressWarnings("unchecked")
         PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) evaluatedAssignment.getTarget();
         Validate.notNull(target, "assignment target is null");
@@ -313,24 +349,25 @@ public class AssignmentPolicyAspectPart {
         if (main.useDefaultProcessName(processName)) {
             processName = createDefaultProcessName(ctx, evaluatedAssignment, target);
         }
-        String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault(), "(unnamed)");
+        String processNameInDefaultLocale =
+                localizationService.translate(processName, Locale.getDefault(), "(unnamed)");
 
         PcpStartInstruction instruction =
                 PcpStartInstruction
                         .createItemApprovalInstruction(main.getChangeProcessor(),
-                                builderResult.schemaType, builderResult.attachedRules);
+                                builderResult.schema, builderResult.attachedRules);
 
-        instruction.prepareCommonAttributes(main, modelContext, requester);
+        instruction.prepareCommonAttributes(main, ctx.modelContext, requester);
         instruction.setDeltasToApprove(deltaToApprove);
         instruction.setObjectRef(ctx);
-        instruction.setTargetRef(createObjectRef(target, prismContext), result);
+        instruction.setTargetRef(createObjectRef(target), result);
         instruction.setName(processNameInDefaultLocale, processName);
 
         return instruction;
     }
 
-    private LocalizableMessage createDefaultProcessName(ModelInvocationContext<?> ctx, EvaluatedAssignment assignment,
-            PrismObject<? extends ObjectType> target) {
+    private LocalizableMessage createDefaultProcessName(
+            ModelInvocationContext<?> ctx, EvaluatedAssignment assignment, PrismObject<? extends ObjectType> target) {
 
         ObjectType focus = ctx.getFocusObjectNewOrOld();
 
@@ -342,7 +379,8 @@ public class AssignmentPolicyAspectPart {
 
         if (prismContext.isDefaultRelation(relation)) {
             return new LocalizableMessageBuilder()
-                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
+                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX
+                            + "assignmentModification.toBe" + operationKey)
                     .arg(ObjectTypeUtil.createDisplayInformation(target, false))
                     .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
                     .build();
@@ -352,7 +390,8 @@ public class AssignmentPolicyAspectPart {
                     .build();
 
             return new LocalizableMessageBuilder()
-                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
+                    .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX
+                            + "assignmentModification.toBe" + operationKey)
                     .arg(ObjectTypeUtil.createDisplayInformation(target, false))
                     .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
                     .arg(relationMessage)
@@ -369,5 +408,4 @@ public class AssignmentPolicyAspectPart {
         S_ItemEntry op = assignmentRemoved ? item.delete(value) : item.add(value);
         return op.asObjectDelta(objectOid);
     }
-
 }

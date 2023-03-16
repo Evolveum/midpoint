@@ -73,6 +73,10 @@ public class TestObject<T extends ObjectType> {
                 oid);
     }
 
+    public static <T extends ObjectType> TestObject<T> of(@NotNull T object) {
+        return new TestObject<>(new InMemoryTestObjectSource(object), object.getOid());
+    }
+
     public @NotNull PrismObject<T> parse() {
         try (InputStream inputStream = getInputStream()) {
             PrismObject<T> parsed = PrismContext.get()

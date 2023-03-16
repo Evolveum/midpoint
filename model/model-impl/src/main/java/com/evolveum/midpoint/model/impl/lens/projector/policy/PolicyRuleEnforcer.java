@@ -111,6 +111,7 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     private void computeEnforcementForAssignmentRules() {
         DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple != null) {
+            // We do not need to consider foreign policy rules here, as they are enforced on their respective primary hosts.
             evaluatedAssignmentTriple.simpleAccept(
                     assignment -> computeEnforcementForTriggeredRules(assignment.getAllTargetsPolicyRules()));
         }

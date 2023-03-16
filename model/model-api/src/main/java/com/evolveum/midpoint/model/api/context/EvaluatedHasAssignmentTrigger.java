@@ -18,8 +18,10 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
-    public EvaluatedHasAssignmentTrigger(@NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
-            @NotNull Collection<PrismObject<?>> matchingTargets, LocalizableMessage message, LocalizableMessage shortMessage) {
+    public EvaluatedHasAssignmentTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
+            @NotNull Collection<PrismObject<?>> matchingTargets,
+            LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         this.matchingTargets = matchingTargets;
     }

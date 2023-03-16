@@ -105,12 +105,8 @@
 
     <!-- Orgs scenario -->
 
-    <!-- This role is here because of assignments not being applied on object deletion. -->
+    <!-- This and following rule are here because of assignments not being applied on object deletion. -->
     <globalPolicyRule>
-        <focusSelector>
-            <type>OrgType</type>
-            <archetypeRef oid="b8a973e0-f645-490b-a2ac-b69bd4103bf8"/> <!-- deletion-safe-org -->
-        </focusSelector>
         <name>unassign-children-on-org-deletion</name>
         <documentation>
             Unassigns members when an org is deleted.
@@ -144,5 +140,70 @@
                 </executeScript>
             </scriptExecution>
         </policyActions>
+        <focusSelector>
+            <type>OrgType</type>
+            <archetypeRef oid="b8a973e0-f645-490b-a2ac-b69bd4103bf8"/> <!-- deletion-safe-org -->
+        </focusSelector>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <name>unassign-children-async-on-org-deletion</name>
+        <documentation>
+            Unassigns members (asynchronously) when an org is deleted.
+        </documentation>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkSource/>
+                </object>
+                <executeScript>
+                    <s:unassign>
+                        <s:filter>
+                            <q:ref>
+                                <q:path>targetRef</q:path>
+                                <expression>
+                                    <script>
+                                        <code>
+                                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+
+                                            new ObjectReferenceType()
+                                                    .oid(orgBeingDeleted as String)
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:ref>
+                        </s:filter>
+                    </s:unassign>
+                </executeScript>
+                <asynchronousExecution>
+                    <taskCustomizer>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.expression.ExpressionUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                                import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType
+                                import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariablesDefinitionType
+
+                                def req = (preparedTask as TaskType).activity.work.iterativeScripting.scriptExecutionRequest
+                                req.setVariables(new ScriptingVariablesDefinitionType()
+                                        .variable(new ScriptingVariableDefinitionType()
+                                                .name('orgBeingDeleted')
+                                                .expression(ExpressionUtil.forValue(midpoint.focusContextRequired.oid))))
+                                preparedTask
+                            </code>
+                        </script>
+                    </taskCustomizer>
+                </asynchronousExecution>
+            </scriptExecution>
+        </policyActions>
+        <focusSelector>
+            <type>OrgType</type>
+            <archetypeRef oid="08893534-3ab3-4209-8702-d21e5492813f"/> <!-- deletion-safe-org-async -->
+        </focusSelector>
     </globalPolicyRule>
 </systemConfiguration>

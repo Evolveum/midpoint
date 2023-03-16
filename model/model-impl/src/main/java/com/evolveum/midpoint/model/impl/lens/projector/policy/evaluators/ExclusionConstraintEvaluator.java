@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collections;
 import java.util.List;
@@ -123,7 +124,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                         }
                     }
                     EvaluatedExclusionTrigger rv = createTrigger(
-                            ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
+                            ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx, result);
                     result.addReturn("trigger", rv.toDiagShortcut());
                     return rv;
                 }
@@ -175,22 +176,23 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     private <AH extends AssignmentHolderType> boolean sourceOrderConstraintsDoNotMatch(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint, AssignmentPolicyRuleEvaluationContext<AH> ctx) {
         List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
+        AssignmentPath assignmentPath = ctx.policyRule.getAssignmentPathRequired();
         if (ctx.policyRule.isGlobal()) {
-            if (!pathMatches(ctx.policyRule.getAssignmentPath(), sourceOrderConstraints)) {
+            if (!pathMatches(assignmentPath, sourceOrderConstraints)) {
                 LOGGER.trace("Assignment path to the global policy rule does not match source order constraints,"
                                 + " not triggering. Path={}, source order constraints={}",
-                        ctx.policyRule.getAssignmentPath(), sourceOrderConstraints);
+                        assignmentPath, sourceOrderConstraints);
                 return true;
             }
         } else {
             // It is not clear how to match orderConstraint with assignment path of the constraint.
             // Let us try the following test: we consider it matching if there's at least one segment
             // on the path that matches the constraint.
-            boolean found = ctx.policyRule.getAssignmentPath().getSegments().stream()
+            boolean found = assignmentPath.getSegments().stream()
                     .anyMatch(segment -> segment.matches(sourceOrderConstraints));
             if (!found) {
                 LOGGER.trace("No segment in assignment path to the assigned policy rule does not match source order "
-                                + "constraints, not triggering. Whole path={}, constraints={}", ctx.policyRule.getAssignmentPath(),
+                                + "constraints, not triggering. Whole path={}, constraints={}", assignmentPath,
                         sourceOrderConstraints);
                 return true;
             }
@@ -199,10 +201,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean pathMatches(AssignmentPath assignmentPath, List<OrderConstraintsType> definedOrderConstraints) {
-        if (assignmentPath == null) {
-            throw new IllegalStateException("Assignment path is null.");
-        }
+    private boolean pathMatches(@NotNull AssignmentPath assignmentPath, List<OrderConstraintsType> definedOrderConstraints) {
         if (assignmentPath.isEmpty()) {
             throw new IllegalStateException("Assignment path is empty.");
         }
@@ -223,28 +222,42 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             @NotNull EvaluatedAssignmentImpl<?> assignmentB,
             EvaluatedAssignmentTargetImpl targetB,
             JAXBElement<ExclusionPolicyConstraintType> constraintElement,
-            EvaluatedPolicyRule policyRule,
             AssignmentPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
+        EvaluatedPolicyRule policyRule = ctx.policyRule;
         AssignmentPath pathA = policyRule.getAssignmentPath();
-        AssignmentPath pathB = targetB.getAssignmentPath();
+        @NotNull AssignmentPath pathB = targetB.getAssignmentPath();
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), true);
         LocalizableMessage infoB = createObjectInfo(pathB, targetB.getTarget(), false);
         ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
         ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
+        stateCheck(pathA != null,
+                "Assignment path for exclusion constraint cannot be determined: %s", ctx);
+        stateCheck(objectA != null,
+                "Object for exclusion constraint cannot be determined: %s", ctx);
+        stateCheck(objectB != null,
+                "Conflicting object for exclusion constraint cannot be determined: %s", ctx);
+
         LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, result);
         LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, result);
-        return new EvaluatedExclusionTrigger(constraintElement.getValue(), message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
+        return new EvaluatedExclusionTrigger(
+                constraintElement.getValue(), message, shortMessage,
+                assignmentA, assignmentB,
+                objectA, objectB, pathA, pathB,
+                false);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-            JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+            LocalizableMessage infoA, LocalizableMessage infoB,
+            JAXBElement<ExclusionPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                 .args(infoA, infoB)

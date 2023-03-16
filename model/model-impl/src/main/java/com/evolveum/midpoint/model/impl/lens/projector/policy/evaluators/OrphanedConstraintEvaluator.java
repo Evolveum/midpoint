@@ -93,7 +93,8 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
         LOGGER.debug("Orphaned status for {} is {}", object, orphaned);
 
         if (orphaned) {
-            return new EvaluatedOrphanedTrigger(ORPHANED, constraintElement.getValue(),
+            return new EvaluatedOrphanedTrigger(
+                    ORPHANED, constraintElement.getValue(),
                     createMessage(constraintElement, ctx, result),
                     createShortMessage(constraintElement, ctx, result));
         } else {

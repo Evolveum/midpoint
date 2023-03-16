@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -20,6 +19,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -57,12 +58,16 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     // returns statically defined actions; consider using getEnabledActions() instead
     PolicyActionsType getActions();
 
+    /**
+     * Evaluated assignment that brought this policy rule to the focus or target.
+     * May be missing for artificially-crafted policy rules (to be reviewed!)
+     */
+    @Nullable EvaluatedAssignment getEvaluatedAssignment();
+
     AssignmentPath getAssignmentPath();
 
     // TODO consider removing
     String getPolicySituation();
-
-    Collection<PolicyExceptionType> getPolicyExceptions();
 
     void addToEvaluatedPolicyRuleBeans(
             Collection<EvaluatedPolicyRuleType> ruleBeans,
@@ -94,7 +99,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
 
     //experimental
-    String getPolicyRuleIdentifier();
+    @NotNull String getPolicyRuleIdentifier();
 
     default boolean hasThreshold() {
         return getPolicyRule().getPolicyThreshold() != null; // refine this if needed
@@ -122,6 +127,11 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     /** To which object is the policy rule targeted and how. */
     @NotNull TargetType getTargetType();
+
+    static boolean contains(List<? extends EvaluatedPolicyRule> rules, EvaluatedPolicyRule otherRule) {
+        return rules.stream()
+                .anyMatch(r -> r.getPolicyRuleIdentifier().equals(otherRule.getPolicyRuleIdentifier()));
+    }
 
     /**
      * To which object is the policy rule targeted, from the point of assignment mechanisms - and how?

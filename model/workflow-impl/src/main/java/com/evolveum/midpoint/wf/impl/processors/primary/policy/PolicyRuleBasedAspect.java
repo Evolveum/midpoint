@@ -89,8 +89,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
             List<PcpStartInstruction> instructions = new ArrayList<>();
             if (objectTreeDeltas.getFocusChange() != null) {
                 PrismObject<? extends FocusType> requester = ctx.getRequestor(result);
-                assignmentPolicyAspectPart
-                        .extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
+                assignmentPolicyAspectPart.extractAssignmentBasedInstructions(
+                        objectTreeDeltas, requester, instructions, ctx, result);
                 objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
             }
             result.addParam("instructionsCount", instructions.size());
@@ -114,8 +114,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         if (approvalAction.getApprovalSchema() != null) {
             return approvalAction.getApprovalSchema().clone();
         } else {
-            ApprovalSchemaType rv = new ApprovalSchemaType(prismContext);
-            ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType(prismContext);
+            ApprovalSchemaType rv = new ApprovalSchemaType();
+            ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType();
             stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvalAction.getApproverRef()));
             stageDef.getApproverRelation().addAll(approvalAction.getApproverRelation());
             stageDef.getApproverExpression().addAll(approvalAction.getApproverExpression());
@@ -211,7 +211,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    protected boolean useDefaultProcessName(LocalizableMessage processName) {
+    boolean useDefaultProcessName(LocalizableMessage processName) {
         return LocalizableMessage.isEmpty(processName) ||
                 processName instanceof SingleLocalizableMessage &&
                         USE_DEFAULT_NAME_MARKER.equals(((SingleLocalizableMessage) processName).getKey());

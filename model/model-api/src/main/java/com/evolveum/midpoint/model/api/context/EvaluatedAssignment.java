@@ -117,11 +117,22 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
     Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
     /**
+     * Returns {@link #getAllTargetsPolicyRules()} plus so-called "foreign policy rules". Those are rules that are related
+     * to this assignment because they contain an exclusion trigger pointing to this assignment as the conflicting one.
+     * This is necessary to implement "declare once, use twice" approach where it should be sufficient to declare an exclusion
+     * constraint at one of the targets only. See e.g. MID-8269.
+     *
+     * BEWARE! The exclusion constraints on foreign policy rules are just as they are triggered on their original assignments.
+     * It means that exclusion triggers on them point to THIS assigment as the conflicting one. The original assignment should
+     * be present in {@link EvaluatedPolicyRule#getAssignmentPath()}.
+     * See also {@link EvaluatedExclusionTrigger#getRealConflictingAssignment(EvaluatedAssignment)}.
+     */
+    @NotNull Collection<? extends EvaluatedPolicyRule> getAllTargetsAndForeignPolicyRules();
+
+    /**
      * How many target policy rules are there.
      */
     int getAllTargetsPolicyRulesCount();
-
-    void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
     /**
      * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation

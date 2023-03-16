@@ -41,7 +41,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1205,6 +1204,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             dumpPolicyRulesCollection(
                     "targetsPolicyRules", indent + 1, sb, assignment.getAllTargetsPolicyRules(), alsoMessages);
             dumpPolicyRulesCollection(
+                    "foreignPolicyRules", indent + 1, sb, assignment.getForeignPolicyRules(), alsoMessages);
+            dumpPolicyRulesCollection(
                     "objectPolicyRules", indent + 1, sb, assignment.getObjectPolicyRules(), alsoMessages);
         }, 1);
         return sb.toString();
@@ -1240,11 +1241,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
         sb.append("rule: ").append(rule.toShortString());
         dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
-        for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
-            sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent + 2);
-            sb.append("exception: ").append(exc);
-        }
         if (alsoMessages) {
             if (rule.isTriggered()) {
                 sb.append("\n\n");
@@ -1291,6 +1287,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getObjectPolicyRules());
             dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
             dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
+            dumpRulesIfNotEmpty(sb, "- foreign rules", indent + 3, assignment.getForeignPolicyRules());
         }
     }
 
@@ -1731,7 +1728,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     @NotNull
     public ObjectTreeDeltas<F> getTreeDeltas() {
-        ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>(PrismContext.get());
+        ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>();
         if (getFocusContext() != null && getFocusContext().getPrimaryDelta() != null) {
             objectTreeDeltas.setFocusChange(getFocusContext().getPrimaryDelta().clone());
         }
