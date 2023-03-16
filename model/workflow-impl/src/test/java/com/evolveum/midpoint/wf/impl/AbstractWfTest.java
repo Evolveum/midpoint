@@ -71,6 +71,9 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
+    protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES = "dummy:simpleWorkflowNotifier-Processes";
+    protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS = "dummy:simpleWorkflowNotifier-WorkItems";
+
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
     @Autowired protected CaseManager caseManager;
