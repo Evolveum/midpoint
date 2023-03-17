@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -239,6 +240,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                customizeProvider(provider);
                 return provider;
             }
 
@@ -268,6 +270,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return createModelOptions();
             }
 
+            @Override
+            protected List<Component> createToolbarButtonsList(String buttonId) {
+                List<Component> buttonsList = new ArrayList<>();
+                buttonsList.addAll(ResourceContentPanel.this.createToolbarButtonsList(buttonId));
+                buttonsList.addAll(super.createToolbarButtonsList(buttonId));
+                return buttonsList;
+            }
         };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
@@ -318,6 +327,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 taskButtonsContainer);
 
         initCustomLayout();
+    }
+
+    protected Collection<? extends Component> createToolbarButtonsList(String buttonId) {
+        return new ArrayList<>();
+    }
+
+    protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
     }
 
     protected boolean isTaskButtonsContainerVisible() {

@@ -17,8 +17,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceGenerics")
-@PanelInstance(identifier = "resourceGenerics", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.content.generic", icon = GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC, order = 70))
+@PanelInstance(
+        identifier = "resourceGenerics",
+        applicableForOperation = OperationTypeType.MODIFY,
+        applicableForType = ResourceType.class,
+        display =
+        @PanelDisplay(
+                label = "PageResource.tab.content.generic",
+                icon = GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC,
+                order = 70))
 public class ResourceGenericsPanel extends ResourceContentPanel {
 
     public ResourceGenericsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
