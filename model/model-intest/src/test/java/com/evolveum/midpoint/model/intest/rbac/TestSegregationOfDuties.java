@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.test.TestResource;
 
@@ -1552,6 +1555,65 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .assertAssignments(2)
                     .assertRole(ROLE_APPLICATION_2.oid)
                     .assertRole(ROLE_BUSINESS_2.oid);
+    }
+
+
+    /**
+     * When previewing assignment addition with pruning action present, the pruning itself should not be executed.
+     * Otherwise, the information about the conflict would be lost. (There is a special option for this case.)
+     *
+     * We test all cases:
+     *
+     * . bidirectional definition (`gold` vs `silver`)
+     * . unidirectional definition (`silver` vs `bronze`), assigned from either side
+     *
+     * MID-8243
+     *
+     * Intentionally before global SoD approval rules are enabled in {@link #test900ApplyGlobalPolicyRulesSoDApproval()}.
+     */
+    @Test
+    public void test840PreviewWithPruning() throws Exception {
+        testPreviewWithPruning("u970-1", ROLE_PRIZE_GOLD_OID, ROLE_PRIZE_SILVER_OID, 2);
+        testPreviewWithPruning("u970-2", ROLE_PRIZE_SILVER_OID, ROLE_PRIZE_BRONZE_OID, 1);
+        testPreviewWithPruning("u970-3", ROLE_PRIZE_BRONZE_OID, ROLE_PRIZE_SILVER_OID, 1);
+    }
+
+    private void testPreviewWithPruning(String username, String existingRoleOid, String newRoleOid, int expectedTriggers)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("user with existing role assignment is created");
+        UserType user = new UserType()
+                .name(username)
+                .assignment(roleAssignment(existingRoleOid));
+        addObject(user, task, result);
+
+        when("preview adding of new role assignment");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(roleAssignment(newRoleOid))
+                .asObjectDelta(user.getOid());
+
+        ModelExecuteOptions options = ModelExecuteOptions.create()
+                .partialProcessing(new PartialProcessingOptionsType()
+                        .inbound(SKIP)
+                        .projection(SKIP))
+                .ignoreAssignmentPruning();
+
+        ModelContext<UserType> ctx = modelInteractionService.previewChanges(List.of(delta), options, task, result);
+
+        then("the exclusion triggers are there");
+        var triggers = ctx.getEvaluatedAssignmentTriple().union().stream()
+                .flatMap(ea -> ea.getAllTargetsPolicyRules().stream())
+                .flatMap(r -> r.getAllTriggers(EvaluatedExclusionTrigger.class).stream())
+                .collect(Collectors.toList());
+        assertThat(triggers).as("exclusion triggers").hasSize(expectedTriggers);
+    }
+
+    private static AssignmentType roleAssignment(String existingRoleOid) {
+        return new AssignmentType()
+                .targetRef(existingRoleOid, RoleType.COMPLEX_TYPE);
     }
 
     @Test

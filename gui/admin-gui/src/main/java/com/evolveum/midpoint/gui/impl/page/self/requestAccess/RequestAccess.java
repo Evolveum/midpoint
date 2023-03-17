@@ -436,11 +436,11 @@ public class RequestAccess implements Serializable {
 
             ObjectDelta<UserType> delta = createUserDelta(user);
 
-            PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
-            processing.setInbound(SKIP);
-            processing.setProjection(SKIP);
-
-            ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
+            ModelExecuteOptions options = ModelExecuteOptions.create()
+                    .partialProcessing(new PartialProcessingOptionsType()
+                            .inbound(SKIP)
+                            .projection(SKIP))
+                    .ignoreAssignmentPruning();
 
             MidPointApplication mp = MidPointApplication.get();
             ModelContext<UserType> ctx = mp.getModelInteractionService()
