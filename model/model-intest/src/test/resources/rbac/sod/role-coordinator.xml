@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="77979937-d4a0-42da-a937-c0b4eebc3372">
+    <name>coordinator</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef relation="org:default" type="RoleType">
+                        <filter>
+                            <q:equal>
+                                <q:path>description</q:path>
+                                <q:value>worker</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </targetRef>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <requestable>true</requestable>
+</role>
