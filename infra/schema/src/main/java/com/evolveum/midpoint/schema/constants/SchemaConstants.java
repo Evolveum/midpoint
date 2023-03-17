@@ -457,7 +457,8 @@ public abstract class SchemaConstants {
     //GUI constants which are also used in the notifiers
     public static final String WORK_ITEM_URL_PREFIX = "/admin/workItem?pathParameter=";
     public static final String CASE_URL_PREFIX = "/admin/caseNew/";
-    public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";
+    public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";  //todo remove in the future, seems to be an old implementation for self registration
+    public static final String REGISTRATION_PREFIX = "/registration";
     public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
     public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
     public static final String AUTH_MODULE_PREFIX = "/auth";

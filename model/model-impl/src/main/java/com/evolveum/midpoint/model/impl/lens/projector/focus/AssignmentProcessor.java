@@ -203,21 +203,25 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // PROCESSING POLICIES
 
         policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
-        boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
-        if (needToReevaluateAssignments) {
-            LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
+        if (ModelExecuteOptions.isIgnoreAssignmentPruning(context.getOptions())) {
+            LOGGER.debug("Assignment pruning is ignored because of the model execute option");
+        } else {
+            boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
+            if (needToReevaluateAssignments) {
+                LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
 
-            assignmentTripleEvaluator.reset(true);
-            evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-            context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
+                assignmentTripleEvaluator.reset(true);
+                evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+                context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
-            // TODO implement isMemberOf invocation result change check here! MID-5784
-            //  Actually, we should factor out the relevant code to avoid code duplication.
+                // TODO implement isMemberOf invocation result change check here! MID-5784
+                //  Actually, we should factor out the relevant code to avoid code duplication.
 
-            LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
+                LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
-            policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+                policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+            }
         }
 
         policyRuleProcessor.recordAssignmentPolicyRules(focusContext, task, result);

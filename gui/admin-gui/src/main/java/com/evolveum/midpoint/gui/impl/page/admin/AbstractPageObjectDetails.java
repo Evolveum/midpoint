@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -259,7 +258,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options,
+                task, result, target);
 
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
@@ -295,15 +295,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    protected void postProcessResult(
-            OperationResult result,
+    protected void postProcessResult(OperationResult result,
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
             AjaxRequestTarget target) {
         result.computeStatusIfUnknown();
         if (allowRedirectBack() && !result.isError()) {
-            redirectBack();
+            navigateAction();
         } else {
             target.add(getFeedbackPanel());
+        }
+    }
+
+    protected void navigateAction(){
+        Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
+        if(!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null){
+            navigateToNext(objectListPage);
+        }else {
+            redirectBack();
         }
     }
 

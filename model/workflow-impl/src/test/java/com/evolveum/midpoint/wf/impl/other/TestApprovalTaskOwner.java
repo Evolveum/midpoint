@@ -74,7 +74,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
 
         then();
         display("RESULT: \n" + result.debugDump());
-        caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        caseOid = result.findCaseOid();
         assertThat(caseOid).isNotNull();
 
     }
@@ -142,7 +142,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         assignRole(USER_JACK.oid, ROLE_DUELLING_CLASSROOM_TEACHER_OID, task, result);
 
         then();
-        caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        caseOid = result.findCaseOid();
         assertThat(caseOid).isNotNull();
     }
 

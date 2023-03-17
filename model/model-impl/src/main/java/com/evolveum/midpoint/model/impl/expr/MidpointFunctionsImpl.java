@@ -1621,7 +1621,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 }
             }
         }
-        return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX, userType);
+        return createTokenConfirmationLink(SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
     }
 
     @Override

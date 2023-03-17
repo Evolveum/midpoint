@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="a9aca7bb-923e-4be6-9aa4-5c90af978207">
+    <name>approver-by-multiple-relations</name>
+    <assignment>
+        <targetRef oid="62d7fcdf-92b0-4c49-ae40-33b0a814ed56" type="RoleType" relation="org:approver"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="62d7fcdf-92b0-4c49-ae40-33b0a814ed56" type="RoleType" relation="org:owner"/>
+    </assignment>
+</user>

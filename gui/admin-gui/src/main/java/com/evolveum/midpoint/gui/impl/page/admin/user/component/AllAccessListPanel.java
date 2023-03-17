@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressi
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanReferenceDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 import com.evolveum.midpoint.prism.*;
@@ -60,7 +61,14 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
     @Override
     protected void initLayout() {
-        var accessesTable = new ContainerableListPanel<ObjectReferenceType, SelectableBean<ObjectReferenceType>>(ID_ACCESSES, ObjectReferenceType.class, null, getPanelConfiguration()) {
+        if (!getPageBase().isNativeRepo()) {
+            add(new ErrorPanel(ID_ACCESSES,
+                    () -> getString("AllAccessListPanel.nonNativeRepositoryWarning")));
+            return;
+        }
+
+        var accessesTable = new ContainerableListPanel<ObjectReferenceType, SelectableBean<ObjectReferenceType>>(
+                ID_ACCESSES, ObjectReferenceType.class, null, getPanelConfiguration()) {
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PANEL_USER_ACCESSES;

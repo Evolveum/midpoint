@@ -16,22 +16,15 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 
@@ -110,7 +103,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     }
 
     private void initModeButtons(RepeatingView modeButtons) {
-        AjaxIconButton toggleToProduction = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.ClASS_ICON_TOOGLE),
+        AjaxIconButton toggleToProduction = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToProduction")) {
             private static final long serialVersionUID = 1L;
 
@@ -125,7 +118,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         toggleToProduction.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_ACTIVE)));
         modeButtons.add(toggleToProduction);
 
-        AjaxIconButton toggleToDevelopment = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.ClASS_ICON_TOOGLE),
+        AjaxIconButton toggleToDevelopment = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToDevelopment")) {
             private static final long serialVersionUID = 1L;
 

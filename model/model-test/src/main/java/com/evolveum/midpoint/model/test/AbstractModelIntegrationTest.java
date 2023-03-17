@@ -7289,7 +7289,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected @NotNull String getReferencedCaseOidRequired(OperationResult result) {
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        String caseOid = result.findCaseOid();
         assertThat(caseOid).as("Case OID referenced by operation result").isNotNull();
         return caseOid;
     }

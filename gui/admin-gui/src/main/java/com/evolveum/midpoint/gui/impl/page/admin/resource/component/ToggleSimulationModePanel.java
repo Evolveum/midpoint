@@ -52,7 +52,7 @@ public class ToggleSimulationModePanel extends BasePanel<PrismPropertyWrapper<St
         label.setOutputMarkupId(true);
         add(label);
 
-        AjaxIconButton toggleToProduction = new AjaxIconButton(ID_SWITCH_TO_PROD, Model.of(GuiStyleConstants.ClASS_ICON_TOOGLE),
+        AjaxIconButton toggleToProduction = new AjaxIconButton(ID_SWITCH_TO_PROD, Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToProduction")) {
             private static final long serialVersionUID = 1L;
 
@@ -68,7 +68,7 @@ public class ToggleSimulationModePanel extends BasePanel<PrismPropertyWrapper<St
         toggleToProduction.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_ACTIVE)));
         add(toggleToProduction);
 
-        AjaxIconButton toggleToDevelopment = new AjaxIconButton(ID_SWITCH_TO_DEV, Model.of(GuiStyleConstants.ClASS_ICON_TOOGLE),
+        AjaxIconButton toggleToDevelopment = new AjaxIconButton(ID_SWITCH_TO_DEV, Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToDevelopment")) {
             private static final long serialVersionUID = 1L;
 

@@ -6,15 +6,20 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -144,6 +149,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     private static final TestResource<RoleType> USER_PETR = new TestResource<>(TEST_DIR, "user-petr.xml", "16a61473-9542-4068-98be-3380802afbfe");
     private static final TestResource<RoleType> USER_MARTIN = new TestResource<>(TEST_DIR, "user-martin.xml", "1bf090da-b070-4049-a10e-ba4a7c8430cd");
 
+    private static final TestObject<RoleType> ROLE_COORDINATOR = TestObject.file(
+            TEST_DIR, "role-coordinator.xml", "77979937-d4a0-42da-a937-c0b4eebc3372");
+    private static final TestObject<RoleType> ROLE_WORKER_1 = TestObject.file(
+            TEST_DIR, "role-worker-1.xml", "1095e83a-629c-4476-85b5-6f600f5fef2f");
+    private static final TestObject<RoleType> ROLE_WORKER_2 = TestObject.file(
+            TEST_DIR, "role-worker-2.xml", "47be6709-d7e5-4f58-8da2-d7fc956d7888");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -184,6 +196,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         addObject(USER_PETR, initTask, initResult);
         addObject(USER_MARTIN, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                ROLE_COORDINATOR, ROLE_WORKER_1, ROLE_WORKER_2);
     }
 
     @Test
@@ -1552,6 +1567,88 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .assertAssignments(2)
                     .assertRole(ROLE_APPLICATION_2.oid)
                     .assertRole(ROLE_BUSINESS_2.oid);
+    }
+
+
+    /**
+     * When previewing assignment addition with pruning action present, the pruning itself should not be executed.
+     * Otherwise, the information about the conflict would be lost. (There is a special option for this case.)
+     *
+     * We test all cases:
+     *
+     * . bidirectional definition (`gold` vs `silver`)
+     * . unidirectional definition (`silver` vs `bronze`), assigned from either side
+     *
+     * MID-8243
+     *
+     * Intentionally before global SoD approval rules are enabled in {@link #test900ApplyGlobalPolicyRulesSoDApproval()}.
+     */
+    @Test
+    public void test840PreviewWithPruning() throws Exception {
+        testPreview("u840-1", 2, ROLE_PRIZE_GOLD_OID, ROLE_PRIZE_SILVER_OID);
+        testPreview("u840-2", 1, ROLE_PRIZE_SILVER_OID, ROLE_PRIZE_BRONZE_OID);
+        testPreview("u840-3", 1, ROLE_PRIZE_BRONZE_OID, ROLE_PRIZE_SILVER_OID);
+    }
+
+    private void testPreview(
+            String username, int expectedTriggers, String existingRoleOid, String... newRoleOids)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("user with existing role assignment is created");
+        UserType user = new UserType()
+                .name(username)
+                .assignment(roleAssignment(existingRoleOid));
+        addObject(user, task, result);
+
+        when("preview adding of new role assignment(s)");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .addRealValues(roleAssignments(newRoleOids))
+                .asObjectDelta(user.getOid());
+
+        ModelExecuteOptions options = ModelExecuteOptions.create()
+                .partialProcessing(new PartialProcessingOptionsType()
+                        .inbound(SKIP)
+                        .projection(SKIP))
+                .ignoreAssignmentPruning();
+
+        ModelContext<UserType> ctx = modelInteractionService.previewChanges(List.of(delta), options, task, result);
+
+        then("the exclusion triggers are there");
+        var triggers = ctx.getEvaluatedAssignmentTriple().union().stream()
+                .flatMap(ea -> ea.getAllTargetsPolicyRules().stream())
+                .flatMap(r -> r.getAllTriggers(EvaluatedExclusionTrigger.class).stream())
+                .collect(Collectors.toList());
+        assertThat(triggers).as("exclusion triggers").hasSize(expectedTriggers);
+    }
+
+    private static AssignmentType roleAssignment(String roleOid) {
+        return new AssignmentType()
+                .targetRef(roleOid, RoleType.COMPLEX_TYPE);
+    }
+
+    private static List<AssignmentType> roleAssignments(String... roleOids) {
+        return Arrays.stream(roleOids)
+                .map(oid -> roleAssignment(oid))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * When previewing assignment additions for more roles (excluded by one-side rules), we need to make sure we see all
+     * the triggers.
+     *
+     * MID-8251
+     *
+     * Intentionally before global SoD approval rules are enabled in {@link #test900ApplyGlobalPolicyRulesSoDApproval()}.
+     */
+    @Test(enabled = false) // the cause is not fixed yet
+    public void test845PreviewWithMultipleConflicts() throws Exception {
+        testPreview("u845-1", 1, ROLE_COORDINATOR.oid, ROLE_WORKER_1.oid);
+        testPreview("u845-2", 1, ROLE_WORKER_1.oid, ROLE_COORDINATOR.oid);
+        testPreview("u845-3", 2, ROLE_COORDINATOR.oid, ROLE_WORKER_1.oid, ROLE_WORKER_2.oid);
+        testPreview("u845-4", 2, ROLE_WORKER_1.oid, ROLE_COORDINATOR.oid, ROLE_WORKER_2.oid);
     }
 
     @Test
