@@ -862,21 +862,21 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         OrgType root = new OrgType()
-                .name("root")
+                .name("root800")
                 .beginAssignment()
                 .targetRef(ARCHETYPE_DELETION_SAFE_ORG.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
         addObject(root, task, result);
 
         OrgType child = new OrgType()
-                .name("child")
+                .name("child800")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
         addObject(child, task, result);
 
         UserType user = new UserType()
-                .name("user")
+                .name("user800")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
@@ -906,21 +906,21 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         OrgType root = new OrgType()
-                .name("root")
+                .name("root810")
                 .beginAssignment()
                 .targetRef(ARCHETYPE_DELETION_SAFE_ORG_ASYNC.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
         addObject(root, task, result);
 
         OrgType child = new OrgType()
-                .name("child")
+                .name("child810")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
         addObject(child, task, result);
 
         UserType user = new UserType()
-                .name("user")
+                .name("user810")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
