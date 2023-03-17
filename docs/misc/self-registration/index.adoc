@@ -105,16 +105,16 @@ For such scenarios, the configuration can look like following:
 
 [source,xml]
 ----
-    <registration>
-      <selfRegistration>
+    <flow>
+      <postAuthentication>
          <name>selfRegistration</name>
          <initialLifecycleState>proposed</initialLifecycleState>
          <requiredLifecycleState>draft</requiredLifecycleState>
          <displayName>Self Registration</displayName>
          <additionalAuthenticationSequence>confirmationLink</additionalAuthenticationSequence>
          <defaultRole oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"/>
-      </selfRegistration>
-   </registration>
+      </postAuthentication>
+   </flow>
 ----
 
 Example above shows configuration for self post-registration where it is required that the user already exists in midPoint.
@@ -125,6 +125,7 @@ This newly created user is disabled and doesn't have any roles assigned until he
 Confirmation of registration is configurable using additionalAuthenticationSequence attribute.
 After user successfully confirms the registration, default roles are assigned to him/her - default roles are configured using defaultRole attribute.
 
+More information about lifecycle configuration, please, see xref:/midpoint/reference/security/authentication/post-authentication-configuration/#configure-lifecycle-activation[Configure lifecycle activation]
 
 === Authentication Part
 
@@ -188,14 +189,14 @@ All what is needed is to reference to the concrete form in the self-registration
 .Self registration with custom form
 [source,xml]
 ----
-<registration>
+<flow>
       <selfRegistration>
 
         ...
 
          <formRef oid="6818a918-109a-4b82-876b-f72dec9d561a" type="c:FormType"><!-- Registration form --></formRef>
       </selfRegistration>
-   </registration>
+   </flow>
 ----
 
 == Email Notifications
