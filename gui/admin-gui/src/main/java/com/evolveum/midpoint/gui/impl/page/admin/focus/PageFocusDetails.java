@@ -12,14 +12,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
@@ -29,6 +21,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -41,10 +34,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -256,7 +252,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
         if ((isSaveInBackground() || !isKeepDisplayingResults()) && canExitPage) {
             showResult(result);
-            redirectBack();
+            navigateAction();
         } else {
             getProgressPanel().manageButtons(target, returningFromAsync, canContinueEditing);
             showResult(result);
