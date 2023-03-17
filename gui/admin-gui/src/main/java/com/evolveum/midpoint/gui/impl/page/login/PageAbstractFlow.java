@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -34,8 +36,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SUBMIT_REGISTRATION = "submitRegistration";
 
-    private static final String ID_BACK = "back";
-
     private static final String ID_DYNAMIC_FORM = "dynamicForm";
     protected static final String ID_CONTENT_AREA = "contentArea";
 
@@ -46,6 +46,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     protected static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
 
     protected PageParameters pageParameters;
+    protected boolean isSubmitted = false;
 
     public abstract void initializeModel();
     public abstract IModel<UserType> getUserModel();
@@ -53,7 +54,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     protected abstract WebMarkupContainer initStaticLayout();
     protected abstract WebMarkupContainer initDynamicLayout();
     protected abstract void submitRegistration(AjaxRequestTarget target);
-    protected abstract boolean isBackButtonVisible();
     protected abstract ObjectReferenceType getCustomFormRef();
 
     public PageAbstractFlow(PageParameters pageParameters) {
@@ -81,18 +81,22 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
         fragment.setOutputMarkupId(true);
         content.setOutputMarkupId(true);
-        initCaptchaAndButtons(fragment);
+        addOrReplaceCaptcha(fragment);
+        initButtons(mainForm);
         fragment.add(content);
         mainForm.add(fragment);
 
     }
 
-    private void initCaptchaAndButtons(WebMarkupContainer content) {
+    private void addOrReplaceCaptcha(WebMarkupContainer content) {
         CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA, this);
         captcha.setOutputMarkupId(true);
-        content.add(captcha);
+        captcha.add(new VisibleBehaviour(() -> !isSubmitted));
+        content.addOrReplace(captcha);
+    }
 
-        AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION, createStringResource("PageSelfRegistration.register")) {
+    private void initButtons(MidpointForm<?> mainForm) {
+        AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
 
             private static final long serialVersionUID = 1L;
 
@@ -102,33 +106,13 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             }
 
             protected void onSubmit(AjaxRequestTarget target) {
-
+                isSubmitted = true;
                 doRegistration(target);
 
             }
         };
-
-        content.add(register);
-
-        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageSelfRegistration.back")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageLogin.class);
-            }
-        };
-        back.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isBackButtonVisible();
-            }
-        });
-        content.add(back);
+        register.add(new VisibleBehaviour(() -> !isSubmitted));
+        mainForm.add(register);
     }
 
     private void doRegistration(AjaxRequestTarget target) {
@@ -174,12 +158,8 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     }
 
     protected void updateCaptcha(AjaxRequestTarget target) {
-
-        CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA, this);
-        captcha.setOutputMarkupId(true);
-
         Fragment fragment = (Fragment) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA));
-        fragment.addOrReplace(captcha);
+        addOrReplaceCaptcha(fragment);
         target.add(fragment);
     }
 

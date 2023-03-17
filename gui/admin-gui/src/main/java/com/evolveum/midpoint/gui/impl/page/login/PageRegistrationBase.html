@@ -18,9 +18,14 @@
             <div class="card-header text-center">
                 <h1>midPoint</h1>
             </div>
-            <div class="card-body">
+            <div class="card-body login-card-body justify-content-between">
+                <h4 class="login-box-msg" wicket:id="formTitle"></h4>
+                <p class="login-panel-description text-center" wicket:id="formDescription"></p>
                 <wicket:child />
             </div>
+            <a class="text-center login-panel-control" style="display: inline-block;" wicket:id="back">
+                <i class="fas fa-arrow-left mr-2"></i>
+            </a>
             <div class="card-footer login-footer" wicket:id="footerContainer">
                 <span class="pull-right hidden-xs" wicket:id="version">
                     <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
