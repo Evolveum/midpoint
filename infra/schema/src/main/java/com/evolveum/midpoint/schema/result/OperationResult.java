@@ -549,7 +549,7 @@ public class OperationResult
      * until this is fixed somehow, this is a bit of hack to fetch asynchronous operation reference
      * even in such cases.
      */
-    public String findAsynchronousOperationReference() {
+    public @Nullable String findAsynchronousOperationReference() {
         if (asynchronousOperationReference != null) {
             return asynchronousOperationReference;
         }
@@ -560,6 +560,18 @@ public class OperationResult
             }
         }
         return null;
+    }
+
+    /** A convenience method. (Assumes we have only a single asynchronous operation reference in the tree.) */
+    public @Nullable String findTaskOid() {
+        return referenceToTaskOid(
+                findAsynchronousOperationReference());
+    }
+
+    /** A convenience method. (Assumes we have only a single asynchronous operation reference in the tree.) */
+    public @Nullable String findCaseOid() {
+        return referenceToCaseOid(
+                findAsynchronousOperationReference());
     }
 
     public static boolean isTaskOid(String ref) {

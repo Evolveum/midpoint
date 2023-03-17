@@ -932,7 +932,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         then();
         assertSuccess(result);
 
-        String taskOid = OperationResult.referenceToTaskOid(result.findAsynchronousOperationReference());
+        String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNotNull();
 
         waitForTaskFinish(taskOid, false);

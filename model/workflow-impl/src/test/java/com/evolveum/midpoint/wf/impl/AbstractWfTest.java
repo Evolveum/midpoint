@@ -380,7 +380,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected CaseAsserter<Void> assertCase(OperationResult result, String message)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        String caseOid = result.findCaseOid();
         assertThat(caseOid).as("No background case OID").isNotNull();
         return assertCase(caseOid, message);
     }

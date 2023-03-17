@@ -358,7 +358,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         assignRole(USER_JACK.oid, roleRole26Oid, task, result);
-        String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
+        String ref = result.findAsynchronousOperationReference(); // TODO use recompute + getAsync... when fixed
         assertNotNull("No asynchronous operation reference", ref);
         String caseOid = OperationResult.referenceToCaseOid(ref);
 
