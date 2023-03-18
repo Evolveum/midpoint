@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -108,18 +108,6 @@ public abstract class ValueFilterValues<T, V> {
         }
 
         return (PolyString) value;
-    }
-
-    @NotNull
-    public static ValueFilterValues<?, ?> convertPolyValuesToString(ValueFilterValues<?, ?> values,
-            PropertyValueFilter<?> filter, Function<PolyString, String> extractor) {
-        // In case it is string already we don't need to do anything.
-        if (values.singleValueRaw() instanceof String) {
-            return values;
-        }
-
-        //noinspection unchecked
-        return ValueFilterValues.from((PropertyValueFilter<PolyString>) filter, extractor);
     }
 
     private static class Constant<T, V> extends ValueFilterValues<T, V> {

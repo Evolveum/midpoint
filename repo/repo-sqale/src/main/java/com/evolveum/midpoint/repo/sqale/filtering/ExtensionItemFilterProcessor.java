@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_NORM_
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
-import static com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues.convertPolyValuesToString;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
 import java.util.HashMap;
@@ -349,7 +348,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     JSONB_POLY_ORIG_KEY, operation);
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return processPolyStringComponent(
-                    extItem, ValueFilterValues.from(filter, this::extractNorm),
+                    extItem, ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractNorm),
                     JSONB_POLY_NORM_KEY, operation);
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
@@ -377,10 +376,10 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     .where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation, polyString.getNorm()));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
             subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation,
-                    convertPolyValuesToString(values, filter, p -> p.getOrig()).singleValue()));
+                    PolyStringItemFilterProcessor.extractOrig(values.singleValue())));
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
-                    convertPolyValuesToString(values, filter, p -> p.getNorm()).singleValue()));
+                    PolyStringItemFilterProcessor.extractNorm(values.singleValue())));
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
         }
@@ -451,10 +450,6 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         // We have to use parenthesis with AND shovelled into the template like this to apply NOT to it all.
         return booleanTemplate("({0} ?? '{1s}' AND {0} is not null)",
                 path, extItem.id).not();
-    }
-
-    private String extractNorm(Object value) {
-        return PolyStringItemFilterProcessor.extractNorm(value, context.prismContext());
     }
 
     /**
