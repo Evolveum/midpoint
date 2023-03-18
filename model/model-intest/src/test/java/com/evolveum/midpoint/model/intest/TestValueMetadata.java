@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -2176,7 +2176,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .end()
 
-                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"));
+                .assertValues(PATH_ASSURED_ORGANIZATION, PolyString.fromOrig("Department of Hydrostatics"));
     }
 
     /**
@@ -2269,7 +2269,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .end()
 
-                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"), poly("Binomial Club"));
+                .assertValues(PATH_ASSURED_ORGANIZATION, PolyString.fromOrig("Department of Hydrostatics"), PolyString.fromOrig("Binomial Club"));
     }
 
     @Test
@@ -2323,12 +2323,4 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertThat(valueMetadata.size()).isEqualTo(1);
         valueMetadata.getValue().findOrCreateProperty(LOA_PATH).setRealValue(loa);
     }
-
-    private PolyString poly(String orig) {
-        PolyString polyString = PolyString.fromOrig(orig);
-        polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-        return polyString;
-    }
-
-
 }
