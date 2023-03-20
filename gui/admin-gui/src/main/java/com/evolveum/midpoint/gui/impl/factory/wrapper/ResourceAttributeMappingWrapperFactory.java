@@ -47,18 +47,16 @@ public class ResourceAttributeMappingWrapperFactory extends PrismContainerWrappe
             WrapperContext context) {
         ResourceAttributeMappingValueWrapper value = new ResourceAttributeMappingValueWrapper(objectWrapper, objectValue, status);
         @Nullable ResourceAttributeDefinitionType realValue = objectValue.getRealValue();
-        if (context.isConfigureMappingType()) {
-            if (status.equals(ValueStatus.NOT_CHANGED) && realValue != null) {
-                value.addAttributeMappingType(AttributeMappingType.OVERRIDE);
-                if (!realValue.getInbound().isEmpty()) {
-                    value.addAttributeMappingType(AttributeMappingType.INBOUND);
-                }
-                if (realValue.getOutbound() != null) {
-                    value.addAttributeMappingType(AttributeMappingType.OUTBOUND);
-                }
-            } else if (status.equals(ValueStatus.ADDED) && context.getAttributeMappingType() != null) {
-                value.addAttributeMappingType(context.getAttributeMappingType());
+        if (status.equals(ValueStatus.NOT_CHANGED) && realValue != null) {
+            value.addAttributeMappingType(AttributeMappingType.OVERRIDE);
+            if (!realValue.getInbound().isEmpty()) {
+                value.addAttributeMappingType(AttributeMappingType.INBOUND);
             }
+            if (realValue.getOutbound() != null) {
+                value.addAttributeMappingType(AttributeMappingType.OUTBOUND);
+            }
+        } else if (status.equals(ValueStatus.ADDED) && context.getAttributeMappingType() != null) {
+            value.addAttributeMappingType(context.getAttributeMappingType());
         }
         return value;
     }

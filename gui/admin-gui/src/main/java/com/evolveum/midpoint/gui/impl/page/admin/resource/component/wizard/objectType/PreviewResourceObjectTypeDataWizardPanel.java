@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -123,6 +124,11 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
 
             @Override
             protected boolean isReclassifyButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
                 return false;
             }
         };

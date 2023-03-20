@@ -64,11 +64,6 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     }
 
     @Override
-    protected String getSubmitIcon() {
-        return "fa fa-check";
-    }
-
-    @Override
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings");
     }

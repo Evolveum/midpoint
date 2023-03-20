@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -99,50 +101,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return (PageResource) super.getPageBase();
     }
 
-//    @Override
-//    protected WrapperContext createWrapperContext(Task task, OperationResult result) {
-//        WrapperContext ctx = new WrapperContext(task, result) {
-//            @Override
-//            protected void collectVirtualContainers(@NotNull Collection<? extends ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
-//                if (!(getModelServiceLocator() instanceof PageResource)) {
-//                    super.collectVirtualContainers(panelConfigs, virtualContainers);
-//                    return;
-//                }
-//                PageResource pageResource = (PageResource) getModelServiceLocator();
-//                for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
-//                    if (getObjectStatus() == null || panelConfig.getApplicableForOperation() == null
-//                            || (pageResource.isEditObject()
-//                            && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
-//                            || (!pageResource.isEditObject()
-//                            && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))
-//                            || (DelineationResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || BasicSettingResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || FocusResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || ReactionMainSettingStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || ReactionOptionalSettingStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || AttributeInboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || AttributeOutboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || MainConfigurationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || PasswordStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || AssociationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || AdministrativeStatusStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || ExistenceStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || ValidFromStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || ValidToStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || LockoutStatusStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
-//                            || LimitationsStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier()))) { // UGLY HACK we need define visibility of panel in menu
-//                        virtualContainers.addAll(panelConfig.getContainer());
-//                        collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
-//                    }
-//                }
-//            }
-//        };
-//        ctx.setCreateIfEmpty(true);
-//        ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
-//        ctx.setConfigureMappingType(true);
-//        if (getModelServiceLocator() instanceof PageResource) {
-//            ctx.setShowEmpty(!((PageResource)getModelServiceLocator()).isEditObject());
-//        }
-//        return ctx;
-//    }
+    @Override
+    protected WrapperContext createWrapperContext(Task task, OperationResult result) {
+        WrapperContext ctx = super.createWrapperContext(task, result);
+        ctx.setConfigureMappingType(true);
+        return ctx;
+    }
 }
