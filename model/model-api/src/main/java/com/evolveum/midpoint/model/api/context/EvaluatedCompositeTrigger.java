@@ -13,6 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTrig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -72,11 +73,16 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
         fillCommonContent(rv);
-        if (!options.isRespectFinalFlag() || !isFinal()) {
-            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerBean(options)));
+        if (!isFinal()) {
+            innerTriggers.stream()
+                    .filter(t -> t.isRelevantForNewOwner(newOwner))
+                    .forEach(t ->
+                            rv.getEmbedded().add(
+                                    t.toEvaluatedPolicyRuleTriggerBean(options, newOwner)));
         }
         return rv;
     }

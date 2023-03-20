@@ -8,6 +8,8 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -55,6 +57,13 @@ public class TestSoD extends AbstractWfTestPolicy {
     private static final TestObject<UserType> USER_SOD_APPROVER = TestObject.file(
             TEST_DIR, "user-sod-approver.xml", "f15b45d6-f638-413f-9572-83554c7b3b88");
 
+    private static final TestObject<RoleType> ROLE_COORDINATOR = TestObject.file(
+            TEST_DIR, "role-coordinator.xml", "beb20faf-dfb2-433b-972b-55520ab60cf2");
+    private static final TestObject<RoleType> ROLE_WORKER_1 = TestObject.file(
+            TEST_DIR, "role-worker-1.xml", "5362af5c-5fab-4a79-ae5b-e4b04d99f4ee");
+    private static final TestObject<RoleType> ROLE_WORKER_2 = TestObject.file(
+            TEST_DIR, "role-worker-2.xml", "9b8cd034-8309-4d35-9acc-5f700aeab0ad");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -62,7 +71,10 @@ public class TestSoD extends AbstractWfTestPolicy {
                 METAROLE_CRIMINAL_EXCLUSION,
                 ROLE_JUDGE, ROLE_PIRATE, ROLE_THIEF, ROLE_RESPECTABLE,
                 ROLE_WATER, ROLE_FIRE, ROLE_OIL,
-                USER_SOD_APPROVER);
+                USER_SOD_APPROVER,
+                ROLE_COORDINATOR, ROLE_WORKER_1, ROLE_WORKER_2);
+
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
 
     /**
@@ -257,6 +269,71 @@ public class TestSoD extends AbstractWfTestPolicy {
                     .end()
                     .forRole(existingRole.oid)
                         .assertExclusionViolationSituation();
+        // @formatter:on
+    }
+
+    /**
+     * Checks that one-sided exclusion definitions are properly submitted to approvals and also recorded,
+     * even for "multi-exclusion" cases:
+     *
+     * * `coordinator` excludes any worker
+     * * but we want to add two workers (at once)
+     *
+     * There should be two approval processes, each with correct name and data.
+     *
+     * MID-8251.
+     */
+    @Test
+    public void test110OneSidedMultiExclusion() throws Exception {
+        login(userAdministrator);
+
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        testOneSidedMultiExclusion(
+                "test110-1", ROLE_COORDINATOR, ROLE_WORKER_1, ROLE_WORKER_2,
+                "Role \"coordinator\" excludes role \"worker-1\"",
+                "Role \"coordinator\" excludes role \"worker-2\"",
+                task, result);
+    }
+
+    private void testOneSidedMultiExclusion(
+            String username, TestObject<RoleType> existingRole,
+            TestObject<RoleType> newRole1, TestObject<RoleType> newRole2,
+            String expectedCaseName1, String expectedCaseName2,
+            Task task, OperationResult result)
+            throws CommonException {
+
+        given("there is a user with a role");
+        UserType userBean = new UserType()
+                .name(username)
+                .assignment(existingRole.assignmentTo());
+        addObject(userBean, task, result);
+        TestObject<UserType> user = TestObject.of(userBean);
+
+        // To be able to check do this repeatably
+        result.clearAsynchronousOperationReferencesDeeply();
+
+        when("roles " + newRole1 + " and " + newRole2 + " are requested");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(newRole1.assignmentTo(), newRole2.assignmentTo())
+                .asObjectDelta(user.oid);
+        executeChanges(delta, null, task, result);
+
+        then("it must be submitted to approval");
+        // @formatter:off
+        assertReferencedCase(result)
+                .subcases()
+                .singleForTarget(newRole1.oid)
+                    .display()
+                    .assertNameOrig(expectedCaseName1)
+                .end()
+                .singleForTarget(newRole2.oid)
+                    .display()
+                    .assertNameOrig(expectedCaseName2)
+                .end()
+                .assertSubcases(2);
         // @formatter:on
     }
 }

@@ -7,7 +7,14 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -16,13 +23,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificationType;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Maintains "process specifications" i.e. recipes how to
@@ -44,9 +44,9 @@ public class ProcessSpecifications implements DebugDumpable {
 
     public class ProcessSpecification implements DebugDumpable {
         final WfProcessSpecificationType basicSpec;
-        final List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules;
+        final List<ApprovalActionWithRule> actionsWithRules;
 
-        private ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry) {
+        private ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<ApprovalActionWithRule>> entry) {
             this.basicSpec = entry.getKey();
             this.actionsWithRules = entry.getValue();
         }
@@ -55,54 +55,67 @@ public class ProcessSpecifications implements DebugDumpable {
         public String debugDump(int indent) {
             StringBuilder sb = new StringBuilder();
             DebugUtil.debugDumpLabelLn(sb, "process specification", indent);
-            PrismPrettyPrinter.debugDumpValue(sb, indent+1, basicSpec, prismContext, ApprovalPolicyActionType.F_PROCESS_SPECIFICATION, PrismContext.LANG_YAML);
+            PrismPrettyPrinter.debugDumpValue(
+                    sb, indent+1, basicSpec,
+                    prismContext, ApprovalPolicyActionType.F_PROCESS_SPECIFICATION, PrismContext.LANG_YAML);
             sb.append("\n");
             DebugUtil.debugDumpLabelLn(sb, "actions with rules", indent);
-            for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : actionsWithRules) {
+            for (ApprovalActionWithRule actionWithRule : actionsWithRules) {
                 DebugUtil.debugDumpLabelLn(sb, "action", indent+1);
-                PrismPrettyPrinter.debugDumpValue(sb, indent+2, actionWithRule.getKey(), prismContext, PolicyActionsType.F_APPROVAL, PrismContext.LANG_YAML);
+                PrismPrettyPrinter.debugDumpValue(
+                        sb, indent+2, actionWithRule.approvalAction,
+                        prismContext, PolicyActionsType.F_APPROVAL, PrismContext.LANG_YAML);
                 sb.append("\n");
-                if (actionWithRule.getValue() != null) {
-                    sb.append("\n").append(actionWithRule.getValue().debugDump(indent + 2));
-                }
+                sb.append("\n").append(actionWithRule.policyRule.debugDump(indent + 2));
             }
             return sb.toString();
         }
     }
 
-    static ProcessSpecifications createFromRules(List<? extends EvaluatedPolicyRule> rules, PrismContext prismContext)
+    static ProcessSpecifications createFromRules(List<AssociatedPolicyRule> rules, PrismContext prismContext)
             throws ConfigurationException {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
-        LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collectedSpecifications = new LinkedHashMap<>();
-        for (EvaluatedPolicyRule rule : rules) {
+        LinkedHashMap<WfProcessSpecificationType, List<ApprovalActionWithRule>> collectedSpecifications = new LinkedHashMap<>();
+        for (AssociatedPolicyRule rule : rules) {
             for (ApprovalPolicyActionType approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
                 WfProcessSpecificationType spec = approvalAction.getProcessSpecification();
-                collectedSpecifications.computeIfAbsent(spec, s -> new ArrayList<>()).add(new ImmutablePair<>(approvalAction, rule));
+                collectedSpecifications
+                        .computeIfAbsent(spec, s -> new ArrayList<>())
+                        .add(new ApprovalActionWithRule(approvalAction, rule));
             }
         }
         // Step 2: resolve references
-        for (WfProcessSpecificationType spec : new HashSet<>(collectedSpecifications.keySet())) {     // cloned to avoid concurrent modification exception
-            if (spec != null && spec.getRef() != null) {
-                List<Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>>> matching = collectedSpecifications.entrySet().stream()
-                        .filter(e -> e.getKey() != null && spec.getRef().equals(e.getKey().getName()))
-                        .collect(Collectors.toList());
+        // specifications are cloned to avoid concurrent modification exception
+        for (WfProcessSpecificationType spec : new HashSet<>(collectedSpecifications.keySet())) {
+            if (spec == null) {
+                continue;
+            }
+            String ref = spec.getRef();
+            if (ref != null) {
+                List<Map.Entry<WfProcessSpecificationType, List<ApprovalActionWithRule>>> matching =
+                        collectedSpecifications.entrySet().stream()
+                                .filter(e -> e.getKey() != null && ref.equals(e.getKey().getName()))
+                                .collect(Collectors.toList());
                 if (matching.isEmpty()) {
-                    throw new IllegalStateException("Process specification named '"+spec.getRef()+"' referenced from an approval action couldn't be found");
+                    throw new IllegalStateException(
+                            "Process specification named '" + ref + "' referenced from an approval action couldn't be found");
                 } else if (matching.size() > 1) {
-                    throw new IllegalStateException("More than one process specification named '"+spec.getRef()+"' referenced from an approval action: " + matching);
+                    throw new IllegalStateException(
+                            "More than one process specification named '" + ref + "' referenced from an approval action: " + matching);
                 } else {
                     // move all actions/rules to the referenced process specification
-                    List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> referencedSpecActions = matching.get(0).getValue();
+                    List<ApprovalActionWithRule> referencedSpecActions = matching.get(0).getValue();
                     referencedSpecActions.addAll(collectedSpecifications.get(spec));
                     collectedSpecifications.remove(spec);
                 }
             }
         }
 
-        Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap = null;
+        Map<String, ApprovalActionWithRule> actionsMap = null;
 
         // Step 3: include other actions
-        for (Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> processSpecificationEntry : collectedSpecifications.entrySet()) {
+        for (Map.Entry<WfProcessSpecificationType, List<ApprovalActionWithRule>> processSpecificationEntry :
+                collectedSpecifications.entrySet()) {
             WfProcessSpecificationType spec = processSpecificationEntry.getKey();
             if (spec == null || spec.getIncludeAction().isEmpty() && spec.getIncludeActionIfPresent().isEmpty()) {
                 continue;
@@ -125,9 +138,9 @@ public class ProcessSpecifications implements DebugDumpable {
                     WfProcessSpecificationType key1 = ps1.getKey();
                     WfProcessSpecificationType key2 = ps2.getKey();
                     if (key1 == null) {
-                        return key2 == null ? 0 : 1;       // non-empty (key2) records first
+                        return key2 == null ? 0 : 1; // non-empty (key2) records first
                     } else if (key2 == null) {
-                        return -1;                          // non-empty (key1) record first
+                        return -1; // non-empty (key1) record first
                     }
                     int order1 = defaultIfNull(key1.getOrder(), Integer.MAX_VALUE);
                     int order2 = defaultIfNull(key2.getOrder(), Integer.MAX_VALUE);
@@ -137,10 +150,10 @@ public class ProcessSpecifications implements DebugDumpable {
     }
 
     private static void processActionToInclude(
-            String actionToInclude, Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap,
-            Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> processSpecificationEntry,
+            String actionToInclude, Map<String, ApprovalActionWithRule> actionsMap,
+            Map.Entry<WfProcessSpecificationType, List<ApprovalActionWithRule>> processSpecificationEntry,
             boolean mustBePresent) throws ConfigurationException {
-        Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule = actionsMap.get(actionToInclude);
+        ApprovalActionWithRule actionWithRule = actionsMap.get(actionToInclude);
         if (actionWithRule != null) {
             processSpecificationEntry.getValue().add(actionWithRule);
         } else if (mustBePresent) {
@@ -148,13 +161,14 @@ public class ProcessSpecifications implements DebugDumpable {
         }
     }
 
-    private static Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> createActionsMap(
-            Collection<List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> allActionsWithRules) {
-        Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> rv = new HashMap<>();
-        for (List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules : allActionsWithRules) {
-            for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : actionsWithRules) {
-                if (actionWithRule.getLeft().getName() != null) {
-                    rv.put(actionWithRule.getLeft().getName(), actionWithRule);
+    private static Map<String, ApprovalActionWithRule> createActionsMap(
+            Collection<List<ApprovalActionWithRule>> allActionsWithRules) {
+        Map<String, ApprovalActionWithRule> rv = new HashMap<>();
+        for (List<ApprovalActionWithRule> actionsWithRules : allActionsWithRules) {
+            for (ApprovalActionWithRule actionWithRule : actionsWithRules) {
+                String actionName = actionWithRule.approvalAction.getName();
+                if (actionName != null) {
+                    rv.put(actionName, actionWithRule);
                 }
             }
         }
@@ -170,5 +184,15 @@ public class ProcessSpecifications implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpWithLabel(sb, "Process specifications", specifications, indent);
         return sb.toString();
+    }
+
+    static class ApprovalActionWithRule {
+        @NotNull final ApprovalPolicyActionType approvalAction;
+        @NotNull final AssociatedPolicyRule policyRule;
+
+        ApprovalActionWithRule(@NotNull ApprovalPolicyActionType approvalAction, @NotNull AssociatedPolicyRule policyRule) {
+            this.approvalAction = approvalAction;
+            this.policyRule = policyRule;
+        }
     }
 }

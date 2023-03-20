@@ -16,24 +16,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.exception.*;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,11 +38,13 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
+import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ApprovalActionWithRule;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
@@ -103,7 +102,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends EvaluatedPolicyRule> rules) {
+    List<AssociatedPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends AssociatedPolicyRule> rules) {
         return rules.stream()
                 .filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
                 .collect(Collectors.toList());
@@ -133,7 +132,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         if (name != null) {
             return name;
         }
-        name = processNameFromTriggers(schemaBuilderResult);
+        name = caseNameFromTriggers(schemaBuilderResult);
         LOGGER.trace("Approval display name from triggers: {}", name);
         return name;
     }
@@ -177,21 +176,23 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
     }
 
     @Nullable
-    private LocalizableMessage processNameFromTriggers(ApprovalSchemaBuilder.Result schemaBuilderResult) {
+    private LocalizableMessage caseNameFromTriggers(ApprovalSchemaBuilder.Result schemaBuilderResult) {
         List<EvaluatedPolicyRuleTriggerType> triggers = new ArrayList<>();
 
         // Let's analyze process specification - collect rules mentioned there.
         // Unlike in attachedRules, these are ordered in such a way that process-specific
         // are present first. (Not ordered according to composition rules.)
-        if (schemaBuilderResult.processSpecification != null) {
-            ProcessSpecifications.ProcessSpecification ps = schemaBuilderResult.processSpecification;
+        ProcessSpecifications.ProcessSpecification ps = schemaBuilderResult.processSpecification;
+        if (ps != null) {
             // TODO take name from process specification itself (if present)
-            for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : ps.actionsWithRules) {
-                if (actionWithRule.getRight() != null) {
-                    for (EvaluatedPolicyRuleTrigger<?> trigger : actionWithRule.getRight().getAllTriggers()) {
-                        // we don't care about options; these converted triggers will be thrown away
-                        triggers.add(trigger.toEvaluatedPolicyRuleTriggerBean(new PolicyRuleExternalizationOptions()));
-                    }
+            for (ApprovalActionWithRule actionWithRule : ps.actionsWithRules) {
+                AssociatedPolicyRule rule = actionWithRule.policyRule;
+                // We can take all (i.e. also irrelevant) triggers here, as the conversion to bean will select the relevant ones.
+                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getAllTriggers()) {
+                    // we don't care about options; these converted triggers will be thrown away - only messages are collected
+                    triggers.add(
+                            trigger.toEvaluatedPolicyRuleTriggerBean(
+                                    new PolicyRuleExternalizationOptions(), rule.getNewOwner()));
                 }
             }
         } else {

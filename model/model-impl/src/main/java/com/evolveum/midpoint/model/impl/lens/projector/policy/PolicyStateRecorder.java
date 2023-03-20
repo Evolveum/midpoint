@@ -11,11 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -38,7 +37,7 @@ class PolicyStateRecorder {
 
     <O extends ObjectType> void applyObjectState(
             @NotNull LensElementContext<O> elementContext,
-            @NotNull List<EvaluatedPolicyRuleImpl> rulesToRecord)
+            @NotNull List<? extends AssociatedPolicyRule> rulesToRecord)
             throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
@@ -66,7 +65,9 @@ class PolicyStateRecorder {
     }
 
     void applyAssignmentState(
-            LensContext<?> context, EvaluatedAssignmentImpl<?> evaluatedAssignment, List<EvaluatedPolicyRuleImpl> rulesToRecord)
+            LensContext<?> context,
+            EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            List<? extends AssociatedPolicyRule> rulesToRecord)
             throws SchemaException {
         LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
@@ -116,17 +117,18 @@ class PolicyStateRecorder {
     }
 
     private ComputationResult compute(
-            @NotNull List<EvaluatedPolicyRuleImpl> rulesToRecord,
+            @NotNull List<? extends AssociatedPolicyRule> rulesToRecord,
             @NotNull List<String> existingPolicySituation,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();
-        for (EvaluatedPolicyRule rule : rulesToRecord) {
+        for (AssociatedPolicyRule rule : rulesToRecord) {
             cr.newPolicySituations.add(rule.getPolicySituation());
             RecordPolicyActionType recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
             if (recordAction.getPolicyRules() != TriggeredPolicyRulesStorageStrategyType.NONE) {
                 PolicyRuleExternalizationOptions externalizationOptions = new PolicyRuleExternalizationOptions(
-                        recordAction.getPolicyRules(), false, true);
-                rule.addToEvaluatedPolicyRuleBeans(cr.newTriggeredRules, externalizationOptions, null);
+                        recordAction.getPolicyRules(), false);
+                rule.addToEvaluatedPolicyRuleBeans(
+                        cr.newTriggeredRules, externalizationOptions, null, rule.getNewOwner());
             }
         }
         cr.oldPolicySituations.addAll(existingPolicySituation);

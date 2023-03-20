@@ -12,6 +12,9 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-0000-0000-0000-61bc8211947c">
     <name>Simulation report: Values changed</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->

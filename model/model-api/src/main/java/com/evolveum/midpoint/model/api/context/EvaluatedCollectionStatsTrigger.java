@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<CollectionStatsPolicyConstraintType> {
 
@@ -20,7 +21,8 @@ public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<
     }
 
     @Override
-    public EvaluatedCollectionStatsTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedCollectionStatsTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedCollectionStatsTriggerType rv = new EvaluatedCollectionStatsTriggerType();
         fillCommonContent(rv);
         return rv;

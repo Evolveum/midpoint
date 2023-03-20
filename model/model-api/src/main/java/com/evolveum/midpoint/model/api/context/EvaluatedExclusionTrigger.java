@@ -13,19 +13,18 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * Represents triggered exclusion constraint.
  *
  * [NOTE]
  * ====
- * When present in "foreign policy rules" ({@link EvaluatedAssignment#getAllTargetsAndForeignPolicyRules()}), then the
+ * When present in "foreign policy rules" ({@link EvaluatedAssignment#getAllAssociatedPolicyRules()}), then the
  * values in {@link #conflictingAssignment}, {@link #conflictingTarget}, {@link #thisTarget} and so on may be misleading.
  * They are correct with regards to the original evaluated assignment, but not for the other one.
  *
@@ -131,10 +130,11 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
     }
 
     @Override
-    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
         fillCommonContent(rv);
-        if (options.getTriggeredRulesStorageStrategy() == FULL) {
+        if (options.isFullStorageStrategy()) {
             rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
             rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
@@ -148,5 +148,11 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
     @Override
     public Collection<? extends PrismObject<?>> getTargetObjects() {
         return List.of(conflictingTarget.asPrismObject());
+    }
+
+    @Override
+    public boolean isRelevantForNewOwner(@Nullable EvaluatedAssignment newOwner) {
+        return newOwner == null
+                || conflictingAssignment.equals(newOwner);
     }
 }

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTr
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
@@ -94,11 +96,13 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
         fillCommonContent(rv);
-        if (!options.isRespectFinalFlag() || !isFinal()) {
-            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null));
+        if (!isFinal()) {
+            sourceRules.forEach(
+                    r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null, newOwner));
         }
         return rv;
     }

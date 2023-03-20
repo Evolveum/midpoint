@@ -127,7 +127,8 @@ public class EvaluatedPolicyRuleUtil {
     }
 
     // Main entry point for plain triggers: tree-izes and sorts the triggers.
-    public static List<TreeNode<EvaluatedPolicyRuleTriggerType>> arrangeForPresentationExt(List<EvaluatedPolicyRuleTriggerType> triggers) {
+    public static List<TreeNode<EvaluatedPolicyRuleTriggerType>> arrangeForPresentationExt(
+            List<EvaluatedPolicyRuleTriggerType> triggers) {
         // augment
         List<AugmentedTrigger<AdditionalData>> augmentedTriggers = triggers.stream()
                 .map(t -> new AugmentedTrigger<>(t, null))

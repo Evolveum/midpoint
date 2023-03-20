@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -113,8 +115,10 @@ abstract class PolicyRuleEvaluator {
             LOGGER.trace("Evaluating policy rule {} ({}) in {}", ruleShortString, ruleIdentifier, ctxShortDescription);
             PolicyConstraintsType constraints = rule.getPolicyConstraints();
             JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
-            EvaluatedCompositeTrigger compositeTrigger = CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);
-            LOGGER.trace("Evaluated composite trigger {} for ctx {}", compositeTrigger, ctx);
+            Collection<EvaluatedCompositeTrigger> compositeTriggers =
+                    CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);
+            LOGGER.trace("Evaluated composite trigger(s) {} for ctx {}", compositeTriggers, ctx);
+            var compositeTrigger = MiscUtil.extractSingleton(compositeTriggers); // currently always the case
             if (compositeTrigger != null && !compositeTrigger.getInnerTriggers().isEmpty()) {
                 ctx.triggerRuleIfNoExceptions(
                         getIndividualTriggers(compositeTrigger, constraints));
@@ -172,7 +176,7 @@ abstract class PolicyRuleEvaluator {
 
     abstract void record(OperationResult result) throws SchemaException;
 
-    @NotNull List<EvaluatedPolicyRuleImpl> selectRulesToRecord(@NotNull Collection<EvaluatedPolicyRuleImpl> allRules) {
+    @NotNull List<AssociatedPolicyRule> selectRulesToRecord(@NotNull Collection<? extends AssociatedPolicyRule> allRules) {
         return allRules.stream()
                 .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
                 .collect(Collectors.toList());

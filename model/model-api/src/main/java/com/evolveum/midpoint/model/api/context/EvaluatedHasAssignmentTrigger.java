@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -27,7 +28,8 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
     }
 
     @Override
-    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
         fillCommonContent(rv);
         return rv;

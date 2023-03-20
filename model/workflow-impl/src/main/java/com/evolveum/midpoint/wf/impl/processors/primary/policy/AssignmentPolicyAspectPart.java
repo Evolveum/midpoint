@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.*;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,10 +32,6 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -156,8 +154,8 @@ public class AssignmentPolicyAspectPart {
         //
         // Also note that these rules may be empty but we still can want to process the assignment,
         // e.g. if default rules are to be applied.
-        List<EvaluatedPolicyRule> triggeredApprovalRules =
-                main.selectTriggeredApprovalActionRules(evaluatedAssignment.getAllTargetsAndForeignPolicyRules());
+        List<AssociatedPolicyRule> triggeredApprovalRules =
+                main.selectTriggeredApprovalActionRules(evaluatedAssignment.getAllAssociatedPolicyRules());
 
         logApprovalActions(evaluatedAssignment, triggeredApprovalRules);
 
@@ -276,16 +274,18 @@ public class AssignmentPolicyAspectPart {
 
     private void logApprovalActions(
             EvaluatedAssignment assignment,
-            List<EvaluatedPolicyRule> triggeredApprovalActionRules) {
+            List<AssociatedPolicyRule> triggeredApprovalActionRules) {
         if (LOGGER.isDebugEnabled()
                 && (!triggeredApprovalActionRules.isEmpty())) {
             LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval action rules:",
                     getAssignmentChangeVerb(assignment), assignment, assignment.getThisTargetPolicyRules().size(),
                     triggeredApprovalActionRules.size());
-            for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
-                LOGGER.debug(" - Approval actions: {}", t.getEnabledActions(ApprovalPolicyActionType.class));
-                for (EvaluatedPolicyRuleTrigger<?> trigger : t.getTriggers()) {
-                    LOGGER.debug("   - {}", trigger);
+            for (AssociatedPolicyRule rule : triggeredApprovalActionRules) {
+                LOGGER.debug(" - Rule: {}", rule.toShortString());
+                LOGGER.debug("   - Approval actions: {}", rule.getEnabledActions(ApprovalPolicyActionType.class));
+                // TODO somehow distinguish own/foreign rules
+                for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getTriggers()) {
+                    LOGGER.debug("   - Trigger: {}", trigger);
                 }
             }
         }
@@ -302,7 +302,7 @@ public class AssignmentPolicyAspectPart {
     }
 
     private ApprovalSchemaBuilder.Result createSchemaWithRules(
-            @NotNull List<EvaluatedPolicyRule> triggeredApprovalRules,
+            @NotNull List<AssociatedPolicyRule> triggeredApprovalRules,
             @NotNull EvaluatedAssignment evaluatedAssignment,
             @NotNull ModelInvocationContext<?> ctx,
             @NotNull OperationResult result) throws SchemaException {
@@ -320,7 +320,7 @@ public class AssignmentPolicyAspectPart {
         }
 
         // actions from triggered rules on this assignment
-        for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
+        for (AssociatedPolicyRule approvalRule : triggeredApprovalRules) {
             for (ApprovalPolicyActionType approvalAction : approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
                 builder.add(
                         main.getSchemaFromAction(approvalAction),
