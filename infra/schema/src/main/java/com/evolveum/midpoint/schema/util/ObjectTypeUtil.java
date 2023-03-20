@@ -1155,19 +1155,24 @@ public class ObjectTypeUtil {
         Item<?, ?> create(PrismContainerValue<?> extension, List<?> realValues) throws SchemaException;
     }
 
-    public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
-            Object... values) throws SchemaException {
+    public static void setExtensionPropertyRealValues(
+            PrismContext ignored, PrismContainerValue<?> parent, ItemName propertyName, Object... values) throws SchemaException {
+        setExtensionPropertyRealValues(parent, propertyName, values);
+    }
+
+    public static void setExtensionPropertyRealValues(
+            PrismContainerValue<?> parent, ItemName propertyName, Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeProperty(propertyName),
                 (extension, realValues) -> {
-                    PrismProperty<Object> property = findPropertyDefinition(prismContext, extension, propertyName)
+                    PrismProperty<Object> property = findPropertyDefinition(extension, propertyName)
                             .instantiate();
                     realValues.forEach(property::addRealValue);
                     return property;
                 }, values);
     }
 
-    private static @NotNull PrismPropertyDefinition<Object> findPropertyDefinition(PrismContext prismContext,
+    private static @NotNull PrismPropertyDefinition<Object> findPropertyDefinition(
             PrismContainerValue<?> extension, ItemName propertyName) {
         if (extension.getDefinition() != null) {
             PrismPropertyDefinition<Object> definitionInExtension = extension.getDefinition().findPropertyDefinition(propertyName);
@@ -1176,7 +1181,7 @@ public class ObjectTypeUtil {
             }
         }
         //noinspection unchecked
-        PrismPropertyDefinition<Object> globalDefinition = prismContext.getSchemaRegistry()
+        PrismPropertyDefinition<Object> globalDefinition = PrismContext.get().getSchemaRegistry()
                 .findPropertyDefinitionByElementName(propertyName);
         if (globalDefinition != null) {
             return globalDefinition;

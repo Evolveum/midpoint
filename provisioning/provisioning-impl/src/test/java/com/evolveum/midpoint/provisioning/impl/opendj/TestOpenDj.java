@@ -11,11 +11,14 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -2076,7 +2079,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertAttribute(provisioningShadowType, "cn", "Haggis McMutton");
         assertAttribute(provisioningShadowType, "sn", "McMutton");
         assertAttribute(provisioningShadowType, "homeDirectory", "/home/scotland");
-        assertAttribute(provisioningShadowType, "uidNumber", 1001);
+        assertAttribute(provisioningShadowType, "uidNumber", BigInteger.valueOf(1001));
 
         String uid = ShadowUtil.getSingleStringAttributeValue(repoShadowType, getPrimaryIdentifierQName());
         assertNotNull(uid);
@@ -2122,7 +2125,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertAttribute(accountType, "cn", "Haggis McMutton");
         assertAttribute(accountType, "homeDirectory", "/home/caribbean");
         assertAttribute(accountType, "roomNumber", "Barber Shop");
-        assertAttribute(accountType, "uidNumber", 1001);
+        assertAttribute(accountType, "uidNumber", BigInteger.valueOf(1001));
 
         // Check if object was modified in LDAP
 
@@ -2199,7 +2202,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismObject<ShadowType> provisioningShadow = objListType.get(0);
         assertAttribute(provisioningShadow, "cn", "Edward Van Helgen");
         assertAttribute(provisioningShadow, "homeDirectory", "/home/vanhelgen");
-        assertAttribute(provisioningShadow, "uidNumber", 1002);
+        assertAttribute(provisioningShadow, "uidNumber", BigInteger.valueOf(1002));
 
         assertConnectorOperationIncrement(1, 3);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -2513,7 +2516,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -2547,14 +2550,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
         repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
 
         // This is no-op on resource. (The DN on resource has not changed.)
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -3338,6 +3341,80 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // MID-4103
         assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
         assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
+    }
+
+    /** Creates two entries with `uidNumber` bigger than {@link Integer#MAX_VALUE}. MID-4424. */
+    @Test
+    public void test730IntegerOver32Bits() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        long withinLong = 1_000_000_000_000_000L; // 10^15 = 3_8D7E_A4C6_8000 hex (51 bits)
+        BigInteger overLong = new BigInteger("10").pow(30); // 10^30 ~ 102 bits
+
+        given("account with uidNumber over Integer but within Long");
+        openDJController.addEntry("dn: uid=within-long,ou=People,dc=example,dc=com\n"
+                + "uid: within-long\n"
+                + "cn: Within Long\n"
+                + "sn: Long\n"
+                + "givenName: Within\n"
+                + "objectclass: top\n"
+                + "objectclass: person\n"
+                + "objectclass: organizationalPerson\n"
+                + "objectclass: inetOrgPerson\n"
+                + "objectclass: posixAccount\n"
+                + "uidNumber: " + withinLong + "\n"
+                + "gidNumber: 1000\n"
+                + "homeDirectory: /dev/null\n"
+                + "\n");
+
+        when("it is retrieved");
+        List<PrismObject<ShadowType>> objectsWithinLong =
+                provisioningService.searchObjects(
+                        ShadowType.class,
+                        Resource.of(resource) // requires test004 to run before this test
+                                .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                                .and().item(PATH_CN).eq("Within Long")
+                                .build(),
+                        null, task, result);
+
+        then("uidNumber is OK");
+        assertThat(objectsWithinLong).as("retrieved accounts").hasSize(1);
+        assertShadowAfter(objectsWithinLong.get(0))
+                .attributes()
+                .assertValue(QNAME_UID_NUMBER, BigInteger.valueOf(withinLong));
+
+        given("account with uidNumber over Long");
+        openDJController.addEntry("dn: uid=over-long,ou=People,dc=example,dc=com\n"
+                + "uid: over-long\n"
+                + "cn: Over Long\n"
+                + "sn: Long\n"
+                + "givenName: Over\n"
+                + "objectclass: top\n"
+                + "objectclass: person\n"
+                + "objectclass: organizationalPerson\n"
+                + "objectclass: inetOrgPerson\n"
+                + "objectclass: posixAccount\n"
+                + "uidNumber: " + overLong + "\n"
+                + "gidNumber: 1000\n"
+                + "homeDirectory: /dev/null\n"
+                + "\n");
+
+        when("it is retrieved");
+        List<PrismObject<ShadowType>> objectsOverLong =
+                provisioningService.searchObjects(
+                        ShadowType.class,
+                        Resource.of(resource)
+                                .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                                .and().item(PATH_CN).eq("Over Long")
+                                .build(),
+                        null, task, result);
+
+        then("uidNumber is OK");
+        assertThat(objectsOverLong).as("retrieved accounts").hasSize(1);
+        assertShadowAfter(objectsOverLong.get(0))
+                .attributes()
+                .assertValue(QNAME_UID_NUMBER, overLong);
     }
 
     /**

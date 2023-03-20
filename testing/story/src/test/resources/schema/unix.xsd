@@ -21,10 +21,26 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="uidNumber" type="xsd:string" minOccurs="0">
+            <xsd:element name="uidNumber" type="xsd:integer" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="uidNumberInt" type="xsd:int" minOccurs="0">
+                <!-- this is to check BigInteger->int conversion -->
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="uidNumberPlusOne" type="xsd:integer" minOccurs="0">
+                <!-- This is to check BigInteger arithmetics -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -38,10 +54,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="gidNumber" type="xsd:string" minOccurs="0">
+            <xsd:element name="gidNumber" type="xsd:integer" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
+                        <a:indexed>false</a:indexed>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

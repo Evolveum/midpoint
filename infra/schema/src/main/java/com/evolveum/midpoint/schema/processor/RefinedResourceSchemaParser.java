@@ -437,9 +437,10 @@ public class RefinedResourceSchemaParser {
                         Objects.requireNonNull(attrDefBean.getRef(), () -> "No attribute name in " + attrDefBean));
                 // TODO check that we really look into aux object classes
                 if (!definition.containsAttributeDefinition(attrName) && !ResourceSchemaUtil.isIgnored(attrDefBean)) {
-                    throw new SchemaException("Definition of attribute " + attrName + " not found in object class " +
-                            definition.getObjectClassName() + " nor auxiliary object classes for " + definition +
-                            " as defined in " + contextDescription);
+                    throw new SchemaException(String.format(
+                            "Definition of attribute %s not found in object class %s nor auxiliary object classes for %s "
+                                    + "as defined in %s",
+                            attrName, definition.getObjectClassName(), definition, contextDescription));
                 }
             }
         }

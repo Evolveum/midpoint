@@ -166,8 +166,16 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
     @SuppressWarnings("unchecked")
     public <T> PrismContainerValueAsserter<C, RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
         PrismProperty<T> property = findProperty(path);
-        assertNotNull("No property " + path + " in " + desc(), property);
-        PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
+        if (expectedValues.length > 0) {
+            assertNotNull("No property " + path + " in " + desc(), property);
+            PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
+        } else if (property != null) {
+            assertThat(property.getValues())
+                    .as("values of " + path + " in " + desc())
+                    .isEmpty();
+        } else {
+            // OK!
+        }
         return this;
     }
 
