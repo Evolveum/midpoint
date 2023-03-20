@@ -257,9 +257,7 @@ public class LookupTableHelper {
             String value = queryDef.getSearchValue();
             if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
                 param = root.get("label").get("norm");
-                PolyString poly = new PolyString(value);
-                poly.recompute(prismContext.getDefaultPolyStringNormalizer());
-                value = poly.getNorm();
+                value = prismContext.getDefaultPolyStringNormalizer().normalize(value);
             } else {
                 param = root.get(queryDef.getColumn().getLocalPart());
             }

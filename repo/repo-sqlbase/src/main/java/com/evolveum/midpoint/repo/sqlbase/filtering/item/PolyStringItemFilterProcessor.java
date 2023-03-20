@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -69,7 +69,7 @@ public class PolyStringItemFilterProcessor<T>
                 || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
             return ExpressionUtils.and(
                     createBinaryCondition(filter, normPath,
-                            ValueFilterValues.from(filter, this::extractNorm)),
+                            ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractNorm)),
                     createBinaryCondition(filter, origPath,
                             ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractOrig)));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
@@ -77,7 +77,7 @@ public class PolyStringItemFilterProcessor<T>
                     ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractOrig));
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return createBinaryCondition(filter, normPath,
-                    ValueFilterValues.from(filter, this::extractNorm));
+                    ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractNorm));
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
@@ -100,18 +100,14 @@ public class PolyStringItemFilterProcessor<T>
                 || NORM_IGNORE_CASE.equals(matchingRule);
     }
 
-    private String extractNorm(Object value) {
-        return extractNorm(value, context.prismContext());
-    }
-
     /**
      * Method extracting normalized value from (potentially poly-)string.
      * May require adapter method to provide {@link PrismContext} for normalization, see usages.
      */
-    public static String extractNorm(Object value, PrismContext prismContext) {
+    public static String extractNorm(Object value) {
         if (value instanceof String) {
             // we normalize the provided String value to ignore casing, etc.
-            return prismContext.getDefaultPolyStringNormalizer().normalize((String) value);
+            return PrismContext.get().getDefaultPolyStringNormalizer().normalize((String) value);
         } else if (value instanceof PolyString) {
             return ((PolyString) value).getNorm();
         } else if (value instanceof PolyStringType) {
@@ -136,7 +132,7 @@ public class PolyStringItemFilterProcessor<T>
     }
 
     @Override
-    public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
+    public Expression<?> rightHand(ValueFilter<?, ?> filter) {
         return origPath;
     }
 

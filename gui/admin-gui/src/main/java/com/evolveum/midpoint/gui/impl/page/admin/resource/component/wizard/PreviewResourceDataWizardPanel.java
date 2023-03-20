@@ -6,13 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,6 +74,21 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
 
             @Override
             protected boolean isSourceChoiceVisible() {
+                return false;
+            }
+
+            @Override
+            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
+                provider.setTaskConsumer((SerializableConsumer<Task>)task -> {
+                    String lifecycleState = getObjectDetailsModels().getObjectType().getLifecycleState();
+                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
+                        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+                    }
+                });
+            }
+
+            @Override
+            protected boolean isReclassifyButtonVisible() {
                 return false;
             }
         };

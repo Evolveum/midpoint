@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,6 @@ import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_NORM_KEY;
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_ORIG_KEY;
-import static com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues.convertPolyValuesToString;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
 import java.util.function.Function;
@@ -77,13 +76,11 @@ public class JsonbPolysPathItemFilterProcessor<T>
             // The value here should be poly-string, otherwise it never matches both orig and norm.
             return processPolyStringStrictEq(values);
         } else if (ORIG.equals(matchingRule)) {
-            return processPolyStringComponentEq(
-                    convertPolyValuesToString(values, filter, p -> p.getOrig()),
-                    JSONB_POLY_ORIG_KEY);
+            return processPolyStringComponentEq(JSONB_POLY_ORIG_KEY, extractOrig(values.singleValue())
+            );
         } else if (NORM.equals(matchingRule)) {
-            return processPolyStringComponentEq(
-                    convertPolyValuesToString(values, filter, p -> p.getNorm()),
-                    JSONB_POLY_NORM_KEY);
+            return processPolyStringComponentEq(JSONB_POLY_NORM_KEY, extractNorm(values.singleValue())
+            );
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
         }
@@ -108,11 +105,13 @@ public class JsonbPolysPathItemFilterProcessor<T>
             subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation, polyString.getOrig()))
                     .where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation, polyString.getNorm()));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
-            subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation,
-                    convertPolyValuesToString(values, filter, p -> p.getOrig()).singleValue()));
+            subselect.where(
+                    singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation,
+                            extractOrig(values.singleValue())));
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
-            subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
-                    convertPolyValuesToString(values, filter, p -> p.getNorm()).singleValue()));
+            subselect.where(
+                    singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
+                            extractNorm(values.singleValue())));
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
         }
@@ -128,11 +127,9 @@ public class JsonbPolysPathItemFilterProcessor<T>
                         poly.getOrig(), poly.getNorm())));
     }
 
-    private Predicate processPolyStringComponentEq(ValueFilterValues<?, ?> values, String subKey)
-            throws QueryException {
-        // Here the values are converted to Strings already
+    private Predicate processPolyStringComponentEq(String subKey, String value) {
         return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format("[{\"%s\":\"%s\"}]", subKey, values.singleValue())));
+                String.format("[{\"%s\":\"%s\"}]", subKey, value)));
     }
 
     @Override

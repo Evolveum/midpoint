@@ -380,13 +380,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                clearCache();
-                setManualRefreshEnabled(!isRefreshEnabled());
-                target.add(getTable());
+                onClickPlayPauseButton(target, !isRefreshEnabled());
             }
         };
         playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return playPauseIcon;
+    }
+
+    private void onClickPlayPauseButton(AjaxRequestTarget target, boolean refreshEnabled) {
+        clearCache();
+        setManualRefreshEnabled(refreshEnabled);
+        target.add(getTable());
+    }
+
+    public void startRefreshing(AjaxRequestTarget target) {
+        onClickPlayPauseButton(target, true);
     }
 
     private IModel<String> getRefreshPausePlayButtonModel() {
