@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.STRICT_IGNORE_CASE;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
@@ -99,7 +98,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final String connectorHostOid = UUID.randomUUID().toString();
 
     private String markProtectedOid;
-    private String markDoNotTouchOid;
 
     private ItemDefinition<?> shadowAttributeStringMvDefinition;
 
@@ -110,9 +108,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         markProtectedOid = repositoryService.addObject(
                 new MarkType().name("protected").asPrismObject(), null, result);
 
-        markDoNotTouchOid = repositoryService.addObject(
+        repositoryService.addObject(
                 new MarkType().name("do-not-touch").asPrismObject(), null, result);
-
 
         roleAvIOid = repositoryService.addObject(
                 new RoleType()
@@ -747,6 +744,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user4Oid);
     }
 
+    @Test(description = "MID-8595")
+    public void test154SearchByPolystringInJsonbWithNormAndUppercaseInputString() throws Exception {
+        searchUsersTest("having organizationUnit (polys in JSONB) contains value (non-eq operation)",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).contains("OU").matchingNorm(),
+                user4Oid);
+    }
+
     @Test
     public void test160SearchRoleByAssignment() throws SchemaException {
         searchObjectTest("having assignment with specified lifecycle", RoleType.class,
@@ -776,7 +780,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
                 shadow1Oid);
     }
-
 
     @Test
     public void test171SearchShadowOwner() {
@@ -823,8 +826,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         when("searching for shadow owner by shadow OID");
         searchObjectTest("having specified effective mark", ShadowType.class,
                 f -> f.item(
-                        ItemPath.create(ShadowType.F_EFFECTIVE_MARK_REF, new ObjectReferencePathSegment(), MarkType.F_NAME))
-                .eq("protected"), shadow1Oid);
+                                ItemPath.create(ShadowType.F_EFFECTIVE_MARK_REF, new ObjectReferencePathSegment(), MarkType.F_NAME))
+                        .eq("protected"), shadow1Oid);
     }
 
     /**
@@ -2010,6 +2013,25 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         searchUsersTest("with extension poly-string multi-value item contains matching ignore-case",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
                         .contains(new PolyString("LY-VAL")).matching(STRICT_IGNORE_CASE),
+                user2Oid);
+    }
+
+    @Test
+    public void test572SearchObjectWithExtensionMultiValuePolyStringNormWithStringInput()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item matching norm",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        // orig of provided value doesn't match, but norm should
+                        .startsWith("POLY--VAL").matchingNorm(),
+                user2Oid);
+    }
+
+    @Test
+    public void test573SearchObjectWithExtensionMultiValuePolyStringNormWithStringInput()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item matching norm",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        .startsWith("poly-value2").matchingOrig(),
                 user2Oid);
     }
 

@@ -84,11 +84,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
 
         StringValue oidValue = pageParameters.get(PARAM_USER_OID);
-        if (oidValue != null) {
+        if (oidValue != null && isNotAdministrator(oidValue.toString())) {
             return oidValue.toString();
         }
 
         return null;
+    }
+
+    private boolean isNotAdministrator(String userOid) {
+        return !SystemObjectsType.USER_ADMINISTRATOR.value().equals(userOid);
     }
 
     @Override
