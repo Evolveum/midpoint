@@ -221,6 +221,10 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             if (subPath.startsWithId()) {
                 subPath = subPath.subPath(1, subPath.size());
             }
+
+            if (!subPath.isEmpty() && ItemPath.isId(subPath.last())) {
+                subPath = subPath.allExceptLast();
+            }
             if (valueOfExistingDelta.find(subPath) != null) {
                 isItemFound = true;
                 newContainer = (PrismContainer) valueOfExistingDelta.find(subPath);
