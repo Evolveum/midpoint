@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2021 Evolveum and contributors
+ * Copyright (C) 2014-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -176,6 +176,10 @@ public class SearchResultList<T> extends AbstractFreezable
     }
 
     public <R> SearchResultList<R> map(Function<T, R> mappingFunction) {
+        if (list == null) {
+            //noinspection unchecked
+            return (SearchResultList<R>) this;
+        }
         return new SearchResultList<>(
                 list.stream().map(mappingFunction).collect(Collectors.toList()),
                 metadata);
