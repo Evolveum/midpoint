@@ -254,7 +254,12 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                     }
 
                     valueToAdd = WebPrismUtil.cleanupEmptyContainerValue(valueToAdd);
-                    if (valueToAdd == null || valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
+                    if (valueToAdd == null || valueToAdd.isIdOnly()) {
+                        LOGGER.trace("Value is empty, skipping delta creation.");
+                        break;
+                    }
+
+                    if (!WebPrismUtil.isUseAsEmptyValue(valueToAdd) && valueToAdd.isEmpty()) {
                         LOGGER.trace("Value is empty, skipping delta creation.");
                         break;
                     }

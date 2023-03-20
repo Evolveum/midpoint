@@ -200,7 +200,7 @@ public class WebPrismUtil {
     }
 
     //TODO quick hack ... use for it wrappers
-    private static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
+    public static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
         return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());
     }
 

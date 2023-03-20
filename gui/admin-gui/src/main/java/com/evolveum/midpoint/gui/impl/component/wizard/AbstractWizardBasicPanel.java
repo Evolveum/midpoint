@@ -178,7 +178,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     }
 
     protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
+        return "fa fa-check";
     }
 
     protected IModel<String> getSubmitLabelModel() {
