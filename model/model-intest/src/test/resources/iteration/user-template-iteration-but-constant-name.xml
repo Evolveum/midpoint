@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate oid="2ebfbbf4-e680-455d-a64f-a49d779a4a53"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>user-template-iteration-but-constant-name</name>
+    <iterationSpecification>
+        <maxIterations>5</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>iteration + 1</code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+    <!-- no 'name' mapping (MID-8492) -->
+</objectTemplate>

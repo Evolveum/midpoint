@@ -168,6 +168,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_CS_101 = TestObject.file(
             TEST_DIR, "role-cs-101.xml", "4e8170d7-31e6-4c5f-b3c6-ad9f7c4bbb62");
 
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME = TestObject.file(
+            TEST_DIR, "user-template-iteration-but-constant-name.xml", "2ebfbbf4-e680-455d-a64f-a49d779a4a53");
+
     private String jupiterUserOid;
 
     private String iterationTokenDiplomatico;
@@ -209,6 +212,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         RESOURCE_DUMMY_ASSOCIATIONS.initAndTest(this, initTask, initResult);
         METAROLE_DUMMY_ASSOCIATIONS.init(this, initTask, initResult);
         ROLE_CS_101.init(this, initTask, initResult);
+
+        USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME.init(this, initTask, initResult);
     }
 
     /**
@@ -1210,8 +1215,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_SPARROW_NAME, null, true);
 
         // WHEN
-        modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
-                PrismTestUtil.createPolyString(ACCOUNT_SPARROW_NAME));
+        modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result, PolyString.fromOrig(ACCOUNT_SPARROW_NAME));
 
         // THEN
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_SPARROW_NAME, null, true);
@@ -1271,8 +1275,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "jack", "Jack Sparrow", true);
 
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATION,
-                PrismTestUtil.createPolyString(DESCRIPTION_RUM));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATION, PolyString.fromOrig(DESCRIPTION_RUM));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -1349,7 +1352,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Jamaica");
 
         PrismAsserts.assertPropertyValue(userDrakeAfter, UserType.F_ORGANIZATION,
-                PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
+                PolyString.fromOrig(DESCRIPTION_RUM + " -- Francis Drake"));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -1374,7 +1377,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("London"));
+        modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig("London"));
 
         // THEN
         then();
@@ -1410,7 +1413,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, DESCRIPTION_RUM + " -- Francis Drake");
 
         PrismAsserts.assertPropertyValue(userDrakeAfter, UserType.F_ORGANIZATION,
-                PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
+                PolyString.fromOrig(DESCRIPTION_RUM + " -- Francis Drake"));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -1539,7 +1542,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, DESCRIPTION_RUM + " -- Guybrush Threepwood");
 
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_ORGANIZATION,
-                PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Guybrush Threepwood"));
+                PolyString.fromOrig(DESCRIPTION_RUM + " -- Guybrush Threepwood"));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -1562,7 +1565,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result,
-                PrismTestUtil.createPolyString(USER_JACK_RENAMED_NAME));
+                PolyString.fromOrig(USER_JACK_RENAMED_NAME));
 
         // THEN
         then();
@@ -1598,7 +1601,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
 
         PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATION,
-                PrismTestUtil.createPolyString(DESCRIPTION_RUM));
+                PolyString.fromOrig(DESCRIPTION_RUM));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -2194,7 +2197,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + ".lookupIterationTokenByAdditionalName");
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_ADDITIONAL_NAME).eq(PrismTestUtil.createPolyString(additionalName))
+                .item(UserType.F_ADDITIONAL_NAME).eq(PolyString.fromOrig(additionalName))
                 .build();
         List<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
         if (objects.isEmpty()) {
@@ -2281,5 +2284,27 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 .resolveTarget()
                 .associations()
                 .assertSize(1);
+    }
+
+    /** Having template with `iterationSpecification` but the name does not depend on the iteration. MID-8492. */
+    @Test
+    public void test920IteratingWithoutIterator() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test920";
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME.oid);
+        try {
+            when("user is created");
+            UserType user = new UserType()
+                    .name(name);
+            addObject(user.asPrismObject(), task, result);
+
+            then("user is there");
+            assertUserAfterByUsername(name);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
     }
 }
