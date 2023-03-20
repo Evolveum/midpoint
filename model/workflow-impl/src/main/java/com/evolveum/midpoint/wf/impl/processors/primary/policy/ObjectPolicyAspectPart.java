@@ -7,14 +7,31 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
+import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ApprovalActionWithRule;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -32,20 +49,6 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
-import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 @Component
 public class ObjectPolicyAspectPart {
@@ -81,7 +84,7 @@ public class ObjectPolicyAspectPart {
             PrismObject<T> object = focusContext.getObjectOld() != null ?
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
-            List<? extends EvaluatedPolicyRule> triggeredApprovalActionRules =
+            List<AssociatedPolicyRule> triggeredApprovalActionRules =
                     main.selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));
@@ -105,14 +108,13 @@ public class ObjectPolicyAspectPart {
                     LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
                     ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
                     builder.setProcessSpecification(processSpecificationEntry);
-                    for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule :
-                            processSpecificationEntry.actionsWithRules) {
-                        ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
+                    for (ApprovalActionWithRule actionWithRule : processSpecificationEntry.actionsWithRules) {
+                        ApprovalPolicyActionType approvalAction = actionWithRule.approvalAction;
                         builder.add(
                                 main.getSchemaFromAction(approvalAction),
                                 approvalAction,
                                 object,
-                                actionWithRule.getRight());
+                                actionWithRule.policyRule);
                     }
                     buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
                 }

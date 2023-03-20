@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import static java.util.Collections.emptySet;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
@@ -40,7 +41,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
-public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
+public class HasAssignmentConstraintEvaluator
+        implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType, EvaluatedHasAssignmentTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(HasAssignmentConstraintEvaluator.class);
 
@@ -54,7 +56,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
     @Autowired private ExpressionFactory expressionFactory;
 
     @Override
-    public <O extends ObjectType> EvaluatedHasAssignmentTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedHasAssignmentTrigger> evaluate(
             @NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
@@ -127,13 +129,14 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             if (!matchingTargets.isEmpty()) {
                 if (shouldExist) {
                     PrismObject<?> anyTargetObject = matchingTargets.get(0);
-                    return new EvaluatedHasAssignmentTrigger(
-                            PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
-                            createPositiveMessage(constraintElement, ctx, anyTargetObject, result),
-                            createPositiveShortMessage(constraintElement, ctx, anyTargetObject, result));
+                    return List.of(
+                            new EvaluatedHasAssignmentTrigger(
+                                    PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
+                                    createPositiveMessage(constraintElement, ctx, anyTargetObject, result),
+                                    createPositiveShortMessage(constraintElement, ctx, anyTargetObject, result)));
                 } else {
                     // we matched something but the constraint was "has no assignment"
-                    return null;
+                    return List.of();
                 }
             } else {
                 return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
@@ -200,7 +203,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private EvaluatedHasAssignmentTrigger createTriggerIfShouldNotExist(
+    private Collection<EvaluatedHasAssignmentTrigger> createTriggerIfShouldNotExist(
             boolean shouldExist,
             JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx,
@@ -209,20 +212,22 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             ConfigurationException, SecurityViolationException {
         HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
         if (shouldExist) {
-            return null;
+            return List.of();
         } else {
             ObjectReferenceType targetRef = constraint.getTargetRef();
             QName targetType = targetRef.getType();
             String targetOid = targetRef.getOid();
-            return new EvaluatedHasAssignmentTrigger(
-                    PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
-                    createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
-                    createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result));
+            return List.of(
+                    new EvaluatedHasAssignmentTrigger(
+                            PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                            createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
+                            createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result)));
             // targetName seems to be always null, even if specified in the policy rule
         }
     }
 
-    private boolean relationMatches(QName primaryRelationToMatch, List<QName> secondaryRelationsToMatch, AssignmentType assignment) {
+    private boolean relationMatches(
+            QName primaryRelationToMatch, List<QName> secondaryRelationsToMatch, AssignmentType assignment) {
         if (assignment == null || assignment.getTargetRef() == null) {
             return false;           // shouldn't occur
         }

@@ -18,19 +18,21 @@ import java.util.Collection;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
-public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<ModificationPolicyConstraintType> {
+public class EvaluatedModificationTrigger<C extends ModificationPolicyConstraintType>
+        extends EvaluatedPolicyRuleTrigger<C> {
 
     @NotNull private final Collection<PrismObject<?>> matchingTargets;
 
-    public EvaluatedModificationTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
+    EvaluatedModificationTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull C constraint,
             @Nullable PrismObject<?> targetObject, LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
         matchingTargets = targetObject != null ? singleton(targetObject) : emptySet();
     }
 
     @Override
-    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
         fillCommonContent(rv);
         return rv;
@@ -39,5 +41,29 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
     @Override
     public Collection<? extends PrismObject<?>> getTargetObjects() {
         return matchingTargets;
+    }
+
+    public static class EvaluatedAssignmentModificationTrigger
+            extends EvaluatedModificationTrigger<AssignmentModificationPolicyConstraintType> {
+        public EvaluatedAssignmentModificationTrigger(
+                @NotNull PolicyConstraintKindType kind,
+                @NotNull AssignmentModificationPolicyConstraintType constraint,
+                @Nullable PrismObject<?> targetObject,
+                LocalizableMessage message,
+                LocalizableMessage shortMessage) {
+            super(kind, constraint, targetObject, message, shortMessage);
+        }
+    }
+
+    public static class EvaluatedObjectModificationTrigger
+            extends EvaluatedModificationTrigger<ModificationPolicyConstraintType> {
+        public EvaluatedObjectModificationTrigger(
+                @NotNull PolicyConstraintKindType kind,
+                @NotNull ModificationPolicyConstraintType constraint,
+                @Nullable PrismObject<?> targetObject,
+                LocalizableMessage message,
+                LocalizableMessage shortMessage) {
+            super(kind, constraint, targetObject, message, shortMessage);
+        }
     }
 }

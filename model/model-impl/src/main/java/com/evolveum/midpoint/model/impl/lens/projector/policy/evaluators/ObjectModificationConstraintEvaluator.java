@@ -19,12 +19,10 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger.EvaluatedObjectModificationTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
@@ -40,6 +38,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
@@ -50,7 +49,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @Component
-public class ObjectModificationConstraintEvaluator extends ModificationConstraintEvaluator<ModificationPolicyConstraintType> {
+public class ObjectModificationConstraintEvaluator
+        extends ModificationConstraintEvaluator<ModificationPolicyConstraintType, EvaluatedObjectModificationTrigger> {
 
     private static final String OP_EVALUATE = ObjectModificationConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -59,7 +59,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
     private static final String CONSTRAINT_KEY_PREFIX = "objectModification.";
 
     @Override
-    public <O extends ObjectType> EvaluatedModificationTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedObjectModificationTrigger> evaluate(
             @NotNull JAXBElement<ModificationPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -73,19 +73,20 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
                 LOGGER.trace(
                         "Policy rule evaluation context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
-                return null;
+                return List.of();
             }
             ObjectPolicyRuleEvaluationContext<O> ctx = (ObjectPolicyRuleEvaluationContext<O>) rctx;
 
             if (modificationConstraintMatches(constraint, ctx, result)) {
                 LocalizableMessage message = createMessage(constraint, rctx, result);
                 LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
-                return new EvaluatedModificationTrigger(
-                        PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
-                        null, message, shortMessage);
+                return List.of(
+                        new EvaluatedObjectModificationTrigger(
+                                PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
+                                null, message, shortMessage));
             } else {
                 LOGGER.trace("No operation matches.");
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);

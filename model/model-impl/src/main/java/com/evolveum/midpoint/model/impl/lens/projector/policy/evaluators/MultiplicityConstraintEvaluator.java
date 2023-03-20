@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
@@ -44,7 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  */
 @Component
-public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {
+public class MultiplicityConstraintEvaluator
+        implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType, EvaluatedMultiplicityTrigger> {
 
     private static final String OP_EVALUATE = MultiplicityConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -59,7 +62,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Override
-    public <O extends ObjectType> EvaluatedMultiplicityTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedMultiplicityTrigger> evaluate(
             @NotNull JAXBElement<MultiplicityPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -74,7 +77,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             } else if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
                 return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<?>) rctx, result);
             } else {
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -84,15 +87,14 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         }
     }
 
-    // TODO shouldn't we return all triggers?
-    private EvaluatedMultiplicityTrigger evaluateForObject(
+    private @NotNull Collection<EvaluatedMultiplicityTrigger> evaluateForObject(
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         PrismObject<? extends ObjectType> target = ctx.elementContext.getObjectAny();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
-            return null;
+            return List.of();
         }
         List<QName> relationsToCheck = constraint.getValue().getRelation().isEmpty()
                 ? Collections.singletonList(prismContext.getDefaultRelation()) : constraint.getValue().getRelation();
@@ -108,51 +110,54 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         // TODO cache repository call results
         Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
         if (requiredMultiplicity == null) {
-            return null;
+            return List.of();
         }
         if (isMin) {
             if (requiredMultiplicity <= 0) {
-                return null;            // unbounded or 0
+                return List.of(); // unbounded or 0
             }
+            List<EvaluatedMultiplicityTrigger> triggers = new ArrayList<>();
             for (QName relationToCheck : relationsToCheck) {
                 int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssignees < requiredMultiplicity) {
-                    return new EvaluatedMultiplicityTrigger(
+                    triggers.add(new EvaluatedMultiplicityTrigger(
                             PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
                             getShortMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
-                                    requiredMultiplicity, relationToCheck.getLocalPart()));
+                                    requiredMultiplicity, relationToCheck.getLocalPart())));
                 }
             }
+            return triggers;
         } else {
             if (requiredMultiplicity < 0) {
-                return null; // unbounded
+                return List.of(); // unbounded
             }
+            List<EvaluatedMultiplicityTrigger> triggers = new ArrayList<>();
             for (QName relationToCheck : relationsToCheck) {
                 int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssigneesExceptMyself >= requiredMultiplicity) {
-                    return new EvaluatedMultiplicityTrigger(
+                    triggers.add(new EvaluatedMultiplicityTrigger(
                             PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
                             getShortMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
-                                    requiredMultiplicity, relationToCheck.getLocalPart()));
+                                    requiredMultiplicity, relationToCheck.getLocalPart())));
                 }
             }
+            return triggers;
         }
-        return null;
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger evaluateForAssignment(
+    private <AH extends AssignmentHolderType> @NotNull Collection<EvaluatedMultiplicityTrigger> evaluateForAssignment(
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (!ctx.isDirect()) {
-            return null;
+            return List.of();
         }
         if (ctx.isAdded) {
             if (!ctx.evaluatedAssignment.isPresentInCurrentObject()) {
@@ -165,10 +170,10 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
                 return checkAssigneeConstraints(constraint, ctx.evaluatedAssignment, PlusMinusZero.MINUS, ctx, result);
             }
         }
-        return null;
+        return List.of();
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger checkAssigneeConstraints(
+    private <AH extends AssignmentHolderType> @NotNull Collection<EvaluatedMultiplicityTrigger> checkAssigneeConstraints(
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             EvaluatedAssignment assignment,
             PlusMinusZero plusMinus,
@@ -177,12 +182,12 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<?> target = assignment.getTarget();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
-            return null;
+            return List.of();
         }
         AbstractRoleType targetRole = (AbstractRoleType) target.asObjectable();
         QName relation = assignment.getNormalizedRelation();
         if (relation == null || !containsRelation(constraint.getValue(), relation)) {
-            return null;
+            return List.of();
         }
         String focusOid = ctx.getFocusContext().getOid();
         boolean isMin = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MIN_ASSIGNEES);
@@ -194,38 +199,38 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
         if (isMin) {
             if (requiredMultiplicity <= 0) {
-                return null;            // unbounded or 0
+                return List.of(); // unbounded or 0
             }
             // Complain only if the situation is getting worse
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
-                return new EvaluatedMultiplicityTrigger(
+                return List.of(new EvaluatedMultiplicityTrigger(
                         PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself),
                         getShortMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
-                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself));
+                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself)));
             } else {
-                return null;
+                return List.of();
             }
         } else {
             if (requiredMultiplicity < 0) {
-                return null;            // unbounded
+                return List.of(); // unbounded
             }
             // Complain only if the situation is getting worse
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
-                return new EvaluatedMultiplicityTrigger(
+                return List.of(new EvaluatedMultiplicityTrigger(
                         PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
-                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1),
+                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself + 1),
                         getShortMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
-                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1));
+                                requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself + 1)));
             }
         }
-        return null;
+        return List.of();
     }
 
     private boolean containsRelation(MultiplicityPolicyConstraintType constraint, QName relation) {

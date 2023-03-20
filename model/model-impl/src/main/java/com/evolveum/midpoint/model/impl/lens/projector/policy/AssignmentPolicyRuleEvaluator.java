@@ -85,7 +85,7 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
             new PolicyStateRecorder().applyAssignmentState(
                     context,
                     evaluatedAssignment,
-                    selectRulesToRecord(evaluatedAssignment.getAllTargetsAndForeignPolicyRules()));
+                    selectRulesToRecord(evaluatedAssignment.getAllAssociatedPolicyRules()));
         }
     }
 }

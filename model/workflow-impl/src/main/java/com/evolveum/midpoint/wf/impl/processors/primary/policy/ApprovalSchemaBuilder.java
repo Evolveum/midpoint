@@ -7,7 +7,18 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import static java.util.Comparator.naturalOrder;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -15,25 +26,17 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
-import static java.util.Comparator.naturalOrder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Creates complete approval schema and related information ({@link Result}) from partial information collected from
- * individual policy rules via {@link #add(ApprovalSchemaType, ApprovalPolicyActionType, PrismObject, EvaluatedPolicyRule)}
+ * individual policy rules via {@link #add(ApprovalSchemaType, ApprovalPolicyActionType, PrismObject, AssociatedPolicyRule)}
  * and {@link #addPredefined(PrismObject, RelationKindType, OperationResult)} methods.
  */
 class ApprovalSchemaBuilder {
@@ -66,7 +69,7 @@ class ApprovalSchemaBuilder {
         // TODO test this thoroughly in presence of non-direct rules and merged schemas
         final PrismObject<?> target;
         @NotNull final ApprovalSchemaType schema;
-        final EvaluatedPolicyRule policyRule;
+        final AssociatedPolicyRule policyRule;
         final ApprovalCompositionStrategyType compositionStrategy;
         final LocalizableMessageTemplateType approvalDisplayName;
 
@@ -74,7 +77,7 @@ class ApprovalSchemaBuilder {
                 ApprovalCompositionStrategyType compositionStrategy,
                 PrismObject<?> target,
                 @NotNull ApprovalSchemaType schema,
-                EvaluatedPolicyRule policyRule,
+                AssociatedPolicyRule policyRule,
                 LocalizableMessageTemplateType approvalDisplayName) {
             this.compositionStrategy = compositionStrategy;
             this.target = target;
@@ -127,7 +130,7 @@ class ApprovalSchemaBuilder {
             ApprovalSchemaType schema,
             ApprovalPolicyActionType approvalAction,
             PrismObject<?> defaultTarget,
-            EvaluatedPolicyRule policyRule) throws SchemaException {
+            AssociatedPolicyRule policyRule) throws SchemaException {
         ApprovalCompositionStrategyType compositionStrategy = approvalAction.getCompositionStrategy();
         Fragment fragment = new Fragment(
                 compositionStrategy, defaultTarget, schema, policyRule, approvalAction.getApprovalDisplayName());
@@ -228,8 +231,12 @@ class ApprovalSchemaBuilder {
         return new ArrayList<>(fragments.subList(i, j)); // result should be modifiable independently on the master list
     }
 
-    private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType,
-            SchemaAttachedPolicyRulesType attachedRules, ModelInvocationContext<?> ctx, OperationResult result)
+    private void processFragmentGroup(
+            List<Fragment> fragments,
+            ApprovalSchemaType resultingSchemaType,
+            SchemaAttachedPolicyRulesType attachedRules,
+            ModelInvocationContext<?> ctx,
+            OperationResult result)
             throws SchemaException {
         Fragment firstFragment = fragments.get(0);
         appendAddOnFragments(fragments);
@@ -252,8 +259,9 @@ class ApprovalSchemaBuilder {
             List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
             firstFragment.policyRule.addToEvaluatedPolicyRuleBeans(
                     rules,
-                    new PolicyRuleExternalizationOptions(FULL, false, true),
-                    null);
+                    new PolicyRuleExternalizationOptions(FULL, false),
+                    null,
+                    firstFragment.policyRule.getNewOwner());
             for (EvaluatedPolicyRuleType rule : rules) {
                 SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
                 attachedRule.setStageMin(from);

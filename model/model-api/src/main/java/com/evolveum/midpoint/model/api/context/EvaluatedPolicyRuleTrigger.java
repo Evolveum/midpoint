@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -145,7 +146,8 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
     }
 
-    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
         fillCommonContent(rv);
         return rv;
@@ -177,5 +179,18 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
      */
     public Collection<? extends PrismObject<?>> getTargetObjects() {
         return Collections.emptyList();
+    }
+
+    /**
+     * Use in connection to foreign policy rules - see the documentation in {@link AssociatedPolicyRule}.
+     *
+     * For exclusion triggers the behavior of this method is quite clear.
+     *
+     * But for other kinds of triggers (on the foreign rule) we return always `true`, as we have no way of knowing whether they
+     * are relevant in the context of "the other side". This may change in the future, after we'll learn how to understand this.
+     * Hope it will not cause any harm in the meanwhile.
+     */
+    public boolean isRelevantForNewOwner(@Nullable EvaluatedAssignment newOwner) {
+        return true;
     }
 }

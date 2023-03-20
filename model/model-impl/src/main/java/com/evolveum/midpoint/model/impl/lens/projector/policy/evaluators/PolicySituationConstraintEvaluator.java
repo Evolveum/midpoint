@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.bind.JAXBElement;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -17,25 +26,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
-public class PolicySituationConstraintEvaluator implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType> {
+public class PolicySituationConstraintEvaluator
+        implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType, EvaluatedSituationTrigger> {
 
     private static final String OP_EVALUATE = PolicySituationConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -44,7 +41,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 
     @Override
-    public <O extends ObjectType> EvaluatedSituationTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedSituationTrigger> evaluate(
             @NotNull JAXBElement<PolicySituationPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -59,20 +56,21 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
             // "situation" constraint is present directly on it.
             if (rctx instanceof AssignmentPolicyRuleEvaluationContext
                     && !((AssignmentPolicyRuleEvaluationContext<?>) rctx).isDirect()) {
-                return null;
+                return List.of();
             }
 
             // Single pass only (for the time being)
             PolicySituationPolicyConstraintType situationConstraint = constraint.getValue();
             Collection<EvaluatedPolicyRule> sourceRules = selectTriggeredRules(rctx, situationConstraint.getSituation());
             if (sourceRules.isEmpty()) {
-                return null;
+                return List.of();
             }
-            return new EvaluatedSituationTrigger(
-                    situationConstraint,
-                    createMessage(sourceRules, constraint, rctx, result),
-                    createShortMessage(sourceRules, constraint, rctx, result),
-                    sourceRules);
+            return List.of(
+                    new EvaluatedSituationTrigger(
+                            situationConstraint,
+                            createMessage(sourceRules, constraint, rctx, result),
+                            createShortMessage(sourceRules, constraint, rctx, result),
+                            sourceRules));
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

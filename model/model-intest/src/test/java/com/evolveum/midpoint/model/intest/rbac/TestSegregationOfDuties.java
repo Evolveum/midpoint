@@ -1643,7 +1643,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      *
      * Intentionally before global SoD approval rules are enabled in {@link #test900ApplyGlobalPolicyRulesSoDApproval()}.
      */
-    @Test(enabled = false) // the cause is not fixed yet
+    @Test
     public void test845PreviewWithMultipleConflicts() throws Exception {
         testPreview("u845-1", 1, ROLE_COORDINATOR.oid, ROLE_WORKER_1.oid);
         testPreview("u845-2", 1, ROLE_WORKER_1.oid, ROLE_COORDINATOR.oid);

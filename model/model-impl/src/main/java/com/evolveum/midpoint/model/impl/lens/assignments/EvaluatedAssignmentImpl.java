@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -109,14 +110,14 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * Policy rules from other assignments relevant to this one, typically those with an exclusion constraint.
      * Used to implement one-way-defined exclusion policy rules, see e.g. MID-8269.
      *
-     * Some of them may be the same as in {@link #targetPolicyRules}.
+     * Some of them may be the same as in {@link #targetPolicyRules} (but wrapped).
      *
      * Any given policy rule is here only once.
-     * But beware of non-determinism, see {@link #registerForeignRule(EvaluatedPolicyRuleImpl)}.
+     * But beware of non-determinism, see {@link #registerAsForeignRule(EvaluatedPolicyRuleImpl)}.
      *
      * Set up during policy rules evaluation.
      */
-    @NotNull private final List<EvaluatedPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
+    @NotNull private final List<ForeignPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
 
     private String tenantOid;
 
@@ -435,6 +436,20 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return Collections.unmodifiableList(targetPolicyRules);
     }
 
+    @Override
+    public @NotNull Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
+
     public void addTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         targetPolicyRules.add(policyRule);
     }
@@ -444,19 +459,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return targetPolicyRules.size();
     }
 
-    public @NotNull List<EvaluatedPolicyRuleImpl> getForeignPolicyRules() {
+    public @NotNull List<ForeignPolicyRuleImpl> getForeignPolicyRules() {
         return Collections.unmodifiableList(foreignPolicyRules);
     }
 
     @Override
-    public @NotNull List<EvaluatedPolicyRuleImpl> getAllTargetsAndForeignPolicyRules() {
-        var unique = new ArrayList<>(targetPolicyRules);
-        for (EvaluatedPolicyRuleImpl foreignRule : foreignPolicyRules) {
-            if (!EvaluatedPolicyRule.contains(unique, foreignRule)) {
-                unique.add(foreignRule);
+    public @NotNull Collection<AssociatedPolicyRule> getAllAssociatedPolicyRules() {
+        ArrayList<AssociatedPolicyRule> allRules = new ArrayList<>(targetPolicyRules);
+        for (AssociatedPolicyRule foreignRule : foreignPolicyRules) {
+            if (!AssociatedPolicyRule.contains(allRules, foreignRule)) {
+                allRules.add(foreignRule);
             }
         }
-        return unique;
+        return allRules;
     }
 
     /**
@@ -467,9 +482,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * in this collection. This may result in phantom updates if full policy situation recording is enabled. However,
      * that is an experimental feature anyway.
      */
-    public void registerForeignRule(EvaluatedPolicyRuleImpl rule) {
-        if (!EvaluatedPolicyRule.contains(foreignPolicyRules, rule)) {
-            foreignPolicyRules.add(rule);
+    public void registerAsForeignRule(EvaluatedPolicyRuleImpl rule) {
+        if (!AssociatedPolicyRule.contains(foreignPolicyRules, rule)) {
+            foreignPolicyRules.add(
+                    ForeignPolicyRuleImpl.of(rule, this));
         }
     }
 
@@ -573,18 +589,18 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(
                 sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent+1);
-        Collection<? extends EvaluatedPolicyRule> thisTargetRules = getThisTargetPolicyRules();
+        Collection<EvaluatedPolicyRuleImpl> thisTargetRules = getThisTargetPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent+1);
-        Collection<? extends EvaluatedPolicyRule> otherTargetsRules = getOtherTargetsPolicyRules();
+        Collection<EvaluatedPolicyRuleImpl> otherTargetsRules = getOtherTargetsPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
         return sb.toString();
     }
 
-    private String ruleCountInfo(Collection<? extends EvaluatedPolicyRule> rules) {
-        return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
+    private String ruleCountInfo(Collection<? extends AssociatedPolicyRule> rules) {
+        return "(" + rules.size() + ", triggered " + AssociatedPolicyRule.getTriggeredRulesCount(rules) + ")";
     }
 
     private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {

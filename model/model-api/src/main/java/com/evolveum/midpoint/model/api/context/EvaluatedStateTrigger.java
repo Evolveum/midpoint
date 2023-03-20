@@ -12,6 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedStateTrigge
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolicyConstraintType> {
 
@@ -22,7 +23,8 @@ public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolic
     }
 
     @Override
-    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedStateTriggerType rv = new EvaluatedStateTriggerType();
         fillCommonContent(rv);
         return rv;

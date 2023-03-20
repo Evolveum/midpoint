@@ -9,21 +9,17 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.context.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -50,7 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  * Evaluates exclusion policy constraints.
  */
 @Component
-public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<ExclusionPolicyConstraintType> {
+public class ExclusionConstraintEvaluator
+        implements PolicyConstraintEvaluator<ExclusionPolicyConstraintType, EvaluatedExclusionTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExclusionConstraintEvaluator.class);
 
@@ -63,7 +60,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     @Autowired private ExpressionFactory expressionFactory;
 
     @Override
-    public <O extends ObjectType> EvaluatedExclusionTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionTrigger> evaluate(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -76,18 +73,18 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             LOGGER.trace("Evaluating exclusion constraint {} on {}",
                     lazy(() -> PolicyRuleTypeUtil.toShortString(constraint)), rctx);
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-                return null;
+                return List.of();
             }
 
             AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             if (!ctx.isAdded && !ctx.isKept) {
                 LOGGER.trace("Assignment not being added nor kept, skipping evaluation.");
-                return null;
+                return List.of();
             }
 
             if (sourceOrderConstraintsDoNotMatch(constraint, ctx)) {
                 // logged in the called method body
-                return null;
+                return List.of();
             }
 
             /*
@@ -102,6 +99,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             ConstraintReferenceMatcher<?> refMatcher = new ConstraintReferenceMatcher<>(
                     ctx, constraint.getValue().getTargetRef(), expressionFactory, result, LOGGER);
 
+            List<EvaluatedExclusionTrigger> triggers = new ArrayList<>();
             for (EvaluatedAssignmentImpl<?> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 if (assignmentB == ctx.evaluatedAssignment) { // currently there is no other way of comparing the evaluated assignments
                     continue;
@@ -123,13 +121,18 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                             continue targetB;
                         }
                     }
-                    EvaluatedExclusionTrigger rv = createTrigger(
-                            ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx, result);
-                    result.addReturn("trigger", rv.toDiagShortcut());
-                    return rv;
+                    triggers.add(
+                            createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx, result));
                 }
             }
-            return null;
+
+            result.addArbitraryObjectCollectionAsReturn(
+                    "trigger",
+                    triggers.stream()
+                            .map(EvaluatedExclusionTrigger::toDiagShortcut)
+                            .collect(Collectors.toList()));
+
+            return triggers;
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

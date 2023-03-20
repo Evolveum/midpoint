@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
+import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -28,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrunePolicyActionType;
-
-import java.util.Collection;
 
 public class PruningOperation<F extends AssignmentHolderType> {
 
@@ -89,11 +89,10 @@ public class PruningOperation<F extends AssignmentHolderType> {
 
     private void pruneNewAssignment(EvaluatedAssignmentImpl<F> newAssignment) {
         LOGGER.trace("Checking for pruning of new assignment: {}", newAssignment);
-        for (EvaluatedPolicyRuleImpl newAssignmentRule : newAssignment.getAllTargetsAndForeignPolicyRules()) {
+        for (AssociatedPolicyRule newAssignmentRule : newAssignment.getAllAssociatedPolicyRules()) {
             if (newAssignmentRule.containsEnabledAction(PrunePolicyActionType.class)) {
                 LOGGER.trace("Found rule with enabled pruning action: {}", newAssignmentRule);
-                Collection<EvaluatedExclusionTrigger> exclusionTriggers =
-                        newAssignmentRule.getAllTriggers(EvaluatedExclusionTrigger.class);
+                Collection<EvaluatedExclusionTrigger> exclusionTriggers = newAssignmentRule.getRelevantExclusionTriggers();
                 for (EvaluatedExclusionTrigger exclusionTrigger : exclusionTriggers) {
                     LOGGER.trace("Found exclusion trigger: {}", exclusionTrigger);
                     processPruneRuleExclusionTrigger(newAssignment, newAssignmentRule, exclusionTrigger);
@@ -104,7 +103,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
 
     private void processPruneRuleExclusionTrigger(
             EvaluatedAssignmentImpl<F> newAssignment,
-            EvaluatedPolicyRuleImpl pruneRule,
+            AssociatedPolicyRule pruneRule,
             EvaluatedExclusionTrigger exclusionTrigger) {
         EvaluatedAssignment conflictingAssignment = exclusionTrigger.getRealConflictingAssignment(newAssignment);
         LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, newAssignment);

@@ -28,12 +28,13 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
 
 @Component
-public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType> {
+public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType, EvaluatedCompositeTrigger> {
 
     private static final String OP_EVALUATE = CompositeConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -52,7 +53,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
     }
 
     @Override
-    public <O extends ObjectType> EvaluatedCompositeTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedCompositeTrigger> evaluate(
             @NotNull JAXBElement<PolicyConstraintsType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -86,7 +87,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             if (rv != null) {
                 result.addReturn("trigger", rv.toDiagShortcut());
             }
-            return rv;
+            return rv != null ? List.of(rv) : List.of();
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

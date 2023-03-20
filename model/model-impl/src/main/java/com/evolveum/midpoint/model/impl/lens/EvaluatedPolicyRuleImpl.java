@@ -46,13 +46,12 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.util.DebugUtil.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author semancik
  *
  */
-public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
+public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedPolicyRule {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPolicyRuleImpl.class);
@@ -170,6 +169,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return triggers;
     }
 
+    @Override
+    public boolean isTriggered() {
+        return !getTriggers().isEmpty();
+    }
+
     @NotNull
     @Override
     public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
@@ -182,6 +186,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             }
         }
         return rv;
+    }
+
+    @Override
+    public @NotNull Collection<EvaluatedExclusionTrigger> getRelevantExclusionTriggers() {
+        // All triggers here are relevant
+        return getAllTriggers(EvaluatedExclusionTrigger.class);
     }
 
     @Override
@@ -228,7 +238,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
     // TODO rewrite this method
     @Override
-    public String getPolicySituation() {
+    public @Nullable String getPolicySituation() {
         // TODO default situations depending on getTriggeredConstraintKinds
         if (policyRuleBean.getPolicySituation() != null) {
             return policyRuleBean.getPolicySituation();
@@ -386,15 +396,26 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      * Honors "final" but not "hidden" flag.
      */
     @Override
-    public void addToEvaluatedPolicyRuleBeans(Collection<EvaluatedPolicyRuleType> ruleBeans,
-            PolicyRuleExternalizationOptions options, Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector) {
+    public void addToEvaluatedPolicyRuleBeans(
+            @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
+            @NotNull PolicyRuleExternalizationOptions options,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable EvaluatedAssignment newOwner) {
+        addToEvaluatedPolicyRuleBeansInternal(ruleBeans, options, triggerSelector, newOwner);
+    }
+
+    public void addToEvaluatedPolicyRuleBeansInternal(
+            @NotNull Collection<EvaluatedPolicyRuleType> ruleBeans,
+            @NotNull PolicyRuleExternalizationOptions options,
+            @Nullable Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
+            @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleType bean = new EvaluatedPolicyRuleType();
         bean.setRuleName(getName());
-        boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
-        if (isFull && assignmentPath != null) {
-            bean.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
-        }
-        if (isFull) {
+        if (options.isFullStorageStrategy()) {
+            if (assignmentPath != null) {
+                bean.setAssignmentPath(
+                        assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+            }
             ObjectType directOwner = computeDirectOwner();
             if (directOwner != null) {
                 bean.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
@@ -405,12 +426,17 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             if (triggerSelector != null && !triggerSelector.test(trigger)) {
                 continue;
             }
+            if (!trigger.isRelevantForNewOwner(newOwner)) {
+                continue;
+            }
             if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
                 for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
-                    sourceRule.addToEvaluatedPolicyRuleBeans(ruleBeans, options, null);
+                    ((EvaluatedPolicyRuleImpl) sourceRule).addToEvaluatedPolicyRuleBeansInternal(
+                            ruleBeans, options, null, newOwner);
                 }
             } else {
-                bean.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerBean(options));
+                bean.getTrigger().add(
+                        trigger.toEvaluatedPolicyRuleTriggerBean(options, newOwner));
             }
         }
         if (bean.getTrigger().isEmpty()) {
@@ -482,25 +508,21 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     }
 
     @Override
-    public boolean containsEnabledAction(Class<? extends PolicyActionType> clazz) {
-        return !getEnabledActions(clazz).isEmpty();
+    public boolean containsEnabledAction(Class<? extends PolicyActionType> type) {
+        return !getEnabledActions(type).isEmpty();
     }
 
     @Override
-    public <T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz) {
-        return PolicyRuleTypeUtil.filterActions(enabledActions, clazz);
+    public @NotNull <T extends PolicyActionType> List<T> getEnabledActions(Class<T> type) {
+        return PolicyRuleTypeUtil.filterActions(enabledActions, type);
     }
 
     @Override
-    public <T extends PolicyActionType> T getEnabledAction(Class<T> clazz) {
-        List<T> actions = getEnabledActions(clazz);
-        if (actions.isEmpty()) {
-            return null;
-        } else if (actions.size() == 1) {
-            return actions.get(0);
-        } else {
-            throw new IllegalStateException("More than one enabled policy action of class " + clazz + ": " + actions);
-        }
+    public <T extends PolicyActionType> T getEnabledAction(Class<T> type) {
+        List<T> actions = getEnabledActions(type);
+        return MiscUtil.extractSingleton(
+                actions,
+                () -> new IllegalStateException("More than one enabled policy action of class " + type + ": " + actions));
     }
 
     public void computeEnabledActions(
@@ -603,7 +625,17 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     public void registerAsForeignRuleIfNeeded() {
         for (EvaluatedExclusionTrigger exclusionTrigger : getAllTriggers(EvaluatedExclusionTrigger.class)) {
             ((EvaluatedAssignmentImpl<?>) exclusionTrigger.getConflictingAssignment())
-                    .registerForeignRule(this);
+                    .registerAsForeignRule(this);
         }
+    }
+
+    @Override
+    public @Nullable EvaluatedAssignment getNewOwner() {
+        return null;
+    }
+
+    @Override
+    public @NotNull EvaluatedPolicyRule getEvaluatedPolicyRule() {
+        return this;
     }
 }
