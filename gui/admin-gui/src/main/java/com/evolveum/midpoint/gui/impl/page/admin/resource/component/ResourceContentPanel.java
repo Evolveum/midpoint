@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
@@ -757,8 +758,30 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                createReclassifyTask(target);
-                getShadowTable().startRefreshing(target);
+                IModel<String> confirmModel;
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectType = getResourceObjectTypeValue(null);
+                if (objectType != null) {
+                    ResourceObjectTypeDefinitionType value = objectType.getObject().getRealValue();
+                    String objectTypeLabel = getPageBase().createStringResource(value.getKind()).getString()
+                            + "/" + value.getIntent();
+                    confirmModel = getPageBase().createStringResource(
+                            "ResourceCategorizedPanel.button.reclassify.confirmation.objectType",
+                            objectTypeLabel);
+                } else {
+                    confirmModel = getPageBase().createStringResource(
+                            "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
+                            getObjectClass().getLocalPart());
+                }
+
+                ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        createReclassifyTask(target);
+                        getShadowTable().startRefreshing(target);
+                        target.add(getShadowTable());
+                    }
+                };
+                getPageBase().showMainPopup(confirmationPanel, target);
             }
         };
         reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));

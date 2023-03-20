@@ -83,6 +83,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final String ID_IMPORT = "import";
     private static final String ID_RECONCILIATION = "reconciliation";
     private static final String ID_LIVE_SYNC = "liveSync";
+    private static final String ID_SIMULATION = "simulation";
     private static final String ID_TOTALS = "totals";
 
     private final ShadowKindType kind;
@@ -309,24 +310,94 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         initButton(
                 ID_IMPORT,
-                "Import",
+                "ResourceContentPanel.button.import",
                 " fa-download",
                 SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
                 taskButtonsContainer);
         initButton(
                 ID_RECONCILIATION,
-                "Reconciliation",
+                "ResourceContentPanel.button.reconciliation",
                 " fa-link",
                 SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
                 taskButtonsContainer);
         initButton(
                 ID_LIVE_SYNC,
-                "Live Sync",
+                "ResourceContentPanel.button.liveSync",
                 " fa-sync-alt",
                 SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
                 taskButtonsContainer);
 
+        initSimulationButton(
+                ID_SIMULATION,
+                "ResourceContentPanel.button.simulation",
+                " fa-flask",
+                taskButtonsContainer);
+
         initCustomLayout();
+    }
+
+    private void initSimulationButton(String id, String label, String icon, WebMarkupContainer taskButtonsContainer) {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        InlineMenuItem item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.import")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.reconciliation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.liveSync")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        DropdownButtonPanel button = new DropdownButtonPanel(id,
+                new DropdownButtonDto(null, icon, getString(label), items)) {
+            @Override
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
+            }
+        };
+        taskButtonsContainer.add(button);
     }
 
     protected Collection<? extends Component> createToolbarButtonsList(String buttonId) {
@@ -393,7 +464,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, archetypeOid);
+                        newTaskPerformed(target, archetypeOid, false);
                     }
                 };
             }
@@ -401,7 +472,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         items.add(item);
 
         DropdownButtonPanel button = new DropdownButtonPanel(id,
-                new DropdownButtonDto(String.valueOf(tasksList.size()), icon, label, items)) {
+                new DropdownButtonDto(String.valueOf(tasksList.size()), icon, getString(label), items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-left";
@@ -411,13 +482,20 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid) {
+    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid, boolean isSimulation) {
         List<ObjectReferenceType> archetypeRef = Arrays.asList(
                 new ObjectReferenceType()
                         .oid(archetypeOid)
                         .type(ArchetypeType.COMPLEX_TYPE));
         try {
             TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
+
+            if (isSimulation) {
+                newTask.getActivity().beginExecution()
+                        .mode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                        .beginConfigurationToUse().predefined(PredefinedConfigurationType.DEVELOPMENT);
+                newTask.getActivity().beginReporting().beginSimulationResult();
+            }
 
             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
         } catch (SchemaException ex) {
