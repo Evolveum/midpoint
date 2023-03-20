@@ -118,6 +118,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         addMarks(this, initTask, initResult);
 
+        ARCHETYPE_REPORT.init(this, getTestTask(), getTestOperationResult());
+        ARCHETYPE_COLLECTION_REPORT.init(this, getTestTask(), getTestOperationResult());
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);

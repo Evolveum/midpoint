@@ -173,8 +173,6 @@ public interface CommonInitialObjects {
             test.initTestObjects(
                     task, result,
                     ARCHETYPE_EVENT_MARK,
-                    ARCHETYPE_REPORT,
-                    ARCHETYPE_COLLECTION_REPORT,
                     ARCHETYPE_OBJECT_MARK,
                     MARK_FOCUS_ACTIVATED,
                     MARK_FOCUS_DEACTIVATED,
