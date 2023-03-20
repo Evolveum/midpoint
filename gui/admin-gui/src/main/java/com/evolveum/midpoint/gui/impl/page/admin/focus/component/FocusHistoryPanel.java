@@ -19,6 +19,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -115,7 +117,9 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
                                                         currentStateButtonClicked(getObjectWrapper().getOid(),
                                                                 unwrapModel(model).getEventIdentifier(),
                                                                 getObjectWrapper().getCompileTimeClass(),
-                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(),
+                                                                        DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                        btn.setVisibilityAllowed(isHistoryPageAuthorized());
                                         break;
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
@@ -125,7 +129,9 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
                                                         viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
                                                                 unwrapModel(model).getEventIdentifier(),
                                                                 getObjectWrapper().getCompileTimeClass(),
-                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(),
+                                                                        DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                        btn.setVisibilityAllowed(SecurityUtils.isPageAuthorized(PageXmlDataReview.class));
                                         break;
                                 }
 
@@ -203,7 +209,8 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
             Task task = getPageBase().createSimpleTask(OPERATION_RESTRUCT_OBJECT);
             return WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
         } catch (Exception ex) {
-            result.recordFatalError(getPageBase().createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource(
+                    "ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
         }
         return null;
@@ -218,4 +225,10 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
 
         getPageBase().navigateToNext(PageXmlDataReview.class, pageParameters);
     }
+
+    protected boolean isHistoryPageAuthorized() {
+        Class<? extends PageBase> pageHistoryDetailsPage = WebComponentUtil.getPageHistoryDetailsPage(getPage().getPageClass());
+        return SecurityUtils.isPageAuthorized(pageHistoryDetailsPage);
+    }
+
 }

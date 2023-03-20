@@ -61,7 +61,7 @@ import java.util.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                         label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
                         description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_DETAILS_URL,
                         label = "PageAuditLogViewer.auth.auditLogViewer.label",
                         description = "PageAuditLogViewer.auth.auditLogViewer.description") })
 public class PageAuditLogDetails extends PageBase {
