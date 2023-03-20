@@ -174,6 +174,10 @@ use #selfRequestAssignments instead
 | Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for users.
 |
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userHistory
+| User historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
 |===
 
 == Resource actions
@@ -258,6 +262,10 @@ use #selfRequestAssignments instead
 | Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for roles.
 | Since 4.0.1
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleHistory
+| Role historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
 |===
 
 == Organization actions
@@ -306,6 +314,10 @@ use #selfRequestAssignments instead
 | Authorization for Make root organization menu item
 |
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnitHistory
+| Org unit historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
 |===
 
 == Service actions
@@ -325,6 +337,10 @@ use #selfRequestAssignments instead
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceDetails
 | Details of service
 | Since 4.4.2
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceHistory
+| Service historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
 
 |===
 
@@ -444,6 +460,10 @@ use #selfRequestAssignments instead
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogViewer
 | Audit log viewer page
 |
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogDetails
+| Audit log details viewer page
+| since 4.7
 
 |===
 
