@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,29 +7,24 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.function.Function;
-
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
+
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Similar to {@link SimpleItemFilterProcessor} but String value can be just UUID prefixes
- * and must be smartly converted based on the actual operation.
- *
- * [WARNING]
- * Prefix support assumes OID column only and does not treat predicate for nullable columns.
+ * Filter processor for object type stored as PG enum, queried with QName value.
  */
 public class TypeQNameItemFilterProcessor extends SinglePathItemFilterProcessor<QName, EnumPath<MObjectType>> {
 
@@ -63,5 +58,4 @@ public class TypeQNameItemFilterProcessor extends SinglePathItemFilterProcessor<
         }
         return predicate;
     }
-
 }

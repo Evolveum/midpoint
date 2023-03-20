@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -278,6 +279,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
             }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ResourceContentPanel.this.isShadowDetailsEnabled(rowModel);
+            }
         };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
@@ -334,6 +340,10 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 taskButtonsContainer);
 
         initCustomLayout();
+    }
+
+    protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return true;
     }
 
     private void initSimulationButton(String id, String label, String icon, WebMarkupContainer taskButtonsContainer) {

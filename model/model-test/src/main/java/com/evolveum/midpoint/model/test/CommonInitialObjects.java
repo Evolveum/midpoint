@@ -41,6 +41,12 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> STANDARD_FUNCTIONS = TestObject.classPath(
             FUNCTION_LIBRARY, "005-standard-functions.xml", SystemObjectsType.STANDARD_FUNCTIONS.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_REPORT = TestObject.classPath(
+            ARCHETYPES, "059-archetype-report.xml", SystemObjectsType.ARCHETYPE_REPORT.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_COLLECTION_REPORT = TestObject.classPath(
+            ARCHETYPES, "061-archetype-report-collection.xml", SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value());
+
     TestObject<ArchetypeType> ARCHETYPE_EVENT_MARK = TestObject.classPath(
             ARCHETYPES, "700-archetype-event-mark.xml", SystemObjectsType.ARCHETYPE_EVENT_MARK.value());
 
@@ -167,6 +173,8 @@ public interface CommonInitialObjects {
             test.initTestObjects(
                     task, result,
                     ARCHETYPE_EVENT_MARK,
+                    ARCHETYPE_REPORT,
+                    ARCHETYPE_COLLECTION_REPORT,
                     ARCHETYPE_OBJECT_MARK,
                     MARK_FOCUS_ACTIVATED,
                     MARK_FOCUS_DEACTIVATED,

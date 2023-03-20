@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
@@ -63,7 +65,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
+public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaListPanel.class);
 
@@ -93,7 +95,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
     @NotNull private final NonEmptyLoadableModel<ObjectClassDetailsDto> detailsModel;
     @NotNull private final NonEmptyLoadableModel<List<AttributeDto>> attributeModel;
 
-    public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model, PageResourceWizard parentPage) {
+    public SchemaListPanel(String id, IModel<PrismObjectWrapper<ResourceType>> model, PageBase parentPage) {
         super(id, model);
 
         allClasses = new NonEmptyLoadableModel<List<ObjectClassDto>>(false) {
@@ -102,7 +104,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadAllClasses();
             }
         };
-        parentPage.registerDependentModel(allClasses);
+//        parentPage.registerDependentModel(allClasses);
 
         attributeModel = new NonEmptyLoadableModel<List<AttributeDto>>(false) {
             @Override @NotNull
@@ -110,7 +112,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadAttributes();
             }
         };
-        parentPage.registerDependentModel(attributeModel);
+//        parentPage.registerDependentModel(attributeModel);
 
         detailsModel = new NonEmptyLoadableModel<ObjectClassDetailsDto>(true) {
             @Override @NotNull
@@ -118,7 +120,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadDetails();
             }
         };
-        parentPage.registerDependentModel(detailsModel);
+//        parentPage.registerDependentModel(detailsModel);
 
         initLayout();
     }
@@ -178,7 +180,12 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
         };
         tableBody.add(objectClassDataView);
 
-        NavigatorPanel objectClassNavigator = new NavigatorPanel(ID_NAVIGATOR, objectClassDataView, true);
+        NavigatorPanel objectClassNavigator = new NavigatorPanel(ID_NAVIGATOR, objectClassDataView, true) {
+            @Override
+            protected String getPaginationCssClass() {
+                return "";
+            }
+        };
         objectClassNavigator.setOutputMarkupId(true);
         objectClassNavigator.setOutputMarkupPlaceholderTag(true);
         add(objectClassNavigator);
@@ -342,9 +349,9 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
     }
 
     private ResourceSchema loadResourceSchema() {
-        PrismObject<ResourceType> resource = getModel().getObject();
-
         try {
+            PrismObject<ResourceType> resource = getModel().getObject().getObjectApplyDelta();
+
             Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
             if (xsdSchema == null) {
                 return null;

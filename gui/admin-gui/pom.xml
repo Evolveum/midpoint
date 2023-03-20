@@ -798,6 +798,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
+                    <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
                     <nodeVersion>v18.12.1</nodeVersion>
                     <npmVersion>8.19.2</npmVersion>
                     <installDirectory>target</installDirectory>

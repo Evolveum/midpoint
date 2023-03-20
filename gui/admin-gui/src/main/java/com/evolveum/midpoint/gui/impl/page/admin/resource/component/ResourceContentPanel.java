@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
@@ -650,10 +651,18 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 return ResourceContentPanel.this.createToolbarButtonsList(buttonId);
             }
 
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ResourceContentPanel.this.isShadowDetailsEnabled(rowModel);
+            }
         };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
+    }
+
+    protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return true;
     }
 
     protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {

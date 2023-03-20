@@ -11,6 +11,9 @@
         oid="00000000-0000-0000-0000-b8249b79d2b5">
     <name>Indirect assignment report</name>
     <description>Shows information stored in roleMembershipRef value metadata.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
