@@ -8,6 +8,13 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +22,8 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.Collection;
 
 /**
  * Created by honchar
@@ -132,5 +141,13 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     @Override
     public @NotNull QName getTypeName() {
         return CUSTOM_Q_NAME;
+    }
+
+    @Override
+    protected <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void addValueToDelta(
+            PrismPropertyValueWrapper<ExpressionType> value, D delta) throws SchemaException {
+        if (!ExpressionUtil.isEmpty(value.getRealValue())) {
+            super.addValueToDelta(value, delta);
+        }
     }
 }

@@ -104,7 +104,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         for (VW value : values) {
-            value.addToDelta(delta);
+            addValueToDelta(value, delta);
         }
 
         if (delta.isEmpty()) {
@@ -114,6 +114,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
         LOGGER.trace("Returning delta {}", delta);
         return MiscUtil.createCollection(delta);
+    }
+
+    protected  <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void addValueToDelta(VW value, D delta)
+            throws SchemaException {
+        value.addToDelta(delta);
     }
 
     @Override
