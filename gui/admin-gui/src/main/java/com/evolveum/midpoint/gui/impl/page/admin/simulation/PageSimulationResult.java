@@ -202,31 +202,43 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                             .end();
 
                     SimulationMetricReferenceType metricRef = m.getRef();
-                    if (metricRef.getEventMarkRef() != null) {
+                    ObjectReferenceType eventMarkRef = metricRef.getEventMarkRef();
+                    String metricIdentifier = metricRef.getIdentifier();
+                    if (eventMarkRef != null) {
                         PrismObject<MarkType> markObject =
-                                WebModelServiceUtils.loadObject(metricRef.getEventMarkRef(), PageSimulationResult.this);
+                                WebModelServiceUtils.loadObject(eventMarkRef, PageSimulationResult.this);
+                        DisplayType display;
                         if (markObject != null) {
                             MarkType mark = markObject.asObjectable();
-                            DisplayType display = mark.getDisplay();
+                            display = mark.getDisplay();
                             if (display == null) {
                                 display = new DisplayType();
                                 display.setLabel(mark.getName());
                             }
-                            dw.setDisplay(display);
                             dw.setDisplayOrder(mark.getDisplayOrder());
+                        } else {
+                            display = new DisplayType();
+                            display.setLabel(new PolyStringType(WebComponentUtil.getName(eventMarkRef)));
                         }
-                    } else if (metricRef.getIdentifier() != null) {
+
+                        dw.setDisplay(display);
+                    } else if (metricIdentifier != null) {
                         SimulationMetricDefinitionType def =
-                                getSimulationResultManager().getMetricDefinition(metricRef.getIdentifier());
+                                getSimulationResultManager().getMetricDefinition(metricIdentifier);
+                        DisplayType display;
                         if (def != null) {
-                            DisplayType display = def.getDisplay();
+                            display = def.getDisplay();
                             if (display == null) {
                                 display = new DisplayType();
                                 display.setLabel(new PolyStringType(def.getIdentifier()));
                             }
-                            dw.setDisplay(display);
                             dw.setDisplayOrder(def.getDisplayOrder());
+                        } else {
+                            display = new DisplayType();
+                            display.setLabel(new PolyStringType(metricIdentifier));
                         }
+
+                        dw.setDisplay(display);
                     } else {
                         // built-in -> ignored
                     }
