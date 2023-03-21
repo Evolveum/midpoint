@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
@@ -124,6 +125,11 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
     private Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processModifyDeltas(
             Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) throws SchemaException {
 
+        PrismReferenceWrapper superRef = findReference(ItemPath.create(ResourceType.F_SUPER, SuperResourceDeclarationType.F_RESOURCE_REF));
+        if (superRef != null && superRef.isEmpty()) {
+            return deltas;
+        }
+
         Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processedDeltas = new ArrayList<>();
 
         for (ItemDelta<PrismValue, ItemDefinition<?>> delta : deltas) {
@@ -225,18 +231,19 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             if (!subPath.isEmpty() && ItemPath.isId(subPath.last())) {
                 subPath = subPath.allExceptLast();
             }
-            if (valueOfExistingDelta.find(subPath) != null) {
+            if (subPath.isEmpty()) {
+                newValue = valueOfExistingDelta;
+            } else if (valueOfExistingDelta.find(subPath) != null) {
                 isItemFound = true;
                 newContainer = (PrismContainer) valueOfExistingDelta.find(subPath);
                 newValue = newContainer.getValue(origParentValue.getId());
             }
         }
 
-        if (newContainer == null) {
-            newContainer = origParentValue.getDefinition().instantiate();
-        }
-
         if (newValue == null) {
+            if (newContainer == null) {
+                newContainer = origParentValue.getDefinition().instantiate();
+            }
             newValue = newContainer.createNewValue();
             newValue.setId(origParentValue.getId());
             Class<?> typeClass = newValue.getComplexTypeDefinition().getTypeClass();
@@ -268,11 +275,13 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             return valueOfExistingDelta;
         }
 
-        if (WebPrismUtil.isValueFromResourceTemplate(parentValue, getItem())) {
-            return createParentValueForAddDelta(parentValue, newContainer, valueOfExistingDelta);
-        }
+        if (newContainer != null) {
+            if (WebPrismUtil.isValueFromResourceTemplate(parentValue, getItem())) {
+                return createParentValueForAddDelta(parentValue, newContainer, valueOfExistingDelta);
+            }
 
-        newContainer.setParent(parentValue);
+            newContainer.setParent(parentValue);
+        }
         return newValue;
     }
 

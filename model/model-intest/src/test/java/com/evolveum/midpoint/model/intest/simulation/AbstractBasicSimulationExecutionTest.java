@@ -21,7 +21,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
 import org.testng.annotations.Test;
@@ -802,7 +805,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         given("an account on production source");
         resource.controller.addAccount(accountName);
 
-        // STEP 1: low-level "shadow-simulated" import -> produces classification simulation result
+        // STEP 1: low-level "shadow-simulated" import -> produces classification/correlation simulation result
 
         when("the account is imported with shadow-simulation (on background)");
         objectsCounter.remember(result);
@@ -816,20 +819,23 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         then("no new objects are created (except for one shadow)");
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
-        and("there is only a single simulation delta - and is about the classification");
+        and("there are two simulation deltas (for now) - about classification and correlation");
+        // This is a known limitation: two ProcessedObject records for a single shadow are distinct, although they shouldn't be
         TestSimulationResult simResult1 = getTaskSimResult(taskOid1, result);
         // @formatter:off
-        assertProcessedObjects(simResult1)
+        var second = assertProcessedObjects(simResult1)
                 .display()
-                .assertSize(1)
-                .single()
-                    .assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
-                    .delta()
-                        .assertModify()
-                        .assertModification(ShadowType.F_KIND, null, ShadowKindType.ACCOUNT)
-                        .assertModification(ShadowType.F_INTENT, null, "default")
-                        .assertModifications(2);
+                .assertSize(2)
+                .by().eventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid).find(
+                        po -> assertClassificationAs(po, "default"))
+                .by().withoutEventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid).find();
         // @formatter:on
+
+        if (isProductionResource || isDevelopmentConfigurationSeen()) {
+            assertCorrelationAsNoOwner(second);
+        } else {
+            assertNoCorrelationChange(second); // Synchronization configuration is invisible here
+        }
 
         // STEP 2: high-level "normally simulated" import -> classifies the shadow + produces clockwork simulation result
 
@@ -966,6 +972,114 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             REPORT_SIMULATION_VALUES_CHANGED.export()
                     .withDefaultParametersValues(simResult3.getSimulationResultRef())
                     .execute(result);
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> assertClassificationAs(
+            ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po, String intent) {
+        return po.assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
+                .delta()
+                .assertModify()
+                .assertModification(ShadowType.F_KIND, null, ShadowKindType.ACCOUNT)
+                .assertModification(ShadowType.F_INTENT, null, intent)
+                .assertModifications(2)
+                .end();
+    }
+
+    private void assertCorrelationAsNoOwner(ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po) {
+        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                .delta()
+                .assertModify()
+                .assertModified(CORRELATION_START_TIMESTAMP_PATH)
+                .assertModified(CORRELATION_END_TIMESTAMP_PATH)
+                .assertModification(CORRELATION_SITUATION_PATH, CorrelationSituationType.NO_OWNER)
+                .assertModification(ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.UNMATCHED)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_TIMESTAMP);
+    }
+
+    private void assertNoCorrelationChange(ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po) {
+        po.assertEventMarks()
+                .delta()
+                .assertModify()
+                .assertNotModified(
+                        CORRELATION_START_TIMESTAMP_PATH,
+                        CORRELATION_END_TIMESTAMP_PATH,
+                        CORRELATION_SITUATION_PATH,
+                        ShadowType.F_SYNCHRONIZATION_SITUATION,
+                        ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_TIMESTAMP);
+    }
+
+    /**
+     * Simulated foreground re-classification (production resource).
+     *
+     * MID-8613
+     */
+    @Test
+    public void test220SimulatedForegroundReclassificationOnProductionResource() throws Exception {
+        executeSimulatedForegroundReclassification(
+                RESOURCE_SIMPLE_PRODUCTION_SOURCE,
+                "test220",
+                true);
+    }
+
+    /**
+     * As {@link #test220SimulatedForegroundReclassificationOnProductionResource()} but on development resource.
+     */
+    @Test
+    public void test225SimulatedForegroundReclassificationOnDevelopmentResource() throws Exception {
+        executeSimulatedForegroundReclassification(
+                RESOURCE_SIMPLE_DEVELOPMENT_SOURCE,
+                "test225",
+                false);
+    }
+
+    private void executeSimulatedForegroundReclassification(
+            DummyTestResource resource, String accountName, boolean isProductionResource) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("an account on production source, classified by regular search");
+        resource.controller.addAccount(accountName);
+        var objectsBefore = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(resource.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(accountName)
+                        .build(),
+                null, task, result);
+        assertThat(objectsBefore).as("matching shadows").hasSize(1);
+        assertShadow(objectsBefore.get(0), "before")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(INTENT_DEFAULT);
+
+        when("shadow is changed so it will belong to 'person' type");
+        resource.controller.getDummyResource().getAccountByUsername(accountName)
+                .addAttributeValue(ATTR_TYPE, "person");
+
+        and("shadow is retrieved in development-low-level-simulation mode");
+        task.setExecutionMode(getExecutionMode(true));
+        var objectsAfter = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(resource.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(accountName)
+                        .build(),
+                null, task, result);
+        assertThat(objectsAfter).as("matching shadows").hasSize(1);
+
+        if (!isProductionResource && isDevelopmentConfigurationSeen()) {
+            then("the retrieved shadow has new intent");
+            assertShadow(objectsAfter.get(0), "after")
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent("person");
+        } else {
+            then("the retrieved shadow has still old intent");
+            assertShadow(objectsAfter.get(0), "after")
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent(INTENT_DEFAULT);
         }
     }
 
