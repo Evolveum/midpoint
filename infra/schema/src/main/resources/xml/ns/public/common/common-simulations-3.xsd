@@ -1041,6 +1041,8 @@
                     <xsd:documentation>
                         Information about the shadow (if applicable).
 
+                        When the simulated change of the coordinates themselves is reported, the old value is provided here.
+
                         TODO reconsider if all information from the type should be used (e.g. tombstone and discriminator order
                         - are they relevant?).
                     </xsd:documentation>
@@ -1050,6 +1052,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of the object processed. May be null e.g. for shadows that are to be created.
+                        When the simulated change of the name itself is reported, the old value is provided here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.name</a:displayName>

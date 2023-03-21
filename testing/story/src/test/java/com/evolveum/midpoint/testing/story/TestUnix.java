@@ -6,14 +6,21 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_UID;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -49,7 +56,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -71,132 +77,137 @@ public class TestUnix extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "unix");
 
-    protected static final String EXTENSION_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/story/unix/ext";
-    protected static final ItemName EXTENSION_UID_NUMBER_NAME = new ItemName(EXTENSION_NAMESPACE, "uidNumber");
-    protected static final ItemName EXTENSION_GID_NUMBER_NAME = new ItemName(EXTENSION_NAMESPACE, "gidNumber");
+    private static final String EXT_NS = "http://midpoint.evolveum.com/xml/ns/story/unix/ext";
+    private static final ItemName EXTENSION_UID_NUMBER_NAME = new ItemName(EXT_NS, "uidNumber");
+    private static final ItemName EXTENSION_UID_NUMBER_INT_NAME = new ItemName(EXT_NS, "uidNumberInt");
+    private static final ItemName EXTENSION_UID_NUMBER_PLUS_ONE_NAME = new ItemName(EXT_NS, "uidNumberPlusOne");
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = NS_RI;
-    protected static final ItemName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
-    protected static final ItemName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
-    protected static final ItemName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
-    protected static final ItemName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
-    protected static final ItemName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
-    protected static final ItemName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
-    protected static final ItemName OPENDJ_ASSOCIATION_LDAP_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "ldapGroup");
-    protected static final ItemName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
-    protected static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
-    protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
-    protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
-    protected static final String OPENDJ_LABELED_URI_ATTRIBUTE_NAME = "labeledURI";
-    protected static final String OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME = "modifyTimestamp";
-    protected static final ItemName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
+    private static final String RESOURCE_OPENDJ_NAMESPACE = NS_RI;
+    private static final ItemName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
+    static final ItemName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
+    static final ItemName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
+    private static final ItemName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
+    private static final ItemName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
+    private static final ItemName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
+    //protected static final ItemName OPENDJ_ASSOCIATION_LDAP_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "ldapGroup");
+    //protected static final ItemName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
+    private static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
+    private static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
+    private static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
+    static final String OPENDJ_LABELED_URI_ATTRIBUTE_NAME = "labeledURI";
+    private static final String OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME = "modifyTimestamp";
+    static final ItemName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
 
-    public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
-    public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
+    private static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+    static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
 
-    public static final File ROLE_UNIX_FILE = new File(TEST_DIR, "role-unix.xml");
-    public static final String ROLE_UNIX_OID = "744a54f8-18e5-11e5-808f-001e8c717e5b";
+    /** Initialized only in the test that uses it. Move to {@link #initSystem(Task, OperationResult)} when more tests need it. */
+    private static final AnyTestResource RESOURCE_OPENDJ_INBOUND = AnyTestResource.file(
+            TEST_DIR, "resource-opendj-inbound.xml", "e701658e-7e60-4f0d-99ef-83d4e910fc10");
 
-    public static final File ROLE_META_UNIXGROUP_FILE = new File(TEST_DIR, "role-meta-unix-group.xml");
-    public static final String ROLE_META_UNIXGROUP_OID = "31ea66ac-1a8e-11e5-8ab8-001e8c717e5b";
+    static final TestObject<RoleType> ROLE_UNIX = TestObject.file(
+            TEST_DIR, "role-unix.xml", "744a54f8-18e5-11e5-808f-001e8c717e5b");
 
-    public static final File ROLE_META_UNIXGROUP2_FILE = new File(TEST_DIR, "role-meta-unix-group2.xml");
-    public static final String ROLE_META_UNIXGROUP2_OID = "4ab1e1aa-d0c4-11e5-b0c2-3c970e44b9e2";
+    private static final File ROLE_META_UNIXGROUP_FILE = new File(TEST_DIR, "role-meta-unix-group.xml");
+    private static final String ROLE_META_UNIXGROUP_OID = "31ea66ac-1a8e-11e5-8ab8-001e8c717e5b";
 
-    public static final File ROLE_META_LDAPGROUP_FILE = new File(TEST_DIR, "role-meta-ldap-group.xml");
-    public static final String ROLE_META_LDAPGROUP_OID = "9c6d1dbe-1a87-11e5-b107-001e8c717e5b";
+    private static final File ROLE_META_UNIXGROUP2_FILE = new File(TEST_DIR, "role-meta-unix-group2.xml");
+    private static final String ROLE_META_UNIXGROUP2_OID = "4ab1e1aa-d0c4-11e5-b0c2-3c970e44b9e2";
 
-    protected static final String USER_HERMAN_USERNAME = "ht";
-    protected static final String USER_HERMAN_FIST_NAME = "Herman";
-    protected static final String USER_HERMAN_LAST_NAME = "Toothrot";
+    private static final File ROLE_META_LDAPGROUP_FILE = new File(TEST_DIR, "role-meta-ldap-group.xml");
+    private static final String ROLE_META_LDAPGROUP_OID = "9c6d1dbe-1a87-11e5-b107-001e8c717e5b";
 
-    protected static final String USER_MANCOMB_USERNAME = "mancomb";
-    protected static final String USER_MANCOMB_FIST_NAME = "Mancomb";
-    protected static final String USER_MANCOMB_LAST_NAME = "Seepgood";
+    private static final String USER_HERMAN_USERNAME = "ht";
+    private static final String USER_HERMAN_FIST_NAME = "Herman";
+    private static final String USER_HERMAN_LAST_NAME = "Toothrot";
 
-    protected static final String USER_LARGO_USERNAME = "largo";
-    protected static final String USER_LARGO_FIST_NAME = "Largo";
-    protected static final String USER_LARGO_LAST_NAME = "LaGrande";
-    protected static final int USER_LARGO_UID_NUMBER = 1002;
+    private static final String USER_MANCOMB_USERNAME = "mancomb";
+    private static final String USER_MANCOMB_FIST_NAME = "Mancomb";
+    private static final String USER_MANCOMB_LAST_NAME = "Seepgood";
 
-    protected static final String USER_CAPSIZE_USERNAME = "capsize";
-    protected static final String USER_CAPSIZE_FIST_NAME = "Kate";
-    protected static final String USER_CAPSIZE_LAST_NAME = "Capsize";
-    protected static final int USER_CAPSIZE_UID_NUMBER = 1004;
+    static final String USER_LARGO_USERNAME = "largo";
+    static final String USER_LARGO_FIST_NAME = "Largo";
+    static final String USER_LARGO_LAST_NAME = "LaGrande";
+    static final int USER_LARGO_UID_NUMBER = 1002;
 
-    protected static final String USER_WALLY_USERNAME = "wally";
-    protected static final String USER_WALLY_FIST_NAME = "Wally";
-    protected static final String USER_WALLY_LAST_NAME = "Feed";
-    protected static final int USER_WALLY_UID_NUMBER = 1004;
+    private static final String USER_CAPSIZE_USERNAME = "capsize";
+    private static final String USER_CAPSIZE_FIST_NAME = "Kate";
+    private static final String USER_CAPSIZE_LAST_NAME = "Capsize";
+    private static final int USER_CAPSIZE_UID_NUMBER = 1004;
 
-    protected static final String USER_RANGER_USERNAME = "ranger";
-    protected static final String USER_RANGER_USERNAME_RENAMED = "usranger";
-    protected static final String USER_RANGER_FIST_NAME = "Super";
-    protected static final String USER_RANGER_LAST_NAME = "Ranger";
-    protected static final int USER_RANGER_UID_NUMBER = 1003;
+    private static final String USER_WALLY_USERNAME = "wally";
+    private static final String USER_WALLY_FIST_NAME = "Wally";
+    private static final String USER_WALLY_LAST_NAME = "Feed";
+    private static final int USER_WALLY_UID_NUMBER = 1004;
 
-    protected static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
+    private static final String USER_RANGER_USERNAME = "ranger";
+    private static final String USER_RANGER_USERNAME_RENAMED = "usranger";
+    private static final String USER_RANGER_FIST_NAME = "Super";
+    private static final String USER_RANGER_LAST_NAME = "Ranger";
+    private static final int USER_RANGER_UID_NUMBER = 1003;
 
-    protected static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
+    private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
 
-    protected static final String ROLE_VILLAINS_NAME = "villains";
-    protected static final Integer ROLE_VILLAINS_GID = 999;
-    protected static final String ROLE_RANGERS_NAME = "rangers";
-    protected static final Integer ROLE_RANGERS_GID = 998;
-    protected static final String ROLE_SEALS_NAME = "seals";
-    protected static final Integer ROLE_SEALS_GID = 997;
-    protected static final String ROLE_WALRUSES_NAME = "walruses";
+    private static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
 
-    public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+    private static final String ROLE_VILLAINS_NAME = "villains";
+    private static final Integer ROLE_VILLAINS_GID = 999;
+    private static final String ROLE_RANGERS_NAME = "rangers";
+    private static final Integer ROLE_RANGERS_GID = 998;
+    private static final String ROLE_SEALS_NAME = "seals";
+    private static final Integer ROLE_SEALS_GID = 997;
+    private static final String ROLE_WALRUSES_NAME = "walruses";
+
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
     public static final String OBJECT_TEMPLATE_USER_OID = "9cd03eda-66bd-11e5-866c-f3bc34108fdf";
 
-    public static final File SEQUENCE_UIDNUMBER_FILE = new File(TEST_DIR, "sequence-uidnumber.xml");
-    public static final String SEQUENCE_UIDNUMBER_OID = "7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c";
+    private static final File SEQUENCE_UIDNUMBER_FILE = new File(TEST_DIR, "sequence-uidnumber.xml");
+    private static final String SEQUENCE_UIDNUMBER_OID = "7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c";
 
-    public static final File SEQUENCE_GIDNUMBER_FILE = new File(TEST_DIR, "sequence-gidnumber.xml");
+    private static final File SEQUENCE_GIDNUMBER_FILE = new File(TEST_DIR, "sequence-gidnumber.xml");
 
-    protected static final String USER_STAN_USERNAME = "stan";
-    protected static final String USER_STAN_FIST_NAME = "Stan";
-    protected static final String USER_STAN_LAST_NAME = "Salesman";
+    private static final String USER_STAN_USERNAME = "stan";
+    private static final String USER_STAN_FIST_NAME = "Stan";
+    private static final String USER_STAN_LAST_NAME = "Salesman";
 
-    private static final TestResource<UserType> USER_ALICE =
-            new TestResource<>(TEST_DIR, "user-alice.xml", "39b9711a-75fb-4c72-b26f-c6ff0ee35ae1");
-    private static final TestResource<RoleType> ROLE_ACCOUNTS_AUTZ =
-            new TestResource<>(TEST_DIR, "role-accounts-autz.xml", "03d00775-6d5c-45d8-80d5-f0c4c419c5c6");
+    private static final TestObject<UserType> USER_ALICE =
+            TestObject.file(TEST_DIR, "user-alice.xml", "39b9711a-75fb-4c72-b26f-c6ff0ee35ae1");
+    private static final TestObject<RoleType> ROLE_ACCOUNTS_AUTZ =
+            TestObject.file(TEST_DIR, "role-accounts-autz.xml", "03d00775-6d5c-45d8-80d5-f0c4c419c5c6");
 
     @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
 
-    protected String accountMancombOid;
-    protected String accountMancombDn;
+    private String accountMancombOid;
+    private String accountMancombDn;
 
-    protected String accountLargoOid;
-    protected String accountLargoDn;
+    String accountLargoOid;
+    String accountLargoDn;
 
-    protected String accountRangerOid;
-    protected String accountRangerDn;
+    private String accountRangerOid;
+    private String accountRangerDn;
 
-    protected String accountWallyOid;
-    protected String accountWallyDn;
+    private String accountWallyOid;
+    private String accountWallyDn;
 
-    protected String roleMonkeyIslandOid;
-    protected String groupMonkeyIslandDn;
-    protected String groupMonkeyIslandOid;
+    private String roleMonkeyIslandOid;
+    private String groupMonkeyIslandDn;
+    String groupMonkeyIslandOid;
 
-    protected String roleVillainsOid;
-    protected String groupVillainsDn;
+    private String roleVillainsOid;
+    private String groupVillainsDn;
 
-    protected String roleRangersOid;
-    protected String groupRangersDn;
-    protected String groupRangersOid;
+    private String roleRangersOid;
+    private String groupRangersDn;
+    private String groupRangersOid;
 
-    protected String roleSealsOid;
-    protected String groupSealsDn;
-    protected String groupSealsOid;
+    private String roleSealsOid;
+    private String groupSealsDn;
+    private String groupSealsOid;
 
     @Override
     protected void startResources() throws Exception {
@@ -229,7 +240,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // Role
         importObjectFromFile(ROLE_BASIC_FILE, initResult);
-        importObjectFromFile(ROLE_UNIX_FILE, initResult);
+        ROLE_UNIX.init(this, initTask, initResult);
         importObjectFromFile(ROLE_META_LDAPGROUP_FILE, initResult);
         importObjectFromFile(ROLE_META_UNIXGROUP_FILE, initResult);
         importObjectFromFile(ROLE_META_UNIXGROUP2_FILE, initResult);
@@ -376,7 +387,8 @@ public class TestUnix extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> user = createUser(USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, ROLE_UNIX_OID);
+        PrismObject<UserType> user =
+                createUser(USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, ROLE_UNIX.oid);
 
         // WHEN
         when();
@@ -420,9 +432,9 @@ public class TestUnix extends AbstractStoryTest {
         PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "o"), DOMUtil.XSD_STRING, 0, -1);
         PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "uidNumber"), DOMUtil.XSD_INT, 1, 1);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "uidNumber"), DOMUtil.XSD_INTEGER, 1, 1);
         PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "gidNumber"), DOMUtil.XSD_INT, 1, 1);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "gidNumber"), DOMUtil.XSD_INTEGER, 1, 1);
     }
 
     @Test
@@ -509,7 +521,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        assignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -567,7 +579,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        unassignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -673,7 +685,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        assignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -876,7 +888,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        unassignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -1132,7 +1144,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        assignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -1173,7 +1185,7 @@ public class TestUnix extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
         Entry groupVillains = openDJController.fetchEntry(groupVillainsDn);
         OpenDJController.assertAttribute(groupVillains, "memberUid", USER_LARGO_USERNAME);
         //openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
@@ -1314,7 +1326,7 @@ public class TestUnix extends AbstractStoryTest {
         then();
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        String accountRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
         //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
         OpenDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
@@ -1353,7 +1365,7 @@ public class TestUnix extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        String accountLArgoDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
         //openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
         OpenDJController.assertAttribute(groupSeals, "memberUid", USER_RANGER_USERNAME);
@@ -1500,7 +1512,8 @@ public class TestUnix extends AbstractStoryTest {
         assertEquals("Wrong sequence counter (precondition)", USER_CAPSIZE_UID_NUMBER, sequenceBefore.asObjectable().getCounter().intValue());
         assertTrue("Unexpected unused values in the sequence (precondition)", sequenceBefore.asObjectable().getUnusedValues().isEmpty());
 
-        PrismObject<UserType> user = createUser(USER_CAPSIZE_USERNAME, USER_CAPSIZE_FIST_NAME, USER_CAPSIZE_LAST_NAME, ROLE_UNIX_OID);
+        PrismObject<UserType> user =
+                createUser(USER_CAPSIZE_USERNAME, USER_CAPSIZE_FIST_NAME, USER_CAPSIZE_LAST_NAME, ROLE_UNIX.oid);
         user.asObjectable().getSubtype().add("troublemaker");
 
         try {
@@ -1542,7 +1555,7 @@ public class TestUnix extends AbstractStoryTest {
         assertEquals("Wrong sequence counter (precondition)", USER_WALLY_UID_NUMBER + 1, sequenceBefore.asObjectable().getCounter().intValue());
         assertFalse("Missing unused values in the sequence (precondition)", sequenceBefore.asObjectable().getUnusedValues().isEmpty());
 
-        PrismObject<UserType> user = createUser(USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, ROLE_UNIX_OID);
+        PrismObject<UserType> user = createUser(USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, ROLE_UNIX.oid);
 
         // WHEN
         when();
@@ -1670,8 +1683,8 @@ public class TestUnix extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(),
-                OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, prismContext);
+        ObjectQuery query =
+                ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME);
 
         // WHEN
         when();
@@ -1840,6 +1853,89 @@ public class TestUnix extends AbstractStoryTest {
          */
     }
 
+    /** UID is now over the `long` range. MID-4424. */
+    @Test
+    public void test550BigUid() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        BigInteger uidNumber = BigInteger.valueOf(10).pow(30);
+
+        given("user with big uidNumber");
+        UserType userBig = new UserType()
+                .fullName("Big User")
+                .familyName("User")
+                .givenName("Big")
+                .name("big550")
+                .assignment(ROLE_UNIX.assignmentTo());
+        ObjectTypeUtil.setExtensionPropertyRealValues(
+                userBig.asPrismContainerValue(), EXTENSION_UID_NUMBER_NAME, uidNumber);
+
+        when("it is created");
+        addObject(userBig, task, result);
+
+        then("user and account are OK");
+        // @formatter:off
+        PrismObject<ShadowType> shadow = assertUserAfter(userBig.getOid())
+                .extension()
+                    .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_NAME, uidNumber)
+                    .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_PLUS_ONE_NAME, uidNumber.add(BigInteger.ONE))
+                    .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_INT_NAME) // no values (conversion is not possible)
+                .end()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .getObject();
+        // @formatter:on
+        assertPosixAccount(shadow, uidNumber);
+    }
+
+    /** Checks the handling of big integers on inbounds. MID-4424. */
+    @Test
+    public void test560BigUidInbound() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        BigInteger uidNumber = new BigInteger("2000000000000000000000000000000");
+
+        given("special 'inbound' resource is initialized and account with big uidNumber is created");
+        RESOURCE_OPENDJ_INBOUND.initAndTest(this, task, result);
+
+        String name = "big560";
+        openDJController.addEntry("dn: uid=" + name + ",ou=people,dc=example,dc=com\n"
+                + "objectClass: top\n"
+                + "objectClass: inetOrgPerson\n"
+                + "objectClass: posixAccount\n"
+                + "objectClass: organizationalPerson\n"
+                + "objectClass: person\n"
+                + "objectClass: top\n"
+                + "objectClass: inetOrgPerson\n"
+                + "objectClass: posixAccount\n"
+                + "objectClass: organizationalPerson\n"
+                + "objectClass: person\n"
+                + "sn: User\n"
+                + "cn: Big User\n"
+                + "givenName: Big\n"
+                + "homeDirectory: /home/" + name + "\n"
+                + "gidNumber: " + uidNumber + "\n"
+                + "uidNumber: " + uidNumber + "\n"
+                + "uid: " + name + "\n");
+
+        when("the account is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_INBOUND.oid)
+                .withNamingAttribute(QNAME_UID)
+                .withNameValue(name)
+                .execute(result);
+
+        then("user is there");
+        assertUserAfterByUsername(name)
+                .extension()
+                .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_NAME, uidNumber)
+                .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_PLUS_ONE_NAME, uidNumber.add(BigInteger.ONE))
+                .assertPropertyValuesEqual(EXTENSION_UID_NUMBER_INT_NAME); // no values (conversion is not possible)
+    }
+
     protected void assertAccountTest510(PrismObject<ShadowType> shadow) throws Exception {
         assertBasicAccount(shadow);
 
@@ -1864,11 +1960,11 @@ public class TestUnix extends AbstractStoryTest {
         user.asObjectable().getAssignment().add(roleAssignment);
     }
 
-    protected void assertUserHerman(PrismObject<UserType> user) {
+    private void assertUserHerman(PrismObject<UserType> user) {
         assertUser(user, USER_HERMAN_USERNAME, USER_HERMAN_FIST_NAME, USER_HERMAN_LAST_NAME);
     }
 
-    protected void assertUserStan(PrismObject<UserType> user) {
+    private void assertUserStan(PrismObject<UserType> user) {
         assertUser(user, USER_STAN_USERNAME, USER_STAN_FIST_NAME, USER_STAN_LAST_NAME);
     }
 
@@ -1877,15 +1973,16 @@ public class TestUnix extends AbstractStoryTest {
                 firstName, lastName);
     }
 
-    protected void assertUserPosix(PrismObject<UserType> user, String username, String firstName, String lastName, int uidNumber) {
-        assertUser(user, user.getOid(), username, firstName + " " + lastName,
-                firstName, lastName);
+    void assertUserPosix(PrismObject<UserType> user, String username, String firstName, String lastName, int uidNumber) {
+        assertUser(user, user.getOid(), username, firstName + " " + lastName, firstName, lastName);
         PrismContainer<?> extension = user.getExtension();
         assertNotNull("No extension in " + user, extension);
-        PrismAsserts.assertPropertyValue(extension, EXTENSION_UID_NUMBER_NAME, Integer.toString(uidNumber));
+        PrismAsserts.assertPropertyValue(extension, EXTENSION_UID_NUMBER_NAME, BigInteger.valueOf(uidNumber));
+        PrismAsserts.assertPropertyValue(extension, EXTENSION_UID_NUMBER_PLUS_ONE_NAME, BigInteger.valueOf(uidNumber + 1));
+        PrismAsserts.assertPropertyValue(extension, EXTENSION_UID_NUMBER_INT_NAME, uidNumber);
     }
 
-    protected String assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
+    String assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
         ShadowType shadowType = shadow.asObjectable();
         assertEquals("Wrong objectclass in " + shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
         assertTrue("Unexpected auxiliary objectclasses in " + shadow + ": " + shadowType.getAuxiliaryObjectClass(),
@@ -1902,7 +1999,8 @@ public class TestUnix extends AbstractStoryTest {
         return entry.getDN().toString();
     }
 
-    protected String assertAccount(PrismObject<ShadowType> shadow, QName... expectedAuxObjectClasses) throws DirectoryException {
+    @SuppressWarnings("UnusedReturnValue")
+    String assertAccount(PrismObject<ShadowType> shadow, QName... expectedAuxObjectClasses) throws DirectoryException {
         ShadowType shadowType = shadow.asObjectable();
         assertEquals("Wrong objectclass in " + shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
         PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in " + shadow,
@@ -1918,7 +2016,11 @@ public class TestUnix extends AbstractStoryTest {
         return entry.getDN().toString();
     }
 
-    protected String assertPosixAccount(PrismObject<ShadowType> shadow, Integer expectedUid) throws DirectoryException {
+    String assertPosixAccount(PrismObject<ShadowType> shadow, int expectedUid) throws DirectoryException {
+        return assertPosixAccount(shadow, BigInteger.valueOf(expectedUid));
+    }
+
+    String assertPosixAccount(PrismObject<ShadowType> shadow, BigInteger expectedUid) throws DirectoryException {
         ShadowType shadowType = shadow.asObjectable();
         assertEquals("Wrong objectclass in " + shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
         PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in " + shadow,
@@ -1926,10 +2028,10 @@ public class TestUnix extends AbstractStoryTest {
         //noinspection ConstantConditions
         String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
         if (expectedUid != null) {
-            ResourceAttribute<Integer> uidNumberAttr = ShadowUtil
+            ResourceAttribute<BigInteger> uidNumberAttr = ShadowUtil
                     .getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME));
             PrismAsserts.assertPropertyValue(uidNumberAttr, expectedUid);
-            ResourceAttribute<Integer> gidNumberAttr = ShadowUtil
+            ResourceAttribute<BigInteger> gidNumberAttr = ShadowUtil
                     .getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
             PrismAsserts.assertPropertyValue(gidNumberAttr, expectedUid);
         }
@@ -1940,14 +2042,15 @@ public class TestUnix extends AbstractStoryTest {
         OpenDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
         OpenDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
         if (expectedUid != null) {
-            OpenDJController.assertAttribute(entry, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
-            OpenDJController.assertAttribute(entry, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
+            OpenDJController.assertAttribute(entry, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME, expectedUid.toString());
+            OpenDJController.assertAttribute(entry, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME, expectedUid.toString());
         }
 
         return entry.getDN().toString();
     }
 
-    protected ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+    @SuppressWarnings("UnusedReturnValue")
+    ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
         ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
         if (association != null) {
             return association;
@@ -1956,7 +2059,7 @@ public class TestUnix extends AbstractStoryTest {
         return null; // NOT REACHED
     }
 
-    protected void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+    private void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
         ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
         assertNull("Unexpected association for " + groupShadowOid + " in " + accountShadow, association);
     }
@@ -1974,6 +2077,7 @@ public class TestUnix extends AbstractStoryTest {
         return null;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<RoleType> createLdapGroupRole(String name) throws SchemaException {
         PrismObject<RoleType> role = getRoleDefinition().instantiate();
         RoleType roleType = role.asObjectable();
@@ -2026,8 +2130,8 @@ public class TestUnix extends AbstractStoryTest {
                 shadowType.getAuxiliaryObjectClass(), OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         //noinspection ConstantConditions
         String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
-        ResourceAttribute<Integer> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
-        PrismAsserts.assertPropertyValue(gidNumberAttr, expectedGidNumber);
+        ResourceAttribute<BigInteger> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
+        PrismAsserts.assertPropertyValue(gidNumberAttr, BigInteger.valueOf(expectedGidNumber));
 
         Entry entry = openDJController.fetchEntry(dn);
         assertNotNull("No group LDAP entry for " + dn, entry);
@@ -2096,7 +2200,7 @@ public class TestUnix extends AbstractStoryTest {
      *
      * Therefore we set the safety margin to a value greater than 1000 millis.
      */
-    protected void assertModifyTimestamp(PrismObject<ShadowType> shadow, long startTs, long endTs) throws Exception {
+    private void assertModifyTimestamp(PrismObject<ShadowType> shadow, long startTs, long endTs) throws Exception {
         Long actual = getTimestampAttribute(shadow);
         // The timestamp is rounded to whole seconds, so let's have a safety margin here.
         // For unknown reasons (see javadoc above), 1000 millis is sometimes too low. Let's be more generous.

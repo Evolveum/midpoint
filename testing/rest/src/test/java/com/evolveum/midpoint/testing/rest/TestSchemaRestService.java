@@ -1,26 +1,19 @@
 /*
- * Copyright (c) 2010-2022 Evolveum
+ * Copyright (C) 2022-2023 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFileType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFilesType;
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -29,15 +22,11 @@ import org.apache.cxf.jaxrs.provider.PrimitiveTextProvider;
 import org.apache.cxf.transport.local.LocalConduit;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFilesType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -59,7 +48,7 @@ public class TestSchemaRestService extends RestServiceInitializer {
     }
 
     @Override
-    protected MidpointAbstractProvider getProvider() {
+    protected MidpointAbstractProvider<?> getProvider() {
         return null;
     }
 
@@ -104,7 +93,7 @@ public class TestSchemaRestService extends RestServiceInitializer {
         SchemaFileType schemaFile = schemas.getSchema().get(0);
         assertEquals("piracy.xsd", schemaFile.getFileName());
         assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", schemaFile.getNamespace());
-        assertEquals(null, schemaFile.getUsualPrefix());
+        assertNull(schemaFile.getUsualPrefix());
 
         return schemaFile;
     }

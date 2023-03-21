@@ -94,8 +94,8 @@ final class RemainingShadowsActivityRun
                     .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
                     .or().item(syncTimestampItem).isNull()
                 .endBlock()
-                    .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
+                .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
                 .build();
     }
 

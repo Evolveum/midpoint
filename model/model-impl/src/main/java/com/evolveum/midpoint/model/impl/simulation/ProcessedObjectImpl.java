@@ -249,7 +249,11 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     delta.computeChangedObject(
                             asPrismObject(stateBefore)));
         }
-        @Nullable O anyState = MiscUtil.getFirstNonNull(stateAfter, stateBefore);
+
+        // We intentionally prefer the state before. The reason is that e.g. for object name we want to display the record
+        // and report on it under the OLD name - it is the name of the object that is currently valid in the real world.
+        // The same is true for the shadow discriminator. See MID-8610.
+        @Nullable O anyState = MiscUtil.getFirstNonNull(stateBefore, stateAfter);
 
         if (anyState == null) {
             return null;
@@ -259,6 +263,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 simulationTransaction.getTransactionId(),
                 elementContext.getOid(),
                 type,
+                // We should provide the old value here, just like for name and discriminator. See MID-8610.
                 elementContext instanceof LensFocusContext<?> ?
                         ((LensFocusContext<?>) elementContext).getStructuralArchetypeRef() : null,
                 determineShadowDiscriminator(anyState),

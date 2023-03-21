@@ -118,6 +118,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         addMarks(this, initTask, initResult);
 
+        ARCHETYPE_REPORT.init(this, getTestTask(), getTestOperationResult());
+        ARCHETYPE_COLLECTION_REPORT.init(this, getTestTask(), getTestOperationResult());
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
@@ -2866,7 +2868,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
+                PolyString.fromOrig("Magnificent Captain Jack Sparrow"));
 
         then();
         assertSuccess(result);
@@ -2902,7 +2904,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
 
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
-                UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
+                UserType.F_FULL_NAME, PolyString.fromOrig("Jack Sparrow"));
         // We have full account here. It is loaded because of strong mapping.
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
                 dummyResourceCtl.getAttributeFullnamePath(), "Cpt. Jack Sparrow");
@@ -2969,7 +2971,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertPropertyReplace(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY /* no values */);
         // MID-4020
-        dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
+        dummyAuditService.assertOldValue(
+                ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, PolyString.fromOrig(USER_JACK_LOCALITY));
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
@@ -3028,7 +3031,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("sea"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig("sea"));
 
         then();
         assertSuccess(result);
@@ -3062,7 +3065,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertPropertyReplace(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, createPolyString("sea"));
+        dummyAuditService.assertPropertyReplace(
+                ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, PolyString.fromOrig("sea"));
         // MID-4020
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY /* no values */);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -3485,7 +3489,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         var simulationResult = executeWithSimulationResult(
                 task, result,
                 () -> modifyUserReplace(
-                        USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry")));
+                        USER_MORGAN_OID, UserType.F_NAME, task, result, PolyString.fromOrig("sirhenry")));
 
         then("operation is successful");
         assertSuccess(result);
@@ -3498,12 +3502,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertProcessedObjects(simulationResult, "after")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
-                        a -> a.assertEventMarks(MARK_FOCUS_RENAMED))
+                        a -> a.assertEventMarks(MARK_FOCUS_RENAMED)
+                                .assertName("morgan")) // original name (MID-8610)
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find(
                         a -> a.assertEventMarks(
                                 MARK_PROJECTION_RENAMED,
                                 MARK_PROJECTION_IDENTIFIER_CHANGED,
-                                MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
+                                MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
+                                .assertName("morgan")) // original name (MID-8610)
                 .assertSize(2);
 
         and("no side effects: no new objects, no provisioning scripts, no audit deltas, no notifications");
@@ -3524,7 +3530,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        modifyUserReplace(USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry"));
+        modifyUserReplace(USER_MORGAN_OID, UserType.F_NAME, task, result, PolyString.fromOrig("sirhenry"));
 
         then();
         assertSuccess(result);
@@ -3574,7 +3580,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         //  attributes/icfs:uid: morgan -> sirhenry - this is a change induced by the connector/resource
 
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
-                UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
+                UserType.F_NAME, PolyString.fromOrig("morgan"));
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
                 SchemaConstants.ICFS_NAME_PATH, "morgan");
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
