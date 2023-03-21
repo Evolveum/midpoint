@@ -9,9 +9,9 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
@@ -42,16 +43,13 @@ import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -66,10 +64,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * @author lazyman
@@ -545,40 +541,162 @@ public class PageAbout extends PageAdminConfiguration {
             public void yesPerformed(AjaxRequestTarget target) {
                 resetStateToInitialConfig(target);
             }
-
         };
     }
 
+    private ActivityDefinitionType createDeleteAllPerObjectType(QName type, QueryType query, Integer threads) {
+        // @formatter:off
+        return new ActivityDefinitionType()
+                .identifier("Delete all " + type.getLocalPart())
+                .beginDistribution()
+                .workerThreads(threads)
+                .<ActivityDefinitionType>end()
+                .beginWork()
+                .beginDeletion()
+                .beginObjects()
+                .type(type)
+                .query(query)
+                .<DeletionWorkDefinitionType>end()
+                .<WorkDefinitionsType>end()
+                .end();
+        // @formatter:on
+    }
+
+    private QueryType createTaskQuery(String taskIdentifier) throws SchemaException {
+        // @formatter:off
+        final ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .not().item(TaskType.F_TASK_IDENTIFIER).eq(taskIdentifier)
+                .and()
+                .not().item(TaskType.F_PARENT).eq(taskIdentifier).build();
+        // @formatter:on
+        return getPrismContext().getQueryConverter().createQueryType(query);
+    }
+
+    private <T extends ObjectType> QueryType createAllQuery(Class<T> type) throws SchemaException {
+        return getPrismContext().getQueryConverter().createQueryType(
+                getPrismContext().queryFor(type)
+                        .all()
+                        .build());
+    }
+
+    private List<ObjectTypes> createSortedTypes() {
+        final List<ObjectTypes> first = new ArrayList<>();
+        first.add(ObjectTypes.SHADOW);
+        first.add(ObjectTypes.USER);
+        first.add(ObjectTypes.ROLE);
+        first.add(ObjectTypes.ORG);
+
+        final List<ObjectTypes> last = new ArrayList<>();
+        last.add(ObjectTypes.RESOURCE);
+        last.add(ObjectTypes.CONNECTOR);
+        last.add(ObjectTypes.MARK);
+        last.add(ObjectTypes.OBJECT_TEMPLATE);
+        last.add(ObjectTypes.OBJECT_COLLECTION);
+        last.add(ObjectTypes.ARCHETYPE);
+        last.add(ObjectTypes.SECURITY_POLICY);
+        last.add(ObjectTypes.PASSWORD_POLICY);
+        last.add(ObjectTypes.SYSTEM_CONFIGURATION);
+
+        final List<ObjectTypes> types = new ArrayList<>();
+
+        types.addAll(first);
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (first.contains(type) || last.contains(type)) {
+                continue;
+            }
+
+            if (Modifier.isAbstract(type.getClassDefinition().getModifiers())) {
+                continue;
+            }
+
+            if (ObjectTypes.NODE == type) {
+                continue;
+            }
+
+            types.add(type);
+        }
+
+        types.addAll(last);
+
+        return types;
+    }
+
+    private String runDeleteAllTask(OperationResult result) throws SchemaException {
+        Task task = createSimpleTask(result.getOperation());
+
+        // @formatter:off
+        ActivityDefinitionType definition = new ActivityDefinitionType()
+                .beginComposition()
+                .<ActivityDefinitionType>end()
+                .beginDistribution()
+                .subtasks(new ActivitySubtaskDefinitionType())
+                .end();
+        // @formatter:on
+
+        List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
+        for (ObjectTypes type : createSortedTypes()) {
+            QueryType query;
+            if (ObjectTypes.TASK == type) {
+                query = createTaskQuery(task.getTaskIdentifier());
+            } else {
+                query = createAllQuery(type.getClassDefinition());
+            }
+
+            Integer threads = null;
+            if (FocusType.class.isAssignableFrom(type.getClassDefinition())
+                    || ShadowType.class.equals(type.getClassDefinition())) {
+                threads = 4;
+            }
+
+            activities.add(createDeleteAllPerObjectType(type.getTypeQName(), query, threads));
+        }
+
+        task.setName("Delete all objects");
+        task.setRootActivityDefinition(definition);
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+        task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+
+        getModelInteractionService().switchToBackground(task, result);
+        return task.getOid();
+    }
+
     private void resetStateToInitialConfig(AjaxRequestTarget target) {
+        hideMainPopup(target);
+
         OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
         String taskOid = null;
-        String taskName = "Delete all objects";
-
-        QueryFactory factory = getPrismContext().queryFactory();
-
-        TypeFilter nodeFilter = factory.createType(NodeType.COMPLEX_TYPE, factory.createAll());
-        final ObjectFilter taskFilter = getPrismContext().queryFor(TaskType.class)
-                .item(TaskType.F_NAME).eq(taskName).buildFilter();
-        NotFilter notNodeFilter = factory.createNot(nodeFilter);
-        NotFilter notTaskFilter = factory.createNot(taskFilter);
 
         try {
-            QName type = ObjectType.COMPLEX_TYPE;
-            taskOid = deleteObjectsAsync(type, factory.createQuery(
-                            factory.createAnd(notTaskFilter, notNodeFilter)),
-                    taskName, result);
+            taskOid = runDeleteAllTask(result);
 
+            info("PageAbout.factoryResetStarted");
         } catch (Exception ex) {
+            String msg = getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError");
             result.recomputeStatus();
-            result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError"), ex);
+            result.recordFatalError(msg, ex);
 
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
+            info(msg);
+        }
+
+        target.add(getFeedbackPanel());
+
+        if (taskOid == null) {
+            return;
         }
 
         final String taskOidToRemoving = taskOid;
 
         try {
-            while (!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
+            while (true) {
+                Task task = getTaskManager().getTaskPlain(taskOid, result);
+                if (task.isClosed() || task.isSuspended()) {
+                    break;
+                }
+
+                TimeUnit.SECONDS.sleep(5);
+            }
 
             runPrivileged(new Producer<>() {
 
@@ -586,16 +704,16 @@ public class PageAbout extends PageAdminConfiguration {
 
                 @Override
                 public Object run() {
-                    Task task = createAnonymousTask(OPERATION_DELETE_TASK);
-                    OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
-                    ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object()
-                            .createDeleteDelta(TaskType.class, taskOidToRemoving);
-                    Collection<ObjectDelta<? extends ObjectType>> deltaCollection = Collections.singletonList(delta);
+                    Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_TASK);
+                    task.setChannel(SchemaConstants.CHANNEL_USER_URI);
+
+                    OperationResult result = task.getResult();
+
                     try {
-                        getModelService().executeChanges(deltaCollection, null, task, result);
+                        getTaskService().suspendAndDeleteTasks(Arrays.asList(taskOidToRemoving), 2000L, true, task, result);
                     } catch (Exception ex) {
                         result.recomputeStatus();
-                        result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
+                        result.recordFatalError(LocalizationUtil.translate("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
 
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
                     }
