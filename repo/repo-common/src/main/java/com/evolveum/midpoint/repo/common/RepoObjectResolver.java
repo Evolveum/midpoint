@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2020 Evolveum and contributors
+ * Copyright (C) 2017-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -55,7 +55,7 @@ public class RepoObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType,
+    public <O extends ObjectType> O resolve(Referencable ref, Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription, Task task,
             OperationResult result) {
         // TODO Auto-generated method stub
@@ -72,5 +72,4 @@ public class RepoObjectResolver implements ObjectResolver {
             throws ObjectNotFoundException, SchemaException {
         return cacheRepositoryService.getObject(expectedType, oid, options, parentResult).asObjectable();
     }
-
 }

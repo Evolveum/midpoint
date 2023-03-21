@@ -138,6 +138,8 @@ public class ColumnUtils {
             return getDefaultOrgColumns(pageBase);
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceColumns();
+        } else if (ArchetypeType.class.equals(type)) {
+            return getDefaultArchetypeColumns();
         } else if (type.equals(TaskType.class)) {
             return getDefaultTaskColumns();
         } else if (type.equals(ResourceType.class)) {
@@ -489,7 +491,7 @@ public class ColumnUtils {
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultArchetypeColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(false));
 
         return columns;
     }
