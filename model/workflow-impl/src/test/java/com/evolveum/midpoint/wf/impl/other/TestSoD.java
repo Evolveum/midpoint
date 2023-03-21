@@ -8,6 +8,10 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,19 +46,35 @@ public class TestSoD extends AbstractWfTestPolicy {
             TEST_DIR, "role-thief.xml", "ee6a1809-a0ed-4983-a0b4-6eef24e8a76d");
     private static final TestObject<RoleType> ROLE_RESPECTABLE = TestObject.file(
             TEST_DIR, "role-respectable.xml", "4838ce2c-5250-4d9c-b5cc-b6b946852806");
+
+    private static final TestObject<RoleType> ROLE_WATER = TestObject.file(
+            TEST_DIR, "role-water.xml", "fd3dd8cf-24d7-46e7-9b73-e28ea74fc9ae");
+    private static final TestObject<RoleType> ROLE_FIRE = TestObject.file(
+            TEST_DIR, "role-fire.xml", "61d1db1b-41a7-44f3-9c1a-0605b489f955");
+    private static final TestObject<RoleType> ROLE_OIL = TestObject.file(
+            TEST_DIR, "role-oil.xml", "01f2d6d8-2a62-47c2-bcd9-a485dfc47708");
+
     private static final TestObject<UserType> USER_SOD_APPROVER = TestObject.file(
             TEST_DIR, "user-sod-approver.xml", "f15b45d6-f638-413f-9572-83554c7b3b88");
+
+    private static final TestObject<RoleType> ROLE_COORDINATOR = TestObject.file(
+            TEST_DIR, "role-coordinator.xml", "beb20faf-dfb2-433b-972b-55520ab60cf2");
+    private static final TestObject<RoleType> ROLE_WORKER_1 = TestObject.file(
+            TEST_DIR, "role-worker-1.xml", "5362af5c-5fab-4a79-ae5b-e4b04d99f4ee");
+    private static final TestObject<RoleType> ROLE_WORKER_2 = TestObject.file(
+            TEST_DIR, "role-worker-2.xml", "9b8cd034-8309-4d35-9acc-5f700aeab0ad");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         initTestObjects(initTask, initResult,
                 METAROLE_CRIMINAL_EXCLUSION,
-                ROLE_JUDGE,
-                ROLE_PIRATE,
-                ROLE_THIEF,
-                ROLE_RESPECTABLE,
-                USER_SOD_APPROVER);
+                ROLE_JUDGE, ROLE_PIRATE, ROLE_THIEF, ROLE_RESPECTABLE,
+                ROLE_WATER, ROLE_FIRE, ROLE_OIL,
+                USER_SOD_APPROVER,
+                ROLE_COORDINATOR, ROLE_WORKER_1, ROLE_WORKER_2);
+
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
 
     /**
@@ -156,8 +176,66 @@ public class TestSoD extends AbstractWfTestPolicy {
         unassignRole(USER_JACK.oid, ROLE_PIRATE.oid, task, result);
         assertNotAssignedRole(USER_JACK.oid, ROLE_PIRATE.oid, result);
 
-        when("role Respectable is requested");
-        assignRole(USER_JACK.oid, ROLE_RESPECTABLE.oid, task, result);
+        testAddingConflictingRoleAssignment(
+                USER_JACK, ROLE_JUDGE, ROLE_RESPECTABLE,
+                "Role \"Thief\" (Respectable -> Thief) excludes role \"Judge\"",
+                task, result);
+    }
+
+    /**
+     * Checks that one-sided exclusion definitions are properly submitted to approvals and also recorded.
+     *
+     * MID-8269.
+     */
+    @Test
+    public void test100OneSidedExclusion() throws Exception {
+        login(userAdministrator);
+
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        testOneSidedExclusion(
+                "test100-1", ROLE_WATER, ROLE_FIRE,
+                "Role \"fire\" excludes role \"water\"",
+                task, result);
+        testOneSidedExclusion(
+                "test100-2", ROLE_FIRE, ROLE_WATER,
+                "Role \"fire\" excludes role \"water\"",
+                task, result);
+        testOneSidedExclusion(
+                "test100-3", ROLE_WATER, ROLE_OIL,
+                "Role \"oil\" excludes role \"water\"",
+                task, result);
+        testOneSidedExclusion(
+                "test100-4", ROLE_OIL, ROLE_WATER,
+                "Role \"oil\" excludes role \"water\"",
+                task, result);
+    }
+
+    private void testOneSidedExclusion(
+            String username, TestObject<RoleType> existingRole, TestObject<RoleType> newRole,
+            String expectedCaseName, Task task, OperationResult result)
+            throws CommonException {
+
+        given("there is a user with a role");
+        UserType userBean = new UserType()
+                .name(username)
+                .assignment(existingRole.assignmentTo());
+        addObject(userBean, task, result);
+        TestObject<UserType> user = TestObject.of(userBean);
+
+        testAddingConflictingRoleAssignment(user, existingRole, newRole, expectedCaseName, task, result);
+    }
+
+    private void testAddingConflictingRoleAssignment(
+            TestObject<UserType> user, TestObject<RoleType> existingRole, TestObject<RoleType> newRole,
+            String expectedCaseName, Task task, OperationResult result) throws CommonException {
+
+        // To be able to check do this repeatably
+        result.clearAsynchronousOperationReferencesDeeply();
+
+        when("role " + newRole + " is requested");
+        assignRole(user.oid, newRole.oid, task, result);
 
         then("it must be submitted to approval");
         // @formatter:off
@@ -165,18 +243,18 @@ public class TestSoD extends AbstractWfTestPolicy {
                 .subcases()
                 .singleWithApprovalSchema()
                     .display()
-                    .assertObjectRef(USER_JACK.ref())
-                    .assertTargetRef(ROLE_RESPECTABLE.ref())
-                    .assertOpenApproval("Role \"Thief\" (Respectable -> Thief) excludes role \"Judge\"")
+                    .assertObjectRef(user.ref())
+                    .assertTargetRef(newRole.ref())
+                    .assertOpenApproval(expectedCaseName)
                     .workItems()
                         .single()
                             .assertAssignees(USER_SOD_APPROVER.oid)
                             .getRealValue();
         // @formatter:on
 
-        assertUser(USER_JACK.oid, "before approval")
+        assertUser(user.oid, "before approval")
                 .assignments()
-                .assertNoRole(ROLE_RESPECTABLE.oid);
+                .assertNoRole(newRole.oid);
 
         when("work item is approved");
         approveWorkItem(workItem, task, result);
@@ -184,13 +262,78 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         then("user is updated, policy situation is set");
         // @formatter:off
-        assertUserAfter(USER_JACK.oid)
+        assertUserAfter(user.oid)
                 .assignments()
-                    .forRole(ROLE_RESPECTABLE.oid)
+                    .forRole(newRole.oid)
                         .assertExclusionViolationSituation()
                     .end()
-                    .forRole(ROLE_JUDGE.oid)
+                    .forRole(existingRole.oid)
                         .assertExclusionViolationSituation();
+        // @formatter:on
+    }
+
+    /**
+     * Checks that one-sided exclusion definitions are properly submitted to approvals and also recorded,
+     * even for "multi-exclusion" cases:
+     *
+     * * `coordinator` excludes any worker
+     * * but we want to add two workers (at once)
+     *
+     * There should be two approval processes, each with correct name and data.
+     *
+     * MID-8251.
+     */
+    @Test
+    public void test110OneSidedMultiExclusion() throws Exception {
+        login(userAdministrator);
+
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        testOneSidedMultiExclusion(
+                "test110-1", ROLE_COORDINATOR, ROLE_WORKER_1, ROLE_WORKER_2,
+                "Role \"coordinator\" excludes role \"worker-1\"",
+                "Role \"coordinator\" excludes role \"worker-2\"",
+                task, result);
+    }
+
+    private void testOneSidedMultiExclusion(
+            String username, TestObject<RoleType> existingRole,
+            TestObject<RoleType> newRole1, TestObject<RoleType> newRole2,
+            String expectedCaseName1, String expectedCaseName2,
+            Task task, OperationResult result)
+            throws CommonException {
+
+        given("there is a user with a role");
+        UserType userBean = new UserType()
+                .name(username)
+                .assignment(existingRole.assignmentTo());
+        addObject(userBean, task, result);
+        TestObject<UserType> user = TestObject.of(userBean);
+
+        // To be able to check do this repeatably
+        result.clearAsynchronousOperationReferencesDeeply();
+
+        when("roles " + newRole1 + " and " + newRole2 + " are requested");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(newRole1.assignmentTo(), newRole2.assignmentTo())
+                .asObjectDelta(user.oid);
+        executeChanges(delta, null, task, result);
+
+        then("it must be submitted to approval");
+        // @formatter:off
+        assertReferencedCase(result)
+                .subcases()
+                .singleForTarget(newRole1.oid)
+                    .display()
+                    .assertNameOrig(expectedCaseName1)
+                .end()
+                .singleForTarget(newRole2.oid)
+                    .display()
+                    .assertNameOrig(expectedCaseName2)
+                .end()
+                .assertSubcases(2);
         // @formatter:on
     }
 }

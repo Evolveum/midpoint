@@ -438,8 +438,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
             assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(AuditingConstants.AUDIT_CAUSE_DISPLAY_NAME));
             assertEquals("Wrong result in " + r, "Rejected", r.getResult());
         }
-        displayCollection("notifications - process", dummyTransport.getMessages("dummy:simpleWorkflowNotifier-Processes"));
-        List<Message> notifications = dummyTransport.getMessages("dummy:simpleWorkflowNotifier-WorkItems");
+        displayCollection("notifications - cases", dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES));
+        List<Message> notifications = dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS);
         displayCollection("notifications - work items", notifications);
         for (Message notification : notifications) {
             assertContains(notification, "Reason: Automatic rejection at deadline (timed action)");

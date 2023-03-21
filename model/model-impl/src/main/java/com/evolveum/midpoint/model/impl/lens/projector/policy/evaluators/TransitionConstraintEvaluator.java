@@ -31,10 +31,12 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Component
-public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<TransitionPolicyConstraintType> {
+public class TransitionConstraintEvaluator
+        implements PolicyConstraintEvaluator<TransitionPolicyConstraintType, EvaluatedTransitionTrigger> {
 
     private static final String OP_EVALUATE = TransitionConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -44,7 +46,7 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
     @Autowired private PolicyConstraintsEvaluator policyConstraintsEvaluator;
 
     @Override
-    public <O extends ObjectType> EvaluatedPolicyRuleTrigger<?> evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedTransitionTrigger> evaluate(
             @NotNull JAXBElement<TransitionPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -61,12 +63,14 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
                     evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
                             && evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
             if (match) {
-                return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
-                        createMessage(constraintElement, rctx, result),
-                        createShortMessage(constraintElement, rctx, result),
-                        triggers);
+                return List.of(
+                        new EvaluatedTransitionTrigger(
+                                PolicyConstraintKindType.TRANSITION, trans,
+                                createMessage(constraintElement, rctx, result),
+                                createShortMessage(constraintElement, rctx, result),
+                                triggers));
             } else {
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -80,7 +84,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
             TransitionPolicyConstraintType trans,
             PolicyRuleEvaluationContext<O> rctx, ObjectState state, Boolean expected,
             List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (expected == null) {
             return true;
         }
@@ -92,16 +97,24 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
         return expected == real;
     }
 
-    private LocalizableMessage createMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createMessage(
+            JAXBElement<TransitionPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                 .build();
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private LocalizableMessage createShortMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private LocalizableMessage createShortMessage(
+            JAXBElement<TransitionPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
                 .build();

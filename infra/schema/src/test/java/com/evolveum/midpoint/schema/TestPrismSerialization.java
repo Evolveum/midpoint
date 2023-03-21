@@ -93,7 +93,7 @@ public class TestPrismSerialization extends AbstractSchemaTest {
                 .name("joe")
                 .oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
                 .description("description");
-        ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe, prismContext);
+        ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe);
         reference.add(referenceRealValue.asReferenceValue());
 
         String xml = prismContext.xmlSerializer().serialize(reference);

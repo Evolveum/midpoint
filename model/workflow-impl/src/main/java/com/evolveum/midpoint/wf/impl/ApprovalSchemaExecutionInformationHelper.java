@@ -7,10 +7,18 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,21 +30,13 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.util.ComputationResult;
-import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class ApprovalSchemaExecutionInformationHelper {
@@ -44,7 +44,6 @@ public class ApprovalSchemaExecutionInformationHelper {
     private static final Trace LOGGER = TraceManager.getTrace(ApprovalSchemaExecutionInformationHelper.class);
 
     @Autowired private ModelService modelService;
-    @Autowired private PrismContext prismContext;
     @Autowired private StageComputeHelper computeHelper;
     @Autowired private CaseMiscHelper caseMiscHelper;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
@@ -64,7 +63,7 @@ public class ApprovalSchemaExecutionInformationHelper {
     List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
-        ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService, opTask);
+        ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, repositoryService, opTask);
         List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);
         List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
         for (PcpStartInstruction taskInstruction : taskInstructions) {
@@ -83,8 +82,8 @@ public class ApprovalSchemaExecutionInformationHelper {
     @NotNull
     private ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(CaseType aCase, boolean purePreview, Task opTask,
             OperationResult result) {
-        ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
-        rv.setCaseRef(ObjectTypeUtil.createObjectRefWithFullObject(aCase, prismContext));
+        ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType();
+        rv.setCaseRef(ObjectTypeUtil.createObjectRefWithFullObject(aCase));
         ApprovalContextType wfc = aCase.getApprovalContext();
         if (wfc == null) {
             result.recordFatalError("Workflow context in " + aCase + " is missing or not accessible.");
@@ -109,7 +108,7 @@ public class ApprovalSchemaExecutionInformationHelper {
         }
         List<ApprovalStageDefinitionType> stagesDef = ApprovalContextUtil.sortAndCheckStages(approvalSchema);
         for (ApprovalStageDefinitionType stageDef : stagesDef) {
-            ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
+            ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType();
             stageExecution.setNumber(stageDef.getNumber());
             stageExecution.setDefinition(stageDef);
             if (stageDef.getNumber() > currentStageNumber) {
@@ -125,7 +124,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 
     private ApprovalStageExecutionPreviewType createStageExecutionPreview(CaseType aCase, String requestChannel,
             ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
-        ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
+        ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType();
         try {
             ComputationResult computationResult = computeHelper
                     .computeStageApprovers(stageDef, aCase,

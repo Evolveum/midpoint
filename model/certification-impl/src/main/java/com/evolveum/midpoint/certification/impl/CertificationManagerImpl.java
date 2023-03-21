@@ -182,8 +182,10 @@ public class CertificationManagerImpl implements CertificationManager {
                     return null;
                 }, administrator);
             } catch (Throwable e) {
-                result.recordFatalError(e.getMessage(), e);        // TODO
+                result.recordException(e);
                 throw e;
+            } finally {
+                result.close();
             }
         }
     }

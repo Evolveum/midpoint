@@ -647,10 +647,14 @@
                         How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
                         automaticallyApproved items in AbstractRoleType? The default is "ifNoExplicitApprovalPolicyAction", that
                         means these items are applied only if no explicit approval policy action is encountered.
+
+                        DEPRECATED. Not used anymore. Legacy approvers specification were already removed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>WfConfigurationType.useLegacyApproversSpecification</a:displayName>
                         <a:displayOrder>120</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

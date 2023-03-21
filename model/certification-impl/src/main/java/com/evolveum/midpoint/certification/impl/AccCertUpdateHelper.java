@@ -7,7 +7,18 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.common.Clock;
+import static java.util.Collections.singleton;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -22,22 +33,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTriggeringUtil;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static java.util.Collections.singleton;
 
 /**
  * Common and lower-level update methods.
@@ -54,17 +54,8 @@ public class AccCertUpdateHelper {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private AccCertGeneralHelper generalHelper;
     @Autowired protected AccCertQueryHelper queryHelper;
-    @Autowired private AccCertCaseOperationsHelper caseHelper;
-    @Autowired private Clock clock;
-    @Autowired private AccCertResponseComputationHelper computationHelper;
-
-    private static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
-    private static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
-    private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
-    private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
 
     //region ================================ Triggers ================================
 
@@ -124,7 +115,7 @@ public class AccCertUpdateHelper {
                 .asItemDelta();
     }
 
-    ContainerDelta createTriggerDeleteDelta() {
+    ContainerDelta<?> createTriggerDeleteDelta() {
         return prismContext.deltaFactory().container()
                 .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
@@ -150,7 +141,7 @@ public class AccCertUpdateHelper {
         } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new SystemException("Unexpected exception when adding object: " + e.getMessage(), e);
         }
-        ObjectDeltaOperation odo = ops.iterator().next();
+        ObjectDeltaOperation<?> odo = ops.iterator().next();
         objectType.setOid(odo.getObjectDelta().getOid());
 
         /* ALTERNATIVELY, we can go directly into the repository. (No audit there.)
@@ -180,10 +171,6 @@ public class AccCertUpdateHelper {
         }
     }
 
-//    <T extends ObjectType> void modifyObject(Class<T> objectClass, String oid, Collection<ItemDelta> itemDeltas, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-//        repositoryService.modifyObject(objectClass, oid, itemDeltas, result);
-//    }
-
     // TODO implement more efficiently
     AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -211,11 +198,13 @@ public class AccCertUpdateHelper {
     }
 
     @NotNull
-    List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
-            OperationResult result) throws SchemaException {
+    List<ObjectReferenceType> getReviewerAndDeputies(
+            ObjectReferenceType actualReviewerRef, Task task, OperationResult result) throws SchemaException {
         List<ObjectReferenceType> reviewerOrDeputiesRef = new ArrayList<>();
         reviewerOrDeputiesRef.add(actualReviewerRef);
-        reviewerOrDeputiesRef.addAll(modelInteractionService.getDeputyAssignees(actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
+        reviewerOrDeputiesRef.addAll(
+                modelInteractionService.getDeputyAssignees(
+                        actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
         return reviewerOrDeputiesRef;
     }
 

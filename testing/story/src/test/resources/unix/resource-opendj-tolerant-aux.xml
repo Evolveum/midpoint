@@ -14,12 +14,8 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/unix/ext">
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
     <name>OpenDJ Tolerant Aux</name>
 
@@ -80,7 +76,7 @@
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
             <auxiliaryObjectClassMappings>
-                <tolerant>true</tolerant>            <!-- because of outbound processing? -->
+                <tolerant>true</tolerant> <!-- because of outbound processing? -->
                 <inbound>
                     <expression>
                         <script>

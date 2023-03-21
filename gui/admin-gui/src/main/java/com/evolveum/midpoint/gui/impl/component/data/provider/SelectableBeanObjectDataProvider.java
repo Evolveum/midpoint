@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EX
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -46,6 +47,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
 
     private boolean isMemberPanel = false;
+
+    private Consumer<Task> taskConsumer;
 
     public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<O> selected) {
         super(component, search, selected, true);
@@ -103,6 +106,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     @Override
     protected List<O> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
+        if (taskConsumer != null) {
+            taskConsumer.accept(task);
+        }
         return getModelService().searchObjects(type, query, options, task, result)
                 .map(prismObject -> prismObject.asObjectable());
     }
@@ -125,5 +131,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             }
         }
         return optionsBuilder;
+    }
+
+    public void setTaskConsumer(Consumer<Task> taskConsumer) {
+        this.taskConsumer = taskConsumer;
     }
 }

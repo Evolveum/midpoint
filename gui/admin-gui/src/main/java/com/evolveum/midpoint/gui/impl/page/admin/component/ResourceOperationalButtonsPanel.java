@@ -9,38 +9,36 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 
-public class ResourceOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<ResourceType> {
+import org.jetbrains.annotations.NotNull;
+
+public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<ResourceType> {
 
     private static final String DOT_CLASS = ResourceOperationalButtonsPanel.class.getName() + ".";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
     private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
+    private static final String OPERATION_SET_MODE = DOT_CLASS + "setSimulationMode";
 
     private static final String ID_RESOURCE_BUTTONS = "resourceButtons";
+    private static final String ID_MODE_BUTTONS = "modeButtons";
 
     public ResourceOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> model) {
         super(id, model);
@@ -56,6 +54,10 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         RepeatingView resourceButtons = new RepeatingView(ID_RESOURCE_BUTTONS);
         add(resourceButtons);
         initResourceButtons(resourceButtons);
+        RepeatingView modeButtons = new RepeatingView(ID_MODE_BUTTONS);
+        add(modeButtons);
+        modeButtons.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
+        initModeButtons(modeButtons);
     }
 
     private void initResourceButtons(RepeatingView resourceButtons) {
@@ -98,31 +100,48 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         refreshSchema.add(new VisibleBehaviour(() -> isVisibleRefresSchemaButton(getObjectType())));
         refreshSchema.showTitleAsLabel(true);
         resourceButtons.add(refreshSchema);
+    }
 
-//        AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
-//                createStringResource("pageResource.button.wizardShow")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                startWizard(false, true);
-//            }
-//        };
-//        wizardShow.showTitleAsLabel(true);
-//        wizardShow.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
-//        resourceButtons.add(wizardShow);
-//        AjaxIconButton wizardEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
-//                createStringResource("pageResource.button.wizardEdit")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                startWizard(false, false);
-//            }
-//        };
-//        wizardEdit.showTitleAsLabel(true);
-//        wizardEdit.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
-//        resourceButtons.add(wizardEdit);
+    private void initModeButtons(RepeatingView modeButtons) {
+        AjaxIconButton toggleToProduction = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
+                createStringResource("OperationalButtonsPanel.button.toggleToProduction")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                WebComponentUtil.switchObjectMode(
+                        getPrismObject(), OPERATION_SET_MODE, target, getPageBase(), SchemaConstants.LIFECYCLE_ACTIVE);
+                refreshStatus(target);
+            }
+        };
+        toggleToProduction.showTitleAsLabel(true);
+        toggleToProduction.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_ACTIVE)));
+        modeButtons.add(toggleToProduction);
+
+        AjaxIconButton toggleToDevelopment = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
+                createStringResource("OperationalButtonsPanel.button.toggleToDevelopment")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                WebComponentUtil.switchObjectMode(
+                        getPrismObject(), OPERATION_SET_MODE, target, getPageBase(), SchemaConstants.LIFECYCLE_PROPOSED);
+                refreshStatus(target);
+            }
+        };
+        toggleToDevelopment.showTitleAsLabel(true);
+        toggleToDevelopment.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_PROPOSED)));
+        modeButtons.add(toggleToDevelopment);
+
+    }
+
+    private boolean isToggleModeButtonVisible(@NotNull String expectedLifecycleState) {
+        String lifecycleState = getPrismObject().asObjectable().getLifecycleState();
+        if (StringUtils.isEmpty(lifecycleState)) {
+            lifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
+        }
+
+        return !expectedLifecycleState.equals(lifecycleState);
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
@@ -169,14 +188,6 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         return true;
     }
 
-//    private void startWizard(boolean configOnly, boolean readOnly) {
-//        PageParameters parameters = new PageParameters();
-//        parameters.add(OnePageParameterEncoder.PARAMETER, getPrismObject().getOid());        // compatibility with PageAdminResources
-//        parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
-//        parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
-//        getPageBase().navigateToNext(new PageResourceWizard(parameters));
-//    }
-
     private boolean isVisibleRefresSchemaButton(ResourceType resource) {
         if (!isEditingObject()) {
             return false;
@@ -197,8 +208,5 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         return true;
     }
 
-    //TODO abstract
-    protected void refreshStatus(AjaxRequestTarget target) {
-
-    }
+    protected abstract void refreshStatus(AjaxRequestTarget target);
 }

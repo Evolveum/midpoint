@@ -200,7 +200,7 @@ public class WebPrismUtil {
     }
 
     //TODO quick hack ... use for it wrappers
-    private static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
+    public static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
         return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());
     }
 
@@ -209,7 +209,9 @@ public class WebPrismUtil {
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {
-        return typeClass != null && AbstractSynchronizationActionType.class.isAssignableFrom(typeClass);
+        return typeClass != null &&
+                (AbstractSynchronizationActionType.class.isAssignableFrom(typeClass)
+                || ActivitySimulationResultDefinitionType.class.isAssignableFrom(typeClass));
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {

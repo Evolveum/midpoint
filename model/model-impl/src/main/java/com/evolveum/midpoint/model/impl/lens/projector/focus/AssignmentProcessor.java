@@ -203,22 +203,28 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // PROCESSING POLICIES
 
         policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
-        boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
-        if (needToReevaluateAssignments) {
-            LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
+        if (ModelExecuteOptions.isIgnoreAssignmentPruning(context.getOptions())) {
+            LOGGER.debug("Assignment pruning is ignored because of the model execute option");
+        } else {
+            boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
+            if (needToReevaluateAssignments) {
+                LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
 
-            assignmentTripleEvaluator.reset(true);
-            evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-            context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
+                assignmentTripleEvaluator.reset(true);
+                evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+                context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
-            // TODO implement isMemberOf invocation result change check here! MID-5784
-            //  Actually, we should factor out the relevant code to avoid code duplication.
+                // TODO implement isMemberOf invocation result change check here! MID-5784
+                //  Actually, we should factor out the relevant code to avoid code duplication.
 
-            LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
+                LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
-            policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+                policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+            }
         }
+
+        policyRuleProcessor.recordAssignmentPolicyRules(focusContext, task, result);
 
         // PROCESSING FOCUS
 
@@ -1222,18 +1228,24 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references)
+    /**
+     * This adds `newReferences` to the `accumulatedReferences` collection.
+     * If any of the new references is in the accumulator collection already, any value metadata from it
+     * is added to the existing reference (merged).
+     */
+    private void addReferences(
+            Collection<PrismReferenceValue> accumulatedReferences, Collection<PrismReferenceValue> newReferences)
             throws SchemaException {
-        for (PrismReferenceValue reference : references) {
-            for (PrismReferenceValue exVal : extractedReferences) {
+        newRefsLoop:
+        for (PrismReferenceValue reference : newReferences) {
+            for (PrismReferenceValue exVal : accumulatedReferences) {
                 if (MiscUtil.equals(exVal.getOid(), reference.getOid())
                         && prismContext.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
-                    // Reference is already there, but we want to merge value metadata (roleMembershipRefs).
                     ValueMetadata existingRefMetadata = exVal.getValueMetadata();
                     for (PrismContainerValue<Containerable> metadataValue : reference.getValueMetadata().getValues()) {
                         existingRefMetadata.add(metadataValue.clone());
                     }
-                    return;
+                    continue newRefsLoop;
                 }
             }
 
@@ -1242,7 +1254,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
                 ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
             }
-            extractedReferences.add(ref);
+            accumulatedReferences.add(ref);
         }
     }
 

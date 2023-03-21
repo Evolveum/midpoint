@@ -34,7 +34,6 @@
             <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
             <kind>account</kind>
             <intent>default</intent>
-            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
             <attribute>
                 <ref>ri:uidNumber</ref>
                 <outbound>
@@ -46,54 +45,55 @@
             </attribute>
             <attribute>
                 <ref>ri:gidNumber</ref>
-            <outbound>
-                <strength>strong</strength>
-                <source>
-                    <path>extension/uidNumber</path>
-                </source>
-            </outbound>
-        </attribute>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>extension/uidNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
             <attribute>
-            <ref>ri:homeDirectory</ref>
-            <outbound>
-                <strength>strong</strength>
-                <source>
-                    <path>name</path>
-                </source>
-                <expression>
-                    <script>
-                                <code>'/home/' + name</code>
-                            </script>
-                        </expression>
-            </outbound>
-        </attribute>
+                <ref>ri:homeDirectory</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'/home/' + name</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
             <attribute>
-            <ref>ri:gecos</ref>
-            <outbound>
-                <strength>strong</strength>
-                <source>
-                    <path>fullName</path>
-                </source>
-                <expression><!-- Strip diacritics and Capitalize String (assumed fullname) -->
-                    <script>
-                        <code>basic.norm(basic.stringify(fullName))?.replaceAll(/\w+/, { it[0].toUpperCase() + ((it.size() > 1) ? it[1..-1] : '') })</code>
-                    </script>
-                </expression>
-            </outbound>
-        </attribute>
+                <ref>ri:gecos</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                    <expression><!-- Strip diacritics and Capitalize String (assumed fullname) -->
+                        <script>
+                            <code>basic.norm(basic.stringify(fullName))?.replaceAll(/\w+/, { it[0].toUpperCase() + ((it.size() > 1) ? it[1..-1] : '') })</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
             <association>
-            <ref>ri:unixGroup</ref>
-            <outbound>
-                <expression>
-                    <associationFromLink>
-                        <projectionDiscriminator>
-                            <kind>entitlement</kind>
-                            <intent>unixGroup</intent>
-                        </projectionDiscriminator>
-                    </associationFromLink>
-                </expression>
-            </outbound>
-        </association>
+                <ref>ri:unixGroup</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>unixGroup</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
         </construction>
         <order>2</order>
     </inducement>

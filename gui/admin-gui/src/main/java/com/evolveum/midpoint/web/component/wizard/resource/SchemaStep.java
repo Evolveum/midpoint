@@ -170,7 +170,8 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new SchemaListPanel(panelId, model, parentPage);
+                return null;
+//                return new SchemaListPanel(panelId, model, parentPage);
             }
         };
     }

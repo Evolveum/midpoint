@@ -10,6 +10,9 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-286d76cea7c5">
     <name>Simulation report: Objects</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->

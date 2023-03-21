@@ -71,6 +71,9 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
+    protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES = "dummy:simpleWorkflowNotifier-Processes";
+    protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS = "dummy:simpleWorkflowNotifier-WorkItems";
+
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
     @Autowired protected CaseManager caseManager;
@@ -377,7 +380,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected CaseAsserter<Void> assertCase(OperationResult result, String message)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        String caseOid = result.findCaseOid();
         assertThat(caseOid).as("No background case OID").isNotNull();
         return assertCase(caseOid, message);
     }

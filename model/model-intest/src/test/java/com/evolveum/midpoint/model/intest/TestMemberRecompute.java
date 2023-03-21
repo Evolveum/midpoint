@@ -218,7 +218,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         then();
         assertSuccess(result);
 
-        String taskOid = result.findAsynchronousOperationReference();
+        String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNotNull();
 
         Task recomputeTask = waitForTaskFinish(taskOid, false);
@@ -251,7 +251,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
 
         executeChanges(delta, doNotRecompute(), task, result);
 
-        String taskOid = result.findAsynchronousOperationReference();
+        String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNull();
 
         then();
@@ -282,7 +282,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
 
         assertSuccess(result);
 
-        String taskOid = result.findAsynchronousOperationReference();
+        String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNull();
 
         assertNoObjectByName(TaskType.class, TASK_TRIGGER_CLUB_MEMBERS_RECOMPUTATION_NAME, task, result);

@@ -41,7 +41,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1205,6 +1204,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             dumpPolicyRulesCollection(
                     "targetsPolicyRules", indent + 1, sb, assignment.getAllTargetsPolicyRules(), alsoMessages);
             dumpPolicyRulesCollection(
+                    "foreignPolicyRules", indent + 1, sb, assignment.getForeignPolicyRules(), alsoMessages);
+            dumpPolicyRulesCollection(
                     "objectPolicyRules", indent + 1, sb, assignment.getObjectPolicyRules(), alsoMessages);
         }, 1);
         return sb.toString();
@@ -1219,37 +1220,37 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return sb.toString();
     }
 
-    private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<? extends EvaluatedPolicyRule> rules,
-            boolean alsoMessages) {
+    private void dumpPolicyRulesCollection(
+            String label, int indent, StringBuilder sb, Collection<? extends AssociatedPolicyRule> rules, boolean alsoMessages) {
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(label).append(" (").append(rules.size()).append("):");
-        for (EvaluatedPolicyRule rule : rules) {
+        for (AssociatedPolicyRule rule : rules) {
             sb.append("\n");
             dumpPolicyRule(indent, sb, rule, alsoMessages);
         }
     }
 
-    private void dumpPolicyRule(int indent, StringBuilder sb, EvaluatedPolicyRule rule, boolean alsoMessages) {
+    private void dumpPolicyRule(
+            int indent, StringBuilder sb, AssociatedPolicyRule rule, boolean alsoMessages) {
         if (alsoMessages) {
             sb.append("=============================================== RULE ===============================================\n");
         }
         DebugUtil.indentDebugDump(sb, indent + 1);
-        if (rule.isGlobal()) {
+        if (rule.getNewOwner() != null) {
+            sb.append(rule.getNewOwnerShortString()).append(" ");
+        }
+        EvaluatedPolicyRule evaluatedRule = rule.getEvaluatedPolicyRule();
+        if (evaluatedRule.isGlobal()) {
             sb.append("global ");
         }
-        sb.append("rule: ").append(rule.toShortString());
-        dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
-        for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
-            sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent + 2);
-            sb.append("exception: ").append(exc);
-        }
+        sb.append("rule: ").append(evaluatedRule.toShortString());
+        dumpTriggersCollection(indent + 2, sb, evaluatedRule.getTriggers());
         if (alsoMessages) {
-            if (rule.isTriggered()) {
+            if (evaluatedRule.isTriggered()) {
                 sb.append("\n\n");
                 sb.append("--------------------------------------------- MESSAGES ---------------------------------------------");
-                List<TreeNode<LocalizableMessage>> messageTrees = rule.extractMessages();
+                List<TreeNode<LocalizableMessage>> messageTrees = evaluatedRule.extractMessages();
                 for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
                     sb.append("\n");
                     sb.append(messageTree.debugDump(indent));
@@ -1291,22 +1292,24 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getObjectPolicyRules());
             dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
             dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
+            dumpRulesIfNotEmpty(sb, "- foreign rules", indent + 3, assignment.getForeignPolicyRules());
         }
     }
 
-    private static void dumpRulesIfNotEmpty(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedPolicyRule> policyRules) {
+    private static void dumpRulesIfNotEmpty(
+            StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
         if (!policyRules.isEmpty()) {
             dumpRules(sb, label, indent, policyRules);
         }
     }
 
-    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedPolicyRule> policyRules) {
+    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends AssociatedPolicyRule> policyRules) {
         sb.append("\n");
-        int triggered = getTriggeredRulesCount(policyRules);
+        int triggered = AssociatedPolicyRule.getTriggeredRulesCount(policyRules);
         DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
         // not triggered rules are dumped in one line
         boolean first = true;
-        for (EvaluatedPolicyRule rule : policyRules) {
+        for (AssociatedPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 continue;
             }
@@ -1319,7 +1322,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append(rule.toShortString());
         }
         // now triggered rules, each on separate line
-        for (EvaluatedPolicyRule rule : policyRules) {
+        for (AssociatedPolicyRule rule : policyRules) {
             if (rule.isTriggered()) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 1);
@@ -1329,10 +1332,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (policyRules.isEmpty()) {
             sb.append(" (none)");
         }
-    }
-
-    public static int getTriggeredRulesCount(Collection<? extends EvaluatedPolicyRule> policyRules) {
-        return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
     }
 
     public LensContextType toBean() throws SchemaException {
@@ -1731,7 +1730,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     @NotNull
     public ObjectTreeDeltas<F> getTreeDeltas() {
-        ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>(PrismContext.get());
+        ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>();
         if (getFocusContext() != null && getFocusContext().getPrimaryDelta() != null) {
             objectTreeDeltas.setFocusChange(getFocusContext().getPrimaryDelta().clone());
         }

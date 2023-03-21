@@ -6,12 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
@@ -96,6 +106,29 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
 
             @Override
             protected boolean isRepoSearch() {
+                return false;
+            }
+
+            @Override
+            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
+                provider.setTaskConsumer((SerializableConsumer<Task>)task -> {
+                    String lifecycleState = resourceObjectType.getObject().getRealValue().getLifecycleState();
+                    if (StringUtils.isEmpty(lifecycleState)) {
+                        lifecycleState = getObjectDetailsModels().getObjectType().getLifecycleState();
+                    }
+                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
+                        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+                    }
+                });
+            }
+
+            @Override
+            protected boolean isReclassifyButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
                 return false;
             }
         };

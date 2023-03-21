@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="5362af5c-5fab-4a79-ae5b-e4b04d99f4ee">
+    <name>worker-1</name>
+    <description>worker</description>
+</role>

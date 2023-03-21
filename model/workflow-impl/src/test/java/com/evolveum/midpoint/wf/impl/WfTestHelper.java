@@ -61,7 +61,7 @@ public class WfTestHelper {
 
     @NotNull
     public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        String caseOid = result.findCaseOid();
         assertNotNull("Case OID is not set in operation result", caseOid);
         return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
     }

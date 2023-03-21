@@ -113,9 +113,9 @@ public class StartInstruction implements DebugDumpable {
         ObjectDelta<?> primaryDelta = ctx.modelContext.getFocusContext().getPrimaryDelta();
         ObjectReferenceType ref;
         if (primaryDelta != null && primaryDelta.isAdd()) {
-            ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, PrismContext.get());
+            ref = ObjectTypeUtil.createObjectRefWithFullObject(focus);
         } else {
-            ref = ObjectTypeUtil.createObjectRef(focus, PrismContext.get());
+            ref = ObjectTypeUtil.createObjectRef(focus);
         }
         aCase.setObjectRef(ref);
     }
@@ -126,7 +126,7 @@ public class StartInstruction implements DebugDumpable {
     }
 
     protected void setRequesterRef(PrismObject<? extends FocusType> requester) {
-        aCase.setRequestorRef(createObjectRef(requester, PrismContext.get()));
+        aCase.setRequestorRef(createObjectRef(requester));
     }
 
     public ApprovalContextType getApprovalContext() {

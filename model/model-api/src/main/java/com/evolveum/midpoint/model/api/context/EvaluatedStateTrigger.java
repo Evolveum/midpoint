@@ -12,16 +12,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedStateTrigge
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolicyConstraintType> {
 
-    public EvaluatedStateTrigger(@NotNull PolicyConstraintKindType kind, @NotNull StatePolicyConstraintType constraint,
+    public EvaluatedStateTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull StatePolicyConstraintType constraint,
             LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
     }
 
     @Override
-    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedStateTriggerType rv = new EvaluatedStateTriggerType();
         fillCommonContent(rv);
         return rv;

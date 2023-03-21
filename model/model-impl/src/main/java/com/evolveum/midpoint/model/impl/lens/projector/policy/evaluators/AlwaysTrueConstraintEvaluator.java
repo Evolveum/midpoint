@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ALWAYS_TRUE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
@@ -33,7 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
 @Experimental
-public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<AlwaysTruePolicyConstraintType> {
+public class AlwaysTrueConstraintEvaluator
+        implements PolicyConstraintEvaluator<AlwaysTruePolicyConstraintType, EvaluatedAlwaysTrueTrigger> {
 
     private static final String OP_EVALUATE = AlwaysTrueConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -46,7 +48,7 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <O extends ObjectType> EvaluatedAlwaysTrueTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedAlwaysTrueTrigger> evaluate(
             @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -60,7 +62,7 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
             if (rctx instanceof ObjectPolicyRuleEvaluationContext<?>) {
                 return evaluateForObject(constraint, rctx, result);
             } else {
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -70,15 +72,17 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
         }
     }
 
-    private EvaluatedAlwaysTrueTrigger evaluateForObject(
+    private @NotNull Collection<EvaluatedAlwaysTrueTrigger> evaluateForObject(
             @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        return new EvaluatedAlwaysTrueTrigger(ALWAYS_TRUE, constraintElement.getValue(),
-                    createMessage(constraintElement, ctx, result),
-                    createShortMessage(constraintElement, ctx, result));
+        return List.of(
+                new EvaluatedAlwaysTrueTrigger(
+                        ALWAYS_TRUE, constraintElement.getValue(),
+                        createMessage(constraintElement, ctx, result),
+                        createShortMessage(constraintElement, ctx, result)));
     }
 
     @NotNull

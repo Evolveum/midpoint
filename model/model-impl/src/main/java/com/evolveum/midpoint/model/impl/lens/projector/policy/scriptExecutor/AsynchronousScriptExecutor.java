@@ -86,8 +86,9 @@ class AsynchronousScriptExecutor {
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Set<ObjectDelta<? extends ObjectType>> deltas = singleton(DeltaFactory.Object.createAddDelta(newTask.asPrismObject()));
         ModelExecuteOptions options = ModelExecuteOptions.create().preAuthorized();
-        Collection<ObjectDeltaOperation<? extends ObjectType>> operations = actx.beans.modelService.executeChanges(deltas, options, actx.task, result);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> operations =
+                actx.beans.modelService.executeChanges(deltas, options, actx.task, result);
         String oid = ObjectDeltaOperation.findAddDeltaOid(operations, newTask.asPrismObject());
-        result.setAsynchronousOperationReference(oid);
+        result.setBackgroundTaskOid(oid);
     }
 }

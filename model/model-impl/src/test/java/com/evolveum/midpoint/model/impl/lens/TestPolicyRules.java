@@ -320,14 +320,8 @@ public class TestPolicyRules extends AbstractLensTest {
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
-        List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedTargetPolicyRules(context, 7);
+        assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context,  null, 0);
-
-        EvaluatedPolicyRule evaluatedPolicyRule = evaluatedRules.get(0);
-        Collection<PolicyExceptionType> exceptions = evaluatedPolicyRule.getPolicyExceptions();
-        assertEquals("Wrong number of exceptions", 1, exceptions.size());
-        PolicyExceptionType policyException = exceptions.iterator().next();
-        assertEquals("Wrong rule name in policy exception", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());
 
         assertSerializable(context);
     }

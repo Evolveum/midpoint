@@ -8,18 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -65,8 +61,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
-    private static final String ID_WELCOME = "welcome";
-    private static final String ID_ADDITIONAL_TEXT = "additionalText";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_FIRST_NAME = "firstName";
     private static final String ID_LAST_NAME = "lastName";
@@ -74,8 +68,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private static final String ID_PASSWORD = "password";
     private static final String ID_TOOLTIP = "tooltip";
     private static final String ID_COMPONENT_FEEDBACK = "componentFeedback";
-    private static final String ID_REGISTRATION_SUBMITED = "registrationInfo";
-
     private static final String ID_STATIC_FORM = "staticForm";
 
     private static final String PARAM_USER_OID = "user";
@@ -92,11 +84,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
 
         StringValue oidValue = pageParameters.get(PARAM_USER_OID);
-        if (oidValue != null) {
+        if (oidValue != null && isNotAdministrator(oidValue.toString())) {
             return oidValue.toString();
         }
 
         return null;
+    }
+
+    private boolean isNotAdministrator(String userOid) {
+        return !SystemObjectsType.USER_ADMINISTRATOR.value().equals(userOid);
     }
 
     @Override
@@ -167,11 +163,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
     protected WebMarkupContainer initStaticLayout() {
         WebMarkupContainer staticRegistrationForm = new WebMarkupContainer(ID_STATIC_FORM);
         staticRegistrationForm.setOutputMarkupId(true);
+        staticRegistrationForm.add(new VisibleBehaviour(() -> !isSubmitted));
         add(staticRegistrationForm);
-
-        addMultilineLabel(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
-        addMultilineLabel(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
-                WebComponentUtil.getMidpointCustomSystemName(PageSelfRegistration.this, "MidPoint")), staticRegistrationForm);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_COMPONENT_FEEDBACK,
                 new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
@@ -212,13 +205,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
         createPasswordPanel(staticRegistrationForm);
         return staticRegistrationForm;
-    }
-
-    private void addMultilineLabel(String id, StringResourceModel messageModel, WebMarkupContainer mainForm) {
-        MultiLineLabel label = new MultiLineLabel(id, messageModel);
-        label.setOutputMarkupId(true);
-        label.add(new VisibleBehaviour(() -> messageModel != null && StringUtils.isNotEmpty(messageModel.getString())));
-        mainForm.add(label);
     }
 
     private void initInputProperties(FeedbackPanel feedback, String placeholderKey, TextPanel<String> input) {
@@ -319,15 +305,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
             return;
 
         }
-
         target.add(getFeedbackPanel());
-        MultiLineLabel label = new MultiLineLabel(ID_REGISTRATION_SUBMITED,
-                createStringResource("PageSelfRegistration.registration.confirm.message"));
-        Fragment messageContent = new Fragment("contentArea", "messageContent", this);
-        messageContent.add(label);
-        getMainForm().replace(messageContent);
-        target.add(this);
-
+        target.add(PageSelfRegistration.this);
     }
 
     private void saveUser(OperationResult result) {
@@ -515,5 +494,22 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     public Task createSimpleTask(String operation) {
         return createAnonymousTask(operation);
+    }
+
+    @Override
+    protected IModel<String> getTitleModel() {
+        return createStringResource("PageSelfRegistration.welcome.message");
+    }
+
+    protected IModel<String> getDescriptionModel() {
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return isSubmitted ? createStringResource("PageSelfRegistration.registration.confirm.message").getString() :
+                        createStringResource("PageSelfRegistration.additional.message",
+                                WebComponentUtil.getMidpointCustomSystemName(PageSelfRegistration.this, "MidPoint")).getString();
+
+            }
+        };
     }
 }

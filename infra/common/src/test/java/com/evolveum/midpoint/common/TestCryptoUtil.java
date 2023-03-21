@@ -175,7 +175,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
         password.setRealValue(passwordRealValue);
         attributes.add(password);
 
-        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext).asReferenceValue();
+        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow).asReferenceValue();
         ObjectDelta<UserType> userDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
                 .add(linkToAdd)
@@ -222,7 +222,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
         password.setRealValue(passwordRealValue);
         attributes.add(password);
 
-        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext).asReferenceValue();
+        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow).asReferenceValue();
         ObjectDelta<UserType> userDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
                 .add(linkToAdd)

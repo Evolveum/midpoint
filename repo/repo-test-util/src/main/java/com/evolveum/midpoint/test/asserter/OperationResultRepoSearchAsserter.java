@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.testng.AssertJUnit;
@@ -38,7 +39,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
         return new OperationResultRepoSearchAsserter<>(result, null, null);
     }
 
-    List<OperationResult> getRepoSearches() {
+    private List<OperationResult> getRepoSearches() {
         if (searchResults == null) {
             searchResults = new ArrayList<>();
             result.accept(subresult -> {
@@ -58,6 +59,11 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
 
     public OperationResultRepoSearchAsserter<RA> assertSize(int expected) {
         assertEquals("Wrong status in " + desc(), expected, getRepoSearches().size());
+        return this;
+    }
+
+    public OperationResultRepoSearchAsserter<RA> forEachRepoSearch(Consumer<OperationResult> consumer) {
+        getRepoSearches().forEach(consumer);
         return this;
     }
 

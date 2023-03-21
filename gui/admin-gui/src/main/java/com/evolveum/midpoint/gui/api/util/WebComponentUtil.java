@@ -28,6 +28,12 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
+
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -274,6 +280,16 @@ public final class WebComponentUtil {
         OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
+    }
+
+    private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_HISTORY_PAGE_MAP;
+
+    static {
+        OBJECT_HISTORY_PAGE_MAP = new HashMap<>();
+        OBJECT_HISTORY_PAGE_MAP.put(PageService.class, PageServiceHistory.class);
+        OBJECT_HISTORY_PAGE_MAP.put(PageRole.class, PageRoleHistory.class);
+        OBJECT_HISTORY_PAGE_MAP.put(PageOrg.class, PageOrgHistory.class);
+        OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
     }
 
     public enum AssignmentOrder {
@@ -2722,6 +2738,9 @@ public final class WebComponentUtil {
     public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
         return OBJECT_LIST_PAGE_MAP.get(type);
     }
+    public static Class<? extends PageBase> getPageHistoryDetailsPage(Class<?> page) {
+        return OBJECT_HISTORY_PAGE_MAP.get(page);
+    }
 
     @NotNull
     public static TabbedPanel<ITab> createTabPanel(
@@ -3126,6 +3145,35 @@ public final class WebComponentUtil {
 
         parentResult.computeStatus();
         pageBase.showResult(parentResult, "pageResource.setMaintenance.failed");
+        target.add(pageBase.getFeedbackPanel());
+    }
+
+    public static void switchObjectMode(
+            @NotNull PrismObject<ResourceType> resource,
+            String operation,
+            AjaxRequestTarget target,
+            PageBase pageBase,
+            String lifecycleState) {
+        Task task = pageBase.createSimpleTask(operation);
+        OperationResult parentResult = new OperationResult(operation);
+
+        try {
+            ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
+                    .createModificationReplaceProperty(
+                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, lifecycleState);
+
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
+
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource lifecycle state", e);
+            parentResult.recordFatalError(
+                    pageBase.createStringResource("OperationalButtonsPanel.setSimulationMode.failed").getString(), e);
+        }
+
+        parentResult.computeStatus();
+        pageBase.showResult(parentResult, "OperationalButtonsPanel.setSimulationMode.failed");
         target.add(pageBase.getFeedbackPanel());
     }
 

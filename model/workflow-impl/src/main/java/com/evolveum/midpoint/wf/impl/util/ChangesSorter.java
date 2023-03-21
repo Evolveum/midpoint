@@ -46,9 +46,9 @@ public class ChangesSorter {
         TaskType task;
     }
 
-    public ChangesByState<?> getChangesByStateForChild(CaseType approvalCase, CaseType rootCase, PrismContext prismContext,
-            OperationResult result) throws SchemaException {
-        ChangesByState<?> rv = new ChangesByState(prismContext);
+    public ChangesByState<?> getChangesByStateForChild(
+            CaseType approvalCase, CaseType rootCase, OperationResult result) throws SchemaException {
+        ChangesByState<?> rv = new ChangesByState<>();
         TaskHolder rootTaskHolder = new TaskHolder();
         recordChangesFromApprovalCase(rv, approvalCase, rootCase, rootTaskHolder, result);
         return rv;
@@ -93,9 +93,9 @@ public class ChangesSorter {
         }
     }
 
-    public ChangesByState getChangesByStateForRoot(CaseType rootCase, PrismContext prismContext, OperationResult result)
+    public ChangesByState<?> getChangesByStateForRoot(CaseType rootCase, OperationResult result)
             throws SchemaException {
-        ChangesByState rv = new ChangesByState(prismContext);
+        ChangesByState<?> rv = new ChangesByState<>();
         TaskHolder rootTaskHolder = new TaskHolder();
         for (CaseType subcase : getSubcases(rootCase, result)) {
             recordChangesFromApprovalCase(rv, subcase, rootCase, rootTaskHolder, result);
@@ -127,21 +127,18 @@ public class ChangesSorter {
         return tasks.get(0).asObjectable();
     }
 
-    private void recordChangesWaitingToBeApproved(ChangesByState rv, ApprovalContextType wfc)
+    private void recordChangesWaitingToBeApproved(ChangesByState<?> rv, ApprovalContextType wfc)
             throws SchemaException {
-        //noinspection unchecked
         rv.getWaitingToBeApproved().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
     }
 
-    private void recordChangesCanceled(ChangesByState rv, ApprovalContextType wfc)
+    private void recordChangesCanceled(ChangesByState<?> rv, ApprovalContextType wfc)
             throws SchemaException {
-        //noinspection unchecked
         rv.getCanceled().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
     }
 
-    private void recordChangesRejected(ChangesByState rv, ApprovalContextType wfc) throws SchemaException {
+    private void recordChangesRejected(ChangesByState<?> rv, ApprovalContextType wfc) throws SchemaException {
         if (ObjectTreeDeltas.isEmpty(wfc.getResultingDeltas())) {
-            //noinspection unchecked
             rv.getRejected().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove()));
         } else {
             // it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
@@ -150,7 +147,6 @@ public class ChangesSorter {
     }
 
     private void recordResultingChanges(ObjectTreeDeltas<?> target, ApprovalContextType wfc) throws SchemaException {
-        //noinspection unchecked
         target.mergeUnordered(fromObjectTreeDeltasType(wfc.getResultingDeltas()));
     }
 }

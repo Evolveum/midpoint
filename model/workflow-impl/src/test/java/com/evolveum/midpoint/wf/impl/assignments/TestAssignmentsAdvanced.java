@@ -53,10 +53,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
  *
- * Role21 - uses default approval (org:approver)
- * Role22 - uses metarole 1 'default' induced approval (org:special-approver)
- * Role23 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
- * RoleExtensionPropertyModApproval - requires an approval when extension property is to be modified
+ * . `Role21` - uses default approval (org:approver)
+ * . `Role22` - uses metarole 1 'default' induced approval (org:special-approver)
+ * . `Role23` - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
+ * . `RoleExtensionPropertyModApproval` - requires an approval when extension property is to be modified
  *
  * TODO clean up this test, using "new" asserters
  */
@@ -358,7 +358,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         assignRole(USER_JACK.oid, roleRole26Oid, task, result);
-        String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
+        String ref = result.findAsynchronousOperationReference(); // TODO use recompute + getAsync... when fixed
         assertNotNull("No asynchronous operation reference", ref);
         String caseOid = OperationResult.referenceToCaseOid(ref);
 

@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -59,5 +63,15 @@ public class BasicSettingResourceObjectTypeStepPanel
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return new VisibleBehaviour(() -> false);
+    }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE)) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
     }
 }

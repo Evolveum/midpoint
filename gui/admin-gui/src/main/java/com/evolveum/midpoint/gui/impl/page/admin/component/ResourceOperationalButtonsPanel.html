@@ -13,6 +13,12 @@
             <legend><wicket:message key="ResourceOperationalButtonsPanel.buttons.resource"/></legend>
             <a class="mr-2 btn btn-default btn-sm" wicket:id="resourceButtons"/>
         </fieldset>
+        <wicket:enclosure child="modeButtons">
+            <fieldset class="objectButtons">
+                <legend><wicket:message key="OperationalButtonsPanel.buttons.mode"/></legend>
+                <a class="mr-2 btn btn-default btn-sm" wicket:id="modeButtons"/>
+            </fieldset>
+        </wicket:enclosure>
     </wicket:extend>
 </wicket:panel>
 </html>

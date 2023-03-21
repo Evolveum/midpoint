@@ -25,4 +25,9 @@ public class ExpressionUtil {
                         new ScriptExpressionEvaluatorType().code(code)));
         return expression;
     }
+
+    public static @NotNull ExpressionType forValue(Object value) {
+        return new ExpressionType()
+                .expressionEvaluator(new ObjectFactory().createValue(value));
+    }
 }

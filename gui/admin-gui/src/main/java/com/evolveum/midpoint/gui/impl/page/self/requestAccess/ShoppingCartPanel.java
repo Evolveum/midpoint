@@ -181,7 +181,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     }
 
     private boolean hasBackgroundTaskOperation(OperationResult result) {
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        String caseOid = result.findCaseOid();
         return StringUtils.isNotEmpty(caseOid);
     }
 

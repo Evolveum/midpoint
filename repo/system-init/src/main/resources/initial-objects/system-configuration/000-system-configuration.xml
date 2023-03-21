@@ -509,6 +509,26 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
+                <identifier>correlation-case-view</identifier>
+                <display>
+                    <label>Correlations</label> <!-- "Correlation cases" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>
+                        <orig>All correlations</orig>
+                        <translation>
+                            <key>AllCorrelations.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <singularLabel>Correlation</singularLabel>
+                    <tooltip>Correlation cases</tooltip>
+                </display>
+                <displayOrder>1040</displayOrder>
+                <type>CaseType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000345" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
                 <identifier>reconciliation-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>

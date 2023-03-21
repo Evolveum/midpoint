@@ -665,9 +665,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     }
 
     private PolyString toPolyString(String orig) {
-        PolyString polyString = new PolyString(orig);
-        polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-        return polyString;
+        return PolyString.fromOrig(orig);
     }
 
     private String generateRandomName() {

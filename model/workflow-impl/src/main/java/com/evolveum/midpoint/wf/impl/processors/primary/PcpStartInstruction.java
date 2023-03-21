@@ -7,14 +7,17 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
+import java.util.Date;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -24,9 +27,6 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.StartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Date;
 
 /**
  * {@link StartInstruction} for primary change processor.
@@ -42,7 +42,7 @@ public class PcpStartInstruction extends StartInstruction {
 
     private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         super(changeProcessor, archetypeOid);
-        aCase.setApprovalContext(new ApprovalContextType(PrismContext.get()));
+        aCase.setApprovalContext(new ApprovalContextType());
     }
 
     public static PcpStartInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor,
@@ -78,10 +78,10 @@ public class PcpStartInstruction extends StartInstruction {
 
         getApprovalContext().setChangeAspect(aspect.getClass().getName());
 
-        CaseCreationEventType event = new CaseCreationEventType(PrismContext.get());
+        CaseCreationEventType event = new CaseCreationEventType();
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
-            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, PrismContext.get()));
+            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));
             // attorney does not need to be set here (for now)
         }
         event.setBusinessContext(((LensContext<?>) modelContext).getRequestBusinessContext());
@@ -89,7 +89,7 @@ public class PcpStartInstruction extends StartInstruction {
     }
 
     public void setDeltasToApprove(ObjectDelta<? extends ObjectType> delta) throws SchemaException {
-        setDeltasToApprove(new ObjectTreeDeltas<>(delta, PrismContext.get()));
+        setDeltasToApprove(new ObjectTreeDeltas<>(delta));
     }
 
     public void setDeltasToApprove(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {

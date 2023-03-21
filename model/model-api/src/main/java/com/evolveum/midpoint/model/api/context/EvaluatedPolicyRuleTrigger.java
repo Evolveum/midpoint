@@ -12,8 +12,10 @@ import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -33,13 +35,15 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
     private final LocalizableMessage shortMessage;
 
     /**
-     * If true, this trigger is to be reported as PolicyViolationException regardless of specified policy rule action.
+     * If true, this trigger is to be reported as {@link PolicyViolationException} regardless of specified policy rule action.
      * Used e.g. for disallowing assignment of two pruned roles (MID-4766).
      */
     private final boolean enforcementOverride;
 
-    public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, boolean enforcementOverride) {
+    public EvaluatedPolicyRuleTrigger(
+            @NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage,
+            boolean enforcementOverride) {
         this.constraintKind = constraintKind;
         this.constraint = constraint;
         this.message = message;
@@ -76,14 +80,18 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof EvaluatedPolicyRuleTrigger))
+        }
+        if (!(o instanceof EvaluatedPolicyRuleTrigger)) {
             return false;
-        EvaluatedPolicyRuleTrigger that = (EvaluatedPolicyRuleTrigger) o;
-        return constraintKind == that.constraintKind &&
-                Objects.equals(constraint, that.constraint) &&
-                Objects.equals(message, that.message);
+        }
+        EvaluatedPolicyRuleTrigger<?> that = (EvaluatedPolicyRuleTrigger<?>) o;
+        return constraintKind == that.constraintKind
+                && Objects.equals(constraint, that.constraint)
+                && Objects.equals(message, that.message)
+                && Objects.equals(shortMessage, that.shortMessage)
+                && enforcementOverride == that.enforcementOverride;
     }
 
     @Override
@@ -138,7 +146,8 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
     }
 
-    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
         fillCommonContent(rv);
         return rv;
@@ -170,5 +179,18 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
      */
     public Collection<? extends PrismObject<?>> getTargetObjects() {
         return Collections.emptyList();
+    }
+
+    /**
+     * Use in connection to foreign policy rules - see the documentation in {@link AssociatedPolicyRule}.
+     *
+     * For exclusion triggers the behavior of this method is quite clear.
+     *
+     * But for other kinds of triggers (on the foreign rule) we return always `true`, as we have no way of knowing whether they
+     * are relevant in the context of "the other side". This may change in the future, after we'll learn how to understand this.
+     * Hope it will not cause any harm in the meanwhile.
+     */
+    public boolean isRelevantForNewOwner(@Nullable EvaluatedAssignment newOwner) {
+        return true;
     }
 }

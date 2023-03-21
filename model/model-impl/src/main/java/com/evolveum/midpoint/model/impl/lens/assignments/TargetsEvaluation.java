@@ -10,9 +10,9 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isChanged;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -192,26 +194,39 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         } catch (ObjectNotFoundException ex) {
             // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
             // an exception would prohibit any operations with the users that have the role, including removal of the reference.
-            // The failure is recorded in the result and we will log it. It should be enough.
-            LOGGER.error(ex.getMessage()+" in assignment target reference in "+segment.sourceDescription,ex);
-            // For OrgType references we trigger the reconciliation (see MID-2242)
+            // The failure is recorded in the result (although marked as "success" in some parent result by
+            // AssignmentTripleEvaluator) and we will log it. It should be enough.
+            if (ctx.evalAssignment.isBeingDeleted()) {
+                // Maybe we can even skip the error logging. MID-8366.
+                LOGGER.debug("Referenced object not found in assignment target reference in {}; "
+                        + "but the assignment is being deleted anyway: {}", segment.sourceDescription, ex.getMessage(), ex);
+            } else {
+                // The regular case
+                LoggingUtils.logException(
+                        LOGGER, "Referenced object not found in assignment target reference in {}", ex, segment.sourceDescription);
+            }
+            // We also trigger the reconciliation (see MID-2242) - TODO is this still needed?
             ctx.evalAssignment.setForceRecon(true);
-            return Collections.emptyList();
+            return List.of();
         } catch (SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
                 SecurityViolationException | RuntimeException e) {
-            MiscUtil.throwAsSame(e, "Couldn't resolve targets in " + segment.assignment + " in " +
-                    segment.sourceDescription + ": " + e.getMessage());
+            MiscUtil.throwAsSame(
+                    e,
+                    String.format("Couldn't resolve targets in %s in %s: %s",
+                            segment.assignment, segment.sourceDescription, e.getMessage()));
             throw e; // just to make compiler happy (exception is thrown in the above statement)
         }
     }
 
     @NotNull
-    private List<PrismObject<? extends ObjectType>> resolveTargets(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+    private List<PrismObject<? extends ObjectType>> resolveTargets(
+            AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectReferenceType targetRef = segment.assignment.getTargetRef();
         ReferenceResolver.FilterEvaluator filterEvaluator = createFilterEvaluator(segment, ctx);
-        return ctx.ae.referenceResolver.resolve(targetRef, createReadOnlyCollection(), REPOSITORY,
+        return ctx.ae.referenceResolver.resolve(
+                targetRef, createReadOnlyCollection(), REPOSITORY,
                 filterEvaluator, ctx.task, result);
     }
 
@@ -239,7 +254,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
-                segment.source, null, null, systemConfiguration.asObjectable());
+                segment.source, null, null, asObjectable(systemConfiguration));
         variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);
         AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
         if (assignmentPathVariables != null) {

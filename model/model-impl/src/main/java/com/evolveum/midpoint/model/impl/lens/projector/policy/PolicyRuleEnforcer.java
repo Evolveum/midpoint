@@ -54,7 +54,7 @@ class PolicyRuleEnforcer<O extends ObjectType> {
 
     @NotNull private final LensContext<O> context;
     @NotNull private final List<LocalizableMessage> messages = new ArrayList<>();
-    @NotNull private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
+    @NotNull private final List<EvaluatedPolicyRuleType> rulesBeans = new ArrayList<>();
 
     PolicyRuleEnforcer(@NotNull LensContext<O> context) {
         this.context = context;
@@ -85,7 +85,7 @@ class PolicyRuleEnforcer<O extends ObjectType> {
 
     private void enforceInPreviewMode() {
         PolicyRuleEnforcerPreviewOutputType output = new PolicyRuleEnforcerPreviewOutputType();
-        output.getRule().addAll(rules);
+        output.getRule().addAll(rulesBeans);
         context.setPolicyRuleEnforcerPreviewOutput(output);
     }
 
@@ -111,6 +111,7 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     private void computeEnforcementForAssignmentRules() {
         DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple != null) {
+            // We do not need to consider foreign policy rules here, as they are enforced on their respective primary hosts.
             evaluatedAssignmentTriple.simpleAccept(
                     assignment -> computeEnforcementForTriggeredRules(assignment.getAllTargetsPolicyRules()));
         }
@@ -139,9 +140,10 @@ class PolicyRuleEnforcer<O extends ObjectType> {
 
             // TODO really include assignments content?
             policyRule.addToEvaluatedPolicyRuleBeans(
-                    rules,
-                    new PolicyRuleExternalizationOptions(FULL, true, true),
-                    t -> enforceAll || t.isEnforcementOverride());
+                    rulesBeans,
+                    new PolicyRuleExternalizationOptions(FULL, true),
+                    t -> enforceAll || t.isEnforcementOverride(),
+                    policyRule.getNewOwner());
 
             List<TreeNode<LocalizableMessage>> messageTrees = extractMessages(enforcingTriggers, NORMAL);
             for (TreeNode<LocalizableMessage> messageTree : messageTrees) {

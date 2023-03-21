@@ -7,26 +7,31 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
+
+import org.jetbrains.annotations.Nullable;
+
 public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<PolicySituationPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
 
-    public EvaluatedSituationTrigger(@NotNull PolicySituationPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
+    public EvaluatedSituationTrigger(
+            @NotNull PolicySituationPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage,
+            @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
         super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage, false);
         this.sourceRules = sourceRules;
     }
@@ -38,11 +43,11 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 
     // lists all source rules (recursively)
     @NotNull
-    public Collection<EvaluatedPolicyRule> getAllSourceRules() {
+    private Collection<EvaluatedPolicyRule> getAllSourceRules() {
         List<EvaluatedPolicyRule> rv = new ArrayList<>();
         for (EvaluatedPolicyRule sourceRule : sourceRules) {
             rv.add(sourceRule);
-            for (EvaluatedPolicyRuleTrigger trigger : sourceRule.getTriggers()) {
+            for (EvaluatedPolicyRuleTrigger<?> trigger : sourceRule.getTriggers()) {
                 if (trigger instanceof EvaluatedSituationTrigger) {
                     rv.addAll(((EvaluatedSituationTrigger) trigger).getAllSourceRules());
                 }
@@ -91,11 +96,13 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
         fillCommonContent(rv);
-        if (!options.isRespectFinalFlag() || !isFinal()) {
-            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null));
+        if (!isFinal()) {
+            sourceRules.forEach(
+                    r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null, newOwner));
         }
         return rv;
     }

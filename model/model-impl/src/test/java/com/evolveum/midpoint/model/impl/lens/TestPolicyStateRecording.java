@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -123,11 +124,11 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
         assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
         for (AssignmentType assignment : jack.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 2);
         }
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
+        dummyAuditService.assertExecutionRecords(2); // rules without IDs, with IDs
     }
 
     // should keep the situation for both assignments
@@ -241,18 +242,27 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
 
         for (AssignmentType assignment : bob.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 1);
         }
     }
 
-    private void assertExclusionViolationState(AssignmentType assignment) {
+    private void assertExclusionViolationState(AssignmentType assignment, int expectedRules) {
         assertEquals("Wrong policy situations",
                 Collections.singletonList(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION),
                 assignment.getPolicySituation());
-        assertEquals("Wrong # of triggered policy rules in assignment " + assignment, 1, assignment.getTriggeredPolicyRule().size());
-        List<EvaluatedPolicyRuleTriggerType> triggers = assignment.getTriggeredPolicyRule().get(0).getTrigger();
-        assertEquals("Wrong # of triggers in triggered policy rule in assignment " + assignment, 1, triggers.size());
-        assertEquals("Wrong type of trigger in " + assignment, PolicyConstraintKindType.EXCLUSION, triggers.get(0).getConstraintKind());
+        List<EvaluatedPolicyRuleType> triggeredRules = assignment.getTriggeredPolicyRule();
+        assertThat(triggeredRules)
+                .as("triggered policy rules in assignment " + assignment)
+                .hasSize(expectedRules);
+        for (EvaluatedPolicyRuleType triggeredRule : triggeredRules) {
+            List<EvaluatedPolicyRuleTriggerType> triggers = triggeredRule.getTrigger();
+            assertThat(triggers)
+                    .as("Triggers in triggered policy rule in assignment " + assignment)
+                    .hasSize(1);
+            assertThat(triggers.get(0).getConstraintKind())
+                    .as("type of trigger in " + assignment)
+                    .isEqualTo(PolicyConstraintKindType.EXCLUSION);
+        }
     }
 
     // new user, new assignments (no IDs)
@@ -277,10 +287,10 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, alice.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs ?
+        dummyAuditService.assertExecutionRecords(2); // rules without IDs, with IDs ?
 
         for (AssignmentType assignment : alice.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 1);
         }
     }
 
@@ -310,10 +320,11 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, chuck.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2);            // sourceRef.oid is null on the first iteration (object OID is unknown before actual creation in repo)
+        // 2 because sourceRef.oid is null on the first iteration (object OID is unknown before actual creation in repo)
+        dummyAuditService.assertExecutionRecords(2);
 
         for (AssignmentType assignment : chuck.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 1);
         }
     }
 
@@ -347,7 +358,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : dan.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 1);
         }
     }
 
@@ -376,7 +387,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : eve.getAssignment()) {
-            assertExclusionViolationState(assignment);
+            assertExclusionViolationState(assignment, 1);
         }
     }
 

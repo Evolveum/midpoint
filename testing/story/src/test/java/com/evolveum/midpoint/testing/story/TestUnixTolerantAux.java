@@ -44,8 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestUnixTolerantAux extends TestUnix {
 
-    protected static final File RESOURCE_OPENDJ_TOLERANT_AUX_FILE = new File(TEST_DIR, "resource-opendj-tolerant-aux.xml");
-    protected static final String RESOURCE_OPENDJ_TOLERANT_AUX_OID = "10000000-0000-0000-0000-000000000003";
+    private static final File RESOURCE_OPENDJ_TOLERANT_AUX_FILE = new File(TEST_DIR, "resource-opendj-tolerant-aux.xml");
+    private static final String RESOURCE_OPENDJ_TOLERANT_AUX_OID = "10000000-0000-0000-0000-000000000003";
     private static final String URI_WHATEVER = "http://whatever/";
 
     @Override
@@ -192,7 +192,7 @@ public class TestUnixTolerantAux extends TestUnix {
 
         // WHEN
         when();
-        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        assignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -221,7 +221,7 @@ public class TestUnixTolerantAux extends TestUnix {
 
         // WHEN
         when();
-        unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        unassignRole(userBefore.getOid(), ROLE_UNIX.oid);
 
         // THEN
         then();
@@ -267,6 +267,11 @@ public class TestUnixTolerantAux extends TestUnix {
         openDJController.assertNoEntry(accountLargoDn);
     }
 
+    @Override
+    public void test560BigUidInbound() {
+        // Let us spare CPU cycles; there is nothing specific in this class.
+    }
+
     // The assignment was disabled in the repository. There was no change that went through
     // model. MidPoint won't remove the aux object class.
     @Override
@@ -290,9 +295,12 @@ public class TestUnixTolerantAux extends TestUnix {
 
     private void assertUserAuxes(PrismObject<UserType> userAfter, QName... expectedAuxClasses) {
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                Arrays.stream(expectedAuxClasses).map(x -> createPolyString(x.getLocalPart())).toArray(PolyString[]::new));
+                Arrays.stream(expectedAuxClasses)
+                        .map(x -> PolyString.fromOrig(x.getLocalPart()))
+                        .toArray(PolyString[]::new));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException {
         //noinspection ConstantConditions
         String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();

@@ -7946,8 +7946,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Top node of an organizational hierarchy. This node and all of its subnodes
-                            (transitively, unlimited depth) are considered selected.
+                            Top node of an organizational hierarchy. All the subnodes (transitively, unlimited depth,
+                            excluding the top node) are considered selected.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -15838,6 +15838,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000172">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000600">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -16837,6 +16844,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Container for options that control behaviour of different parts of clockwork during simulation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ignoreAssignmentPruning" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, assignments are not pruned even if "prune" policy action is triggered.
+                        To be used when previewing changes only! Main reason is the shopping cart, when we are interested
+                        in assignments conflicts - and if the assignments are pruned, the conflicts disappear.
+                        See e.g. MID-8243.
+
+                        Experimental. Only for midPoint internal use.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>

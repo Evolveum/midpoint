@@ -7,6 +7,28 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.catalina.util.ServerInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -49,25 +71,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import org.apache.catalina.util.ServerInfo;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 /**
  * @author lazyman
  */
@@ -90,12 +93,10 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
-    private static final String OPERATION_CHECK_WORKFLOW_PROCESSES = DOT_CLASS + "checkWorkflowProcesses";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
     private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
     private static final String OPERATION_LOAD_NODE = DOT_CLASS + "loadNode";
-    private static final String POST_INIT = DOT_CLASS + "postInit";
 
     private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
@@ -107,7 +108,6 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
     private static final String ID_REINDEX_REPOSITORY_OBJECTS = "reindexRepositoryObjects";
     private static final String ID_TEST_PROVISIONING = "testProvisioning";
-    private static final String ID_CHECK_WORKFLOW_PROCESSES = "checkWorkflowProcesses";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
     private static final String ID_IS_EMBEDDED = "isEmbedded";
@@ -131,14 +131,21 @@ public class PageAbout extends PageAdminConfiguration {
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
             "os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name" };
 
-    private final IModel<RepositoryDiag> repoDiagModel;
-    private final IModel<ProvisioningDiag> provisioningDiagModel;
+    private IModel<RepositoryDiag> repoDiagModel;
+    private IModel<ProvisioningDiag> provisioningDiagModel;
+
+    private IModel<NodeType> nodeModel;
 
     @Autowired RepositoryCache repositoryCache;
     @Autowired protected SystemObjectCache systemObjectCache;
 
     public PageAbout() {
-        repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
+        initModels();
+        initLayout();
+    }
+
+    private void initModels() {
+        repoDiagModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -146,7 +153,7 @@ public class PageAbout extends PageAdminConfiguration {
                 return loadRepoDiagModel();
             }
         };
-        provisioningDiagModel = new LoadableModel<ProvisioningDiag>(false) {
+        provisioningDiagModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -154,7 +161,35 @@ public class PageAbout extends PageAdminConfiguration {
                 return loadProvisioningDiagModel();
             }
         };
-        initLayout();
+        nodeModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected NodeType load() {
+                String nodeId = getTaskManager().getNodeId();
+                OperationResult result = new OperationResult(OPERATION_LOAD_NODE);
+                List<PrismObject<NodeType>> nodes = WebModelServiceUtils.searchObjects(NodeType.class,
+                        getPrismContext().queryFor(NodeType.class)
+                                .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+                                .build(),
+                        result, PageAbout.this);
+
+                if (nodes.isEmpty()) {
+                    throw new IllegalArgumentException("Couldn't find NodeType with identifier '" + nodeId + "'");
+                }
+
+                if (nodes.size() > 1) {
+                    throw new IllegalArgumentException("Found more as one NodeType with identifier '" + nodeId + "'");
+                }
+
+                PrismObject<NodeType> node = nodes.get(0);
+
+                if (node == null) {
+                    throw new IllegalArgumentException("Found NodeType with identifier '" + nodeId + "' is null");
+                }
+
+                return node.asObjectable();
+            }
+        };
     }
 
     private void initLayout() {
@@ -170,18 +205,18 @@ public class PageAbout extends PageAdminConfiguration {
         build.setRenderBodyOnly(true);
         add(build);
 
-        ListView<SystemItem> listSystemItems = new ListView<SystemItem>(ID_LIST_SYSTEM_ITEMS, getItems()) {
+        ListView<LabeledString> listSystemItems = new ListView<>(ID_LIST_SYSTEM_ITEMS, getItems()) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<SystemItem> item) {
-                SystemItem systemItem = item.getModelObject();
+            protected void populateItem(ListItem<LabeledString> item) {
+                LabeledString systemItem = item.getModelObject();
 
-                Label property = new Label(ID_PROPERTY, systemItem.getProperty());
+                Label property = new Label(ID_PROPERTY, systemItem.getLabel());
                 property.setRenderBodyOnly(true);
                 item.add(property);
 
-                Label value = new Label(ID_VALUE, systemItem.getValue());
+                Label value = new Label(ID_VALUE, systemItem.getData());
                 value.setRenderBodyOnly(true);
                 item.add(value);
             }
@@ -195,7 +230,7 @@ public class PageAbout extends PageAdminConfiguration {
         addLabel(ID_DRIVER_VERSION, "driverVersion");
         addLabel(ID_REPOSITORY_URL, "repositoryUrl");
 
-        ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
+        ListView<LabeledString> additionalDetails = new ListView<>(ID_ADDITIONAL_DETAILS,
                 new PropertyModel<>(repoDiagModel, "additionalDetails")) {
             private static final long serialVersionUID = 1L;
 
@@ -214,7 +249,7 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(additionalDetails);
 
-        ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
+        ListView<LabeledString> provisioningAdditionalDetails = new ListView<>(ID_PROVISIONING_ADDITIONAL_DETAILS,
                 new PropertyModel<>(provisioningDiagModel, "additionalDetails")) {
             private static final long serialVersionUID = 1L;
 
@@ -233,39 +268,15 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(provisioningAdditionalDetails);
 
-        String nodeId = getTaskManager().getNodeId();
-        OperationResult result = new OperationResult(OPERATION_LOAD_NODE);
-        List<PrismObject<NodeType>> nodes = WebModelServiceUtils.searchObjects(NodeType.class,
-                getPrismContext().queryFor(NodeType.class)
-                        .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
-                        .build(),
-                result, PageAbout.this);
-
-        if (nodes.isEmpty()) {
-            throw new IllegalArgumentException("Couldn't find NodeType with identifier '" + nodeId + "'");
-        }
-
-        if (nodes.size() > 1) {
-            throw new IllegalArgumentException("Found more as one NodeType with identifier '" + nodeId + "'");
-        }
-
-        PrismObject<NodeType> node = nodes.get(0);
-
-        if (node == null) {
-            throw new IllegalArgumentException("Found NodeType with identifier '" + nodeId + "' is null");
-        }
-
-        NodeType nodeType = node.asObjectable();
-
-        Label nodeName = new Label(ID_NODE_NAME, nodeType.getName() != null ? nodeType.getName() : "");
+        Label nodeName = new Label(ID_NODE_NAME, () -> WebComponentUtil.getName(nodeModel.getObject()));
         nodeName.setRenderBodyOnly(true);
         add(nodeName);
 
-        Label nodeIdValue = new Label(ID_NODE_ID, nodeType.getNodeIdentifier());
+        Label nodeIdValue = new Label(ID_NODE_ID, () -> nodeModel.getObject().getNodeIdentifier());
         nodeIdValue.setRenderBodyOnly(true);
         add(nodeIdValue);
 
-        Label nodeUrl = new Label(ID_NODE_URL, nodeType.getUrl() != null ? nodeType.getUrl() : "");
+        Label nodeUrl = new Label(ID_NODE_URL, () -> nodeModel.getObject().getUrl());
         nodeUrl.setRenderBodyOnly(true);
         add(nodeUrl);
 
@@ -293,17 +304,17 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private String escapeJVMArgument(String argument) {
-            boolean matches = StartupConfiguration.SENSITIVE_CONFIGURATION_VARIABLES.stream().anyMatch(p -> argument.startsWith("-D" + p));
-            if (!matches || StartupConfiguration.isPrintSensitiveValues()) {
-                return argument;
-            }
+        boolean matches = StartupConfiguration.SENSITIVE_CONFIGURATION_VARIABLES.stream().anyMatch(p -> argument.startsWith("-D" + p));
+        if (!matches || StartupConfiguration.isPrintSensitiveValues()) {
+            return argument;
+        }
 
-            int index = argument.indexOf("=");
-            if (index < 0) {
-                return argument;
-            }
+        int index = argument.indexOf("=");
+        if (index < 0) {
+            return argument;
+        }
 
-            return argument.substring(0, index) + "=" + StartupConfiguration.SENSITIVE_VALUE_OUTPUT;
+        return argument.substring(0, index) + "=" + StartupConfiguration.SENSITIVE_VALUE_OUTPUT;
     }
 
     private void addLabel(String id, String propertyName) {
@@ -313,8 +324,7 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void initButtons() {
-        AjaxButton testRepository = new AjaxButton(ID_TEST_REPOSITORY,
-                createStringResource("PageAbout.button.testRepository")) {
+        AjaxButton testRepository = new AjaxButton(ID_TEST_REPOSITORY, createStringResource("PageAbout.button.testRepository")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -356,18 +366,6 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(testProvisioning);
-
-        AjaxButton checkWorkflowProcesses = new AjaxButton(ID_CHECK_WORKFLOW_PROCESSES,
-                createStringResource("PageAbout.button.checkWorkflowProcesses")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-//                checkWorkflowProcessesPerformed(target);
-            }
-        };
-        checkWorkflowProcesses.setVisible(false);
-        add(checkWorkflowProcesses);
 
         AjaxButton copyEnvironmentInfo = new AjaxButton(ID_COPY_ENVIRONMENT_INFO,
                 createStringResource("PageAbout.button.copyEnvironmentInfo")) {
@@ -463,15 +461,15 @@ public class PageAbout extends PageAdminConfiguration {
         return diag;
     }
 
-    private IModel<List<SystemItem>> getItems() {
-        return new LoadableModel<List<SystemItem>>(false) {
+    private IModel<List<LabeledString>> getItems() {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<SystemItem> load() {
-                List<SystemItem> items = new ArrayList<>();
+            protected List<LabeledString> load() {
+                List<LabeledString> items = new ArrayList<>();
                 for (String property : PROPERTIES) {
-                    items.add(new SystemItem(property, System.getProperty(property)));
+                    items.add(new LabeledString(property, System.getProperty(property)));
                 }
                 return items;
             }
@@ -492,7 +490,8 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException | CommunicationException e) {
+        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException |
+                ConfigurationException | CommunicationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -519,7 +518,8 @@ public class PageAbout extends PageAdminConfiguration {
             task.setName("Reindex repository objects");
             task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
             getModelInteractionService().switchToBackground(task, result);
-        } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException |
+                ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -580,7 +580,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             while (!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
 
-            runPrivileged(new Producer<Object>() {
+            runPrivileged(new Producer<>() {
 
                 private static final long serialVersionUID = 1L;
 
@@ -635,24 +635,5 @@ public class PageAbout extends PageAdminConfiguration {
     @Deprecated
     public String getDescribe() {
         return getString("PageAbout.unknownBuildNumber");
-    }
-
-    private static class SystemItem implements Serializable {
-
-        private final String property;
-        private final String value;
-
-        private SystemItem(String property, String value) {
-            this.property = property;
-            this.value = value;
-        }
-
-        public String getProperty() {
-            return property;
-        }
-
-        public String getValue() {
-            return value;
-        }
     }
 }

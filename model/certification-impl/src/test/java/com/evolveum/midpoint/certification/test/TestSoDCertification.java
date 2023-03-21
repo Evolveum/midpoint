@@ -39,11 +39,11 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSoDCertification extends AbstractCertificationTest {
 
-    protected static final File TEST_DIR = new File("src/test/resources/sod");
+    private static final File TEST_DIR = new File("src/test/resources/sod");
 
-    protected AccessCertificationDefinitionType certificationDefinition;
+    private AccessCertificationDefinitionType certificationDefinition;
 
-    protected static final File SOD_CERTIFICATION_DEF_FILE = new File(TEST_DIR, "sod-certification.xml");
+    private static final File SOD_CERTIFICATION_DEF_FILE = new File(TEST_DIR, "sod-certification.xml");
 
     private String campaignOid;
 
@@ -58,9 +58,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     private static final File ROLE_A_TEST_3B = new File(TEST_DIR, "a-test-3b.xml");
     private static String roleATest3bOid;
     private static final File ROLE_A_TEST_3X = new File(TEST_DIR, "a-test-3x.xml");
-    private static String roleATest3xOid;
     private static final File ROLE_A_TEST_3Y = new File(TEST_DIR, "a-test-3y.xml");
-    private static String roleATest3yOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -70,8 +68,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
         roleATest2cOid = addAndRecompute(ROLE_A_TEST_2C, initTask, initResult);
         roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
         roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
-        roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
-        roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
 
         assignOrg(USER_JACK_OID, ORG_SECURITY_TEAM_OID, initTask, initResult);
 
@@ -113,6 +111,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertTriggers(a3b, 1, 1);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertTriggers(AssignmentType assignment, int exclusionExpected, int situationExpected) {
         int exclusion = 0, situation = 0;
         for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
@@ -122,7 +121,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
                     EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
                     int sourceTriggers = 0;
                     for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-                        for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+                        for (EvaluatedPolicyRuleTriggerType ignored : sourceRule.getTrigger()) {
                             sourceTriggers++;
                             //assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
                         }
@@ -251,7 +250,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList)
+    private void checkAllCases(Collection<AccessCertificationCaseType> caseList)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());

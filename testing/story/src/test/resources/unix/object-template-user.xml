@@ -6,13 +6,49 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="9cd03eda-66bd-11e5-866c-f3bc34108fdf"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-   xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+
     <name>User Template</name>
+
+    <item> <!-- MID-4424 -->
+        <ref>extension/uidNumberPlusOne</ref>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>extension/uidNumber</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        (uidNumber as BigInteger)?.add(BigInteger.ONE)
+                    </code>
+                </script>
+            </expression>
+            <!-- The phase here is "after assignments", because the uidNumber is generated during assignments processing. -->
+            <evaluationPhase>afterAssignments</evaluationPhase>
+        </mapping>
+    </item>
+
+    <item> <!-- MID-4424 -->
+        <ref>extension/uidNumberInt</ref>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>extension/uidNumber</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        // We must disallow the automatic conversion for large values, because it would (correctly!)
+                        // throw an exception in such cases.
+                        (uidNumber as BigInteger) > BigInteger.valueOf(Integer.MAX_VALUE) ? null : uidNumber
+                    </code>
+                </script>
+            </expression>
+            <!-- The phase here is "after assignments", because the uidNumber is generated during assignments processing. -->
+            <evaluationPhase>afterAssignments</evaluationPhase>
+        </mapping>
+    </item>
 
     <mapping>
         <name>troublemaker</name>
@@ -40,5 +76,4 @@
         <!-- We want it to die quite late -->
         <evaluationPhase>afterAssignments</evaluationPhase>
     </mapping>
-
 </objectTemplate>

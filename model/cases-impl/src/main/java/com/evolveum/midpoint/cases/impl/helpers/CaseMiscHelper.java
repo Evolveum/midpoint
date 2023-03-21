@@ -54,10 +54,7 @@ public class CaseMiscHelper {
     @Autowired private PrismContext prismContext;
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private Clock clock;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public PrismObject<UserType> getRequesterIfExists(CaseType aCase, OperationResult result) {
         if (aCase == null || aCase.getRequestorRef() == null) {
@@ -68,10 +65,11 @@ public class CaseMiscHelper {
         return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
     }
 
-    private TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
-        PrismObject resolvedObject = resolveObjectReference(ref, false, result);
+    private TypedValue<PrismObject<?>> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
+        PrismObject<?> resolvedObject = resolveObjectReference(ref, false, result);
         if (resolvedObject == null) {
-            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            PrismObjectDefinition<ObjectType> def =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             return new TypedValue<>(null, def);
         } else {
             return new TypedValue<>(resolvedObject);
@@ -102,11 +100,11 @@ public class CaseMiscHelper {
                     .collect(Collectors.toList());
     }
 
-    private PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
+    private PrismObject<?> resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
         return resolveObjectReference(ref, true, result);
     }
 
-    private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
+    private PrismObject<?> resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
         if (ref == null) {
             return null;
         }
@@ -114,7 +112,9 @@ public class CaseMiscHelper {
             return ref.asReferenceValue().getObject();
         }
         try {
-            PrismObject object = repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
+            PrismObject<?> object = repositoryService.getObject(
+                    prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()),
+                    ref.getOid(), null, result);
             if (storeBack) {
                 ref.asReferenceValue().setObject(object);
             }
@@ -163,7 +163,7 @@ public class CaseMiscHelper {
         return variables;
     }
 
-    private ObjectDelta getFocusPrimaryDelta(ApprovalContextType actx) throws SchemaException {
+    private ObjectDelta<?> getFocusPrimaryDelta(ApprovalContextType actx) throws SchemaException {
         ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(actx);
         return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
     }

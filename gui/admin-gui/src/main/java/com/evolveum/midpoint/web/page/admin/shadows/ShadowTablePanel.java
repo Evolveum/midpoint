@@ -104,6 +104,15 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return isShadowDetailsEnabled(rowModel);
+    }
+
+    protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return true;
+    }
+
+    @Override
     protected boolean isCreateNewObjectEnabled() {
         return false;
     }

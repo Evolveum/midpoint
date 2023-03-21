@@ -24,7 +24,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.SystemUtil;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -543,9 +543,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     private PolyString toPolyString(String orig) {
-        PolyString polyString = new PolyString(orig);
-        polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-        return polyString;
+        return PolyString.fromOrig(orig);
     }
 
     private <T extends ObjectType> PrismObjectDefinition<T> getObjectDefinition(Class<T> type) {

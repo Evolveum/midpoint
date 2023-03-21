@@ -865,7 +865,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
             user = new UserType()
                     .name(name)
-                    .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext));
+                    .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone()));
 
             String userOid = addObject(user, task, result);
 
@@ -884,7 +884,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         ObjectDelta<UserType> createDeleteAccountDelta() throws SchemaException {
             return deltaFor(UserType.class)
-                    .item(UserType.F_LINK_REF).delete(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext))
+                    .item(UserType.F_LINK_REF).delete(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone()))
                     .asObjectDelta(user.getOid());
         }
 

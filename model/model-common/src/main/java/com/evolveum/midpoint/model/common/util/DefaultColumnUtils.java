@@ -111,11 +111,11 @@ public class DefaultColumnUtils {
                 .put(SimulationResultType.class, Arrays.asList(
                         new ColumnWrapper(SimulationResultType.F_NAME),
                         new ColumnWrapper(SimulationResultType.F_DESCRIPTION),
-                        new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP)))
+                        new ColumnWrapper(SimulationResultType.F_START_TIMESTAMP, true)))
                 .put(SimulationResultProcessedObjectType.class, Arrays.asList(
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE),
-                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_NAME, true),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_TYPE, true),
+                        new ColumnWrapper(SimulationResultProcessedObjectType.F_STATE, true),
                         new ColumnWrapper(SimulationResultProcessedObjectType.F_DELTA)))
                 .build();
     }

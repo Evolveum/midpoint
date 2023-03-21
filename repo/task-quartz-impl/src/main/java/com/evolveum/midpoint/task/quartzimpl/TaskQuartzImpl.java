@@ -2138,7 +2138,7 @@ public class TaskQuartzImpl implements Task {
 
     public void addSubtask(TaskType subtaskBean) {
         synchronized (prismAccess) {
-            taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean, beans.prismContext));
+            taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean));
         }
     }
     //endregion

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -53,7 +56,10 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  */
 public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment {
 
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
+
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+
     private final boolean evaluatedOld;
 
     /**
@@ -99,6 +105,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * They may or may not be really applicable during the current clockwork operation.
      */
     @NotNull private final List<EvaluatedPolicyRuleImpl> targetPolicyRules = new ArrayList<>();
+
+    /**
+     * Policy rules from other assignments relevant to this one, typically those with an exclusion constraint.
+     * Used to implement one-way-defined exclusion policy rules, see e.g. MID-8269.
+     *
+     * Some of them may be the same as in {@link #targetPolicyRules} (but wrapped).
+     *
+     * Any given policy rule is here only once.
+     * But beware of non-determinism, see {@link #registerAsForeignRule(EvaluatedPolicyRuleImpl)}.
+     *
+     * Set up during policy rules evaluation.
+     */
+    @NotNull private final List<ForeignPolicyRuleImpl> foreignPolicyRules = new ArrayList<>();
 
     private String tenantOid;
 
@@ -417,6 +436,20 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return Collections.unmodifiableList(targetPolicyRules);
     }
 
+    @Override
+    public @NotNull Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
+        return getAllTargetsPolicyRules().stream()
+                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
+                .collect(Collectors.toList());
+    }
+
     public void addTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         targetPolicyRules.add(policyRule);
     }
@@ -426,34 +459,69 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return targetPolicyRules.size();
     }
 
-    @Override
-    public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        boolean hasException = processRuleExceptions(this, rule, triggers);
+    public @NotNull List<ForeignPolicyRuleImpl> getForeignPolicyRules() {
+        return Collections.unmodifiableList(foreignPolicyRules);
+    }
 
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            if (trigger instanceof EvaluatedExclusionTrigger) {
-                EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-                //noinspection unchecked
-                hasException = hasException
-                        || processRuleExceptions(
-                                (EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(), rule, triggers);
+    @Override
+    public @NotNull Collection<AssociatedPolicyRule> getAllAssociatedPolicyRules() {
+        ArrayList<AssociatedPolicyRule> allRules = new ArrayList<>(targetPolicyRules);
+        for (AssociatedPolicyRule foreignRule : foreignPolicyRules) {
+            if (!AssociatedPolicyRule.contains(allRules, foreignRule)) {
+                allRules.add(foreignRule);
             }
         }
+        return allRules;
+    }
 
-        if (!hasException) {
-            LensUtil.triggerRule(rule, triggers);
+    /**
+     * Registers a foreign policy rule.
+     *
+     * In theory, the result of this operation may be non-deterministic. Let us assume we have the same policy rule
+     * with multiple occurrences pointing to this assignment (as foreign rules). Whatever is evaluated first, ends
+     * in this collection. This may result in phantom updates if full policy situation recording is enabled. However,
+     * that is an experimental feature anyway.
+     */
+    public void registerAsForeignRule(EvaluatedPolicyRuleImpl rule) {
+        if (!AssociatedPolicyRule.contains(foreignPolicyRules, rule)) {
+            foreignPolicyRules.add(
+                    ForeignPolicyRuleImpl.of(rule, this));
         }
     }
 
-    private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        boolean hasException = false;
-        for (PolicyExceptionType policyException: evaluatedAssignment.getAssignment().getPolicyException()) {
-            if (policyException.getRuleName().equals(rule.getName())) {
-                LensUtil.processRuleWithException(rule, triggers, policyException);
-                hasException = true;
+    public boolean hasPolicyRuleException(
+            @NotNull EvaluatedPolicyRuleImpl rule, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+
+        if (hasDirectPolicyRuleException(rule, triggers)) {
+            return true;
+        }
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                EvaluatedAssignmentImpl<?> conflictingAssignment =
+                        (EvaluatedAssignmentImpl<?>) ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                if (conflictingAssignment.hasDirectPolicyRuleException(rule, triggers)) {
+                    return true;
+                }
             }
         }
-        return hasException;
+
+        return false;
+    }
+
+    private boolean hasDirectPolicyRuleException(
+            @NotNull EvaluatedPolicyRule rule,
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        for (PolicyExceptionType policyException: getAssignment().getPolicyException()) {
+            String ruleName = rule.getName();
+            if (policyException.getRuleName().equals(ruleName)) {
+                LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering.", ruleName);
+                LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTriggers:\n{}\nException:\n{}",
+                        ruleName, DebugUtil.debugDumpLazily(triggers, 1), policyException);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -521,18 +589,18 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(
                 sb, "objectPolicyRules " + ruleCountInfo(objectPolicyRules), objectPolicyRules, indent+1);
-        Collection<? extends EvaluatedPolicyRule> thisTargetRules = getThisTargetPolicyRules();
+        Collection<EvaluatedPolicyRuleImpl> thisTargetRules = getThisTargetPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetRules), thisTargetRules, indent+1);
-        Collection<? extends EvaluatedPolicyRule> otherTargetsRules = getOtherTargetsPolicyRules();
+        Collection<EvaluatedPolicyRuleImpl> otherTargetsRules = getOtherTargetsPolicyRules();
         DebugUtil.debugDumpWithLabelLn(
                 sb, "otherTargetsRules " + ruleCountInfo(otherTargetsRules), otherTargetsRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
         return sb.toString();
     }
 
-    private String ruleCountInfo(Collection<? extends EvaluatedPolicyRule> rules) {
-        return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
+    private String ruleCountInfo(Collection<? extends AssociatedPolicyRule> rules) {
+        return "(" + rules.size() + ", triggered " + AssociatedPolicyRule.getTriggeredRulesCount(rules) + ")";
     }
 
     private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {
@@ -647,6 +715,4 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public void addAdminGuiDependency(String oid) {
         adminGuiDependencies.add(oid);
     }
-
-
 }

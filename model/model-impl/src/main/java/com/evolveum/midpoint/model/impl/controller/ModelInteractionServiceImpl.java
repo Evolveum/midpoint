@@ -1467,8 +1467,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @NotNull
     @Override
-    public List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assigneeRef, QName limitationItemName, Task task,
-            OperationResult parentResult) throws SchemaException {
+    public List<ObjectReferenceType> getDeputyAssignees(
+            ObjectReferenceType assigneeRef, QName limitationItemName, Task task, OperationResult parentResult)
+            throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
@@ -1486,11 +1487,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private void getDeputyAssignees(List<ObjectReferenceType> deputies, AbstractWorkItemType workItem, Set<String> oidsToSkip,
+    private void getDeputyAssignees(
+            List<ObjectReferenceType> deputies, AbstractWorkItemType workItem, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         List<PrismReferenceValue> assigneeReferencesToQuery = workItem.getAssigneeRef().stream()
                 .map(assigneeRef -> assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue())
                 .collect(Collectors.toList());
+        if (assigneeReferencesToQuery.isEmpty()) {
+            return;
+        }
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
                 .build();
@@ -1500,14 +1505,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
-            if (determineDeputyValidity(potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, task, result)) {
+            if (determineDeputyValidity(
+                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS,
+                    task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
     }
 
-    private void getDeputyAssigneesNoWorkItem(List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
+    private void getDeputyAssigneesNoWorkItem(
+            List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
             QName limitationItemName, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();

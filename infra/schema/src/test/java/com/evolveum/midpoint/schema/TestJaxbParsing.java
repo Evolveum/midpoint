@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +47,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
 
         // Try to use the schema to validate Jack
         UserType userType = PrismTestUtil.parseObjectable(
-                new File(TestConstants.COMMON_DIR, "user-jack.xml"), UserType.class);
+                new File(TestConstants.COMMON_DIR, "user-jack.xml"));
 
         // WHEN
 
@@ -60,7 +59,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         System.out.println(user.debugDump());
 
         user.checkConsistence();
-        assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(user, UserType.F_NAME, PolyString.fromOrig("jack"));
         assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
         assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
         assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
@@ -84,7 +83,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        ShadowType accType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "account-jack.xml"), ShadowType.class);
+        ShadowType accType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "account-jack.xml"));
 
         PrismObject<ShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
@@ -93,7 +92,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         System.out.println(account.debugDump(1));
 
         account.checkConsistence();
-        assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(account, ShadowType.F_NAME, PolyString.fromOrig("jack"));
         assertPropertyValue(account, ShadowType.F_OBJECT_CLASS, RI_ACCOUNT_OBJECT_CLASS);
         assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
@@ -122,7 +121,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         System.out.println(role.debugDump(1));
 
         role.checkConsistence();
-        assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
+        assertPropertyValue(role, RoleType.F_NAME, PolyString.fromOrig("r3"));
     }
 
     public void testParseRoleFromJaxb(File file) throws SchemaException, IOException {
@@ -136,7 +135,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         System.out.println(role.debugDump(1));
 
         role.checkConsistence();
-        assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
+        assertPropertyValue(role, RoleType.F_NAME, PolyString.fromOrig("r3"));
 
         // TODO: more asserts?
     }
@@ -145,14 +144,14 @@ public class TestJaxbParsing extends AbstractSchemaTest {
     public void testParseGenericObjectFromJaxb() throws Exception {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        GenericObjectType object = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "generic-sample-configuration.xml"),
-                GenericObjectType.class);
+        GenericObjectType object = PrismTestUtil.parseObjectable(
+                new File(TestConstants.COMMON_DIR, "generic-sample-configuration.xml"));
 
         PrismObject<GenericObjectType> prism = object.asPrismObject();
         prism.revive(prismContext);
 
         prism.checkConsistence();
-        assertPropertyValue(prism, GenericObjectType.F_NAME, PrismTestUtil.createPolyString("My Sample Config Object"));
+        assertPropertyValue(prism, GenericObjectType.F_NAME, PolyString.fromOrig("My Sample Config Object"));
         assertPropertyValue(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
         //assert extension
         PrismContainer<?> extension = prism.findContainer(GenericObjectType.F_EXTENSION);

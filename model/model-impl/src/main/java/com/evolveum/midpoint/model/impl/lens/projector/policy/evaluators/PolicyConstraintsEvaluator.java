@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -57,16 +58,16 @@ public class PolicyConstraintsEvaluator {
         }
         List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
-            PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
-                    (PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(constraint);
-            EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(constraint, ctx, result);
-            LOGGER.trace("Evaluated policy rule trigger: {}", trigger);
-            traceConstraintEvaluationResult(constraint, ctx, trigger);
-            if (trigger != null) {
-                triggers.add(trigger);
+            PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
+                    (PolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) getConstraintEvaluator(constraint);
+            Collection<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(constraint, ctx, result);
+            LOGGER.trace("Evaluated policy rule triggers: {}", newTriggers);
+            traceConstraintEvaluationResult(constraint, ctx, newTriggers);
+            if (!newTriggers.isEmpty()) {
+                triggers.addAll(newTriggers);
             } else {
                 if (allMustApply) {
-                    return Collections.emptyList(); // constraint that does not apply => skip this rule
+                    return List.of(); // constraint that does not apply => skip this rule
                 }
             }
         }
@@ -75,14 +76,16 @@ public class PolicyConstraintsEvaluator {
 
     private <O extends ObjectType> void traceConstraintEvaluationResult(
             JAXBElement<AbstractPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<O> ctx, EvaluatedPolicyRuleTrigger<?> trigger) throws SchemaException {
+            PolicyRuleEvaluationContext<O> ctx,
+            Collection<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers) throws SchemaException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
         StringBuilder sb = new StringBuilder();
         sb.append("\n---[ POLICY CONSTRAINT ");
-        if (trigger != null) {
-            sb.append("# ");
+        if (!newTriggers.isEmpty()) {
+            newTriggers.forEach(t -> sb.append("#"));
+            sb.append(" ");
         }
         AbstractPolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getName() != null) {
@@ -99,11 +102,11 @@ public class PolicyConstraintsEvaluator {
                 .serialize(constraintElement));
         //sb.append("\nContext: ").append(ctx.debugDump());
         sb.append("\nRule: ").append(ctx.policyRule.toShortString());
-        sb.append("\nResult: ").append(DebugUtil.debugDump(trigger));
+        sb.append("\nResult: ").append(DebugUtil.debugDump(newTriggers));
         LOGGER.trace("{}", sb);
     }
 
-    private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
+    private PolicyConstraintEvaluator<?, ?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
         if (constraint.getValue() instanceof AssignmentModificationPolicyConstraintType) {
             return assignmentConstraintEvaluator;
         } else if (constraint.getValue() instanceof HasAssignmentPolicyConstraintType) {

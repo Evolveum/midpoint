@@ -7,7 +7,6 @@
 
 <role oid="6bc73701-f1db-4fef-b644-8bfd7b64d97b"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>common-rules</name>
     <inducement>

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -74,32 +73,21 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
      * - even those that were not triggered. The policy rules are compiled from all the applicable
      * sources (target, meta-roles, etc.)
      */
-    @NotNull
-    Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
+    @NotNull Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
 
     /**
      * Returns all policy rules that directly apply to the target object of this assignment
      * (and are derived from this assignment) - even those that were not triggered. The policy rules
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
-    @NotNull
-    default Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules() {
-        return getAllTargetsPolicyRules().stream()
-                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET)
-                .collect(Collectors.toList());
-    }
+    @NotNull Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules();
 
     /**
      * Returns all policy rules that apply to some other target object of this assignment
      * (and are derived from this assignment) - even those that were not triggered. The policy rules
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
-    @NotNull
-    default Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
-        return getAllTargetsPolicyRules().stream()
-                .filter(r -> r.getTargetType() == EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET)
-                .collect(Collectors.toList());
-    }
+    @NotNull Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules();
 
     /**
      * Returns all policy rules that apply to any of the target objects provided by this assignment
@@ -117,11 +105,19 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
     Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
     /**
+     * Returns {@link #getAllTargetsPolicyRules()} plus so-called "foreign policy rules". Those are rules that are related
+     * to this assignment because they contain an exclusion trigger pointing to this assignment as the conflicting one.
+     * This is necessary to implement "declare once, use twice" approach where it should be sufficient to declare an exclusion
+     * constraint at one of the targets only. See e.g. MID-8269.
+     *
+     * There are important things to be aware of, though. Please see {@link AssociatedPolicyRule} for more information.
+     */
+    @NotNull Collection<AssociatedPolicyRule> getAllAssociatedPolicyRules();
+
+    /**
      * How many target policy rules are there.
      */
     int getAllTargetsPolicyRulesCount();
-
-    void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
     /**
      * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
