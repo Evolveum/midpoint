@@ -672,6 +672,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
+                || (synchronizationPolicyDecision == null && synchronizationIntent == SynchronizationIntent.DELETE) // MID-8608
                 || ObjectDelta.isDelete(syncDelta)
                 || ObjectDelta.isDelete(state.getPrimaryDelta());
     }
@@ -1819,6 +1820,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isBroken() {
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN;
+    }
+
+    public boolean isIgnored() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE;
     }
 
     /**
