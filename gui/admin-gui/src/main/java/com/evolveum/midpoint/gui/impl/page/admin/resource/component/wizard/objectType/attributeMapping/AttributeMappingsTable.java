@@ -30,7 +30,9 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -230,10 +232,11 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 MappingType.F_ENABLED,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()) {
-
             @Override
-            public String getCssClass() {
-                return "col-md-2";
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                Component header = super.createHeader(componentId, mainModel);
+                header.add(AttributeAppender.append("class", "d-table-row"));
+                return header;
             }
         });
 
