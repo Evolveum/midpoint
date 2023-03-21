@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -272,20 +273,21 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (!result.isError()) {
-            if (executedDeltas != null) {
-                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
-                if (resourceOid != null) {
-                    Task task = createSimpleTask("load resource after save");
-                    @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
-                            getType(),
-                            resourceOid,
-                            AbstractPageObjectDetails.this,
-                            task,
-                            task.getResult());
-                    if (object != null) {
-                        getObjectDetailsModels().reset();
-                        getObjectDetailsModels().reloadPrismObjectModel(object);
-                    }
+            String objectOid = getPrismObject() != null ? getPrismObject().getOid() : null;
+            if (StringUtils.isEmpty(objectOid) && executedDeltas != null) {
+                objectOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+            }
+            if (objectOid != null) {
+                Task task = createSimpleTask("load resource after save");
+                @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
+                        getType(),
+                        objectOid,
+                        AbstractPageObjectDetails.this,
+                        task,
+                        task.getResult());
+                if (object != null) {
+                    getObjectDetailsModels().reset();
+                    getObjectDetailsModels().reloadPrismObjectModel(object);
                 }
             }
 
@@ -306,11 +308,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    protected void navigateAction(){
+    protected void navigateAction() {
         Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
-        if(!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null){
+        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
             navigateToNext(objectListPage);
-        }else {
+        } else {
             redirectBack();
         }
     }
