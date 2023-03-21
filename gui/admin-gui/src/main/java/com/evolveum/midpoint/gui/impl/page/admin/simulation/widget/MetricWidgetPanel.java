@@ -224,10 +224,13 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     private void initLayout() {
         add(AttributeModifier.prepend("class", "d-flex flex-column border rounded bg-white"));
 
-        Label title = new Label(ID_TITLE, () -> {
+        IModel<String> titleModel = () -> {
             DisplayType display = getModelObject().getDisplay();
             return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
-        });
+        };
+
+        Label title = new Label(ID_TITLE, titleModel);
+        title.add(AttributeAppender.append("title", titleModel));
         add(title);
 
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {

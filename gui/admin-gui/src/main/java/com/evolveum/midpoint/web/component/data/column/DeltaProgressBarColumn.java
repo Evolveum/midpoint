@@ -134,7 +134,7 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                         break;
                     case DELETE:
                     default:
-                        count = delta.getModifications().size();
+                        count = delta.getModifications().stream().filter(i -> !i.isOperational()).count();
                 }
 
                 return LocalizationUtil.translate("ProcessedObjectsPanel.progressMessage", new Object[] { msg, count });

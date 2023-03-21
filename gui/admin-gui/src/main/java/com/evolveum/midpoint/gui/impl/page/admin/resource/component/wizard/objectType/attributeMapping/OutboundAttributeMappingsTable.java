@@ -153,7 +153,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "col-xl-4 col-lg-4 col-md-4";
+                return "col-xl-2 col-lg-2 col-md-2";
             }
         });
 
@@ -165,7 +165,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-1";
             }
         });
 
@@ -173,14 +173,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                 mappingTypeDef,
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
-
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-3";
-            }
-
-        });
+                getPageBase()));
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override
@@ -190,7 +183,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-1";
             }
         });
 
