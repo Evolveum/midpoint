@@ -337,6 +337,32 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:on
     }
 
+    /** Executes `deleteResourceObject` action and checks that it is correctly marked. MID-8608. */
+    @Test
+    public void test200DeleteAccountOnImport() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("sensitive account on the resource");
+        String name = "sensitive";
+        RESOURCE_DUMMY_EVENT_MARKS.addAccount(name);
+
+        when("account is imported");
+        var taskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_EVENT_MARKS.oid)
+                .withNameValue(name)
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                .execute(result);
+
+        then("simulation result is OK");
+        assertProcessedObjects(taskOid, "after")
+                .display()
+                .single()
+                .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
+                .delta()
+                .assertDelete();
+    }
+
     /** Switching task to a simulation mode. Otherwise, event marks would not be applied. */
     private static void switchToSimulationMode(Task task) {
         task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);

@@ -94,8 +94,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         try {
             LOGGER.trace("Processing activation for all contexts");
             for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                if (projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN
-                        && projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.IGNORE) {
+                if (!projectionContext.isBroken() && !projectionContext.isIgnored()) {
                     processActivation(context, projectionContext, now, task, activationResult);
                 }
             }
@@ -404,6 +403,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
         ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
         if (projDelta == null) {
+            LOGGER.trace("No projection delta -> no activation metadata processing");
             return;
         }
 
@@ -450,7 +450,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                             disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
                         }
 
-                        PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
+                        PrismPropertyDefinition<String> disableReasonDef =
+                                activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
                         disableReasonDelta = disableReasonDef.createEmptyDelta(
                                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
                         disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
