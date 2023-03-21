@@ -666,6 +666,10 @@ public class ProvisioningContext {
         return task.isExecutionFullyPersistent();
     }
 
+    public boolean areShadowChangesSimulated() {
+        return task.getExecutionMode().areShadowChangesSimulated();
+    }
+
     /**
      * This is a check that we are not going to cause any modification on a resource.
      *

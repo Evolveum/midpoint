@@ -122,10 +122,10 @@ class ShadowAcquisition {
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
-        localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
+        var classification = localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
 
         // TODO We probably can avoid re-reading the shadow
-        return localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, result);
+        return localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, classification, result);
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)

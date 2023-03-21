@@ -34,6 +34,7 @@ public class ProcessedObjectFinder<RA> {
     private ObjectProcessingStateType state;
     private ChangeType changeType;
     private String eventMarkOid;
+    private String withoutEventMarkOid;
     private boolean noEventMarks;
     private String resourceOid;
     private Integer index;
@@ -64,6 +65,11 @@ public class ProcessedObjectFinder<RA> {
 
     public ProcessedObjectFinder<RA> eventMarkOid(String eventMarkOid) {
         this.eventMarkOid = eventMarkOid;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> withoutEventMarkOid(String eventMarkOid) {
+        this.withoutEventMarkOid = eventMarkOid;
         return this;
     }
 
@@ -117,6 +123,9 @@ public class ProcessedObjectFinder<RA> {
                 continue;
             }
             if (eventMarkOid != null && !processedObject.hasEventMark(eventMarkOid)) {
+                continue;
+            }
+            if (withoutEventMarkOid != null && processedObject.hasEventMark(withoutEventMarkOid)) {
                 continue;
             }
             if (noEventMarks && !processedObject.hasNoEventMarks()) {
