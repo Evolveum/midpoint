@@ -352,7 +352,6 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .withResourceOid(RESOURCE_DUMMY_EVENT_MARKS.oid)
                 .withNameValue(name)
                 .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
-                .withTracing()
                 .execute(result);
 
         then("simulation result is OK");
