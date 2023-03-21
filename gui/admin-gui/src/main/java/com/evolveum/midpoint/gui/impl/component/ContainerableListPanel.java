@@ -578,7 +578,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
     }
 
-    private String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
+    protected String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
         String sortProperty = customColumn.getSortProperty();
         if (sortProperty != null) {
             return sortProperty;

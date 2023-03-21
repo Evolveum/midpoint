@@ -313,7 +313,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
     @Override
     protected IColumn<SelectableBean<C>, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ReportExpressionColumn<>(columnDisplayModel, null, customColumn, expression, getPageBase()) {
+        return new ReportExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
 
             @Override
             protected void processReportSpecificVariables(VariablesMap variablesMap) {
