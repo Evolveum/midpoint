@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -43,7 +44,7 @@ public class ReactionOptionalSettingStepPanel
 
     @Override
     protected boolean isExitButtonVisible() {
-        return true;
+        return false;
     }
 
     @Override
@@ -68,11 +69,27 @@ public class ReactionOptionalSettingStepPanel
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getBackBehaviour() {
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onExitPerformed(target);
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("OnePanelPopupPanel.button.done");
     }
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleBehaviour(() -> false);
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 }
