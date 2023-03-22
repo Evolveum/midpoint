@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
@@ -254,7 +255,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return wizardBreadcrumbs;
     }
 
-    protected <C extends Containerable, P extends BasePanel> P showWizard(
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             AjaxRequestTarget target,
             ItemPath pathToValue,
             Class<P> clazz) {
@@ -325,6 +326,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 getObjectDetailsModels().reset();
                 getObjectDetailsModels().reloadPrismObjectModel(oldObject);
                 backToDetailsFromWizard(target);
+                getWizardBreadcrumbs().clear();
             }
 
             @Override
