@@ -8,10 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -175,18 +172,39 @@ public class SimulationsGuiUtil {
 
         ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
         if (obj == null) {
-            return LocalizationUtil.translatePolyString(obj.getName());
+            return page.getString("ProcessedObjectsPanel.unnamed");
         }
 
+        String name = obj.getName() != null ? obj.getName().getOrig() : null;
+
+        String displayName = null;
         if (obj instanceof ShadowType) {
             try {
-                return getProcessedShadowName((ShadowType) obj, page);
+                displayName = getProcessedShadowName((ShadowType) obj, page);
             } catch (SystemException ex) {
                 LOGGER.debug("Couldn't create processed shadow name", ex);
             }
+        } else {
+            displayName = WebComponentUtil.getDisplayName(obj.asPrismObject());
         }
 
-        return WebComponentUtil.getDisplayNameAndName(obj.asPrismObject());
+        if (name == null && displayName == null) {
+            return page.getString("ProcessedObjectsPanel.unnamed");
+        }
+
+        if (Objects.equals(name, displayName)) {
+            return name;
+        }
+
+        if (name == null) {
+            return displayName;
+        }
+
+        if (displayName == null) {
+            return name;
+        }
+
+        return name + " (" + displayName + ")";
     }
 
     private static String getProcessedShadowName(ShadowType shadow, PageBase page) {

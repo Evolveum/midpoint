@@ -258,6 +258,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         int totalCount = SimulationResultTypeUtil.getObjectsProcessed(resultModel.getObject());
         for (Map.Entry<BuiltInSimulationMetricType, Integer> entry : builtIn.entrySet()) {
             BuiltInSimulationMetricType identifier = entry.getKey();
+            if (identifier == BuiltInSimulationMetricType.ERRORS) {
+                // handled later (as last detail item)
+                continue;
+            }
+
             int value = entry.getValue();
 
             items.add(createDetailsItemForBuiltInMetric(identifier, value));
@@ -278,6 +283,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 () -> Integer.toString(totalCount),
                 target -> redirectToProcessedObjects((ObjectProcessingStateType) null))
         );
+
+        Integer value = builtIn.get(BuiltInSimulationMetricType.ERRORS);
+        if (value != null) {
+            items.add(createDetailsItemForBuiltInMetric(BuiltInSimulationMetricType.ERRORS, value));
+        }
 
         result.addAll(items);
     }
