@@ -65,8 +65,8 @@ podTemplate(
                         // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
                         sh """#!/bin/bash -ex
                             psql --version
-                            wget https://github.com/Evolveum/midpoint/blob/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
-                            wget https://github.com/Evolveum/midpoint/blob/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
                             psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres-new.sql \
                                 -f postgres-new-audit.sql -f config/sql/native-new/postgres-new-quartz.sql
 
