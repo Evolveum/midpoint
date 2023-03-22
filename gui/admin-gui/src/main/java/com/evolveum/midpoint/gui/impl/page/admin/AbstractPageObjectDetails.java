@@ -273,22 +273,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (!result.isError()) {
-            String objectOid = getPrismObject() != null ? getPrismObject().getOid() : null;
-            if (StringUtils.isEmpty(objectOid) && executedDeltas != null) {
-                objectOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
-            }
-            if (objectOid != null) {
-                Task task = createSimpleTask("load resource after save");
-                @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
-                        getType(),
-                        objectOid,
-                        getOperationOptions(),
-                        AbstractPageObjectDetails.this,
-                        task,
-                        task.getResult());
-                if (object != null) {
-                    getObjectDetailsModels().reset();
-                    getObjectDetailsModels().reloadPrismObjectModel(object);
+            if (executedDeltas != null) {
+                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+                if (resourceOid != null) {
+                    Task task = createSimpleTask("load resource after save");
+                    @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
+                            getType(),
+                            resourceOid,
+                            AbstractPageObjectDetails.this,
+                            task,
+                            task.getResult());
+                    if (object != null) {
+                        getObjectDetailsModels().reset();
+                        getObjectDetailsModels().reloadPrismObjectModel(object);
+                    }
                 }
             }
 
