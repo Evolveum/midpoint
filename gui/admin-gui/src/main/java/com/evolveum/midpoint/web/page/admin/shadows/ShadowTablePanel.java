@@ -113,7 +113,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     @Override
-    protected boolean isCreateNewObjectEnabled() {
+    protected boolean isCreateNewObjectVisible() {
         return false;
     }
 

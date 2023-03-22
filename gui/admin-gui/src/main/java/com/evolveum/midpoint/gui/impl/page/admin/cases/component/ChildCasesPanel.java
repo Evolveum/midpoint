@@ -100,7 +100,7 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled(){
+            protected boolean isCreateNewObjectVisible(){
                 return false;
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -68,6 +68,7 @@ public class QResourceMapping
                 q -> q.connectorRefRelationId,
                 QConnectorMapping::get);
         addItemMapping(F_TEMPLATE, booleanMapper(q -> q.template));
+        addItemMapping(F_ABSTRACT, booleanMapper(q -> q.abstractValue));
     }
 
     @Override
@@ -106,6 +107,7 @@ public class QResourceMapping
                 t -> row.connectorRefTargetType = t,
                 r -> row.connectorRefRelationId = r);
         row.template = schemaObject.isTemplate();
+        row.abstractValue = schemaObject.isAbstract();
 
         return row;
     }

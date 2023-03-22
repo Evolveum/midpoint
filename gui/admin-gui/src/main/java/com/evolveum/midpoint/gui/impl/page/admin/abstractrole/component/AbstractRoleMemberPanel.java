@@ -291,7 +291,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
             }
         };

@@ -55,7 +55,6 @@ podTemplate(
             stage("db-init") {
                 container('postgres') {
                     sh """#!/bin/bash -ex
-                        set -x
                         psql --version
                         psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/generic-old/postgresql-*-all.sql \
                             -f repo/repo-sql-impl-test/sql-procedures/postgresql.sql
@@ -97,7 +96,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
                             -Dmidpoint.repository.jdbcPassword=password \
                             -Dmidpoint.repository.jdbcUsername=midtest \
