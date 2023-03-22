@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -43,6 +43,7 @@ public class QResource extends QAssignmentHolder<MResource> {
     public static final ColumnMetadata CONNECTOR_REF_RELATION_ID =
             ColumnMetadata.named("connectorRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TEMPLATE = ColumnMetadata.named("template").ofType(Types.BOOLEAN);
+    public static final ColumnMetadata ABSTRACT = ColumnMetadata.named("abstract").ofType(Types.BOOLEAN);
 
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,
@@ -62,6 +63,7 @@ public class QResource extends QAssignmentHolder<MResource> {
     public final NumberPath<Integer> connectorRefRelationId =
             createInteger("connectorRefRelationId", CONNECTOR_REF_RELATION_ID);
     public final BooleanPath template = createBoolean("template", TEMPLATE);
+    public final BooleanPath _abstract = createBoolean("_abstract", ABSTRACT);
 
     public QResource(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

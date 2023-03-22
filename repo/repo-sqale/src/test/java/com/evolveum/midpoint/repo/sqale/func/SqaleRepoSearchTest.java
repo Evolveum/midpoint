@@ -2934,6 +2934,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test930ResourceQuery() throws SchemaException {
+        expect("resource query with abstract and template conditions works");
+        searchObjectTest("by abstract and template items", ResourceType.class,
+                f -> f.item(ResourceType.F_ABSTRACT).eq(true)
+                        .and().item(ResourceType.F_TEMPLATE).eq(true));
+    }
+
+    @Test
     public void test950SearchOperationUpdatesPerformanceMonitor() throws SchemaException {
         OperationResult operationResult = createOperationResult();
 

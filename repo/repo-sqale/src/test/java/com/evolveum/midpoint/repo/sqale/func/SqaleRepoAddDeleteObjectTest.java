@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1300,7 +1300,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .administrativeAvailabilityStatus(AdministrativeAvailabilityStatusType.MAINTENANCE))
                 .connectorRef(connectorOid.toString(),
                         ConnectorType.COMPLEX_TYPE, connectorRelation)
-                .template(false);
+                .template(false)
+                ._abstract(false);
 
         when("adding it to the repository");
         repositoryService.addObject(resource.asPrismObject(), null, result);
@@ -1319,6 +1320,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
         assertThat(row.template).isFalse();
+        assertThat(row._abstract).isFalse();
 
         QObjectReference<?> ref = QObjectReferenceMapping
                 .getForResourceBusinessConfigurationApprover().defaultAlias();
