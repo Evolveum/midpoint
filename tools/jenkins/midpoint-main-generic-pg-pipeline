@@ -55,7 +55,6 @@ podTemplate(
             stage("db-init") {
                 container('postgres') {
                     sh """#!/bin/bash -ex
-                        set -x
                         psql --version
                         psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/generic-old/postgresql-*-all.sql \
                             -f repo/repo-sql-impl-test/sql-procedures/postgresql.sql
