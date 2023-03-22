@@ -118,7 +118,7 @@ public class GuiDisplayNameUtil {
         }
         if (StringUtils.isNotEmpty(objectType.getIntent())) {
             if (StringUtils.isNotEmpty(sb.toString())) {
-                sb.append("-");
+                sb.append("/");
             }
             sb.append(objectType.getIntent());
         }
