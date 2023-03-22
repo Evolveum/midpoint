@@ -163,6 +163,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withCustomizer((u, number) -> addStandardArchetypeAssignments(u))
                 .execute(initResult);
 
+        ARCHETYPE_REPORT.init(this, initTask, initResult);
+        ARCHETYPE_COLLECTION_REPORT.init(this, initTask, initResult);
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
         REPORT_SIMULATION_OBJECTS_WITH_METRICS.init(this, initTask, initResult);
         REPORT_SIMULATION_ITEMS_CHANGED.init(this, initTask, initResult);
