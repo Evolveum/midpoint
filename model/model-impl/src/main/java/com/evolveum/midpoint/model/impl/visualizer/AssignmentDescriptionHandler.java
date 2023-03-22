@@ -59,7 +59,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
-        String targetName = resolver.resolveReferenceName(targetRef, true, task, result);
+        String targetName = resolver.resolveReferenceDisplayName(targetRef, true, task, result);
 
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
