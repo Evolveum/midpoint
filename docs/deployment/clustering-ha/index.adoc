@@ -359,6 +359,10 @@ Following aspects must be the same on all cluster nodes:
 
 ** Connectors, same version on all nodes
 
+** Schema extension, same version on all nodes
+
+** Keystore, same version on all nodes
+
 ** Network access to all configured resources
 
 ** Access to filesystems, including network filesystems (e.g. for CSV resoruces)
