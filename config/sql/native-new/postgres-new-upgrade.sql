@@ -318,6 +318,10 @@ ALTER INDEX m_ref_object_modify_approverTargetOidRelationId_idx
     RENAME TO m_ref_object_modify_approver_targetOidRelationId_idx;
 $aa$);
 
+-- Making resource.abstract queryable
+call apply_change(15, $aa$
+ALTER TABLE m_resource ADD abstract BOOLEAN;
+$aa$);
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

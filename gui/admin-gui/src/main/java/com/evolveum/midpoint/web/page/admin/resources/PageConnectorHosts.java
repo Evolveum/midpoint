@@ -128,7 +128,7 @@ public class PageConnectorHosts extends PageAdmin {
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 

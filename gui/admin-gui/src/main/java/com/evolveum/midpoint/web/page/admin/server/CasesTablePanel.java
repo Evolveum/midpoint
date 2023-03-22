@@ -65,7 +65,7 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     }
 
     @Override
-    protected boolean isCreateNewObjectEnabled() {
+    protected boolean isCreateNewObjectVisible() {
         return false;
     }
 

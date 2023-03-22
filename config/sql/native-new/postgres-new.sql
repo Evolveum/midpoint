@@ -872,7 +872,8 @@ CREATE TABLE m_resource (
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id),
-    template BOOLEAN
+    template BOOLEAN,
+    abstract BOOLEAN
 )
     INHERITS (m_assignment_holder);
 
@@ -1742,7 +1743,7 @@ CREATE TABLE m_assignment (
     containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     ownerType ObjectType NOT NULL,
     lifecycleState TEXT,
-    orderValue INTEGER,
+    orderValue INTEGER, -- item "order"
     orgRefTargetOid UUID,
     orgRefTargetType ObjectType,
     orgRefRelationId INTEGER REFERENCES m_uri(id),
@@ -2084,4 +2085,4 @@ END $$;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(14, $$ SELECT 1 $$, true);
+call apply_change(15, $$ SELECT 1 $$, true);

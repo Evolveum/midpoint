@@ -96,7 +96,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
                             -Dmidpoint.repository.jdbcPassword=password \
                             -Dmidpoint.repository.jdbcUsername=midtest \

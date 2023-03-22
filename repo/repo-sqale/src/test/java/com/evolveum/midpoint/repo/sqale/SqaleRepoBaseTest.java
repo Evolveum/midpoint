@@ -456,9 +456,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected SearchResultList<UserType> searchUsersTest(String description,
-            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filterFunction, String... expectedOids)
             throws SchemaException {
-        return searchObjectTest(description, UserType.class, filter, expectedOids);
+        return searchObjectTest(description, UserType.class, filterFunction, expectedOids);
     }
 
     /**
@@ -467,13 +467,13 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
      */
     protected <T extends ObjectType> SearchResultList<T> searchObjectTest(
             String description, Class<T> type,
-            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filterFunction, String... expectedOids)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
         when("searching for " + typeName + "(s) " + description);
         OperationResult operationResult = createOperationResult();
         SearchResultList<T> result = searchObjects(type,
-                filter.apply(prismContext.queryFor(type)).build(),
+                filterFunction.apply(prismContext.queryFor(type)).build(),
                 operationResult);
 
         then(typeName + "(s) " + description + " are returned");

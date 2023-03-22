@@ -110,7 +110,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 
