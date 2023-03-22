@@ -87,6 +87,9 @@ public class ChangesPanel extends BasePanel<Void> {
 
                 for (ObjectDeltaType delta : deltaModel.getObject()) {
                     Visualization visualization = SimulationsGuiUtil.createVisualization(delta, getPageBase());
+                    if (visualization == null) {
+                        continue;
+                    }
                     result.add(new VisualizationDto(visualization));
                 }
 
