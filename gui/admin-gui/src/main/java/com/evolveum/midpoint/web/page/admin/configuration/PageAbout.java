@@ -633,14 +633,14 @@ public class PageAbout extends PageAdminConfiguration {
 
         try {
             // @formatter:off
-        ActivityDefinitionType definition = new ActivityDefinitionType()
-                .identifier("Delete all")
-                .beginComposition()
-                .<ActivityDefinitionType>end()
-                .beginDistribution()
-                .workerThreads(4)
-                .end();
-        // @formatter:on
+            ActivityDefinitionType definition = new ActivityDefinitionType()
+                    .identifier("Delete all")
+                    .beginComposition()
+                    .<ActivityDefinitionType>end()
+                    .beginDistribution()
+                    .workerThreads(4)
+                    .end();
+            // @formatter:on
 
             List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
             int order = 1;
