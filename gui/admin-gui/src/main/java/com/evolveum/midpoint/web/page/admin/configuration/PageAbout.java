@@ -549,13 +549,12 @@ public class PageAbout extends PageAdminConfiguration {
         };
     }
 
-    private ActivityDefinitionType createDeleteActivityForType(QName type, QueryType query, int order, Integer threads) {
+    private ActivityDefinitionType createDeleteActivityForType(QName type, QueryType query, int order) {
         // @formatter:off
         return new ActivityDefinitionType()
                 .order(order)
                 .identifier("Delete all " + type.getLocalPart())
                 .beginDistribution()
-                .workerThreads(threads)
                 .<ActivityDefinitionType>end()
                 .beginWork()
                 .beginDeletion()
@@ -628,49 +627,50 @@ public class PageAbout extends PageAdminConfiguration {
         return types;
     }
 
-    private String createAndRunDeleteAllTask(OperationResult result) throws SchemaException {
-        Task task = createSimpleTask(result.getOperation());
+    private void createAndRunDeleteAllTask() {
+        Task task = createSimpleTask(OPERATION_DELETE_ALL_OBJECTS);
+        OperationResult result = task.getResult();
 
-        // @formatter:off
+        try {
+            // @formatter:off
         ActivityDefinitionType definition = new ActivityDefinitionType()
                 .identifier("Delete all")
                 .beginComposition()
                 .<ActivityDefinitionType>end()
                 .beginDistribution()
-                .subtasks(new ActivitySubtaskDefinitionType())
+                .workerThreads(4)
                 .end();
         // @formatter:on
 
-        List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
-        int order = 1;
-        for (ObjectTypes type : createSortedTypes()) {
-            QueryType query;
-            if (ObjectTypes.TASK == type) {
-                query = createTaskQuery(task.getTaskIdentifier());
-            } else {
-                query = createAllQuery(type.getClassDefinition());
+            List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
+            int order = 1;
+            for (ObjectTypes type : createSortedTypes()) {
+                QueryType query;
+                if (ObjectTypes.TASK == type) {
+                    query = createTaskQuery(task.getTaskIdentifier());
+                } else {
+                    query = createAllQuery(type.getClassDefinition());
+                }
+
+                activities.add(createDeleteActivityForType(type.getTypeQName(), query, order));
+                order++;
             }
 
-            Integer threads = null;
-            if (FocusType.class.isAssignableFrom(type.getClassDefinition())
-                    || ShadowType.class.equals(type.getClassDefinition())) {
-                threads = 4;
-            }
+            activities.add(createInitialImportActivity(order));
 
-            activities.add(createDeleteActivityForType(type.getTypeQName(), query, order, threads));
-            order++;
+            task.setName("Delete all objects");
+            task.setRootActivityDefinition(definition);
+            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+            task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+            task.setCleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"));
+
+            getModelInteractionService().switchToBackground(task, result);
+        } catch (Exception ex) {
+            result.computeStatusIfUnknown();
+            result.recordFatalError("Couldn't create delete all task", ex);
         }
 
-        activities.add(createInitialImportActivity(order));
-
-        task.setName("Delete all objects");
-        task.setRootActivityDefinition(definition);
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-        task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
-        task.setCleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"));
-
-        getModelInteractionService().switchToBackground(task, result);
-        return task.getOid();
+        showResult(result);
     }
 
     private ActivityDefinitionType createInitialImportActivity(int order) {
@@ -701,19 +701,7 @@ public class PageAbout extends PageAdminConfiguration {
     private void resetStateToInitialConfig(AjaxRequestTarget target) {
         hideMainPopup(target);
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
-        try {
-            createAndRunDeleteAllTask(result);
-
-            info(getString("PageAbout.factoryResetStarted"));
-        } catch (Exception ex) {
-            String msg = getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError");
-            result.recomputeStatus();
-            result.recordFatalError(msg, ex);
-
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
-            info(msg);
-        }
+        createAndRunDeleteAllTask();
 
         target.add(getFeedbackPanel());
         // scroll page up
