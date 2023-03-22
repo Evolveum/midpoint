@@ -13,6 +13,7 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -781,5 +782,15 @@ public class NullTaskImpl implements Task {
     @Override
     public @Nullable SimulationTransaction getSimulationTransaction() {
         return null;
+    }
+
+    @Override
+    public Duration getCleanupAfterCompletion() {
+        return null;
+    }
+
+    @Override
+    public void setCleanupAfterCompletion(Duration duration) {
+
     }
 }
