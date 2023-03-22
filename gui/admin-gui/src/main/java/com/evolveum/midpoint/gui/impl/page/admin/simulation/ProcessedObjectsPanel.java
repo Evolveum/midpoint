@@ -7,9 +7,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -41,25 +62,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -159,9 +161,34 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         onObjectNameClicked(rowModel.getObject());
                     }
+
+                    @Override
+                    protected void onIconClicked(AjaxRequestTarget target) {
+                        showOperationResult(target, model);
+                    }
+
+                    @Override
+                    protected IModel<String> createIconCssModel() {
+                        // todo add condition
+                        return () -> GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED;
+                    }
+
+                    @Override
+                    protected IModel<String> createIconTitleModel() {
+                        // todo icon title
+                        return super.createIconTitleModel();
+                    }
                 });
             }
         };
+    }
+
+    private void showOperationResult(AjaxRequestTarget target, IModel<ProcessedObject<?>> model) {
+        PageBase page = getPageBase();
+
+        IModel<OperationResult> result = () -> null;        // todo fix result
+
+        page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
     }
 
     private String createProcessedObjectDescription(ProcessedObject<?> obj) {

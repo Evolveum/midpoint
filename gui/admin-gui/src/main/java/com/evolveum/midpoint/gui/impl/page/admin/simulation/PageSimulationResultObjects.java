@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -66,6 +65,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
     public static final String PAGE_QUERY_PARAMETER = "state";
 
     private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_FORM = "form";
     private static final String ID_TABLE = "table";
 
     private IModel<SimulationResultType> resultModel;
@@ -165,7 +165,9 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         };
         add(navigation);
 
-        MidpointForm form = new MidpointForm("form");
+        MidpointForm form = new MidpointForm(ID_FORM);
+        add(form);
+
         ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableMarksModel) {
 
             @Override
@@ -206,7 +208,6 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
         };
         form.add(table);
-        add(form);
     }
 
     private void onBackPerformed() {
