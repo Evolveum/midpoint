@@ -7,15 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -24,8 +15,10 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -36,6 +29,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.namespace.QName;
+import java.util.List;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
 /**
  * Resolves definitions and old values.
@@ -181,6 +183,40 @@ public class Resolver {
         }
     }
 
+    public String resolveReferenceDisplayName(ObjectReferenceType ref, boolean returnOidIfReferenceUnknown, Task task, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+
+        PrismObject<?> object = ref.asReferenceValue().getObject();
+        if (object == null) {
+            object = getObject(ref, task, result);
+
+            ref.asReferenceValue().setObject(object);
+        }
+
+        if (object == null) {
+            return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+        }
+
+        if (ShadowType.class.equals(object.getCompileTimeClass())) {
+            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+            if (realName != null) {
+                return realName.toString();
+            }
+
+            return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+        }
+
+        PolyStringType displayName = ObjectTypeUtil.getDisplayName(object);
+        if (displayName != null) {
+            return displayName.getOrig();
+        }
+
+        return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+    }
+
     public String resolveReferenceName(ObjectReferenceType ref, boolean returnOidIfReferenceUnknown, Task task, OperationResult result) {
         if (ref == null) {
             return null;
@@ -204,13 +240,21 @@ public class Resolver {
             return null;
         }
 
+        PrismObject<?> object = getObject(ref, task, result);
+        if (object != null) {
+            return object.getName().getOrig();
+        }
+
+        return returnOidIfReferenceUnknown ? ref.getOid() : null;
+    }
+
+    private PrismObject<?> getObject(ObjectReferenceType ref, Task task, OperationResult result) {
         try {
             ObjectTypes type = getTypeFromReference(ref);
 
-            PrismObject<?> object = modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
-            return object.getName().getOrig();
+            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
         } catch (Exception ex) {
-            return returnOidIfReferenceUnknown ? ref.getOid() : null;
+            return null;
         }
     }
 
