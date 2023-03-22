@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -62,8 +66,12 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
     private FieldType fieldType;
 
-    public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
+    private final IModel<PrismPropertyWrapper<SearchFilterType>> itemModel;
+
+    public SearchFilterConfigurationPanel(String id, IModel<PrismPropertyWrapper<SearchFilterType>> itemModel,
+            IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
         super(id, model);
+        this.itemModel = itemModel;
         this.containerWrapper = containerWrapper;
         // todo why resolving model in constructor?
         if (model.getObject() == null || StringUtils.isNotBlank(model.getObject().getText())) {
@@ -106,7 +114,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         aceEditorField.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         container.add(aceEditorField);
 
-        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, new SearchFilterTypeForQueryModel<>(getModel(), getPageBase(), filterTypeModel, containerWrapper != null));
+        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, createQueryModel(getModel(), filterTypeModel, containerWrapper != null));
         textPanel.add(new VisibleBehaviour(() -> FieldType.QUERY.equals(fieldType)));
         container.add(textPanel);
 
@@ -147,6 +155,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         add(fieldTypeButton);
     }
 
+    protected IModel<String> createQueryModel(IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel, boolean useParsing) {
+        return new SearchFilterTypeForQueryModel<>(model, getPageBase(), filterTypeModel, useParsing);
+    }
+
     private void searchConfigurationPerformed(AjaxRequestTarget target) {
         filterTypeModel.reset();
         SearchPropertiesConfigPanel<O> configPanel = new SearchPropertiesConfigPanel<>(getPageBase().getMainPopupBodyId(),
@@ -170,5 +182,9 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
             }
         };
         getPageBase().showMainPopup(configPanel, target);
+    }
+
+    public PrismPropertyWrapper<SearchFilterType> getItemModelObject() {
+        return itemModel.getObject();
     }
 }

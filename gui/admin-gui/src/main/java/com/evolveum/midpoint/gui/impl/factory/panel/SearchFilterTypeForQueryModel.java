@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.model.IModel;
@@ -68,13 +71,17 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             return;
         }
         try {
-            ObjectFilter objectFilter = getPageBase().getPrismContext().createQueryParser().parseFilter(filterTypeModel.getObject(), object);
-            SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(objectFilter);
-            filter.setText(object);
-            getBaseModel().setObject(filter);
+            parseQuery(object);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
             ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
+    }
+
+    protected void parseQuery(String object) throws SchemaException, ConfigurationException {
+        ObjectFilter objectFilter = getPageBase().getPrismContext().createQueryParser().parseFilter(filterTypeModel.getObject(), object);
+        SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(objectFilter);
+        filter.setText(object);
+        getBaseModel().setObject(filter);
     }
 }

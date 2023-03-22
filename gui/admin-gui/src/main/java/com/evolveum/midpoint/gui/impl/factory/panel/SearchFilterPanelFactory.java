@@ -40,10 +40,10 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
         PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
         if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType) {
             return new SearchFilterConfigurationPanel(
-                    panelCtx.getComponentId(), panelCtx.getRealValueModel(), containerWrapper);
+                    panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), containerWrapper);
         }
         return new SearchFilterConfigurationPanel(
-                panelCtx.getComponentId(), panelCtx.getRealValueModel(), null);
+                panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null);
     }
 
     @Override
