@@ -11,9 +11,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -28,22 +26,27 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.LabeledString;
@@ -56,7 +59,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,6 +67,9 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
@@ -91,8 +96,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
-    private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
     private static final String OPERATION_LOAD_NODE = DOT_CLASS + "loadNode";
+    private static final String OPERATION_INITIAL_IMPORT = DOT_CLASS + "initialImport";
 
     private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
@@ -544,12 +549,12 @@ public class PageAbout extends PageAdminConfiguration {
         };
     }
 
-    private ActivityDefinitionType createDeleteAllPerObjectType(QName type, QueryType query, Integer threads) {
+    private ActivityDefinitionType createDeleteActivityForType(QName type, QueryType query, int order) {
         // @formatter:off
         return new ActivityDefinitionType()
+                .order(order)
                 .identifier("Delete all " + type.getLocalPart())
                 .beginDistribution()
-                .workerThreads(threads)
                 .<ActivityDefinitionType>end()
                 .beginWork()
                 .beginDeletion()
@@ -622,126 +627,85 @@ public class PageAbout extends PageAdminConfiguration {
         return types;
     }
 
-    private String runDeleteAllTask(OperationResult result) throws SchemaException {
-        Task task = createSimpleTask(result.getOperation());
+    private void createAndRunDeleteAllTask() {
+        Task task = createSimpleTask(OPERATION_DELETE_ALL_OBJECTS);
+        OperationResult result = task.getResult();
 
-        // @formatter:off
+        try {
+            // @formatter:off
         ActivityDefinitionType definition = new ActivityDefinitionType()
+                .identifier("Delete all")
                 .beginComposition()
                 .<ActivityDefinitionType>end()
                 .beginDistribution()
-                .subtasks(new ActivitySubtaskDefinitionType())
+                .workerThreads(4)
                 .end();
         // @formatter:on
 
-        List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
-        for (ObjectTypes type : createSortedTypes()) {
-            QueryType query;
-            if (ObjectTypes.TASK == type) {
-                query = createTaskQuery(task.getTaskIdentifier());
-            } else {
-                query = createAllQuery(type.getClassDefinition());
+            List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
+            int order = 1;
+            for (ObjectTypes type : createSortedTypes()) {
+                QueryType query;
+                if (ObjectTypes.TASK == type) {
+                    query = createTaskQuery(task.getTaskIdentifier());
+                } else {
+                    query = createAllQuery(type.getClassDefinition());
+                }
+
+                activities.add(createDeleteActivityForType(type.getTypeQName(), query, order));
+                order++;
             }
 
-            Integer threads = null;
-            if (FocusType.class.isAssignableFrom(type.getClassDefinition())
-                    || ShadowType.class.equals(type.getClassDefinition())) {
-                threads = 4;
-            }
+            activities.add(createInitialImportActivity(order));
 
-            activities.add(createDeleteAllPerObjectType(type.getTypeQName(), query, threads));
+            task.setName("Delete all objects");
+            task.setRootActivityDefinition(definition);
+            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+            task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+            task.setCleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"));
+
+            getModelInteractionService().switchToBackground(task, result);
+        } catch (Exception ex) {
+            result.computeStatusIfUnknown();
+            result.recordFatalError("Couldn't create delete all task", ex);
         }
 
-        task.setName("Delete all objects");
-        task.setRootActivityDefinition(definition);
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-        task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
+        showResult(result);
+    }
 
-        getModelInteractionService().switchToBackground(task, result);
-        return task.getOid();
+    private ActivityDefinitionType createInitialImportActivity(int order) {
+        ExecuteScriptActionExpressionType execute = new ExecuteScriptActionExpressionType();
+        ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
+        script.setCode("\n"
+                + PageAbout.class.getName() + ".runInitialDataImport(\n"
+                + "\tcom.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getApplicationContext(),\n"
+                + "\tmidpoint.getCurrentTask().getResult())\n"
+                + "log.info(\"Repository factory reset finished\")\n"
+        );
+        execute.setScript(script);
+        execute.setForWholeInput(true);
+
+        ExecuteScriptType executeScript = new ExecuteScriptType()
+                .scriptingExpression(new ObjectFactory().createExecute(execute));
+
+        return new ActivityDefinitionType()
+                .identifier("Initial import")
+                .order(order)
+                .beginWork()
+                .beginNonIterativeScripting()
+                .scriptExecutionRequest(executeScript)
+                .<WorkDefinitionsType>end()
+                .end();
     }
 
     private void resetStateToInitialConfig(AjaxRequestTarget target) {
         hideMainPopup(target);
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
-        String taskOid = null;
-
-        try {
-            taskOid = runDeleteAllTask(result);
-
-            info("PageAbout.factoryResetStarted");
-        } catch (Exception ex) {
-            String msg = getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError");
-            result.recomputeStatus();
-            result.recordFatalError(msg, ex);
-
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
-            info(msg);
-        }
+        createAndRunDeleteAllTask();
 
         target.add(getFeedbackPanel());
-
-        if (taskOid == null) {
-            return;
-        }
-
-        final String taskOidToRemoving = taskOid;
-
-        try {
-            while (true) {
-                Task task = getTaskManager().getTaskPlain(taskOid, result);
-                if (task.isClosed() || task.isSuspended()) {
-                    break;
-                }
-
-                TimeUnit.SECONDS.sleep(5);
-            }
-
-            runPrivileged(new Producer<>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Object run() {
-                    Task task = getTaskManager().createTaskInstance(OPERATION_DELETE_TASK);
-                    task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-
-                    OperationResult result = task.getResult();
-
-                    try {
-                        getTaskService().suspendAndDeleteTasks(Arrays.asList(taskOidToRemoving), 2000L, true, task, result);
-                    } catch (Exception ex) {
-                        result.recomputeStatus();
-                        result.recordFatalError(LocalizationUtil.translate("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
-
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
-                    }
-                    result.computeStatus();
-                    return null;
-                }
-            });
-
-            InitialDataImport initialDataImport = new InitialDataImport();
-            initialDataImport.setModel(getModelService());
-            initialDataImport.setTaskManager(getTaskManager());
-            initialDataImport.setPrismContext(getPrismContext());
-            initialDataImport.setConfiguration(getMidpointConfiguration());
-            initialDataImport.init(true);
-
-            // TODO consider if we need to go clusterwide here
-            getCacheDispatcher().dispatchInvalidation(null, null, true, null);
-
-            getModelService().shutdown();
-
-            getModelService().postInit(result);
-        } catch (Exception ex) {
-            result.recomputeStatus();
-            result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
-        }
-        showResult(result);
-        target.add(getFeedbackPanel());
+        // scroll page up
+        target.appendJavaScript("$(function() { window.scrollTo(0, 0); });");
     }
 
     /**
@@ -753,5 +717,38 @@ public class PageAbout extends PageAdminConfiguration {
     @Deprecated
     public String getDescribe() {
         return getString("PageAbout.unknownBuildNumber");
+    }
+
+    /**
+     * Used in delete all task as last activity. Do not remove!
+     */
+    public static void runInitialDataImport(ApplicationContext context, OperationResult parent) {
+        OperationResult result = parent.createSubresult(OPERATION_INITIAL_IMPORT);
+
+        ModelService modelService = context.getBean(ModelService.class);
+        CacheDispatcher cacheDispatcher = context.getBean(CacheDispatcher.class);
+        TaskManager taskManager = context.getBean(TaskManager.class);
+        PrismContext prismContext = context.getBean(PrismContext.class);
+        MidpointConfiguration midpointConfiguration = context.getBean(MidpointConfiguration.class);
+
+        try {
+            InitialDataImport initialDataImport = new InitialDataImport();
+            initialDataImport.setModel(modelService);
+            initialDataImport.setTaskManager(taskManager);
+            initialDataImport.setPrismContext(prismContext);
+            initialDataImport.setConfiguration(midpointConfiguration);
+            initialDataImport.init(true);
+
+            // TODO consider if we need to go clusterwide here
+            cacheDispatcher.dispatchInvalidation(null, null, true, null);
+
+            modelService.shutdown();
+
+            modelService.postInit(result);
+
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't run initial data import", ex);
+        }
     }
 }
