@@ -125,7 +125,7 @@ EOF
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing ${dbprops} \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                             -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                         if [ "${verbose}" -ge 1 ]
