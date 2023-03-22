@@ -401,7 +401,7 @@ CREATE TABLE m_ref_object_create_approver (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_create_approverTargetOidRelationId_idx
+CREATE INDEX m_ref_object_create_approver_targetOidRelationId_idx
     ON m_ref_object_create_approver (targetOid, relationId);
 
 
@@ -415,7 +415,7 @@ CREATE TABLE m_ref_object_effective_mark (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_effective_markTargetOidRelationId_idx
+CREATE INDEX m_ref_object_effective_mark_targetOidRelationId_idx
     ON m_ref_object_effective_mark (targetOid, relationId);
 
 
@@ -429,7 +429,7 @@ CREATE TABLE m_ref_object_modify_approver (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_modify_approverTargetOidRelationId_idx
+CREATE INDEX m_ref_object_modify_approver_targetOidRelationId_idx
     ON m_ref_object_modify_approver (targetOid, relationId);
 
 -- stores AssignmentHolderType/roleMembershipRef
@@ -2077,11 +2077,11 @@ BEGIN
         END IF;
         COMMIT;
     ELSE
-        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
+        RAISE NOTICE 'Change #% skipped - not newer than the last change #%!', changeNumber, lastChange;
     END IF;
 END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(11, $$ SELECT 1 $$, true);
+call apply_change(14, $$ SELECT 1 $$, true);
