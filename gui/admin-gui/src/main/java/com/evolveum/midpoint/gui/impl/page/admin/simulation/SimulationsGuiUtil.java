@@ -243,7 +243,7 @@ public class SimulationsGuiUtil {
             BuiltInSimulationMetricType identifier = metric.getRef().getBuiltIn();
 
             BigDecimal value = SimulationMetricValuesTypeUtil.getValue(metric);
-            map.put(identifier, value != null ? value.intValue() : 0);
+            map.put(identifier, value.intValue());
         }
 
         return map;
