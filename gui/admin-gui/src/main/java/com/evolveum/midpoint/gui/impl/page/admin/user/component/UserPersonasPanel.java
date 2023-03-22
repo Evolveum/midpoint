@@ -105,7 +105,7 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 

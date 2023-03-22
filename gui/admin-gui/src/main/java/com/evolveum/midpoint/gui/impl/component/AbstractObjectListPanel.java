@@ -29,7 +29,7 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
     }
 
     @Override
-    protected boolean isCreateNewObjectEnabled() {
+    protected boolean isCreateNewObjectVisible() {
         return false;
     }
 

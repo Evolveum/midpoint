@@ -258,7 +258,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
             }
         };

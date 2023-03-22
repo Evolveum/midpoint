@@ -96,7 +96,7 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 

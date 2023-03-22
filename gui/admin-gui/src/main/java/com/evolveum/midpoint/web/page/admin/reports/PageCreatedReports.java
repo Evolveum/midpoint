@@ -206,7 +206,7 @@ public class PageCreatedReports extends PageAdmin {
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 
