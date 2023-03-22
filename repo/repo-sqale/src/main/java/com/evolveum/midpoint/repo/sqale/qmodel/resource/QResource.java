@@ -63,7 +63,7 @@ public class QResource extends QAssignmentHolder<MResource> {
     public final NumberPath<Integer> connectorRefRelationId =
             createInteger("connectorRefRelationId", CONNECTOR_REF_RELATION_ID);
     public final BooleanPath template = createBoolean("template", TEMPLATE);
-    public final BooleanPath _abstract = createBoolean("_abstract", ABSTRACT);
+    public final BooleanPath abstractValue = createBoolean("abstractValue", ABSTRACT);
 
     public QResource(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

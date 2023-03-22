@@ -28,5 +28,6 @@ public class MResource extends MObject {
     public MObjectType connectorRefTargetType;
     public Integer connectorRefRelationId;
     public Boolean template;
-    public Boolean _abstract;
+    // column and item are both called "abstract" which is a Java keyword
+    public Boolean abstractValue;
 }

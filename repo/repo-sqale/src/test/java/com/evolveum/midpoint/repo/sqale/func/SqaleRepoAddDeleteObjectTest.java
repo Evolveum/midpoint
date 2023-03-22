@@ -1320,7 +1320,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
         assertThat(row.template).isFalse();
-        assertThat(row._abstract).isFalse();
+        assertThat(row.abstractValue).isFalse();
 
         QObjectReference<?> ref = QObjectReferenceMapping
                 .getForResourceBusinessConfigurationApprover().defaultAlias();

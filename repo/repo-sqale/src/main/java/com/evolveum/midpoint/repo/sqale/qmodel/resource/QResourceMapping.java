@@ -68,7 +68,7 @@ public class QResourceMapping
                 q -> q.connectorRefRelationId,
                 QConnectorMapping::get);
         addItemMapping(F_TEMPLATE, booleanMapper(q -> q.template));
-        addItemMapping(F_ABSTRACT, booleanMapper(q -> q._abstract));
+        addItemMapping(F_ABSTRACT, booleanMapper(q -> q.abstractValue));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class QResourceMapping
                 t -> row.connectorRefTargetType = t,
                 r -> row.connectorRefRelationId = r);
         row.template = schemaObject.isTemplate();
-        row._abstract = schemaObject.isAbstract();
+        row.abstractValue = schemaObject.isAbstract();
 
         return row;
     }
