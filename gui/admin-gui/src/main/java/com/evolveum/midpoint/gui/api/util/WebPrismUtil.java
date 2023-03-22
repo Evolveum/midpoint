@@ -326,7 +326,7 @@ public class WebPrismUtil {
         return false;
     }
 
-    private static boolean hasValueMetadata(PrismValue value) {
+    public static boolean hasValueMetadata(PrismValue value) {
         if (value == null) {
             return false;
         }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -53,5 +54,37 @@ public class ResourceWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Re
             def.toMutable().setEmphasized(true);
         }
         super.addItemWrapper(def, containerValueWrapper, context, wrappers);
+    }
+
+    @Override
+    public PrismObjectWrapper<ResourceType> createObjectWrapper(PrismObject<ResourceType> object, ItemStatus status, WrapperContext context) throws SchemaException {
+        if (object.getOid() != null && object.asObjectable().getSuper() != null) {
+            long fakeId = -1;
+            addFakeNegativeIdForMergedValuesFromTemplate(object.getValue(), fakeId);
+        }
+        return super.createObjectWrapper(object, status, context);
+    }
+
+    /**
+     * If we use merged resource from template, then resource can contain values, of multivalued container, without id.
+     * GUI can process deltas from that containers, so we set fake id for that values.
+    **/
+    private void addFakeNegativeIdForMergedValuesFromTemplate(PrismContainerValue<?> parentValue, long fakeId) {
+        for (Item<?, ?> item : parentValue.getItems()) {
+            if (item.isOperational()) {
+                continue;
+            }
+            if (!(item instanceof PrismContainer)) {
+                continue;
+            }
+            PrismContainer<?> container  = (PrismContainer) item;
+            for (PrismContainerValue<?> containerValue : container.getValues()) {
+                if (!container.isSingleValue() && containerValue.getId() == null && WebPrismUtil.hasValueMetadata(containerValue)) {
+                    containerValue.setId(fakeId);
+                    fakeId--;
+                }
+                addFakeNegativeIdForMergedValuesFromTemplate(containerValue, fakeId);
+            }
+        }
     }
 }
