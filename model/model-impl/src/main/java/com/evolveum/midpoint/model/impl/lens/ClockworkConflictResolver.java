@@ -188,7 +188,8 @@ public class ClockworkConflictResolver {
             ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
 
             // this is a recursion; but limited to max attempts which should not be a large number
-            HookOperationMode hookOperationMode = clockwork.runWithConflictDetection(contextNew, conflictResolutionContext, task, result);
+            HookOperationMode hookOperationMode =
+                    clockwork.runWithConflictDetection(contextNew, conflictResolutionContext, task, result);
 
             if (!conflictResolutionContext.focusConflictPresent) {
                 LOGGER.debug("CONFLICT: Clean recompute of {} achieved (options={}, attempts={},{})",
