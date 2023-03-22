@@ -10,7 +10,7 @@
 
 == Introduction
 
-xref:/midpoint/reference/tasks/task-manager/[Clustering / high availability] can be achieved by setting up two midPoint nodes working against common midPoint repository.
+xref:/midpoint/reference/tasks/task-manager/[Clustering / high availability] can be achieved by setting up several midPoint nodes working against common midPoint repository.
 
 image::failover.png[]
 
@@ -346,3 +346,21 @@ To do that, you can use e.g. this command line:
 ----
 java -jar h2-1.3.171.jar -tcp -tcpPort 6000 -tcpAllowOthers
 ----
+
+== Limitations
+
+* Clustering functionality assumes *homogeneous* cluster environment.
+I.e. each cluster node must have the same environment, configuration, connectivity (e.g. to load balancers), connectors and so on.
+Clustering implementation assumes that a task can be executed at any cluster node, always giving correct results.
+Any configuration differences between cluster nodes are likely to cause operational issues.
+Following aspects must be the same on all cluster nodes:
+
+** MidPoint software, same version on all nodes
+
+** Connectors, same version on all nodes
+
+** Network access to all configured resources
+
+** Access to filesystems, including network filesystems (e.g. for CSV resoruces)
+
+** Network configuration, including routing and DNS configuration
