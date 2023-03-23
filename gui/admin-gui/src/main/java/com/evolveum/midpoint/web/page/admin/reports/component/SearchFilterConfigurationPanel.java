@@ -130,10 +130,13 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         add(searchConfigurationButton);
 
         IModel<String> labelModel = (IModel) () -> {
+            String type;
             if (FieldType.XML.equals(fieldType)) {
-                return getString(SearchBoxModeType.AXIOM_QUERY);
+                type = getString(SearchBoxModeType.AXIOM_QUERY);
+            } else {
+                type = getString("SearchFilterConfigurationPanel.fieldType.xml");
             }
-            return getString("SearchFilterConfigurationPanel.fieldType.xml");
+            return getString("SearchFilterConfigurationPanel.fieldType.switchTo", type);
         };
 
         Label buttonLabel = new Label(ID_FIELD_TYPE_BUTTON_LABEL, labelModel);
