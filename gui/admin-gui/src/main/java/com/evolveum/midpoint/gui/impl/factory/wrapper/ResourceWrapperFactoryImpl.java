@@ -79,7 +79,7 @@ public class ResourceWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Re
             }
             PrismContainer<?> container  = (PrismContainer) item;
             for (PrismContainerValue<?> containerValue : container.getValues()) {
-                if (!container.isSingleValue() && containerValue.getId() == null && WebPrismUtil.hasValueMetadata(containerValue)) {
+                if (!container.isSingleValue() && containerValue.getId() == null && WebPrismUtil.hasValueTemplateMetadata(containerValue)) {
                     containerValue.setId(fakeId);
                     fakeId--;
                 }
