@@ -456,8 +456,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Collection<String> getMatchingEventMarks() {
+    public @NotNull Collection<String> getMatchingEventMarksOids() {
         return parsedMetricValues.getMatchingEventMarks();
+    }
+
+    @Override
+    public @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs() {
+        return getBeforeOrAfterRequired()
+                .getEffectiveMarkRef();
     }
 
     @Override

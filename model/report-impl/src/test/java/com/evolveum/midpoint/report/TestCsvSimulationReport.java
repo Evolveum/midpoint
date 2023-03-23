@@ -7,12 +7,17 @@
 package com.evolveum.midpoint.report;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -28,6 +33,10 @@ import com.evolveum.midpoint.task.api.Task;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -49,10 +58,15 @@ public class TestCsvSimulationReport extends TestCsvReport {
             TestObject.file(TEST_DIR, "role-developer.xml", "d9ed4375-b0af-4cea-ae53-f67ff1e0ca67");
     private static final TestObject<RoleType> ORG_HQ =
             TestObject.file(TEST_DIR, "org-hq.xml", "8692de4f-51b3-472f-9489-5a7bdc12e891");
+    private static final TestObject<MarkType> MARK_DUMMY =
+            TestObject.file(TEST_DIR, "mark-dummy.xml", "ab5b5fa1-05c8-4bcf-a0bb-f3fa7deff8fb");
+    private static final DummyTestResource RESOURCE_DUMMY_INBOUND = new DummyTestResource(
+            TEST_DIR, "resource-dummy-inbound.xml", "dd3b5596-e0ba-4a81-b1f8-b82b7ad044c5", "inbound");
 
     private static final int EXISTING_USERS = 10;
 
-    private static final int OBJECT_REPORT_COLUMNS = 11;
+    private static final int OBJECT_REPORT_COLUMNS = 14;
+    private static final int METRICS_REPORT_COLUMNS = 16;
 
     private static final int C_ID = 0;
     private static final int C_OID = 1;
@@ -63,41 +77,46 @@ public class TestCsvSimulationReport extends TestCsvReport {
     private static final int C_KIND = 6;
     private static final int C_INTENT = 7;
     private static final int C_TAG = 8;
-    private static final int C_STATE = 9;
+    private static final int C_OBJECT_MARK = 9;
+    private static final int C_STATE = 10;
+    private static final int C_RESULT_STATUS = 11;
 
     // Object-, item-, and value-level
-    private static final int C_MARK = 10;
+    private static final int C_EVENT_MARK = 12;
+
+    // Object-level
+    private static final int C_MESSAGE = 13;
 
     // Metrics
-    private static final int C_M_EVENT_MARK = 10;
-    private static final int C_M_CUSTOM_MARK = 11;
-    private static final int C_M_SELECTED = 12;
-    private static final int C_M_VALUE = 13;
+    private static final int C_M_EVENT_MARK = 12;
+    private static final int C_M_CUSTOM_MARK = 13;
+    private static final int C_M_SELECTED = 14;
+    private static final int C_M_VALUE = 15;
 
     // Item- and value-level
-    private static final int C_ITEM_CHANGED = 11;
+    private static final int C_ITEM_CHANGED = 13;
     // Item-level
-    private static final int C_OLD_VALUES = 12;
-    private static final int C_NEW_VALUES = 13;
-    private static final int C_VALUES_ADDED = 14;
-    private static final int C_VALUES_DELETED = 15;
-    private static final int C_I_RELATED_ASSIGNMENT = 16;
-    private static final int C_I_RELATED_ASSIGNMENT_ID = 17;
-    private static final int C_I_RELATED_ASSIGNMENT_TARGET = 18;
-    private static final int C_I_RELATED_ASSIGNMENT_RELATION = 19;
-    private static final int C_I_RELATED_ASSIGNMENT_RESOURCE = 20;
-    private static final int C_I_RELATED_ASSIGNMENT_KIND = 21;
-    private static final int C_I_RELATED_ASSIGNMENT_INTENT = 22;
+    private static final int C_OLD_VALUES = 14;
+    private static final int C_NEW_VALUES = 15;
+    private static final int C_VALUES_ADDED = 16;
+    private static final int C_VALUES_DELETED = 17;
+    private static final int C_I_RELATED_ASSIGNMENT = 18;
+    private static final int C_I_RELATED_ASSIGNMENT_ID = 19;
+    private static final int C_I_RELATED_ASSIGNMENT_TARGET = 20;
+    private static final int C_I_RELATED_ASSIGNMENT_RELATION = 21;
+    private static final int C_I_RELATED_ASSIGNMENT_RESOURCE = 22;
+    private static final int C_I_RELATED_ASSIGNMENT_KIND = 23;
+    private static final int C_I_RELATED_ASSIGNMENT_INTENT = 24;
     // Value-level
-    private static final int C_VALUE_STATE = 12;
-    private static final int C_VALUE = 13;
-    private static final int C_V_RELATED_ASSIGNMENT = 14;
-    private static final int C_V_RELATED_ASSIGNMENT_ID = 15;
-    private static final int C_V_RELATED_ASSIGNMENT_TARGET = 16;
-    private static final int C_V_RELATED_ASSIGNMENT_RELATION = 17;
-    private static final int C_V_RELATED_ASSIGNMENT_RESOURCE = 18;
-    private static final int C_V_RELATED_ASSIGNMENT_KIND = 19;
-    private static final int C_V_RELATED_ASSIGNMENT_INTENT = 20;
+    private static final int C_VALUE_STATE = 14;
+    private static final int C_VALUE = 15;
+    private static final int C_V_RELATED_ASSIGNMENT = 16;
+    private static final int C_V_RELATED_ASSIGNMENT_ID = 17;
+    private static final int C_V_RELATED_ASSIGNMENT_TARGET = 18;
+    private static final int C_V_RELATED_ASSIGNMENT_RELATION = 19;
+    private static final int C_V_RELATED_ASSIGNMENT_RESOURCE = 20;
+    private static final int C_V_RELATED_ASSIGNMENT_KIND = 21;
+    private static final int C_V_RELATED_ASSIGNMENT_INTENT = 22;
 
     private static final int C_R_OID = 0;
     private static final int C_R_NAME = 1;
@@ -163,6 +182,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .withCustomizer((u, number) -> addStandardArchetypeAssignments(u))
                 .execute(initResult);
 
+        MARK_DUMMY.init(this, initTask, initResult);
+        RESOURCE_DUMMY_INBOUND.initAndTest(this, initTask, initResult);
+
         ARCHETYPE_REPORT.init(this, initTask, initResult);
         ARCHETYPE_COLLECTION_REPORT.init(this, initTask, initResult);
         REPORT_SIMULATION_OBJECTS.init(this, initTask, initResult);
@@ -218,7 +240,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_INTENT, "")
                 .assertValue(C_TAG, "")
                 .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Focus activated")
+                .assertValues(C_EVENT_MARK, "Focus activated")
                 .end();
 
         when("object-level report is created (by metrics)");
@@ -232,7 +254,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
                 .assertRecords(users * 2) // focus activated + special
-                .assertColumns(14)
+                .assertColumns(METRICS_REPORT_COLUMNS)
                 .record(0,
                         r -> r.assertValue(C_NAME, "new-0000")
                                 .assertValue(C_TYPE, "UserType")
@@ -304,14 +326,14 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed", "Focus deactivated")
+                .assertValues(C_EVENT_MARK, "Focus renamed", "Focus deactivated")
                 .end()
                 .record(1)
                 .assertValue(C_OID, existingUsers.get(1).getOid())
                 .assertValue(C_NAME, "existing-0001")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValues(C_MARK, "Focus renamed");
+                .assertValues(C_EVENT_MARK, "Focus renamed");
 
         when("object-level report (by metrics) is created");
         var metricsLines = REPORT_SIMULATION_OBJECTS_WITH_METRICS.export()
@@ -324,7 +346,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
                 .assertRecords((int) (EXISTING_USERS * 3.5))
-                .assertColumns(14)
+                .assertColumns(METRICS_REPORT_COLUMNS)
                 .record(0,
                         r -> r.assertValue(C_OID, existingUsers.get(0).getOid())
                                 .assertValue(C_NAME, "existing-0000")
@@ -522,13 +544,13 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "")
+                .assertValue(C_EVENT_MARK, "")
                 .end()
                 .record(1)
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Projection activated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection activated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -551,7 +573,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "")
+                .assertValue(C_EVENT_MARK, "")
                 .assertValue(C_ITEM_CHANGED, "linkRef")
                 .assertValue(C_VALUE_STATE, "ADDED")
                 .assertValue(C_VALUE, shadowOid)
@@ -560,7 +582,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Projection activated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection activated", "Resource object affected");
     }
 
     /** Checks account deletion reporting. */
@@ -599,13 +621,13 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "")
+                .assertValue(C_EVENT_MARK, "")
                 .end()
                 .record(1)
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Deleted")
-                .assertValues(C_MARK, "Projection deactivated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection deactivated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -628,7 +650,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "")
+                .assertValue(C_EVENT_MARK, "")
                 .assertValue(C_ITEM_CHANGED, "linkRef")
                 .assertValue(C_VALUE_STATE, "DELETED")
                 .assertValue(C_VALUE, "existing-0000")
@@ -637,7 +659,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Deleted")
-                .assertValues(C_MARK, "Projection deactivated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection deactivated", "Resource object affected");
 
         then("finally deleting the account");
         executeChanges(
@@ -688,7 +710,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Projection activated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection activated", "Resource object affected");
 
         when("item-level report is created (default)");
         var itemsLines1 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -713,7 +735,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_ARCHETYPE, "blue")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "Focus assignments changed")
+                .assertValue(C_EVENT_MARK, "Focus assignments changed")
                 .assertValue(C_ITEM_CHANGED, "assignment")
                 .assertValue(C_VALUE_STATE, "ADDED")
                 .assertValue(C_VALUE, a -> a.startsWith("-> resource-outbound:Account/default"))
@@ -726,7 +748,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_NAME, "existing-0000")
                 .assertValue(C_TYPE, "UserType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_MARK, "Focus assignments changed")
+                .assertValue(C_EVENT_MARK, "Focus assignments changed")
                 .assertValue(C_ITEM_CHANGED, "linkRef")
                 .assertValue(C_VALUE_STATE, "ADDED")
                 .assertValue(C_VALUE, shadowOid)
@@ -739,7 +761,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_TAG, "")
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Added")
-                .assertValues(C_MARK, "Projection activated", "Resource object affected");
+                .assertValues(C_EVENT_MARK, "Projection activated", "Resource object affected");
     }
 
     /** Checks reporting of account modifications. */
@@ -938,7 +960,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .sortBy(C_ID, C_M_EVENT_MARK, C_M_CUSTOM_MARK)
                 .display()
                 .assertRecords(9)
-                .assertColumns(14)
+                .assertColumns(METRICS_REPORT_COLUMNS)
                 .record(0,
                         r -> r.assertValue(C_TYPE, "UserType")
                                 .assertValue(C_STATE, "Modified")
@@ -1328,5 +1350,62 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_VALUE_STATE, "ADDED")
                 .assertValue(C_VALUE, "group: developer")
                 .end();
+    }
+
+    /** Checks reporting on shadow marks and result status. */
+    @Test
+    public void test180ImportMarkedShadowWithError() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("an account marked by DUMMY mark");
+        String name = "test180";
+        RESOURCE_DUMMY_INBOUND.addAccount(name);
+        var accounts = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_INBOUND.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH)
+                        .eq(name)
+                        .build(),
+                null, task, result);
+        assertThat(accounts).as("accounts found").hasSize(1);
+        markShadow(accounts.get(0).getOid(), MARK_DUMMY.oid, task, result);
+
+        when("simulated import is run");
+        var taskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_INBOUND.oid)
+                .withNameValue(name)
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                .withNotAssertingSuccess()
+                .execute(result);
+
+        then("simulation result is OK");
+        var simResult = assertSimulationResult(taskOid, "after")
+                .display()
+                .assertMetricValueForBuiltIn(BuiltInSimulationMetricType.ERRORS, BigDecimal.ONE)
+                .getObjectable();
+        assertProcessedObjects(taskOid, "after")
+                .display()
+                .single()
+                .assertType(ShadowType.class)
+                .assertResultStatus(OperationResultStatus.FATAL_ERROR)
+                .assertResult(r -> r.hasMessageContaining("boom"));
+
+        when("object-level report is created");
+        var objectsLines = REPORT_SIMULATION_OBJECTS.export()
+                .withDefaultParametersValues(ObjectTypeUtil.createObjectRef(simResult))
+                .execute(result);
+
+        then("CSV is OK");
+        assertCsv(objectsLines, "after")
+                .display()
+                .assertRecords(1)
+                .assertColumns(OBJECT_REPORT_COLUMNS)
+                .record(0)
+                .assertValue(C_NAME, name)
+                .assertValue(C_OBJECT_MARK, "Dummy")
+                .assertValue(C_RESULT_STATUS, "Fatal Error")
+                .assertValue(C_MESSAGE, m -> m.contains("boom"));
     }
 }

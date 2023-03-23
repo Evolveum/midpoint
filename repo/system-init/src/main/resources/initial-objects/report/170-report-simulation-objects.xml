@@ -85,14 +85,47 @@
                 <previousColumn>intent</previousColumn>
             </column>
             <column>
+                <name>objectMark</name>
+                <display>
+                    <label>Object mark</label>
+                </display>
+                <previousColumn>tag</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>objectMarks</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>tag</previousColumn>
+                <previousColumn>objectMark</previousColumn>
+            </column>
+            <column>
+                <name>resultStatus</name>
+                <path>resultStatus</path>
+                <previousColumn>state</previousColumn>
             </column>
             <column>
                 <name>eventMarkRef</name>
                 <path>eventMarkRef</path>
-                <previousColumn>state</previousColumn>
+                <previousColumn>resultStatus</previousColumn>
+            </column>
+            <column>
+                <name>message</name>
+                <display>
+                    <label>Message</label>
+                </display>
+                <previousColumn>eventMarkRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object?.result?.message</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>
@@ -104,5 +137,18 @@
                 <label>Simulation result</label>
             </display>
         </parameter>
+        <subreport>
+            <name>objectMarks</name>
+            <type>c:ObjectReferenceType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                    </code>
+                </script>
+            </expression>
+        </subreport>
     </objectCollection>
 </report>

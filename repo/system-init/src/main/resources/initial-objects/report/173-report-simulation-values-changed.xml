@@ -87,14 +87,33 @@
                 <previousColumn>intent</previousColumn>
             </column>
             <column>
+                <name>objectMark</name>
+                <display>
+                    <label>Object mark</label>
+                </display>
+                <previousColumn>tag</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>objectMarks</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>tag</previousColumn>
+                <previousColumn>objectMark</previousColumn>
+            </column>
+            <column>
+                <name>resultStatus</name>
+                <path>resultStatus</path>
+                <previousColumn>state</previousColumn>
             </column>
             <column>
                 <name>eventMarkRef</name>
                 <path>eventMarkRef</path>
-                <previousColumn>state</previousColumn>
+                <previousColumn>resultStatus</previousColumn>
             </column>
             <!-- for each changed item -->
             <column>
@@ -287,6 +306,20 @@
                 <label>Show rows with no details</label>
             </display>
         </parameter>
+        <subreport>
+            <name>objectMarks</name>
+            <type>c:ObjectReferenceType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                    </code>
+                </script>
+            </expression>
+            <order>5</order>
+        </subreport>
         <subreport>
             <name>itemDelta</name>
             <!-- Returns a list of non-prism ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->

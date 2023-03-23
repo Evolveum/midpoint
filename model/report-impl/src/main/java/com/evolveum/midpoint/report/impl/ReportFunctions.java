@@ -594,6 +594,13 @@ public class ReportFunctions {
                 .getMetrics(showEventMarks, showExplicitMetrics);
     }
 
+    /** Returns the object marks related to object represented by "processed object" bean. */
+    public Collection<ObjectReferenceType> getObjectMarks(
+            @NotNull SimulationResultProcessedObjectType objectBean) throws SchemaException {
+        return getProcessedObject(objectBean)
+                .getEffectiveObjectMarksRefs();
+    }
+
     public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
         return getRelatedAssignment(itemDelta, null);
     }
