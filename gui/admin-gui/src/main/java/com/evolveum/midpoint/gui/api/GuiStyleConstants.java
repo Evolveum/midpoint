@@ -269,6 +269,7 @@ public class GuiStyleConstants {
     public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-chart-line";
     public static final String CLASS_TASK_ERRORS_ICON = "fa fa-exclamation-circle";
     public static final String CLASS_TASK_ACTIVITY_ICON = "fa fa-cog";
+    public static final String CLASS_TASK_EXECUTION_ICON = "fa fa-gears";
 
     public static final String CLASS_GROUP_ICON = "fa fa-users";
     public static final String CLASS_APPLICABLE_POLICY_ICON = "fa fa-share-alt";
