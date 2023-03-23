@@ -213,7 +213,7 @@ Yet other items can be deprecated without replacement, effectively planning for 
 
 === Running the Simulation on Foreground
 
-#TODO @Vilo?#
+Simulation results and related objects can be diplayed via midPoint GUI. For more information see xref:../admin-gui/simulations.adoc#_running_the_simulation_on_foreground[Simulations UI].
 
 === Running the Simulation on Background
 
@@ -299,7 +299,7 @@ For more information, please see <<Configuring Simulation Results>> and xref:/mi
 
 === Displaying and Managing the Simulation Results
 
-#TODO @Vilo?#
+Simulation results and related objects can be diplayed via midPoint GUI. For more information see xref:../admin-gui/simulations.adoc[Simulations UI].
 
 === Configuring Simulation Results
 
