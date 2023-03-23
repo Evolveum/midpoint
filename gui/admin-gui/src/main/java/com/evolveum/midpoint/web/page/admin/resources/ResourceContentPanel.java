@@ -297,7 +297,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         shadowListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES);
         add(shadowListPanel);
 
-        Label label = new Label(ID_LABEL, "Nothing to show. Select intent to search");
+        Label label = new Label(ID_LABEL, createStringResource("ResourceContentPanel.message.nothingToShow"));
         add(label);
         label.setOutputMarkupId(true);
         label.add(new VisibleEnableBehaviour() {
