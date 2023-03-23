@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -25,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -41,7 +45,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -159,9 +162,46 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         onObjectNameClicked(rowModel.getObject());
                     }
+
+                    @Override
+                    protected void onIconClicked(AjaxRequestTarget target) {
+                        showOperationResult(target, model);
+                    }
+
+                    @Override
+                    protected IModel<String> createIconCssModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return status.isConsideredSuccess() ? null : GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED;
+                        };
+                    }
+
+                    @Override
+                    protected IModel<String> createIconTitleModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return getString(LocalizationUtil.createKeyForEnum(status));
+                        };
+                    }
                 });
             }
         };
+    }
+
+    private void showOperationResult(AjaxRequestTarget target, IModel<ProcessedObject<?>> model) {
+        PageBase page = getPageBase();
+
+        IModel<OperationResult> result = () -> model.getObject().getResult();
+
+        page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
     }
 
     private String createProcessedObjectDescription(ProcessedObject<?> obj) {
@@ -352,7 +392,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return new AbstractColumn<>(displayModel, SimulationResultProcessedObjectType.F_STATE.getLocalPart()) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
-                    IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
+                                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
                 item.add(SimulationsGuiUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
@@ -399,7 +439,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
-            AjaxRequestTarget target) {
+                             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
         Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
 
@@ -435,8 +475,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                                 statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)

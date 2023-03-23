@@ -14,8 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.TestObject;
 
+import com.evolveum.midpoint.test.util.OperationResultAssert;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -52,6 +55,11 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     public ProcessedObjectAsserter<O, RA> assertState(ObjectProcessingStateType expected) {
         assertThat(processedObject.getState()).as("processing state").isEqualTo(expected);
+        return this;
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertResultStatus(OperationResultStatus expected) {
+        assertThat(processedObject.getResultStatus()).as("result status").isEqualTo(expected);
         return this;
     }
 
@@ -122,6 +130,15 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
                 .end();
     }
 
+    public ProcessedObjectAsserter<O, RA> assertResult(Consumer<OperationResultAssert> resultAsserter) {
+        resultAsserter.accept(
+                new OperationResultAssert(processedObject.getResult()));
+        return this;
+    }
+
+    public ProcessedObject<O> getProcessedObject() {
+        return processedObject;
+    }
 
     protected String desc() {
         return descWithDetails(processedObject);

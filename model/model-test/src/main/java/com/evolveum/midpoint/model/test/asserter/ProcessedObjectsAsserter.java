@@ -48,6 +48,7 @@ public class ProcessedObjectsAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public ProcessedObjectsAsserter<RA> assertSizeBetween(int min, int max) {
         assertThat(processedObjects).as("processed objects")
                 .hasSizeGreaterThanOrEqualTo(min)

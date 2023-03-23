@@ -71,7 +71,8 @@ class OperationExecutionRecorderForClockwork {
     @Autowired private PrismContext prismContext;
     @Autowired private OperationExecutionWriter writer;
 
-    private static final String OP_RECORD_OPERATION_EXECUTIONS = OperationExecutionRecorderForClockwork.class.getName() + ".recordOperationExecutions";
+    private static final String OP_RECORD_OPERATION_EXECUTIONS =
+            OperationExecutionRecorderForClockwork.class.getName() + ".recordOperationExecutions";
 
     <F extends ObjectType> void recordOperationExecutions(LensContext<F> lensContext, Task task, OperationResult parentResult) {
 
@@ -154,8 +155,8 @@ class OperationExecutionRecorderForClockwork {
 
         OperationExecutionType recordToAdd = createExecutionRecord(ctx.focusDeltas, ctx);
         Class<F> focusType = ctx.getFocusContext().getObjectTypeClass();
-        OperationExecutionWriter.Request<F> request = new OperationExecutionWriter.Request<>(focusType, focusOid,
-                recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid));
+        OperationExecutionWriter.Request<F> request = new OperationExecutionWriter.Request<>(
+                focusType, focusOid, recordToAdd, ctx.getExistingExecutions(focusOid), ctx.isDeletedOk(focusOid));
         try {
             writer.write(request, result);
         } catch (Throwable t) {
@@ -346,5 +347,4 @@ class OperationExecutionRecorderForClockwork {
             return deletedObjects.contains(oid);
         }
     }
-
 }

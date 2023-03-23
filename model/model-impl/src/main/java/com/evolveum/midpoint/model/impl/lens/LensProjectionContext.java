@@ -82,7 +82,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
      * reality it is not always present.)
      *
-     * This information was once used for operation execution recording, but is not used now.
+     * This information was once used for operation execution recording. It is no longer the case.
+     * But since 4.7 we use it for recording result and result status during simulations.
      */
     private boolean synchronizationSource;
 
@@ -1732,6 +1733,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSynchronizationSource(boolean synchronizationSource) {
         this.synchronizationSource = synchronizationSource;
+    }
+
+    public boolean isSynchronizationSource() {
+        return synchronizationSource;
     }
 
     public String getDescription() {

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
@@ -1081,6 +1083,57 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertKind(ShadowKindType.ACCOUNT)
                     .assertIntent(INTENT_DEFAULT);
         }
+    }
+
+    /**
+     * Import from production resource that ends in error.
+     *
+     * MID-8622
+     */
+    @Test
+    public void test230ImportWithError() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test230";
+
+        given("an account on production source");
+        var account = RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(name);
+        account.addAttributeValue(ATTR_TYPE, "employee");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "12345");
+
+        and("user with conflicting name exists");
+        UserType conflicting = new UserType()
+                .name(name)
+                .employeeNumber("999999"); // intentionally different
+        addObject(conflicting, task, result);
+
+        when("account is imported in simulation mode");
+        var simResult = importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee"))
+                .withNameValue(name)
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                .withNotAssertingSuccess()
+                .executeOnForegroundSimulated(null, task, result);
+
+        then("result is fatal error");
+        assertThatOperationResult(result)
+                .isFatalError();
+
+        and("result contains information about the error");
+        var processedObject = assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .assertType(ShadowType.class)
+                .assertState(ObjectProcessingStateType.UNMODIFIED)
+                .assertResultStatus(OperationResultStatus.FATAL_ERROR)
+                .assertResult(r ->
+                        r.isFatalError()
+                                .hasMessageContaining("Found conflicting existing object"))
+                .getProcessedObject();
+
+        displayValueAsXml("processed object", processedObject.toBean());
     }
 
     /**
