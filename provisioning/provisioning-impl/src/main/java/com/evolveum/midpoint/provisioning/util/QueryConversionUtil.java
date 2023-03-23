@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -36,7 +38,12 @@ public class QueryConversionUtil {
 
     public static ObjectFilter parseFilter(SearchFilterType filterBean, @NotNull ResourceObjectDefinition definition)
             throws SchemaException {
-        ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().createObjectFilter(ShadowType.class, filterBean);
+
+        PrismObjectDefinition<ShadowType> shadowDef =
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        shadowDef = ShadowUtil.applyObjectDefinition(shadowDef, definition);
+
+        ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().createObjectFilter(shadowDef, filterBean);
         if (parsedFilter != null) {
             DefinitionsUtil.applyDefinition(parsedFilter, definition);
         }
