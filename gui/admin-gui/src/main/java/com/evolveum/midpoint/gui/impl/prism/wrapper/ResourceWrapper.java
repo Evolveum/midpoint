@@ -170,6 +170,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             PrismContainerValue<?> parentContainerValue = parentItem.getParent();
 
             if (!WebPrismUtil.isValueFromResourceTemplate(parentContainerValue, getItem())) {
+                    if (isDeltaWithTemplateValues(delta)) {
+                        changeReplaceDeltaToAdd(delta);
+                    }
                 processedDeltas.add(delta);
                 continue;
             }
@@ -194,6 +197,29 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         }
         return processedDeltas;
     }
+
+    private void changeReplaceDeltaToAdd(ItemDelta<PrismValue, ItemDefinition<?>> delta) {
+        List<PrismValue> values = new ArrayList<>();
+        values.addAll(delta.getValuesToReplace());
+        values.forEach(this::removeIdFromContainerValue);
+        removingMetadataFromValues(values);
+        delta.clear();
+        delta.addValuesToAdd(values);
+    }
+
+    private boolean isDeltaWithTemplateValues(ItemDelta<PrismValue, ItemDefinition<?>> delta) {
+        if (delta.isAdd()) {
+            return false;
+        }
+
+        for (PrismValue value : delta.getValuesToReplace()) {
+            if (WebPrismUtil.hasValueTemplateMetadata(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private ItemDelta<PrismValue, ItemDefinition<?>> processAddOrModifyDelta(
             PrismContainerValue<?> parentContainerValue, Collection<PrismValue> processedValues, PrismContainerValue<?> valueOfExistingDelta) throws SchemaException {
