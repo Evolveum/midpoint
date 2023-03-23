@@ -6,67 +6,79 @@
  */
 package com.evolveum.midpoint.gui.api.component.result;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
-import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author honchar
  */
-public class OperationResultPopupPanel extends BasePanel<OperationResult> implements Popupable {
+public class OperationResultPopupPanel extends SimplePopupable<OperationResult> {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OPERATION_RESULTS_PANEL = "operationResultsPanel";
-    private static final String ID_BUTTON_OK = "ok";
+    private static final String ID_BUTTONS = "buttons";
+    private static final String ID_CLOSE = "close";
 
-    public OperationResultPopupPanel(String id, IModel<OperationResult> model){
-        super(id, model);
+    private Fragment footer;
+
+    public OperationResultPopupPanel(String id, IModel<OperationResult> model) {
+        super(id, model, 800, 600, new StringResourceModel("OperationResultPopupPanel.title"));
     }
 
     @Override
-    protected void onInitialize(){
+    public @NotNull Component getFooter() {
+        return footer;
+    }
+
+    @Override
+    protected void onInitialize() {
         super.onInitialize();
 
         IModel<OpResult> opResultModel = createResultModel();
-        OperationResultPanel operationResultPanel = new OperationResultPanel(ID_OPERATION_RESULTS_PANEL,
-                opResultModel);
+        OperationResultPanel operationResultPanel = new OperationResultPanel(ID_OPERATION_RESULTS_PANEL, opResultModel);
         operationResultPanel.add(new VisibleBehaviour(() -> opResultModel.getObject() != null));
         operationResultPanel.setOutputMarkupId(true);
         add(operationResultPanel);
 
-        AjaxButton okButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
+        footer = initFooter();
+
+    }
+
+    private Fragment initFooter() {
+        Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+
+        AjaxLink close = new AjaxLink<Void>(ID_CLOSE) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
+                onCloseClicked(target);
             }
         };
-        okButton.setOutputMarkupId(true);
-        add(okButton);
+        footer.add(close);
+
+        return footer;
+    }
+
+    protected void onCloseClicked(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 
     private IModel<OpResult> createResultModel() {
-        return new LoadableModel<OpResult>() {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -78,35 +90,4 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
             }
         };
     }
-
-    @Override
-    public int getWidth() {
-        return 800;
-    }
-
-    @Override
-    public int getHeight() {
-        return 600;
-    }
-
-    @Override
-    public String getWidthUnit(){
-        return "px";
-    }
-
-    @Override
-    public String getHeightUnit(){
-        return "px";
-    }
-
-    @Override
-    public Component getContent() {
-        return this;
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("OperationResultPopupPanel.title");
-    }
-
 }

@@ -7,6 +7,25 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
@@ -45,24 +64,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -392,7 +393,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return new AbstractColumn<>(displayModel, SimulationResultProcessedObjectType.F_STATE.getLocalPart()) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
-                                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
+                    IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
 
                 item.add(SimulationsGuiUtil.createProcessedObjectStateLabel(id, () -> row.getObject().getValue()));
             }
@@ -439,9 +440,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
-                             AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
-        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
+            AjaxRequestTarget target) {
 
         List<SimulationResultProcessedObjectType> selected;
         if (rowModel != null) {
@@ -449,12 +448,17 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         } else {
             selected = getSelectedRealObjects();
         }
+
+        PageBase page = getPageBase();
+
         if (selected == null || selected.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
-            getPageBase().showResult(result);
-            target.add(getPageBase().getFeedbackPanel());
+            page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
+            target.add(page.getFeedbackPanel());
             return;
         }
+
+        Task task = page.createSimpleTask(OPERATION_MARK_SHADOW);
+        OperationResult result = task.getResult();
 
         for (var shadow : selected) {
             List<PolicyStatementType> statements = new ArrayList<>();
@@ -462,6 +466,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                 // skip object, since it is added
                 continue;
             }
+
             // We recreate statements (can not reuse them between multiple objects - we can create new or clone
             // but for each delta we need separate statement
             for (String oid : markOids) {
@@ -469,14 +474,14 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         .type(PolicyStatementTypeType.APPLY));
             }
             try {
-                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                var delta = page.getPrismContext().deltaFactory().object()
                         .createModificationAddContainer(ObjectType.class,
                                 shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
                                 statements.toArray(new PolicyStatementType[0]));
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                     | PolicyViolationException | SecurityViolationException e) {
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
@@ -487,13 +492,13 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         }
 
         result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
+        page.showResult(result);
+
         refreshTable(target);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(page.getFeedbackPanel());
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {
         markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
-
 }
