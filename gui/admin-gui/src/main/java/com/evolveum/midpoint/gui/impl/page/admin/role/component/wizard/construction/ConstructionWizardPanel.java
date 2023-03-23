@@ -92,6 +92,7 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
                 super.onExitPerformed(target);
                 ConstructionWizardPanel.this.onExitPerformed(target);
             }

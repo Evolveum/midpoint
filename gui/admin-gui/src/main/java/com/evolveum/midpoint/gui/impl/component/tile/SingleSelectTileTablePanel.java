@@ -1,11 +1,13 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import org.apache.wicket.AttributeModifier;
@@ -77,10 +79,30 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
                 preprocessSelectedDataInternal();
                 super.detach();
             }
+
+            @Override
+            protected Integer countObjects(Class type, ObjectQuery query, Collection currentOptions, Task task, OperationResult result) throws CommonException {
+                if (skipSearch()) {
+                    return 0;
+                }
+                return super.countObjects(type, query, currentOptions, task, result);
+            }
+
+            @Override
+            protected List searchObjects(Class type, ObjectQuery query, Collection collection, Task task, OperationResult result) throws CommonException {
+                if (skipSearch()) {
+                    return List.of();
+                }
+                return super.searchObjects(type, query, collection, task, result);
+            }
         };
         provider.setCompiledObjectCollectionView(getCompiledCollectionViewFromPanelConfiguration());
         provider.setOptions(getSearchOptions());
         return provider;
+    }
+
+    protected boolean skipSearch() {
+        return false;
     }
 
     protected PageStorage getPageStorage() {
