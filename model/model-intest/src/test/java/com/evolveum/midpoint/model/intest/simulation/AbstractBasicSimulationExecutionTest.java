@@ -1137,6 +1137,60 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     /**
+     * There is a synchronization reaction in `proposed` state.
+     * It should be ignored in production mode.
+     *
+     * MID-8671
+     */
+    @Test
+    public void test240ExecutingDevelopmentModeSyncReaction() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test240";
+        ResourceObjectTypeIdentification employeeTypeId =
+                ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee");
+
+        given("an account on production source with an imported user");
+        var account = RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(name);
+        account.addAttributeValue(ATTR_TYPE, "employee");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "11111");
+
+        and("its imported owner");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTypeIdentification(employeeTypeId)
+                .withNameValue(name)
+                .executeOnForeground(result);
+        assertUserBeforeByUsername(name);
+
+        when("the account is deleted and the simulated reconciliation is run");
+        RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.deleteAccount(name);
+        var taskOid = reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTaskExecutionMode(getExecutionMode())
+                .withTypeIdentification(employeeTypeId)
+                .withNameValue(name)
+                .withNotAssertingSuccess()
+                .execute(result);
+
+        then("the user still exists");
+        assertUserAfterByUsername(name);
+
+        boolean actionVisible = isDevelopmentConfigurationSeen();
+        and(actionVisible ? "simulation result contains user deletion" : "simulation result does NOT contain user deletion");
+        var a = assertProcessedObjects(taskOid, "after")
+                .display();
+        if (actionVisible) {
+            a.by().objectType(ShadowType.class).state(ObjectProcessingStateType.UNMODIFIED).find().end()
+                    .by().objectType(UserType.class).state(ObjectProcessingStateType.DELETED).find().end()
+                    .assertSize(2);
+        } else {
+            a.assertSize(0); // Even the shadow is not visible, because the clockwork was not executed
+        }
+    }
+
+    /**
      * Creates a user of archetype `person`, with a rich (conditional) configuration:
      *
      * - development-mode assignment of a metarole (with induced focus mapping)

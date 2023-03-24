@@ -16,6 +16,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -104,6 +105,12 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
         SynchronizationReactionDefinition defaultReaction = null;
         for (SynchronizationReactionDefinition reactionToConsider : policy.getReactions()) {
+            TaskExecutionMode executionMode = syncCtx.getTask().getExecutionMode();
+            if (!reactionToConsider.isVisible(executionMode)) {
+                LOGGER.trace("Skipping {} because it is not visible for current task execution mode: {}",
+                        reactionToConsider, executionMode);
+                continue;
+            }
             if (!reactionToConsider.matchesSituation(currentSituation)) {
                 LOGGER.trace("Skipping {} because the situation does not match: {}", reactionToConsider, currentSituation);
                 continue;

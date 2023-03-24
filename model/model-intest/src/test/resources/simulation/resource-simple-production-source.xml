@@ -252,6 +252,7 @@
                     </actions>
                 </reaction>
                 <reaction>
+                    <lifecycleState>proposed</lifecycleState> <!-- MID-8671 -->
                     <situation>deleted</situation>
                     <actions>
                         <deleteFocus/>
