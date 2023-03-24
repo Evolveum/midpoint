@@ -62,7 +62,7 @@ public class ModelObjectResolver implements ObjectResolver {
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
     @Override
-    public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
+    public <O extends ObjectType> O resolve(Referencable ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
             String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         String oid = ref.getOid();
         Class<?> typeClass = null;
