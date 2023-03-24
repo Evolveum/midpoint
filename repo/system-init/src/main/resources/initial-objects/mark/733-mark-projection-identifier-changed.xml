@@ -11,7 +11,6 @@
     <description>Operation that made the projection identifier changed</description>
     <documentation>
         This is an operation that changed the identifier (primary or secondary) of a projection.
-        TODO we may or may not be able to assess the original value
     </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>

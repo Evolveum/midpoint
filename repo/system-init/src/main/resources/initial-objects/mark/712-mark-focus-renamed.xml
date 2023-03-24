@@ -8,7 +8,7 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000712">
     <name>Focus renamed</name>
-    <description>Operation that changed the focus name</description>
+    <description>Operation that renamed the focus</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>

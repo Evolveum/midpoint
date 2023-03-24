@@ -699,6 +699,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
         then("CSV is OK");
         assertCsv(objectsLines, "after")
+                .withNumericColumns(C_ID)
+                .sortBy(C_ID)
                 .assertRecords(2)
                 .record(0)
                 .assertValue(C_NAME, "existing-0000")

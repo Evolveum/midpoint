@@ -8,10 +8,9 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000732">
     <name>Projection renamed</name>
-    <description>Operation that made the projection name changed</description>
+    <description>Operation that renamed the projection</description>
     <documentation>
         This is an operation that changed the name (naming attribute) of a projection.
-        TODO we may or may not be able to assess the original value
     </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>

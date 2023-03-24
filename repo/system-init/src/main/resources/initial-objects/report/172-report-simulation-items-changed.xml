@@ -12,6 +12,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-0000-0000-0000-ea32deff43df">
     <name>Simulation report: Items changed</name>
+    <description>Items changed within individual objects processed by a simulation.</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
@@ -33,7 +34,12 @@
             <column>
                 <name>id</name>
                 <display>
-                    <label>ID</label>
+                    <label>
+                        <t:orig>ID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.ID</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -47,7 +53,12 @@
                 <name>oid</name>
                 <path>oid</path>
                 <display>
-                    <label>OID</label>
+                    <label>
+                        <t:orig>OID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.OID</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>id</previousColumn>
             </column>
@@ -89,7 +100,12 @@
             <column>
                 <name>objectMark</name>
                 <display>
-                    <label>Object mark</label>
+                    <label>
+                        <t:orig>Object mark</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.objectMark</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>tag</previousColumn>
                 <export>
@@ -119,7 +135,12 @@
             <column>
                 <name>itemChanged</name>
                 <display>
-                    <label>Item changed</label>
+                    <label>
+                        <t:orig>Item changed</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.itemChanged</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>eventMarkRef</previousColumn>
                 <export>
@@ -137,7 +158,12 @@
             <column>
                 <name>oldValues</name>
                 <display>
-                    <label>Old value(s)</label>
+                    <label>
+                        <t:orig>Old value(s)</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.oldValues</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>itemChanged</previousColumn>
                 <export>
@@ -155,7 +181,12 @@
             <column>
                 <name>newValues</name>
                 <display>
-                    <label>New value(s)</label>
+                    <label>
+                        <t:orig>New value(s)</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.newValues</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>oldValues</previousColumn>
                 <export>
@@ -173,7 +204,12 @@
             <column>
                 <name>valuesAdded</name>
                 <display>
-                    <label>Value(s) added</label>
+                    <label>
+                        <t:orig>Value(s) added</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.valuesAdded</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>newValues</previousColumn>
                 <export>
@@ -191,7 +227,12 @@
             <column>
                 <name>valuesDeleted</name>
                 <display>
-                    <label>Value(s) deleted</label>
+                    <label>
+                        <t:orig>Value(s) deleted</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.valuesDeleted</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>valuesAdded</previousColumn>
                 <export>
@@ -209,7 +250,12 @@
             <column>
                 <name>relatedAssignment</name>
                 <display>
-                    <label>Related assignment</label>
+                    <label>
+                        <t:orig>Related assignment</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignment</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>valuesDeleted</previousColumn>
                 <export>
@@ -223,7 +269,12 @@
             <column>
                 <name>relatedAssignmentId</name>
                 <display>
-                    <label>Related assignment ID</label>
+                    <label>
+                        <t:orig>Related assignment ID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentId</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignment</previousColumn>
                 <export>
@@ -237,7 +288,12 @@
             <column>
                 <name>relatedAssignmentTarget</name>
                 <display>
-                    <label>Related assignment target</label>
+                    <label>
+                        <t:orig>Related assignment target</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentTarget</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignmentId</previousColumn>
                 <export>
@@ -251,7 +307,12 @@
             <column>
                 <name>relatedAssignmentTargetRelation</name>
                 <display>
-                    <label>Related assignment relation</label>
+                    <label>
+                        <t:orig>Related assignment relation</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentTargetRelation</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignmentTarget</previousColumn>
                 <export>
@@ -265,7 +326,12 @@
             <column>
                 <name>relatedAssignmentResource</name>
                 <display>
-                    <label>Related assignment resource</label>
+                    <label>
+                        <t:orig>Related assignment resource</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentResource</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignmentTargetRelation</previousColumn>
                 <export>
@@ -279,7 +345,12 @@
             <column>
                 <name>relatedAssignmentKind</name>
                 <display>
-                    <label>Related assignment kind</label>
+                    <label>
+                        <t:orig>Related assignment kind</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentKind</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignmentResource</previousColumn>
                 <export>
@@ -293,7 +364,12 @@
             <column>
                 <name>relatedAssignmentIntent</name>
                 <display>
-                    <label>Related assignment intent</label>
+                    <label>
+                        <t:orig>Related assignment intent</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.relatedAssignmentIntent</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>relatedAssignmentKind</previousColumn>
                 <export>
@@ -311,35 +387,60 @@
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
             <display>
-                <label>Simulation result</label>
+                <label>
+                    <t:orig>simulationResultRef</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.simulationResultRef</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
         <parameter>
             <name>pathsToInclude</name>
             <type>t:ItemPathType</type>
             <display>
-                <label>Paths to include</label>
+                <label>
+                    <t:orig>pathsToInclude</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.pathsToInclude</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
         <parameter>
             <name>pathsToExclude</name>
             <type>t:ItemPathType</type>
             <display>
-                <label>Paths to exclude</label>
+                <label>
+                    <t:orig>pathsToExclude</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.pathsToExclude</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
         <parameter>
             <name>includeOperationalItems</name>
             <type>xsd:boolean</type>
             <display>
-                <label>Include operational items</label>
+                <label>
+                    <t:orig>includeOperationalItems</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.includeOperationalItems</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
         <parameter>
             <name>showIfNoDetails</name>
             <type>xsd:boolean</type>
             <display>
-                <label>Show rows with no details</label>
+                <label>
+                    <t:orig>showIfNoDetails</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.showIfNoDetails</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
         <subreport>

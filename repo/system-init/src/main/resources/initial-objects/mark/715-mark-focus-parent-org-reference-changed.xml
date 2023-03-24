@@ -8,7 +8,8 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000715">
     <name>Focus parent organization reference changed</name>
-    <description>Operation that changed the focus parent organization reference (parentOrgRef value)</description>
+    <description>Operation that changed the focus parent organization reference</description>
+    <documentation>This mark deals with `parentOrgRef` value.</documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
