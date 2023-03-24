@@ -198,6 +198,7 @@ class ProcessedObjectsWriter {
             getOpenResultTransactionsHolder().addProcessedObject(processedObject, simulationTransaction, task, result);
         }
         Collection<SimulationResultProcessedObjectType> processedObjectsBeans = ProcessedObjectImpl.toBeans(processedObjects);
+        stripUnneededData(processedObjectsBeans);
         List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                 .item(SimulationResultType.F_PROCESSED_OBJECT)
                 .addRealValues(processedObjectsBeans)
@@ -215,6 +216,13 @@ class ProcessedObjectsWriter {
         for (ProcessedObjectImpl<?> processedObject : processedObjects) {
             processedObject.propagateRecordId();
         }
+    }
+
+    private void stripUnneededData(Collection<SimulationResultProcessedObjectType> processedObjectsBeans) {
+        processedObjectsBeans.forEach(po -> {
+            // This is done to save space in repository. TODO add removal of "after" state here
+            po.getConsideredEventMarkRef().clear();
+        });
     }
 
     private static OpenResultTransactionsHolder getOpenResultTransactionsHolder() {

@@ -383,9 +383,11 @@ public class ShadowUtil {
         attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
     }
 
-    public static PrismObjectDefinition<ShadowType> applyObjectDefinition(PrismObjectDefinition<ShadowType> shadowDefinition,
+    public static PrismObjectDefinition<ShadowType> applyObjectDefinition(
+            PrismObjectDefinition<ShadowType> shadowDefinition,
             ResourceObjectDefinition objectClassDefinition) throws SchemaException {
-        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+        return shadowDefinition.cloneWithReplacedDefinition(
+                ShadowType.F_ATTRIBUTES,
                 objectClassDefinition.toResourceAttributeContainerDefinition());
     }
 

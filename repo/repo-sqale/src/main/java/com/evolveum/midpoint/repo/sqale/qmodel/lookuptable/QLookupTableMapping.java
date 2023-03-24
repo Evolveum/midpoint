@@ -24,6 +24,7 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -132,6 +133,11 @@ public class QLookupTableMapping
 
             List<MLookupTableRow> result = query.fetch();
 
+            // Should we remove incomplete only if all rows are present?
+            var rowContainer = base.asPrismContainer().findContainer(F_ROW);
+            if (rowContainer != null) {
+                rowContainer.setIncomplete(false);
+            }
             for (MLookupTableRow r : result) {
                 LookupTableRowType lookupRow = new LookupTableRowType().key(r.key);
                 if (r.labelOrig != null || r.labelNorm != null) {
