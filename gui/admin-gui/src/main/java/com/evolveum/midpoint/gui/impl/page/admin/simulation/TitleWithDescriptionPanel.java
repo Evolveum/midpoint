@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -14,11 +19,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -73,12 +73,19 @@ public class TitleWithDescriptionPanel extends BasePanel {
         iconLink.add(icon);
 
         WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
-        descriptionContainer.add(AttributeAppender.append("class", () -> StringUtils.isEmpty(this.description.getObject()) ? "invisible" : null));
+        descriptionContainer.add(AttributeAppender.append("class", () ->
+                StringUtils.isEmpty(this.description.getObject()) ?
+                        (hasDescriptionCssInvisibleIfEmpty() ? "invisible" : "d-none") :
+                        null));
         add(descriptionContainer);
 
         Label description = new Label(ID_DESCRIPTION, this.description);
         description.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.description.getObject())));
         descriptionContainer.add(description);
+    }
+
+    protected boolean hasDescriptionCssInvisibleIfEmpty() {
+        return true;
     }
 
     protected boolean isTitleLinkEnabled() {

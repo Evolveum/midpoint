@@ -52,7 +52,7 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
         cellItem.add(createComponent(componentId, labelModel, rowModel));
     }
 
-    private Component createComponent(String componentId, IModel<String> labelModel, IModel<SR> rowModel) {
+    protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SR> rowModel) {
         return new AjaxLinkPanel(componentId, labelModel) {
             private static final long serialVersionUID = 1L;
 
