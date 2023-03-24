@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithDescriptionPanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -377,6 +378,12 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected boolean hasDescriptionCssInvisibleIfEmpty() {
                         return false;
+                    }
+
+                    @Override
+                    protected void onTitleClicked(AjaxRequestTarget target) {
+                        ShadowType object = rowModel.getObject().getValue();
+                        objectDetailsPerformed(target, object);
                     }
                 };
             }
