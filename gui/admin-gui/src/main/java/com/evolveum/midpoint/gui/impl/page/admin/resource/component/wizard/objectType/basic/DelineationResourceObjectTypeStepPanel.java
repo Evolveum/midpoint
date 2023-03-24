@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
@@ -60,5 +62,17 @@ public class DelineationResourceObjectTypeStepPanel
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.objectType.delineation.subText");
+    }
+
+    @Override
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return this::checkMandatory;
+    }
+
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        if (itemWrapper.getItemName().equals(ResourceObjectTypeDelineationType.F_OBJECT_CLASS)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
     }
 }

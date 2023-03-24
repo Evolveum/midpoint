@@ -474,8 +474,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         .type(PolicyStatementTypeType.APPLY));
             }
             try {
+                @SuppressWarnings("unchecked")
+                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
+                    .getCompileTimeClassForObjectType(shadow.getType());
                 var delta = page.getPrismContext().deltaFactory().object()
-                        .createModificationAddContainer(ObjectType.class,
+                        .createModificationAddContainer(type,
                                 shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
                                 statements.toArray(new PolicyStatementType[0]));
                 page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);

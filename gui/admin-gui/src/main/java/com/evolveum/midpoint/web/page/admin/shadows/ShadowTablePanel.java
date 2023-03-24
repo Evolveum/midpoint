@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithDescriptionPanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -362,6 +363,10 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected String load() {
                         ShadowType shadow = rowModel.getObject().getValue();
+                        if (shadow == null) {
+                            return null;
+                        }
+
                         List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
                         Object[] marks = refs.stream()
                                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
@@ -377,6 +382,20 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected boolean hasDescriptionCssInvisibleIfEmpty() {
                         return false;
+                    }
+
+                    @Override
+                    protected void onTitleClicked(AjaxRequestTarget target) {
+                        ShadowType object = rowModel.getObject().getValue();
+                        if (object == null) {
+                            return;
+                        }
+                        objectDetailsPerformed(target, object);
+                    }
+
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return isClickable(rowModel);
                     }
                 };
             }
