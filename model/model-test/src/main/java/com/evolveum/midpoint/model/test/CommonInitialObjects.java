@@ -38,9 +38,6 @@ public interface CommonInitialObjects {
 
     String FUNCTION_LIBRARY = INITIAL_OBJECTS + "/function-library";
 
-    TestObject<ArchetypeType> STANDARD_FUNCTIONS = TestObject.classPath(
-            FUNCTION_LIBRARY, "005-standard-functions.xml", SystemObjectsType.STANDARD_FUNCTIONS.value());
-
     TestObject<ArchetypeType> ARCHETYPE_REPORT = TestObject.classPath(
             ARCHETYPES, "059-archetype-report.xml", SystemObjectsType.ARCHETYPE_REPORT.value());
 
