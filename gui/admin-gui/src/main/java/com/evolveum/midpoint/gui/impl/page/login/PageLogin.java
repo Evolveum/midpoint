@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.stream.Collectors;
 
 /**
  * @author mserbak
@@ -205,6 +208,31 @@ public class PageLogin extends AbstractPageLogin {
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return createStringResource("PageLogin.enterAccountDetails");
+        return severalLoginFormModulesExist() ?
+                createStringResource("PageLogin.panelDescriptionWithModuleName", getProcessingModuleName())
+                : createStringResource("PageLogin.enterAccountDetails");
+    }
+
+    private boolean severalLoginFormModulesExist() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            int loginFormModulesCount = (int) mpAuthentication.getAuthModules()
+                    .stream()
+                    .filter(module -> isModuleApplicable(module.getBaseModuleAuthentication()))
+                    .count();
+            return loginFormModulesCount > 1;
+        }
+        return false;
+    }
+
+    private String getProcessingModuleName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication module = mpAuthentication.getProcessingModuleAuthentication();
+            return module != null ? module.getModuleIdentifier() : "";
+        }
+        return "";
     }
 }
