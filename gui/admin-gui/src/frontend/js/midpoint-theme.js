@@ -148,34 +148,33 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-            $(".word-break-longer-text").css("word-break", function (index, origValue) {
-
-                var textOfColumn = $(".word-break-longer-text")[index].innerText;
-                if (textOfColumn != '' && textOfColumn != ' ') {
-                    var numberOfChars = 15;
-                    var controlValue = numberOfChars;
-                    var indexOfSpace = textOfColumn.indexOf(' ');
-
-                    while (indexOfSpace == (controlValue - numberOfChars)) {
-                        controlValue = controlValue + 1 + indexOfSpace;
-                        indexOfSpace = textOfColumn.indexOf(' ', (indexOfSpace + 1));
-                    }
-
-                    if (indexOfSpace + 1 != textOfColumn.length && textOfColumn.length > controlValue) {
-                        return "break-word";
-                    }
-                }
-                return "inherit";
-            });
-        });
-
-        jQuery(function ($) {
             $(document).on("click", ".compositedButton[data-toggle='tooltip']", function (e, t) {
                 var parent = $(this).closest('.modal-dialog-content');
                 if (parent.length != 0) {
                     $(this).tooltip("hide");
                 }
             });
+        });
+    }
+
+    breakLongerTextInTableCell(cellId) {
+        $("#" + cellId).css("word-break", function (index, origValue) {
+            var textOfColumn = document.getElementById(cellId).innerText;
+            if (textOfColumn != '' && textOfColumn != ' ') {
+                var numberOfChars = 15;
+                var controlValue = numberOfChars;
+                var indexOfSpace = textOfColumn.indexOf(' ');
+
+                while (indexOfSpace == (controlValue - numberOfChars)) {
+                    controlValue = controlValue + 1 + indexOfSpace;
+                    indexOfSpace = textOfColumn.indexOf(' ', (indexOfSpace + 1));
+                }
+
+                if (indexOfSpace + 1 != textOfColumn.length && textOfColumn.length > controlValue) {
+                    return "break-word";
+                }
+            }
+            return "inherit";
         });
     }
 
