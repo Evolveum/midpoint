@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.query.ObjectQueryImpl;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -730,5 +732,11 @@ public class ObjectQueryUtil {
         return PrismContext.get().queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
                 .build();
+    }
+
+    public static @NotNull ObjectQuery createQuery(@Nullable ObjectFilter filter) {
+        var query = ObjectQueryImpl.createObjectQuery();
+        query.setFilter(filter);
+        return query;
     }
 }

@@ -40,10 +40,7 @@
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
-                    <q:substring>
-                        <q:path>attributes/name</q:path>
-                        <q:value>e_</q:value>
-                    </q:substring>
+                    <q:text>attributes/name contains "e_"</q:text>
                 </filter>
                 <classificationOrder>1</classificationOrder>
             </delineation>
@@ -54,10 +51,7 @@
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
-                    <q:substring>
-                        <q:path>attributes/name</q:path>
-                        <q:value>a_</q:value>
-                    </q:substring>
+                    <q:text>attributes/name contains "a_"</q:text>
                 </filter>
                 <classificationOrder>2</classificationOrder>
             </delineation>
@@ -68,10 +62,7 @@
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
-                    <q:substring>
-                        <q:path>attributes/name</q:path>
-                        <q:value>d_</q:value>
-                    </q:substring>
+                    <q:text>attributes/ri:name contains "d_"</q:text> <!-- intentionally with NS prefixe -->
                 </filter>
                 <classificationOrder>3</classificationOrder>
             </delineation>
