@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -58,9 +58,7 @@ class TwoStateSimulatedToRealConverter<T> {
     }
 
     @Nullable
-    private T convertNull(OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-
+    private T convertNull(OperationResult result) {
         if (MiscUtil.hasNoValue(simulatedNegativeValues)) {
             return resolvedNegativeValue;
         }
@@ -69,18 +67,16 @@ class TwoStateSimulatedToRealConverter<T> {
             return resolvedPositiveValue;
         }
 
-        LOGGER.warn("The {} does not provide definition for null value of simulated {} attribute",
+        LOGGER.warn("The {} does not provide definition for null value of simulated '{}' attribute",
                 ctx.getResource(), description);
         result.recordPartialError("The " + ctx.getResource()
-                + " does not provide definition for null value of simulated " + description + " attribute");
+                + " does not provide definition for null value of simulated '" + description + "' attribute");
 
         return null;
     }
 
     @Nullable
-    private T convertNonNull(Collection<Object> simulatingAttributeValues, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private T convertNonNull(Collection<Object> simulatingAttributeValues, OperationResult result) {
 
         if (simulatingAttributeValues.size() > 1) {
             LOGGER.warn("An object on {} has {} values for simulated {} attribute, expecting just one value",
@@ -103,5 +99,4 @@ class TwoStateSimulatedToRealConverter<T> {
         }
         return null;
     }
-
 }

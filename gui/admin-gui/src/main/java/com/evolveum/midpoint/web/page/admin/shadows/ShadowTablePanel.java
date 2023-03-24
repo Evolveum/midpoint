@@ -4,8 +4,13 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithDescriptionPanel;
+import com.evolveum.midpoint.web.component.data.column.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -14,6 +19,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -49,10 +56,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -340,6 +343,44 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         });
 
         return items;
+    }
+
+    @Override
+    protected IColumn<SelectableBean<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new ContainerableNameColumn<>(displayModel, ObjectType.F_NAME.getLocalPart(),  customColumn, expression, getPageBase()) {
+
+            @Override
+            protected IModel<String> getContainerName(SelectableBean<ShadowType> rowModel) {
+                ShadowType value = rowModel.getValue();
+                return Model.of(value == null ? "" : WebComponentUtil.getName(value, true));
+            }
+
+            @Override
+            protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<ShadowType>> rowModel) {
+                IModel<String> marks = new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected String load() {
+                        ShadowType shadow = rowModel.getObject().getValue();
+                        List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
+                        Object[] marks = refs.stream()
+                                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
+                                .filter(mark -> mark != null)
+                                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                                .toArray();
+
+                        return StringUtils.joinWith(", ", marks);
+                    }
+                };
+                return new TitleWithDescriptionPanel(componentId, labelModel, marks) {
+
+                    @Override
+                    protected boolean hasDescriptionCssInvisibleIfEmpty() {
+                        return false;
+                    }
+                };
+            }
+        };
     }
 
     private List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
