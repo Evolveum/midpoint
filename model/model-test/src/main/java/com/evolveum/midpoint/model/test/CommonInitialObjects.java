@@ -50,6 +50,14 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_RECONCILIATION_TASK = TestObject.classPath(
+            ARCHETYPES, "501-archetype-task-reconciliation.xml",
+            SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_IMPORT_TASK = TestObject.classPath(
+            ARCHETYPES, "503-archetype-task-import.xml",
+            SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
