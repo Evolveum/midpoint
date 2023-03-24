@@ -330,12 +330,6 @@ public class ProvisioningUtil {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
     }
 
-    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
-            throws SchemaException {
-        throw new UnsupportedOperationException("Use operation policy");
-        //return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result);
-    }
-
     private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(
             Collection<ResourceObjectPattern> protectedAccountPatterns,
             ShadowType shadow,
@@ -354,14 +348,6 @@ public class ProvisioningUtil {
             ExpressionEvaluationException, SecurityViolationException {
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
                 ctx.getProtectedAccountPatterns(factory, result), shadow, result);
-    }
-
-    @Deprecated
-    public static void setProtectedFlag(
-            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-        setEffectiveProvisioningPolicy(ctx, shadow, factory, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {

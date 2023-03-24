@@ -44,6 +44,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStateme
 @Component
 public class ObjectOperationPolicyHelper {
 
+    private static final String OP_COMPUTE_EFFECTIVE_POLICY =
+            ObjectOperationPolicyHelper.class.getName() + ".computeEffectivePolicy";
+
     private abstract class Impl {
 
         protected abstract Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result);
@@ -52,7 +55,7 @@ public class ObjectOperationPolicyHelper {
 
         protected abstract boolean policyNotExcluded(ObjectType shadow, String markProtectedShadowOid);
 
-        protected abstract ObjectOperationPolicyType computeEffectivePolicy(
+        protected abstract @NotNull ObjectOperationPolicyType computeEffectivePolicy(
                 Collection<ObjectReferenceType> effectiveMarkRefs,
                 ObjectType shadow, OperationResult result);
 
@@ -109,7 +112,7 @@ public class ObjectOperationPolicyHelper {
         return instance;
     }
 
-    public ObjectOperationPolicyType getEffectivePolicy(ObjectType shadow, OperationResult result) {
+    public @NotNull ObjectOperationPolicyType getEffectivePolicy(ObjectType shadow, OperationResult result) {
         var policy = shadow.getEffectiveOperationPolicy();
         if (policy != null) {
             return policy;
@@ -117,13 +120,16 @@ public class ObjectOperationPolicyHelper {
         return computeEffectivePolicy(shadow, result);
     }
 
-    public ObjectOperationPolicyType computeEffectivePolicy(ObjectType shadow, OperationResult parentResult) {
-        var result = parentResult.createMinorSubresult("computeEffectivePolicy");
+    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType shadow, OperationResult parentResult) {
+        var result = parentResult.createMinorSubresult(OP_COMPUTE_EFFECTIVE_POLICY);
         try {
             Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);
             return behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            result.computeStatus();
+            result.close();
         }
     }
 
@@ -260,9 +266,8 @@ public class ObjectOperationPolicyHelper {
             return false;
         }
 
-
         @Override
-        protected ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+        protected @NotNull ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
                 ObjectType shadow, OperationResult result) {
             var ret = new ObjectOperationPolicyType();
             Collection<MarkType>  marks = getShadowMarks(effectiveMarkRefs, result);
@@ -357,7 +362,7 @@ public class ObjectOperationPolicyHelper {
         }
 
         @Override
-        protected ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
+        protected @NotNull ObjectOperationPolicyType computeEffectivePolicy(Collection<ObjectReferenceType> effectiveMarkRefs,
                 ObjectType shadow, OperationResult result) {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
                 return new ObjectOperationPolicyType()
@@ -394,6 +399,7 @@ public class ObjectOperationPolicyHelper {
         }
     }
 
+    // FIXME what about severity? We should perhaps select the highest one
     public static OperationPolicyConfigurationType firstNonDefaultValue(Collection<MarkType> marks,
             Function<ObjectOperationPolicyType, OperationPolicyConfigurationType> extractor, boolean defaultValue) {
         for (var mark : marks) {

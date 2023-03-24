@@ -4,9 +4,11 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithDescriptionPanel;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.data.column.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -76,6 +78,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private static final String OPERATION_LOAD_SHADOW_OWNER = DOT_CLASS + "loadOwner";
     private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
     private static final String OPERATION_IMPORT_PREVIEW_OBJECT = DOT_CLASS + "importPreviewObject";
     private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
@@ -664,49 +667,83 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     // TODO: as a task?
-    protected void deleteResourceObjectPerformed(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target) {
-        final List<SelectableBean<ShadowType>> selectedShadows = getSelectedShadowsList(selected);
-        final OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+    private void deleteResourceObjectPerformed(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target) {
+        List<SelectableBean<ShadowType>> selectedShadows = getSelectedShadowsList(selected);
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
 
         if (selectedShadows == null || selectedShadows.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.deleteResourceObjectPerformed.warning").getString());
+            result.recordWarning(
+                    createStringResource("ResourceContentPanel.message.deleteResourceObjectPerformed.warning")
+                            .getString());
             getPageBase().showResult(result);
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
 
-        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(
+                ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                deleteAccountConfirmedPerformed(target, result, selectedShadows);
+                deleteAccountsConfirmedPerformed(target, selectedShadows, result);
             }
         };
         getPageBase().showMainPopup(dialog, target);
 
     }
 
-    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result,
-                                                 List<SelectableBean<ShadowType>> selected) {
-        Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
+    private void deleteAccountsConfirmedPerformed(
+            AjaxRequestTarget target, List<SelectableBean<ShadowType>> selected, OperationResult parentResult) {
+        Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECTS); // created here because of serializability issues
 
-        for (SelectableBean<ShadowType> shadow : selected) {
+        for (SelectableBean<ShadowType> shadowBean : selected) {
+            ShadowType shadow = shadowBean.getValue();
+            ModelExecuteOptions options = createModelExecuteOptions();
+            var result = parentResult.subresult(OPERATION_DELETE_OBJECT)
+                    .addArbitraryObjectAsParam("object", shadow)
+                    .build();
             try {
-                ObjectDelta<ShadowType> deleteDelta = PrismContext.get().deltaFactory().object().createDeleteDelta(ShadowType.class,
-                        shadow.getValue().getOid());
-
-                getPageBase().getModelService().executeChanges(
-                        MiscUtil.createCollection(deleteDelta), createModelExecuteOptions(), task, result);
+                // Preliminary solution for MID-8601. Here we assume the shadow marks are visible by GUI.
+                var policy = getPageBase().getObjectOperationPolicyHelper().getEffectivePolicy(shadow, result);
+                var severity = ObjectOperationPolicyTypeUtil.getDeletionRestrictionSeverity(policy);
+                if (severity == null) { // i.e. permitted
+                    ObjectDelta<ShadowType> deleteDelta =
+                            PrismContext.get().deltaFactory().object().createDeleteDelta(
+                                    ShadowType.class, shadow.getOid());
+                    getPageBase().getModelService().executeChanges(
+                            MiscUtil.createCollection(deleteDelta), options, task, result);
+                } else {
+                    result.setStatus(severityToStatus(severity));
+                    result.setUserFriendlyMessage(
+                            new SingleLocalizableMessage(
+                                    "ShadowTablePanel.message.deletionForbidden",
+                                    new Object[] { shadow.getName() }));
+                }
             } catch (Throwable e) {
                 result.recordPartialError("Could not delete " + shadow + ", reason: " + e.getMessage(), e);
-                LOGGER.error("Could not delete {}, using option {}", shadow, null, e);
+                LOGGER.error("Could not delete {}, using option {}", shadow, options, e);
+            } finally {
+                result.close();
             }
         }
 
-        result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
+        parentResult.computeStatusIfUnknown();
+        getPageBase().showResult(parentResult);
         refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
+    }
 
+    // Considered moving right to OperationResultStatus class, but INFO -> NOT_APPLICABLE mapping is specific for this situation.
+    private OperationResultStatus severityToStatus(ValidationIssueSeverityType severity) {
+        switch (severity) {
+            case ERROR:
+                return OperationResultStatus.FATAL_ERROR;
+            case WARNING:
+                return OperationResultStatus.WARNING;
+            case INFO:
+                return OperationResultStatus.NOT_APPLICABLE;
+            default:
+                throw new AssertionError(severity);
+        }
     }
 
     private IModel<String> createDeleteConfirmString(List<SelectableBean<ShadowType>> selectedShadow) {

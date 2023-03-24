@@ -731,15 +731,4 @@ public class ReportFunctions {
             return null;
         }
     }
-
-    /** TEMPORARY (does not work for now) */
-    public Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType object) throws SchemaException {
-        if (object instanceof ShadowType) {
-            ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                    List.of(), (ShadowType) object, getCurrentResult());
-            return object.getEffectiveMarkRef();
-        } else {
-            return List.of();
-        }
-    }
 }

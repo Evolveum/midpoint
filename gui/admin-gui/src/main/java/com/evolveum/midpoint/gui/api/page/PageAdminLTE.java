@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -177,6 +179,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+
+    @SpringBean(name = "objectOperationPolicyHelper")
+    private ObjectOperationPolicyHelper objectOperationPolicyHelper;
 
     @SpringBean(name = "auditController")
     private ModelAuditService modelAuditService;
@@ -437,6 +442,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    public ObjectOperationPolicyHelper getObjectOperationPolicyHelper() {
+        return objectOperationPolicyHelper;
     }
 
     public CaseService getCaseService() {
