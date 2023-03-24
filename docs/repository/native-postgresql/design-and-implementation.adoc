@@ -355,7 +355,7 @@ Even the search that returns nothing is better than none, because it executes th
 But it's easy to prepare new data at the start of the class and actually return some data as well.
 
 . And SQL alter script, of course!
-Finally, we need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
+We need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
 Prepare the right `ALTER` command and test it on an existing database without the change.
 Wrap the change inside `apply_change` call - use the examples already available in the file.
 Don't forget to bump the change identifier for each chagne.
