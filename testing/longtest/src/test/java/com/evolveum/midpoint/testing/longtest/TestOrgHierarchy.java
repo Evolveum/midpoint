@@ -6,37 +6,27 @@
  */
 package com.evolveum.midpoint.testing.longtest;
 
-import java.io.File;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
  */
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestOrgHierarchy extends AbstractModelIntegrationTest {
-
-    private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-
-    private static final File USER_ADMINISTRATOR_FILENAME = new File(COMMON_DIR, "user-administrator.xml");
-    private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
-    private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-
-    private static final File ROLE_SUPERUSER_FILENAME = new File(COMMON_DIR, "role-superuser.xml");
-    private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+public class TestOrgHierarchy extends AbstractLongTest {
 
     //222 org. units, 2160 users
 //    private static final int[] TREE_LEVELS = {2, 5, 7, 2};
@@ -59,15 +49,6 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        // System Configuration and administrator
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-        modelService.postInit(initResult);
-
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
-        login(userAdministrator);
-
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
     }
 
@@ -123,7 +104,7 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
         }
 
         prismContext.adopt(user);
-        return user.asPrismContainer();
+        return user.asPrismObject();
     }
 
     private PrismObject<OrgType> createOrg(String parentOid, int i, String oidPrefix)
@@ -140,7 +121,7 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
         }
 
         prismContext.adopt(org);
-        return org.asPrismContainer();
+        return org.asPrismObject();
     }
 
     private String createOid(int i, String oidPrefix) {
