@@ -58,8 +58,6 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                         SynchronizationReactionType.F_NAME))
                 .put(AbstractSynchronizationActionType.class, Arrays.asList(
                         AbstractSynchronizationActionType.F_NAME))
-                .put(ResourceAttributeDefinitionType.class, Arrays.asList(
-                        ResourceAttributeDefinitionType.F_REF))
                 .build();
     }
 
@@ -276,8 +274,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             if (typeClass == null) {
                 typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), newValue.getComplexTypeDefinition().getTypeName());
             }
-            if (MERGE_IDENTIFIERS.containsKey(typeClass)) {
-                for (ItemName path : MERGE_IDENTIFIERS.get(typeClass)) {
+            Class<?> key = getClassKeyForMergedClass(typeClass);
+            if (key != null) {
+                for (ItemName path : MERGE_IDENTIFIERS.get(key)) {
                     Item<PrismValue, ItemDefinition<?>> item = origParentValue.findItem(path);
                     if (item != null && !item.isEmpty() && item.valuesStream().anyMatch(v -> !v.isEmpty())) {
                         Item newItem = newValue.findOrCreateItem(path);
@@ -309,6 +308,15 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             newContainer.setParent(parentValue);
         }
         return newValue;
+    }
+
+    private Class<?> getClassKeyForMergedClass(Class<?> typeClass) {
+        for (Class<?> key : MERGE_IDENTIFIERS.keySet()) {
+            if (key.isAssignableFrom(typeClass)) {
+                return key;
+            }
+        }
+        return null;
     }
 
     private void removingMetadataForSuperOrigin(Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) {
