@@ -363,6 +363,10 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected String load() {
                         ShadowType shadow = rowModel.getObject().getValue();
+                        if (shadow == null) {
+                            return null;
+                        }
+
                         List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
                         Object[] marks = refs.stream()
                                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
@@ -383,7 +387,15 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         ShadowType object = rowModel.getObject().getValue();
+                        if (object == null) {
+                            return;
+                        }
                         objectDetailsPerformed(target, object);
+                    }
+
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return isClickable(rowModel);
                     }
                 };
             }
