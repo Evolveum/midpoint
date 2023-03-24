@@ -96,7 +96,10 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
     @Nullable OperationResult getResult();
 
     /** Returns OIDs of matching event marks for this object. */
-    @NotNull Collection<String> getMatchingEventMarks();
+    @NotNull Collection<String> getMatchingEventMarksOids();
+
+    /** Returns references of object marks. Primarily on "object before" state (if exists). To be reconsidered. */
+    @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs();
 
     /**
      * Returns the state of the object before the operation.
@@ -121,6 +124,12 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
 
     default O getAfterOrBefore() {
         return MiscUtil.getFirstNonNull(getAfter(), getBefore());
+    }
+
+    default @NotNull O getBeforeOrAfterRequired() {
+        return MiscUtil.requireNonNull(
+                MiscUtil.getFirstNonNull(getBefore(), getAfter()),
+                () -> new IllegalStateException("No object in " + this));
     }
 
     /**

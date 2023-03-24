@@ -75,7 +75,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
-        assertEventMarks(expected, processedObject.getMatchingEventMarks());
+        assertEventMarks(expected, processedObject.getMatchingEventMarksOids());
         return this;
     }
 

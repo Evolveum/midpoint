@@ -86,9 +86,28 @@
                 <previousColumn>intent</previousColumn>
             </column>
             <column>
+                <name>objectMark</name>
+                <display>
+                    <label>Object mark</label>
+                </display>
+                <previousColumn>tag</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>objectMarks</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>tag</previousColumn>
+                <previousColumn>objectMark</previousColumn>
+            </column>
+            <column>
+                <name>resultStatus</name>
+                <path>resultStatus</path>
+                <previousColumn>state</previousColumn>
             </column>
             <!-- for each metric -->
             <column>
@@ -96,7 +115,7 @@
                 <display>
                     <label>Event mark</label>
                 </display>
-                <previousColumn>state</previousColumn>
+                <previousColumn>resultStatus</previousColumn>
                 <export>
                     <expression>
                         <script>
@@ -188,6 +207,20 @@
             </display>
         </parameter>
         <subreport>
+            <name>objectMarks</name>
+            <type>c:ObjectReferenceType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                    </code>
+                </script>
+            </expression>
+            <order>5</order>
+        </subreport>
+        <subreport>
             <name>metric</name>
             <!-- Non-prism type of ProcessedObject.Metric -->
             <expression>
@@ -202,6 +235,7 @@
                     </code>
                 </script>
             </expression>
+            <order>10</order>
             <resultHandling>
                 <multipleValues>splitParentRow</multipleValues>
             </resultHandling>

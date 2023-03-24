@@ -210,7 +210,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-        Collection<String> eventMarkOids = obj.getMatchingEventMarks();
+        Collection<String> eventMarkOids = obj.getMatchingEventMarksOids();
         // resolve names from markRefs
         Object[] names = eventMarkOids.stream()
                 .map(oid -> {

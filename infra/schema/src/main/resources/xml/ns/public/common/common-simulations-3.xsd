@@ -1181,6 +1181,9 @@
                         The result may be shortened, i.e. some parts may be removed to save space.
                         (Currently, only the root level is kept.)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.result</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
@@ -1188,6 +1191,9 @@
                     <xsd:documentation>
                         Status of the operation. Present on "primary" processed objects. See the "result" property.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.resultStatus</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
