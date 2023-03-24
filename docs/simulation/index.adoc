@@ -97,6 +97,7 @@ Lifecycle state is currently supported on the following configuration items:
 - resource object type,
 - resource object attribute,
 - resource object association,
+- synchronization reaction,
 - abstract roles (role, org, service, archetype),
 - assignment,
 - object template,
@@ -356,3 +357,14 @@ One processed object corresponds to one report row.
 == Limitations
 
 #TODO#
+
+. Errors during pre-clockwork stage are not captured
+. Shadows that do not enter clockwork stage are not captured
+
+=== Shadow Management Simulations
+
+. This is an experimental feature.
+. There are often two records for each processed shadow: one for classification, one for correlation.
+. In this mode, higher-level processing (synchronization) is always skipped.
+. Errors are not reported in this mode.
+They can not be seen in the simulation result, only in the respective task.
