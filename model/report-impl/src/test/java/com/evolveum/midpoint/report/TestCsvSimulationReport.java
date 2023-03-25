@@ -1122,7 +1122,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .sortBy(C_R_CUSTOM_METRIC, C_R_EVENT_MARK, C_R_BUILT_IN_METRIC)
                 .display()
                 .allRecords(
-                        r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "SELECTION_TOTAL_VALUE"))
+                        r -> r.assertValue(C_R_AGGREGATION_FUNCTION, "Selection total value"))
                 .forRecord(C_R_EVENT_MARK, MARK_FOCUS_ACTIVATED.getNameOrig(),
                         r -> r.assertValue(C_R_SC_TYPE, "UserType")
                                 .assertValue(C_R_SC_ARCHETYPE, "blue")
