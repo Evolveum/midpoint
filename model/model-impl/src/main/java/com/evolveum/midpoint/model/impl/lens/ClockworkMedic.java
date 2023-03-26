@@ -269,7 +269,8 @@ public class ClockworkMedic {
         }
     }
 
-    private boolean projectionDeletionCheckPasses(String componentName, LensProjectionContext projectionContext, ProcessorExecution processorExecution) {
+    private boolean projectionDeletionCheckPasses(
+            String componentName, LensProjectionContext projectionContext, ProcessorExecution processorExecution) {
         if (processorExecution.skipWhenProjectionDeleted() && projectionContext != null && projectionContext.isDelete()) {
             LOGGER.trace("Skipping '{}' because projection is being deleted", componentName);
             return false;

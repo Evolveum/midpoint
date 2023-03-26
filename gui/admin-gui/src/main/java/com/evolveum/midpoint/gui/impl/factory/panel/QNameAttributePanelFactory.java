@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
@@ -54,7 +56,8 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
                 || ResourceObjectAssociationType.F_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
-                || ActivationStatusCapabilityType.F_ATTRIBUTE.equivalent(wrapper.getItemName()))
+                || ActivationStatusCapabilityType.F_ATTRIBUTE.equivalent(wrapper.getItemName())
+                || PagedSearchCapabilityType.F_DEFAULT_SORT_FIELD.equivalent(wrapper.getItemName()))
                 && DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
     }
 

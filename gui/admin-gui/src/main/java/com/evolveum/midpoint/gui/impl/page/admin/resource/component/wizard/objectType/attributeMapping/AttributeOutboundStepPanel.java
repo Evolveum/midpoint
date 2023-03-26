@@ -61,7 +61,7 @@ public class AttributeOutboundStepPanel<ODM extends ObjectDetailsModels>
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
     }
 
     @Override
@@ -70,14 +70,24 @@ public class AttributeOutboundStepPanel<ODM extends ObjectDetailsModels>
     }
 
     @Override
-    public boolean onBackPerformed(AjaxRequestTarget target) {
+    public VisibleEnableBehaviour getBackBehaviour() {
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
         onExitPerformed(target);
-        return false;
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("OnePanelPopupPanel.button.done");
     }
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleBehaviour(() -> false);
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 
     @Override

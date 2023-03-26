@@ -9,9 +9,6 @@
     oid="00000000-0000-0000-0000-000000000736">
     <name>Shadow classification changed</name>
     <description>Classification of a shadow was changed</description>
-    <documentation>
-        TODO
-    </documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>

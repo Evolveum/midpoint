@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
@@ -16,11 +19,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.FocusResourceObjectTypeStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.ResourceObjectTypeBasicWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -30,12 +36,15 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -124,11 +133,18 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return getOperationOptionsBuilder()
                 .noFetch()
                 .item(ResourceType.F_CONNECTOR_REF).resolve()
+                .item(
+                        ItemPath.create(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_FOCUS,
+                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve()
                 .build();
     }
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
+        ResourceObjectTypeBasicWizardPanel wizardPanel = showWizard(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -137,27 +153,33 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, SynchronizationWizardPanel.class);
+        SynchronizationWizardPanel wizardPanel = showWizard(target, pathToValue, SynchronizationWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, CorrelationWizardPanel.class);
+        CorrelationWizardPanel wizardPanel = showWizard(target, pathToValue, CorrelationWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, CapabilitiesWizardPanel.class);
+        CapabilitiesWizardPanel wizardPanel = showWizard(target, pathToValue, CapabilitiesWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, CredentialsWizardPanel.class);
+        CredentialsWizardPanel wizardPanel = showWizard(target, pathToValue, CredentialsWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, ActivationsWizardPanel.class);
+        ActivationsWizardPanel wizardPanel = showWizard(target, pathToValue, ActivationsWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public void showAssociationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, AssociationsWizardPanel.class);
+        AssociationsWizardPanel wizardPanel = showWizard(target, pathToValue, AssociationsWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -167,6 +189,17 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showWizard(target, pathToValue, AttributeMappingWizardPanel.class);
+        AttributeMappingWizardPanel wizardPanel = showWizard(target, pathToValue, AttributeMappingWizardPanel.class);
+        addWizardBreadcrumbsForObjectType(wizardPanel);
+    }
+
+    private void addWizardBreadcrumbsForObjectType(
+            AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> wizardPanel) {
+        List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
+        ResourceObjectTypeDefinitionType objectType = wizardPanel.getValueModel().getObject().getRealValue();
+        String displayName = GuiDisplayNameUtil.getDisplayName(objectType);
+        IModel<String> breadcrumbLabelModel = Model.of(displayName);
+
+            breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
     }
 }

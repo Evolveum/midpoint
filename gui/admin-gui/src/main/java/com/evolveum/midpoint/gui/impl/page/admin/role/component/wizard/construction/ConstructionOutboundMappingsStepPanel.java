@@ -135,6 +135,5 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
         } catch (SchemaException e) {
             LOGGER.error("Couldn't apply delta from attribute value container.");
         }
-
     }
 }

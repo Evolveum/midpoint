@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORT_SIMULATION_VALUES_CHANGED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
@@ -70,6 +70,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             SIM_TEST_DIR, "archetype-customer.xml", "075ebbed-f3b9-4bac-90c2-bb8811121636");
 
     static final String ATTR_TYPE = "type";
+    static final String ATTR_EMPLOYEE_NUMBER = "employeeNumber";
     private static final String ATTR_TELEPHONE_NUMBER = "telephoneNumber";
     private static final String ATTR_MAIL = "mail";
 
@@ -101,20 +102,23 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "resource-simple-production-source.xml",
             "c6caaa46-96c4-4244-883f-2771e18b82c9",
             "simple-production-source",
-            controller -> addTypeAttribute(controller));
+            controller -> addSourceAttributes(controller));
 
     static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-source.xml",
             "6d8ba4fd-95ee-4d98-80c2-3a194b566f89",
             "simple-development-source",
-            controller -> addTypeAttribute(controller));
+            controller -> addSourceAttributes(controller));
 
-    private static void addTypeAttribute(DummyResourceContoller controller)
+    private static void addSourceAttributes(DummyResourceContoller controller)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         controller.addAttrDef(
                 controller.getDummyResource().getAccountObjectClass(),
                 ATTR_TYPE, String.class, false, false);
+        controller.addAttrDef(
+                controller.getDummyResource().getAccountObjectClass(),
+                ATTR_EMPLOYEE_NUMBER, String.class, false, false);
     }
 
     static final String METRIC_ATTRIBUTE_MODIFICATIONS_ID = "attribute-modifications";
@@ -153,6 +157,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
 
+        ARCHETYPE_REPORT.init(this, initTask, initResult);
+        ARCHETYPE_COLLECTION_REPORT.init(this, initTask, initResult);
         REPORT_SIMULATION_VALUES_CHANGED.init(this, initTask, initResult);
     }
 

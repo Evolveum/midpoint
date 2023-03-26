@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -93,6 +94,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     /** See {@link ProcessedObject#getState()}. */
     @NotNull private final ObjectProcessingStateType state;
+
+    /** See {@link ProcessedObject#getResultStatus()}. */
+    @Nullable private OperationResultStatus resultStatus;
+
+    /** See {@link ProcessedObject#getResult()}. */
+    @Nullable private OperationResult result;
 
     /** Readily-accessible values of metrics related to this object. Currently does not include built-in metrics. */
     @NotNull private final ParsedMetricValues parsedMetricValues;
@@ -194,6 +201,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         obj.setRecordId(bean.getId());
         obj.setFocusRecordId(bean.getFocusRecordId());
         obj.setProjectionRecords(bean.getProjectionRecords());
+        obj.setResultAndStatus(bean.getResult(), bean.getResultStatus());
         return obj;
     }
 
@@ -342,6 +350,9 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
 
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
         return processedObject;
     }
 
@@ -445,8 +456,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Collection<String> getMatchingEventMarks() {
+    public @NotNull Collection<String> getMatchingEventMarksOids() {
         return parsedMetricValues.getMatchingEventMarks();
+    }
+
+    @Override
+    public @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs() {
+        return getBeforeOrAfterRequired()
+                .getEffectiveMarkRef();
     }
 
     @Override
@@ -461,6 +478,29 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     private void invalidateCachedBean() {
         this.cachedBean = null;
+    }
+
+    @Override
+    public @Nullable OperationResultStatus getResultStatus() {
+        return resultStatus;
+    }
+
+    @Override
+    public @Nullable OperationResult getResult() {
+        return result;
+    }
+
+    void setResultAndStatus(@Nullable OperationResult result) {
+        assert result == null || result.isClosed();
+        this.result = result;
+        this.resultStatus = result != null ? result.getStatus() : null;
+        invalidateCachedBean();
+    }
+
+    private void setResultAndStatus(@Nullable OperationResultType resultBean, @Nullable OperationResultStatusType statusBean) {
+        this.result = OperationResult.createOperationResult(resultBean);
+        this.resultStatus = OperationResultStatus.parseStatusType(statusBean);
+        invalidateCachedBean();
     }
 
     void setFocusRecordId(Long focusRecordId) {
@@ -486,7 +526,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return delta;
     }
 
-    public SimulationResultProcessedObjectType toBean() {
+    @Override
+    public @NotNull SimulationResultProcessedObjectType toBean() {
         if (cachedBean != null) {
             return cachedBean;
         }
@@ -503,6 +544,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .focus(focus)
                     .focusRecordId(focusRecordId)
                     .projectionRecords(projectionRecords)
+                    .result(result != null ? result.createBeanRootOnly() : null)
+                    .resultStatus(OperationResultStatus.createStatusType(resultStatus))
                     .before(prepareObjectForStorage(before))
                     .after(prepareObjectForStorage(after))
                     .delta(DeltaConvertor.toObjectDeltaType(delta));
@@ -558,6 +601,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         sb.append(" ").append(oid);
         sb.append(" (").append(name).append("): ");
         sb.append(state);
+        sb.append("; status=");
+        sb.append(resultStatus);
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "id", recordId + " in tx '" + transactionId + "'", indent + 1);
         DebugUtil.debugDumpLabel(sb, "context", indent + 1);
@@ -572,6 +617,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             sb.append("This is a projection; focus record ID: ").append(focusRecordId).append(".");
         }
         sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "result", String.valueOf(result), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "metrics", parsedMetricValues, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "before", before, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
@@ -670,6 +716,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 return isModification();
             case DELETED:
                 return isDeletion();
+            case ERRORS:
+                return resultStatus != null && resultStatus.isError();
             default:
                 throw new AssertionError(builtIn);
         }
@@ -946,7 +994,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     static class MetricValue implements Serializable {
 
         public static final MetricValue ZERO = new MetricValue(BigDecimal.ZERO, false);
-        public static final MetricValue ONE = new MetricValue(BigDecimal.ONE, true);
+        static final MetricValue ONE = new MetricValue(BigDecimal.ONE, true);
 
         @NotNull final BigDecimal value;
         final boolean inSelection;

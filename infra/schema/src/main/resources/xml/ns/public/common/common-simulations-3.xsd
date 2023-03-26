@@ -319,6 +319,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="errors">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of objects whose processing finished with a partial or fatal error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERRORS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -1152,6 +1162,38 @@
                     <xsd:documentation>
                         The assumed modification of the object.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result of the whole operation.
+
+                        It is present on "primary" processed objects, for example focus objects for recomputation activity,
+                        or shadows from the source resource for synchronization (import, reconciliation, etc) activities.
+
+                        Note that it is no point in providing result or result status on "target" objects on which simulated
+                        changes are computed. Because these changes are not executed, they have no real result nor result status.
+                        Hence, we provide only a single result per operation, and provide it on the "primary" processed object.
+
+                        If the result is missing, SUCCESS is assumed.
+
+                        The result may be shortened, i.e. some parts may be removed to save space.
+                        (Currently, only the root level is kept.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.result</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Status of the operation. Present on "primary" processed objects. See the "result" property.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SimulationResultProcessedObjectType.resultStatus</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

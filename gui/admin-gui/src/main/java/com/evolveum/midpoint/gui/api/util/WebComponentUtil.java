@@ -985,12 +985,12 @@ public final class WebComponentUtil {
         return concreteTypes;
     }
 
+    /**
+     * @deprecated see {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil#createKeyForEnum(Enum)}
+     */
+    @Deprecated
     public static <T extends Enum> String createEnumResourceKey(T value) {
-        if (value == null) {
-            return null;
-        }
-
-        return value.getClass().getSimpleName() + "." + value.name();
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.createKeyForEnum(value);
     }
 
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {

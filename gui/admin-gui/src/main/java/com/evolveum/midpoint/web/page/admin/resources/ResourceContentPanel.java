@@ -87,12 +87,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final String ID_SIMULATION = "simulation";
     private static final String ID_TOTALS = "totals";
 
-    private final ShadowKindType kind;
-    private final String intent;
-    private final QName objectClass;
+    private static ShadowKindType kind;
+    private static String intent;
+    private static QName objectClass;
 
     private String searchMode;
-//    private SelectableBeanObjectDataProvider<ShadowType> provider;
 
     IModel<PrismObject<ResourceType>> resourceModel;
 
@@ -101,11 +100,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
             ShadowKindType kind, String intent, String searchMode, ContainerPanelConfigurationType config) {
         super(id);
-        this.kind = kind;
+        ResourceContentPanel.kind = kind;
         this.searchMode = searchMode;
         this.resourceModel = resourceModel;
-        this.intent = intent;
-        this.objectClass = objectClass;
+        ResourceContentPanel.intent = intent;
+        ResourceContentPanel.objectClass = objectClass;
         this.config = config;
     }
 
@@ -119,20 +118,20 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         initLayout();
     }
 
-    public ShadowKindType getKind() {
-        return kind;
-    }
-
-    public String getIntent() {
-        return intent;
-    }
-
     public IModel<PrismObject<ResourceType>> getResourceModel() {
         return resourceModel;
     }
 
-    public QName getObjectClass() {
+    public static QName getObjectClass() {
         return objectClass;
+    }
+
+    public static ShadowKindType getKind() {
+        return kind;
+    }
+
+    public static String getIntent() {
+        return intent;
     }
 
     ResourceObjectDefinition createAttributeSearchItemWrappers() {
@@ -297,7 +296,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         shadowListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES);
         add(shadowListPanel);
 
-        Label label = new Label(ID_LABEL, "Nothing to show. Select intent to search");
+        Label label = new Label(ID_LABEL, createStringResource("ResourceContentPanel.message.nothingToShow"));
         add(label);
         label.setOutputMarkupId(true);
         label.add(new VisibleEnableBehaviour() {
@@ -311,7 +310,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         WebMarkupContainer taskButtonsContainer = new WebMarkupContainer(ID_TASK_BUTTONS_CONTAINER);
         taskButtonsContainer.setOutputMarkupId(true);
-        taskButtonsContainer.add(new VisibleBehaviour(() -> isTaskButtonsContainerVisible()));
+        taskButtonsContainer.add(new VisibleBehaviour(this::isTaskButtonsContainerVisible));
         add(taskButtonsContainer);
 
         initButton(
@@ -493,11 +492,16 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     }
 
     private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid, boolean isSimulation) {
-        List<ObjectReferenceType> archetypeRef = Arrays.asList(
+        List<ObjectReferenceType> archetypeRef = List.of(
                 new ObjectReferenceType()
                         .oid(archetypeOid)
                         .type(ArchetypeType.COMPLEX_TYPE));
         try {
+
+            if (Objects.isNull(getObjectClass())) {
+                updateDefinitions();
+            }
+
             TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
 
             if (isSimulation) {
@@ -655,4 +659,23 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ShadowTablePanel getTable() {
         return (ShadowTablePanel) get(ID_TABLE);
     }
+
+    protected void updateDefinitions() {
+        LOGGER.trace("Trying to update definitions for kind: {}, intent: {}", getKind(), getIntent());
+        ResourceObjectDefinition objectClassDef = null;
+        try {
+            objectClassDef = getDefinitionByKind();
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
+        }
+        if (objectClassDef == null) {
+            LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+        } else {
+            objectClass = objectClassDef.getTypeName();
+            if (getIntent() == null) {
+                intent = ((ResourceObjectTypeDefinitionImpl) objectClassDef).getIntent();
+            }
+        }
+    }
+
 }

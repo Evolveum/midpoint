@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
@@ -12,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -100,8 +107,10 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
 
                     try {
                         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-                        ResourceObjectTypeDefinition actualOc =
-                                (ResourceObjectTypeDefinition) WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
+                        ResourceObjectDefinition resourceObjectDefinition = WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
+                        ResourceObjectTypeDefinition actualOc = resourceObjectDefinition instanceof ResourceObjectTypeDefinition
+                                ? (ResourceObjectTypeDefinition) resourceObjectDefinition
+                                : null;
                         schema.getObjectTypeDefinitions().forEach(oc -> {
                             String icon = WebComponentUtil.createShadowIcon(oc.getKind());
 

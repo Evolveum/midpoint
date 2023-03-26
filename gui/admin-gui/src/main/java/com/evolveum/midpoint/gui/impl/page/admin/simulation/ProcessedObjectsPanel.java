@@ -7,40 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -57,9 +26,44 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -159,9 +163,46 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         onObjectNameClicked(rowModel.getObject());
                     }
+
+                    @Override
+                    protected void onIconClicked(AjaxRequestTarget target) {
+                        showOperationResult(target, model);
+                    }
+
+                    @Override
+                    protected IModel<String> createIconCssModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return status.isConsideredSuccess() ? null : GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED;
+                        };
+                    }
+
+                    @Override
+                    protected IModel<String> createIconTitleModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return getString(LocalizationUtil.createKeyForEnum(status));
+                        };
+                    }
                 });
             }
         };
+    }
+
+    private void showOperationResult(AjaxRequestTarget target, IModel<ProcessedObject<?>> model) {
+        PageBase page = getPageBase();
+
+        IModel<OperationResult> result = () -> model.getObject().getResult();
+
+        page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
     }
 
     private String createProcessedObjectDescription(ProcessedObject<?> obj) {
@@ -169,7 +210,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-        Collection<String> eventMarkOids = obj.getMatchingEventMarks();
+        Collection<String> eventMarkOids = obj.getMatchingEventMarksOids();
         // resolve names from markRefs
         Object[] names = eventMarkOids.stream()
                 .map(oid -> {
@@ -400,8 +441,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
             AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
-        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
 
         List<SimulationResultProcessedObjectType> selected;
         if (rowModel != null) {
@@ -409,12 +448,17 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         } else {
             selected = getSelectedRealObjects();
         }
+
+        PageBase page = getPageBase();
+
         if (selected == null || selected.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
-            getPageBase().showResult(result);
-            target.add(getPageBase().getFeedbackPanel());
+            page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
+            target.add(page.getFeedbackPanel());
             return;
         }
+
+        Task task = page.createSimpleTask(OPERATION_MARK_SHADOW);
+        OperationResult result = task.getResult();
 
         for (var shadow : selected) {
             List<PolicyStatementType> statements = new ArrayList<>();
@@ -422,6 +466,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                 // skip object, since it is added
                 continue;
             }
+
             // We recreate statements (can not reuse them between multiple objects - we can create new or clone
             // but for each delta we need separate statement
             for (String oid : markOids) {
@@ -429,11 +474,14 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         .type(PolicyStatementTypeType.APPLY));
             }
             try {
-                var delta = getPageBase().getPrismContext().deltaFactory().object()
-                        .createModificationAddContainer(ObjectType.class,
+                @SuppressWarnings("unchecked")
+                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
+                    .getCompileTimeClassForObjectType(shadow.getType());
+                var delta = page.getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(type,
                                 shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
                                 statements.toArray(new PolicyStatementType[0]));
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {
@@ -447,13 +495,13 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         }
 
         result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
+        page.showResult(result);
+
         refreshTable(target);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(page.getFeedbackPanel());
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {
         markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
-
 }

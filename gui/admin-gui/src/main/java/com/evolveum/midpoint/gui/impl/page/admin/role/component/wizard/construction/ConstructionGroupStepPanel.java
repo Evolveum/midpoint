@@ -11,12 +11,14 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,7 +26,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -92,7 +93,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
     @Override
     protected void onBeforeRender() {
-        if (isSkipInfoVisible()) {
+        if (nonExistAssociations()) {
             getPageBase().info(getPageBase().createStringResource("ConstructionGroupStepPanel.skipStep").getString());
         }
         super.onBeforeRender();
@@ -105,7 +106,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         return valueModel;
     }
 
-    private boolean isSkipInfoVisible() {
+    private boolean nonExistAssociations() {
         List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
@@ -311,6 +312,11 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         });
     }
 
+    @Override
+    protected boolean skipSearch() {
+        return nonExistAssociations();
+    }
+
     public class AssociationWrapper implements Serializable {
 
         private final String oid;
@@ -375,7 +381,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
         Fragment fragment = new Fragment(id, ID_FOOTER_FRAGMENT, ConstructionGroupStepPanel.this);
-        fragment.add(new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
+        AjaxLink button = new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -401,7 +407,9 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                     target.add(getFeedback());
                 }
             }
-        });
+        };
+        button.add(new VisibleEnableBehaviour(() -> true, () -> !nonExistAssociations()));
+        fragment.add(button);
         return fragment;
     }
 }

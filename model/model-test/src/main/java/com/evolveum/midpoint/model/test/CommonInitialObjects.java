@@ -38,9 +38,6 @@ public interface CommonInitialObjects {
 
     String FUNCTION_LIBRARY = INITIAL_OBJECTS + "/function-library";
 
-    TestObject<ArchetypeType> STANDARD_FUNCTIONS = TestObject.classPath(
-            FUNCTION_LIBRARY, "005-standard-functions.xml", SystemObjectsType.STANDARD_FUNCTIONS.value());
-
     TestObject<ArchetypeType> ARCHETYPE_REPORT = TestObject.classPath(
             ARCHETYPES, "059-archetype-report.xml", SystemObjectsType.ARCHETYPE_REPORT.value());
 
@@ -52,6 +49,14 @@ public interface CommonInitialObjects {
 
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_RECONCILIATION_TASK = TestObject.classPath(
+            ARCHETYPES, "501-archetype-task-reconciliation.xml",
+            SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_IMPORT_TASK = TestObject.classPath(
+            ARCHETYPES, "503-archetype-task-import.xml",
+            SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
 
     TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",

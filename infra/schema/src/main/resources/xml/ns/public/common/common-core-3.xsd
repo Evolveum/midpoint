@@ -16013,13 +16013,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000001005">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="STANDARD_FUNCTIONS"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

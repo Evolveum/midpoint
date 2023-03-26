@@ -169,37 +169,17 @@ $aa$);
 
 -- changes for 4.7
 
--- Simulations
+-- Simulations, enum type changes
 call apply_change(12, $aa$
-    do $$
-        begin
-            -- Temporary code, to migrate from TagType to MarkType
-            if 'TAG'::name = any(enum_range(null::ObjectType)::name[]) then
-               ALTER TYPE ObjectType RENAME VALUE 'TAG' TO 'MARK';
-               ALTER TYPE ReferenceType RENAME VALUE 'PROCESSED_OBJECT_EVENT_TAG' TO 'PROCESSED_OBJECT_EVENT_MARK';
-            else
-               ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
-               ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PERSONA';
-               ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'OBJECT_EFFECTIVE_MARK' AFTER 'OBJECT_CREATE_APPROVER';
-            end if;
-            ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
-            ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
-        end
-    $$;
-$aa$, true); -- TODO remove forced before release
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'PROCESSED_OBJECT_EVENT_MARK' AFTER 'PERSONA';
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'OBJECT_EFFECTIVE_MARK' AFTER 'OBJECT_CREATE_APPROVER';
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
+$aa$);
 
+-- Simulations, tables
 call apply_change(13, $aa$
--- TODO delete before release
-DROP TABLE IF EXISTS m_simulation_result CASCADE;
-DROP TABLE IF EXISTS m_simulation_result_processed_object_default CASCADE;
-DROP TABLE IF EXISTS m_simulation_result_processed_object CASCADE;
-DROP TABLE IF EXISTS m_tag CASCADE;
-DROP TABLE IF EXISTS m_mark CASCADE;
-DROP TABLE IF EXISTS m_processed_object_event_tag;
-DROP TABLE IF EXISTS m_processed_object_event_mark;
-DROP TYPE IF EXISTS ObjectProcessingStateType;
--- TODO end of the block
-
 CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
@@ -289,6 +269,18 @@ LANGUAGE plpgsql;
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
+CREATE TABLE m_processed_object_event_mark (
+  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
+  processedObjectCid INTEGER NOT NULL,
+  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_MARK') STORED,
+  targetOid UUID NOT NULL, -- soft-references m_object
+  targetType ObjectType NOT NULL,
+  relationId INTEGER NOT NULL REFERENCES m_uri(id)
+
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_processed_object_event_mark_default PARTITION OF m_processed_object_event_mark DEFAULT;
 
 CREATE TABLE m_mark (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -304,21 +296,6 @@ CREATE TRIGGER m_mark_update_tr BEFORE UPDATE ON m_mark
 CREATE TRIGGER m_mark_oid_delete_tr AFTER DELETE ON m_mark
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-
-CREATE TABLE m_processed_object_event_mark (
-  ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-  ownerType ObjectType, -- GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED,
-  processedObjectCid INTEGER NOT NULL,
-  referenceType ReferenceType GENERATED ALWAYS AS ('PROCESSED_OBJECT_EVENT_MARK') STORED,
-  targetOid UUID NOT NULL, -- soft-references m_object
-  targetType ObjectType NOT NULL,
-  relationId INTEGER NOT NULL REFERENCES m_uri(id)
-
-) PARTITION BY LIST(ownerOid);
-
-CREATE TABLE m_processed_object_event_mark_default PARTITION OF m_processed_object_event_mark DEFAULT;
-
-
 -- stores ObjectType/effectiveMarkRef
 CREATE TABLE m_ref_object_effective_mark (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -329,11 +306,22 @@ CREATE TABLE m_ref_object_effective_mark (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_effective_markTargetOidRelationId_idx
+CREATE INDEX m_ref_object_effective_mark_targetOidRelationId_idx
     ON m_ref_object_effective_mark (targetOid, relationId);
+$aa$);
 
-$aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
+-- Minor index name fixes
+call apply_change(14, $aa$
+ALTER INDEX m_ref_object_create_approverTargetOidRelationId_idx
+    RENAME TO m_ref_object_create_approver_targetOidRelationId_idx;
+ALTER INDEX m_ref_object_modify_approverTargetOidRelationId_idx
+    RENAME TO m_ref_object_modify_approver_targetOidRelationId_idx;
+$aa$);
 
+-- Making resource.abstract queryable
+call apply_change(15, $aa$
+ALTER TABLE m_resource ADD abstract BOOLEAN;
+$aa$);
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

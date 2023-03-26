@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -202,6 +203,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
+    @VisibleForTesting
     @Override
     public @NotNull List<ProcessedObjectImpl<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException {

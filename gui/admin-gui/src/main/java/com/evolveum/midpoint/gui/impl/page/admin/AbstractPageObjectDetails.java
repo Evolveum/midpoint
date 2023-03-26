@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -306,11 +307,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    protected void navigateAction(){
+    protected void navigateAction() {
         Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
-        if(!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null){
+        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
             navigateToNext(objectListPage);
-        }else {
+        } else {
             redirectBack();
         }
     }

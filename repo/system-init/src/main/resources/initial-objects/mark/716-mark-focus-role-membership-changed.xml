@@ -8,7 +8,8 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000716">
     <name>Focus role membership changed</name>
-    <description>Operation that changed the focus role membership (roleMembershipRef value)</description>
+    <description>Operation that changed the focus role membership</description>
+    <documentation>This mark deals with `roleMembershipRef` value.</documentation>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>

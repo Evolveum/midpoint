@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -983,6 +984,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
+
+    Duration getCleanupAfterCompletion();
+
+    void setCleanupAfterCompletion(Duration duration);
     //endregion
 
     //region Misc

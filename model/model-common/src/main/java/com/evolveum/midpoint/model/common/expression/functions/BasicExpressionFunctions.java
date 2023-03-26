@@ -561,6 +561,7 @@ public class BasicExpressionFunctions {
         return getAttributeValue(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
+    /** The namespace of the attribute is assumed to be "ri:" */
     public <T> T getAttributeValue(ShadowType shadow, String attributeLocalPart) throws SchemaException {
         checkColon(attributeLocalPart);
         return getAttributeValue(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));

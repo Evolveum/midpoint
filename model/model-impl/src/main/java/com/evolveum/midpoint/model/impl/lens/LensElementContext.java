@@ -530,6 +530,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * a construction is assigned - i.e., no primary delta exists in this case. But the policy decision can also be null: until
      * {@link ActivationProcessor#processProjectionsActivation(LensContext, String, XMLGregorianCalendar, Task, OperationResult)}
      * is started - e.g. during the whole focus projection! See also MID-8569.
+     *
+     * Other problems: If there's no focus, then we don't compute the {@link LensProjectionContext#synchronizationPolicyDecision}
+     * at all. See MID-8608 and its fix. It is very unclear and should be clarified.
      */
     public abstract boolean isAdd();
 

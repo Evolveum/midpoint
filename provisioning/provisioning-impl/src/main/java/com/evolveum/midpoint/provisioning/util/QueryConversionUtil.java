@@ -10,11 +10,13 @@ package com.evolveum.midpoint.provisioning.util;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +36,17 @@ public class QueryConversionUtil {
         return parsed;
     }
 
-    public static ObjectFilter parseFilter(SearchFilterType filterBean, @NotNull ResourceObjectDefinition definition)
+    public static @Nullable ObjectFilter parseFilter(
+            @Nullable SearchFilterType filterBean, @NotNull ResourceObjectDefinition definition)
             throws SchemaException {
-        ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().createObjectFilter(ShadowType.class, filterBean);
-        if (parsedFilter != null) {
-            DefinitionsUtil.applyDefinition(parsedFilter, definition);
+        if (filterBean == null) {
+            return null;
         }
-        return parsedFilter;
+
+        var rawShadowDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        var preciseShadowDef = ShadowUtil.applyObjectDefinition(rawShadowDef, definition);
+
+        // Note that we don't need to re-apply the definitions to the parsed filter, as the definitions are set during parsing.
+        return PrismContext.get().getQueryConverter().createObjectFilter(preciseShadowDef, filterBean);
     }
 }

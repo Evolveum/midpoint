@@ -81,8 +81,6 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         modelService.postInit(initResult);
         ManualConnectorInstance.setRandomDelayRange(0);
 
-        repoAdd(STANDARD_FUNCTIONS, initResult);
-
         // Users
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);

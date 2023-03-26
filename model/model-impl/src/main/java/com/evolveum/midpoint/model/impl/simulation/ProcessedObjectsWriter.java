@@ -87,6 +87,11 @@ class ProcessedObjectsWriter {
             ClosedResultsChecker.INSTANCE.checkNotClosed(
                     simulationTransaction.getResultOid());
 
+            OperationResult resultToRecord = fullData.getResultToRecord();
+            LOGGER.trace("Result to record: {}", resultToRecord);
+
+            boolean resultRecordedToProjection = false;
+
             LensFocusContext<?> focusContext = lensContext.getFocusContext();
             ProcessedObjectImpl<?> focusRecord = createProcessedObject(focusContext, result);
 
@@ -94,9 +99,32 @@ class ProcessedObjectsWriter {
             for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
                 ProcessedObjectImpl<ShadowType> projectionRecord = createProcessedObject(projectionContext, result);
                 if (projectionRecord != null) {
+                    if (projectionContext.isSynchronizationSource()) {
+                        LOGGER.trace("Result recorded to {}", projectionContext);
+                        projectionRecord.setResultAndStatus(resultToRecord);
+                        resultRecordedToProjection = true;
+                    }
                     projectionRecords.add(projectionRecord);
                 } else {
                     LOGGER.trace("No processed object for {}", projectionContext);
+                }
+            }
+
+            if (!resultRecordedToProjection) {
+                if (focusRecord != null) {
+                    LOGGER.trace("Result recorded to focus");
+                    focusRecord.setResultAndStatus(resultToRecord);
+                } else if (!result.isError()) {
+                    LOGGER.trace("Result not recorded, but it is not an error -> ignoring");
+                } else {
+                    // What should we do? Let us attach the result to any projection available.
+                    if (!projectionRecords.isEmpty()) {
+                        ProcessedObjectImpl<ShadowType> any = projectionRecords.get(0);
+                        LOGGER.warn("Couldn't find the element context where an error should be recorded, using any: {}", any);
+                        any.setResultAndStatus(resultToRecord);
+                    } else {
+                        LOGGER.warn("Error during simulated processing couldn't be recorded: {}", result.getMessage());
+                    }
                 }
             }
 
@@ -109,6 +137,7 @@ class ProcessedObjectsWriter {
             for (ProcessedObjectImpl<ShadowType> projectionRecord : projectionRecords) {
                 projectionRecord.setFocusRecordId(focusRecord != null ? focusRecord.getRecordId() : null);
             }
+
             storeProcessedObjects(projectionRecords, task, result);
 
         } catch (CommonException e) {
@@ -118,7 +147,8 @@ class ProcessedObjectsWriter {
     }
 
     private <O extends ObjectType> ProcessedObjectImpl<O> createProcessedObject(
-            @Nullable LensElementContext<O> elementContext, OperationResult result) throws CommonException {
+            @Nullable LensElementContext<O> elementContext, OperationResult result)
+            throws CommonException {
         if (elementContext != null) {
             return ProcessedObjectImpl.create(elementContext, simulationTransaction, task, result);
         } else {
@@ -168,6 +198,7 @@ class ProcessedObjectsWriter {
             getOpenResultTransactionsHolder().addProcessedObject(processedObject, simulationTransaction, task, result);
         }
         Collection<SimulationResultProcessedObjectType> processedObjectsBeans = ProcessedObjectImpl.toBeans(processedObjects);
+        stripUnneededData(processedObjectsBeans);
         List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
                 .item(SimulationResultType.F_PROCESSED_OBJECT)
                 .addRealValues(processedObjectsBeans)
@@ -185,6 +216,13 @@ class ProcessedObjectsWriter {
         for (ProcessedObjectImpl<?> processedObject : processedObjects) {
             processedObject.propagateRecordId();
         }
+    }
+
+    private void stripUnneededData(Collection<SimulationResultProcessedObjectType> processedObjectsBeans) {
+        processedObjectsBeans.forEach(po -> {
+            // This is done to save space in repository. TODO add removal of "after" state here
+            po.getConsideredEventMarkRef().clear();
+        });
     }
 
     private static OpenResultTransactionsHolder getOpenResultTransactionsHolder() {

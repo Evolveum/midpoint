@@ -6,12 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="00000000-0000-0000-0000-97631b84fde7">
     <name>Simulation report: Results</name>
+    <description>Individual simulation results, along with respective metric values.</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
@@ -26,7 +25,12 @@
                     OID of the simulation result object.
                 </documentation>
                 <display>
-                    <label>OID</label>
+                    <label>
+                        <t:orig>OID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.OID</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -54,7 +58,12 @@
                 </documentation>
                 <path>definition/identifier</path>
                 <display>
-                    <label>Definition identifier</label>
+                    <label>
+                        <t:orig>Definition identifier</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.definitionIdentifier</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
@@ -75,7 +84,12 @@
                 </documentation>
                 <path>rootTaskRef</path>
                 <display>
-                    <label>Task</label>
+                    <label>
+                        <t:orig>Task</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.task</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>endTimestamp</previousColumn>
             </column>
@@ -83,7 +97,12 @@
                 <name>configuration</name>
                 <path>configurationUsed/predefined</path>
                 <display>
-                    <label>Predefined configuration</label>
+                    <label>
+                        <t:orig>Predefined configuration</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.predefinedConfiguration</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>rootTaskRef</previousColumn>
             </column>
@@ -94,7 +113,12 @@
                     Built-in metric identifier corresponding to the metric row. (If applicable.)
                 </documentation>
                 <display>
-                    <label>Built-in metric</label>
+                    <label>
+                        <t:orig>Built-in metric</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.builtInMetric</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>configuration</previousColumn>
                 <export>
@@ -115,7 +139,12 @@
                     Event mark corresponding to the metric row. (If applicable.)
                 </documentation>
                 <display>
-                    <label>Event mark</label>
+                    <label>
+                        <t:orig>Event mark</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.eventMark</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>builtInMetric</previousColumn>
                 <export>
@@ -136,7 +165,12 @@
                     Explicit metric identifier corresponding to the metric row. (If applicable.)
                 </documentation>
                 <display>
-                    <label>Explicit metric</label>
+                    <label>
+                        <t:orig>Explicit metric</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.explicitMetric</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>eventMark</previousColumn>
                 <export>
@@ -154,7 +188,12 @@
             <column>
                 <name>aggregationFunction</name>
                 <display>
-                    <label>Aggregation function</label>
+                    <label>
+                        <t:orig>Aggregation function</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.aggregationFunction</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>explicitMetric</previousColumn>
                 <export>
@@ -176,7 +215,12 @@
                     Type of objects (user, role, org, shadow, ...).
                 </documentation>
                 <display>
-                    <label>Scope: type</label>
+                    <label>
+                        <t:orig>Scope: type</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeType</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>aggregationFunction</previousColumn>
                 <export>
@@ -197,7 +241,12 @@
                     Structural archetype of the objects. Applicable only to focal objects.
                 </documentation>
                 <display>
-                    <label>Scope: archetype</label>
+                    <label>
+                        <t:orig>Scope: archetype</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeArchetype</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>scopeType</previousColumn>
                 <export>
@@ -222,7 +271,12 @@
                     Resource on which the projection (shadow) resides. Applicable only to projections.
                 </documentation>
                 <display>
-                    <label>Scope: resource</label>
+                    <label>
+                        <t:orig>Scope: resource</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeResource</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>scopeArchetype</previousColumn>
                 <export>
@@ -247,7 +301,12 @@
                     Kind of the projection (shadow). Applicable only to projections.
                 </documentation>
                 <display>
-                    <label>Scope: kind</label>
+                    <label>
+                        <t:orig>Scope: kind</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeKind</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>scopeResource</previousColumn>
                 <export>
@@ -268,7 +327,12 @@
                     Intent of the projection (shadow). Applicable only to projections.
                 </documentation>
                 <display>
-                    <label>Scope: intent</label>
+                    <label>
+                        <t:orig>Scope: intent</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeIntent</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>scopeKind</previousColumn>
                 <export>
@@ -289,7 +353,12 @@
                     Aggregated value of the metric for given partition.
                 </documentation>
                 <display>
-                    <label>Value</label>
+                    <label>
+                        <t:orig>Value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.value</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>scopeIntent</previousColumn>
                 <export>
@@ -312,7 +381,12 @@
                     The default meaning is "all objects that have metric value greater than zero".)
                 </documentation>
                 <display>
-                    <label>Selection size</label>
+                    <label>
+                        <t:orig>Selection size</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.selectionSize</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>value</previousColumn>
                 <export>
@@ -333,7 +407,12 @@
                     Sum of metric values for all objects selected by the metric.
                 </documentation>
                 <display>
-                    <label>Selection total value</label>
+                    <label>
+                        <t:orig>Selection total value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.selectionTotalValue</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>selectionSize</previousColumn>
                 <export>
@@ -354,7 +433,12 @@
                     Number of objects on which given metric was evaluated.
                 </documentation>
                 <display>
-                    <label>Domain size</label>
+                    <label>
+                        <t:orig>Domain size</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.domainSize</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>selectionTotalValue</previousColumn>
                 <export>
@@ -375,7 +459,12 @@
                     Sum of metric values for all objects.
                 </documentation>
                 <display>
-                    <label>Domain total value</label>
+                    <label>
+                        <t:orig>Domain total value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.domainTotalValue</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>domainSize</previousColumn>
                 <export>

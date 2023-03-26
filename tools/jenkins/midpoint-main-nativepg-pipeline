@@ -54,13 +54,28 @@ podTemplate(
             }
             stage("db-init") {
                 container('postgres') {
-                    sh """#!/bin/bash -ex
-                        set -x
-                        psql --version
-                        psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native-new/postgres-new.sql \
-                            -f config/sql/native-new/postgres-new-audit.sql -f config/sql/native-new/postgres-new-quartz.sql
-                        #psql -U midtest -c "\\dt" # uncomment to list the tables
-                    """
+                    if (!params.DB_UPGRADE_FROM_TAG) {
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native-new/postgres-new.sql \
+                                -f config/sql/native-new/postgres-new-audit.sql -f config/sql/native-new/postgres-new-quartz.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    } else {
+                        // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres-new.sql \
+                                -f postgres-new-audit.sql -f config/sql/native-new/postgres-new-quartz.sql
+
+                            echo -e "\n*** UPGRADING DB ***\n"
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native-new/postgres-new-upgrade.sql \
+                                -f config/sql/native-new/postgres-new-upgrade-audit.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    }
                 }
             }
             stage("build-with-tests") {
@@ -92,7 +107,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,extratest,dbtest,-dist verify -rf testing \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,extratest,-dist verify -rf testing \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
                             -Dtest.config.file=test-config-new-repo.xml \
                             -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"

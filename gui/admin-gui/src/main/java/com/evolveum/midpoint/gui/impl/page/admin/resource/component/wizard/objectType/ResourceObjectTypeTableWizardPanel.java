@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSche
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -78,19 +80,18 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
             @Override
             protected void onNewValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
-                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = () -> {
-                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = containerModel.getObject();
-                    PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
-                    try {
-                        PrismContainerValueWrapper newWrapper = WebPrismUtil.createNewValueWrapper(
-                                container, value, getPageBase(), getObjectDetailsModels().createWrapperContext());
-                        container.getValues().add(newWrapper);
-                        return newWrapper;
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't create new value for container " + container, e);
-                    }
-                    return null;
-                };
+                PageBase pageBase = getPageBase();
+                PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = containerModel.getObject();
+                PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
+                PrismContainerValueWrapper newWrapper = null;
+                try {
+                    newWrapper = WebPrismUtil.createNewValueWrapper(
+                            container, value, pageBase, getObjectDetailsModels().createWrapperContext());
+                    container.getValues().add(newWrapper);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create new value for container " + container, e);
+                }
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = Model.of(newWrapper);
                 onCreateValue(model, target);
             }
         };

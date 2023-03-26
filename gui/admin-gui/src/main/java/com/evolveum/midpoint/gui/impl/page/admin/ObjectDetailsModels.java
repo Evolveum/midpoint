@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -346,7 +347,13 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         if (!savedDeltas.isEmpty()) {
             savedDeltas.forEach(delta -> {
                 try {
-                    ((ObjectDelta)delta).applyTo(newObject);
+                    if (delta.isAdd()) {
+                        if (newObject.isEmpty()) {
+                            newObject.getValue().mergeContent(delta.getObjectToAdd().getValue(), List.of());
+                        }
+                    } else {
+                        ((ObjectDelta) delta).applyTo(newObject);
+                    }
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't apply delta " + delta + " to object " + newObject, e);
                 }

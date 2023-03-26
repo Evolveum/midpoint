@@ -134,9 +134,18 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     protected WebMarkupContainer createTableButtonToolbar(String id) {
                         return MultiSelectTileWizardStepPanel.this.createTableButtonToolbar(id);
                     }
+
+                    @Override
+                    protected boolean skipSearch() {
+                        return MultiSelectTileWizardStepPanel.this.skipSearch();
+                    }
                 };
         tilesTable.setOutputMarkupId(true);
         add(tilesTable);
+    }
+
+    protected boolean skipSearch() {
+        return false;
     }
 
     protected WebMarkupContainer createTableButtonToolbar(String id) {

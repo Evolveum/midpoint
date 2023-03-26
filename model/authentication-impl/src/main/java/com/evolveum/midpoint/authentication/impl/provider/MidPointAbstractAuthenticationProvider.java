@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -219,8 +218,12 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     protected ConnectionEnvironment createConnectEnvironment(String channel) {
         ConnectionEnvironment env = ConnectionEnvironment.create(channel);
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getSessionId() != null) {
-            env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
+        if (actualAuthentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+            if (mpAuthentication.getSessionId() != null) {
+                env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
+            }
+            env.setSequenceIdentifier(mpAuthentication.getSequenceIdentifier());
         }
         return env;
     }

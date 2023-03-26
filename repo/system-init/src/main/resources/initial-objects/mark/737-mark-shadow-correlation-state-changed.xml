@@ -8,10 +8,7 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="00000000-0000-0000-0000-000000000737">
     <name>Shadow correlation state changed</name>
-    <description>TODO</description>
-    <documentation>
-        TODO
-    </documentation>
+    <description>Correlation state of a shadow was changed</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>

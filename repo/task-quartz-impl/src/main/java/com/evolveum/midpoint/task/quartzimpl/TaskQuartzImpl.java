@@ -1732,8 +1732,14 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_COMPLETION_TIMESTAMP, createXMLGregorianCalendar(value));
     }
 
+    @Override
     public Duration getCleanupAfterCompletion() {
         return getProperty(TaskType.F_CLEANUP_AFTER_COMPLETION);
+    }
+
+    @Override
+    public void setCleanupAfterCompletion(Duration duration) {
+        setProperty(TaskType.F_CLEANUP_AFTER_COMPLETION, duration);
     }
 
     @Override

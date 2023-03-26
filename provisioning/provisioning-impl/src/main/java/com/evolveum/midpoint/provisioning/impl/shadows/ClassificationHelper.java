@@ -12,7 +12,12 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -185,12 +190,28 @@ class ClassificationHelper {
      * See https://docs.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/#shadow-classification.
      */
     boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) throws SchemaException, ConfigurationException {
-        if (!ShadowUtil.isClassified(repoShadow)) {
+        ResourceObjectTypeIdentification declaredType = ShadowUtil.getTypeIdentification(repoShadow);
+        if (declaredType == null) {
             LOGGER.trace("Shadow is not classified -> we will do that");
             return true;
         }
 
         ProvisioningContext subCtx = ctx.spawnForShadow(repoShadow);
+        ResourceObjectDefinition resolvedDefinition = subCtx.getObjectDefinition();
+        if (resolvedDefinition == null) {
+            LOGGER.trace("Shadow is classified as {} but no definition exists -> will re-classify it", declaredType);
+            return true;
+        }
+        @Nullable ResourceObjectTypeIdentification resolvedType = resolvedDefinition.getTypeIdentification();
+        if (!declaredType.equals(resolvedType)) {
+            // For example, if the type no longer exists in the definition, we may end up either with class definition, or
+            // (even worse) with default type definition for given class. Hence the type equality check.
+            // See also 2nd part of MID-8613.
+            LOGGER.trace("Shadow is classified as {} but the definition is resolved to {} ({}) -> will re-classify it",
+                    declaredType, resolvedType, resolvedDefinition);
+            return true;
+        }
+
         if (subCtx.isObjectDefinitionInProduction()) {
             LOGGER.trace("Current object definition is in production and the shadow is already classified "
                     + "-> will NOT re-classify the shadow");

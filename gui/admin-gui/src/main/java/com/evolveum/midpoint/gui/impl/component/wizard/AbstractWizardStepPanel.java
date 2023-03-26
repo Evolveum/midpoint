@@ -58,14 +58,6 @@ public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
         return detailsModel;
     }
 
-//    @Override
-//    protected IModel<String> getNextLabelModel() {
-//        if (getWizard().getNextPanel() == null) {
-//            return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
-//        }
-//        return super.getNextLabelModel();
-//    }
-
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         target.add(getFeedback());
     }

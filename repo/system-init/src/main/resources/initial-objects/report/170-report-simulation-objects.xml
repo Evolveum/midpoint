@@ -8,8 +8,10 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="00000000-0000-0000-0000-286d76cea7c5">
     <name>Simulation report: Objects</name>
+    <description>Objects processed by a given simulation.</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
@@ -31,7 +33,12 @@
             <column>
                 <name>id</name>
                 <display>
-                    <label>ID</label>
+                    <label>
+                        <t:orig>ID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.ID</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -45,7 +52,12 @@
                 <name>oid</name>
                 <path>oid</path>
                 <display>
-                    <label>OID</label>
+                    <label>
+                        <t:orig>OID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.OID</t:key>
+                        </t:translation>
+                    </label>
                 </display>
                 <previousColumn>id</previousColumn>
             </column>
@@ -85,14 +97,57 @@
                 <previousColumn>intent</previousColumn>
             </column>
             <column>
+                <name>objectMark</name>
+                <display>
+                    <label>
+                        <t:orig>Object mark</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.objectMark</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>tag</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>objectMarks</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
                 <name>state</name>
                 <path>state</path>
-                <previousColumn>tag</previousColumn>
+                <previousColumn>objectMark</previousColumn>
+            </column>
+            <column>
+                <name>resultStatus</name>
+                <path>resultStatus</path>
+                <previousColumn>state</previousColumn>
             </column>
             <column>
                 <name>eventMarkRef</name>
                 <path>eventMarkRef</path>
-                <previousColumn>state</previousColumn>
+                <previousColumn>resultStatus</previousColumn>
+            </column>
+            <column>
+                <name>message</name>
+                <display>
+                    <label>
+                        <t:orig>Message</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.message</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>eventMarkRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object?.result?.message</code>
+                        </script>
+                    </expression>
+                </export>
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>
@@ -101,8 +156,26 @@
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
             <display>
-                <label>Simulation result</label>
+                <label>
+                    <t:orig>simulationResultRef</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.simulationResultRef</t:key>
+                    </t:translation>
+                </label>
             </display>
         </parameter>
+        <subreport>
+            <name>objectMarks</name>
+            <type>c:ObjectReferenceType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
+
+                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                    </code>
+                </script>
+            </expression>
+        </subreport>
     </objectCollection>
 </report>

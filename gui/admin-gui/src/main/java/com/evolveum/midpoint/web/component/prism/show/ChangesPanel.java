@@ -7,20 +7,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
@@ -30,6 +16,20 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChangesPanel extends BasePanel<Void> {
 
@@ -44,6 +44,7 @@ public class ChangesPanel extends BasePanel<Void> {
     private static final String ID_TITLE = "title";
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_BODY = "body";
+    private static final String ID_NO_CHANGES = "noChanges";
     private static final String ID_VISUALIZATIONS = "visualizations";
     private static final String ID_VISUALIZATION = "visualization";
 
@@ -87,6 +88,9 @@ public class ChangesPanel extends BasePanel<Void> {
 
                 for (ObjectDeltaType delta : deltaModel.getObject()) {
                     Visualization visualization = SimulationsGuiUtil.createVisualization(delta, getPageBase());
+                    if (visualization == null) {
+                        continue;
+                    }
                     result.add(new VisualizationDto(visualization));
                 }
 
@@ -140,6 +144,10 @@ public class ChangesPanel extends BasePanel<Void> {
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.setOutputMarkupId(true);
         add(body);
+
+        WebMarkupContainer noChanges = new WebMarkupContainer(ID_NO_CHANGES);
+        noChanges.add(new VisibleBehaviour(() -> changesModel.getObject().isEmpty()));
+        body.add(noChanges);
 
         Component visualizations = createVisualizations();
         body.add(visualizations);

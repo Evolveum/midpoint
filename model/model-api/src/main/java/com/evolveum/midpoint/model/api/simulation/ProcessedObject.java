@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.delta.ItemDeltaFilter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -76,8 +77,29 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      */
     @NotNull ObjectProcessingStateType getState();
 
+    /**
+     * The status of the operation connected to this object.
+     *
+     * Only "primary" objects have this information.
+     *
+     * @see SimulationResultProcessedObjectType#getResultStatus()
+     */
+    @Nullable OperationResultStatus getResultStatus();
+
+    /**
+     * The result of the operation connected to this object.
+     *
+     * Only "primary" objects have this information.
+     *
+     * @see SimulationResultProcessedObjectType#getResult()
+     */
+    @Nullable OperationResult getResult();
+
     /** Returns OIDs of matching event marks for this object. */
-    @NotNull Collection<String> getMatchingEventMarks();
+    @NotNull Collection<String> getMatchingEventMarksOids();
+
+    /** Returns references of object marks. Primarily on "object before" state (if exists). To be reconsidered. */
+    @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs();
 
     /**
      * Returns the state of the object before the operation.
@@ -103,6 +125,17 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
     default O getAfterOrBefore() {
         return MiscUtil.getFirstNonNull(getAfter(), getBefore());
     }
+
+    default @NotNull O getBeforeOrAfterRequired() {
+        return MiscUtil.requireNonNull(
+                MiscUtil.getFirstNonNull(getBefore(), getAfter()),
+                () -> new IllegalStateException("No object in " + this));
+    }
+
+    /**
+     * Creates a {@link SimulationResultProcessedObjectType} bean corresponding to this object.
+     */
+    @NotNull SimulationResultProcessedObjectType toBean();
 
     /** For diagnostic purposes. */
     @VisibleForTesting

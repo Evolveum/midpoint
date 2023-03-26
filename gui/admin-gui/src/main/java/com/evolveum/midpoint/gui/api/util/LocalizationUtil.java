@@ -129,4 +129,12 @@ public class LocalizationUtil {
         String key = WebComponentUtil.createEnumResourceKey(e);
         return translate(key);
     }
+
+    public static <T extends Enum> String createKeyForEnum(T value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.getClass().getSimpleName() + "." + value.name();
+    }
 }

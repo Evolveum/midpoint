@@ -6,9 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import static com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -25,7 +38,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -34,19 +46,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.StringResourceModel;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
@@ -199,17 +198,12 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         resourceRef.setTargetName(new PolyStringType(resource.getName()));
         newTask.setObjectRef(resourceRef);
 
-        prepopulateTask(newTask, resource, archetypeRefs);
+        prepopulateTask(newTask, archetypeRefs);
 
         return newTask;
     }
 
-    private static void prepopulateTask(TaskType task, PrismObject<ResourceType> resource, List<ObjectReferenceType> archetypeRefs) {
-        SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
-        List<ResourceObjectTypeDefinitionType> objectTypes = Collections.emptyList();
-        if (schemaHandling != null) {
-            objectTypes = schemaHandling.getObjectType();
-        }
+    private static void prepopulateTask(TaskType task, List<ObjectReferenceType> archetypeRefs) {
 
         if (task.getObjectRef() != null && ResourceType.COMPLEX_TYPE.equals(task.getObjectRef().getType())) {
             if (hasArchetype(archetypeRefs, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())) {
@@ -221,7 +215,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     work.setReconciliation(recon);
                 }
 
-                ResourceObjectSetType set = updateResourceObjectsSet(recon.getResourceObjects(), task.getObjectRef(), objectTypes);
+                ResourceObjectSetType set = updateResourceObjectsSet(recon.getResourceObjects(), task.getObjectRef());
                 recon.setResourceObjects(set);
             } else if (hasArchetype(archetypeRefs, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())) {
                 WorkDefinitionsType work = findWork(task);
@@ -232,7 +226,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     work.setImport(imp);
                 }
 
-                ResourceObjectSetType set = updateResourceObjectsSet(imp.getResourceObjects(), task.getObjectRef(), objectTypes);
+                ResourceObjectSetType set = updateResourceObjectsSet(imp.getResourceObjects(), task.getObjectRef());
                 imp.setResourceObjects(set);
             } else if (hasArchetype(archetypeRefs, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())) {
                 WorkDefinitionsType work = findWork(task);
@@ -243,7 +237,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     work.setLiveSynchronization(live);
                 }
 
-                ResourceObjectSetType set = updateResourceObjectsSet(live.getResourceObjects(), task.getObjectRef(), objectTypes);
+                ResourceObjectSetType set = updateResourceObjectsSet(live.getResourceObjects(), task.getObjectRef());
                 live.setResourceObjects(set);
             } else if (hasArchetype(archetypeRefs, SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value())) {
                 WorkDefinitionsType work = findWork(task);
@@ -254,7 +248,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     work.setAsynchronousUpdate(async);
                 }
 
-                ResourceObjectSetType set = updateResourceObjectsSet(async.getUpdatedResourceObjects(), task.getObjectRef(), objectTypes);
+                ResourceObjectSetType set = updateResourceObjectsSet(async.getUpdatedResourceObjects(), task.getObjectRef());
                 async.setUpdatedResourceObjects(set);
             }
         }
@@ -274,7 +268,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
         return work;
     }
 
-    private static ResourceObjectSetType updateResourceObjectsSet(ResourceObjectSetType set, ObjectReferenceType objectRef, List<ResourceObjectTypeDefinitionType> objectTypes) {
+    private static ResourceObjectSetType updateResourceObjectsSet(ResourceObjectSetType set, ObjectReferenceType objectRef) {
         if (set == null) {
             set = new ResourceObjectSetType();
         }
@@ -283,12 +277,9 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
             set.setResourceRef(objectRef);
         }
 
-        if (objectTypes.size() == 1) {
-            ResourceObjectTypeDefinitionType def = objectTypes.get(0);
-            set.setKind(def.getKind());
-            set.setIntent(def.getIntent());
-            set.setObjectclass(getObjectClassName(def));
-        }
+        set.setKind(getKind());
+        set.setIntent(getIntent());
+        set.setObjectclass(getObjectClass());
 
         return set;
     }

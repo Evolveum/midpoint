@@ -10,13 +10,10 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
-import com.evolveum.midpoint.gui.impl.factory.panel.AttributeMappingItemPathPanelFactory;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -251,7 +248,15 @@ public class WebPrismUtil {
             Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
             while (iterator.hasNext()) {
                 PrismPropertyValue<T> pVal = iterator.next();
-                if (pVal == null || pVal.isEmpty() || pVal.getRealValue() == null) {
+                if (pVal == null) {
+                    iterator.remove();
+                    continue;
+                }
+                if (pVal.getRealValue() instanceof ExpressionType && ExpressionUtil.isEmpty((ExpressionType)pVal.getRealValue())) {
+                    iterator.remove();
+                    continue;
+                }
+                if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
                 }
             }
@@ -303,13 +308,13 @@ public class WebPrismUtil {
             return false;
         }
 
-        if (hasValueMetadata(valueFromDelta)) {
+        if (hasValueTemplateMetadata(valueFromDelta)) {
             return true;
         }
         Item<PrismValue, ItemDefinition<?>> item = parent.findItem(valueFromDelta.getParent().getPath());
         PrismContainerValue<?> value = item.getParent();
         while (!(value instanceof PrismObjectValue)) {
-            if (hasValueMetadata(value)) {
+            if (hasValueTemplateMetadata(value)) {
                 return true;
             }
             value = value.getParentContainerValue();
@@ -317,7 +322,7 @@ public class WebPrismUtil {
         return false;
     }
 
-    private static boolean hasValueMetadata(PrismValue value) {
+    public static boolean hasValueTemplateMetadata(PrismValue value) {
         if (value == null) {
             return false;
         }

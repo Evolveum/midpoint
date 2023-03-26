@@ -1729,6 +1729,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        assertTask(taskAfter, "after")
+                .assertSuccess();
 
         dumpStatistics(taskAfter);
 

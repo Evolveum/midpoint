@@ -7,29 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -48,8 +25,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
@@ -65,6 +40,28 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -88,8 +85,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class PageSimulationResultObject extends PageAdmin implements SimulationPage {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageSimulationResultObject.class);
 
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
@@ -384,9 +379,15 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected List<ObjectDeltaType> load() {
                 ObjectDeltaType delta = objectModel.getObject().getDelta();
+                if (delta == null) {
+                    return Collections.emptyList();
+                }
+
                 try {
                     ProcessedObject<?> object = SimulationsGuiUtil.parseProcessedObject(objectModel.getObject(), PageSimulationResultObject.this);
-
+                    if (object == null || object.getDelta() == null) {
+                        return Collections.emptyList();
+                    }
                     // this should provide better delta - with proper estimated old values, since simulation processed object
                     // contains before/after state of object together with delta
                     delta = DeltaConvertor.toObjectDeltaType(object.getDelta());
@@ -398,7 +399,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             }
         };
 
-        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, () -> Arrays.asList(objectModel.getObject().getDelta()), null);
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, deltas, null);
         changesNew.setShowOperationalItems(true);
         changesNew.add(new VisibleBehaviour(() -> !isExperimentalFeaturesDisabled()));
         add(changesNew);
@@ -415,7 +416,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         }
 
         CompiledGuiProfile profile = principal.getCompiledGuiProfile();
-        return profile != null && BooleanUtils.isFalse(profile.isEnableExperimentalFeatures());
+        return BooleanUtils.isFalse(profile.isEnableExperimentalFeatures());
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {

@@ -82,7 +82,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
      * reality it is not always present.)
      *
-     * This information was once used for operation execution recording, but is not used now.
+     * This information was once used for operation execution recording. It is no longer the case.
+     * But since 4.7 we use it for recording result and result status during simulations.
      */
     private boolean synchronizationSource;
 
@@ -672,6 +673,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
+                || (synchronizationPolicyDecision == null && synchronizationIntent == SynchronizationIntent.DELETE) // MID-8608
                 || ObjectDelta.isDelete(syncDelta)
                 || ObjectDelta.isDelete(state.getPrimaryDelta());
     }
@@ -1733,6 +1735,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.synchronizationSource = synchronizationSource;
     }
 
+    public boolean isSynchronizationSource() {
+        return synchronizationSource;
+    }
+
     public String getDescription() {
         if (resource != null) {
             return resource + "("+ key.getIntent()+")";
@@ -1819,6 +1825,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isBroken() {
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN;
+    }
+
+    public boolean isIgnored() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE;
     }
 
     /**

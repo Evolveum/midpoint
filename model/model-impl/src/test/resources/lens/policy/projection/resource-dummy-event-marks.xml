@@ -32,11 +32,6 @@
         <icfc:configurationProperties>
             <icfi:instanceId>event-marks</icfi:instanceId>
         </icfc:configurationProperties>
-        <icfc:resultsHandlerConfiguration>
-            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-        </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
     <schemaHandling>
@@ -47,12 +42,19 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlator/>
                 <outbound>
                     <strength>strong</strength>
                     <source>
                         <path>name</path>
                     </source>
                 </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:samAccountName</ref>
@@ -90,6 +92,24 @@
                     <outbound/>
                 </password>
             </credentials>
+            <synchronization>
+                <reaction>
+                    <documentation>Delete unmatched accounts whose names contain 'sensitive'</documentation>
+                    <situation>unmatched</situation>
+                    <condition>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME
+
+                                (basic.getAttributeValue(projection, ICFS_NAME) as String).contains('sensitive')
+                            </code>
+                        </script>
+                    </condition>
+                    <actions>
+                        <deleteResourceObject/> <!-- MID-8608 -->
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
         <objectType>
             <kind>entitlement</kind>

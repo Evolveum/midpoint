@@ -14,9 +14,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -254,7 +257,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return wizardBreadcrumbs;
     }
 
-    protected <C extends Containerable, P extends BasePanel> P showWizard(
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             AjaxRequestTarget target,
             ItemPath pathToValue,
             Class<P> clazz) {
@@ -325,6 +328,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 getObjectDetailsModels().reset();
                 getObjectDetailsModels().reloadPrismObjectModel(oldObject);
                 backToDetailsFromWizard(target);
+                getWizardBreadcrumbs().clear();
             }
 
             @Override
@@ -333,6 +337,13 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError()) {
                     WebComponentUtil.createToastForUpdateObject(target, getType());
+                    if (!isEditObject()) {
+                        String oid = getPrismObject().getOid();
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                        Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(getType());
+                        navigateToNext(page, parameters);
+                    }
                 }
                 return result;
             }
