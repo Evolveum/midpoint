@@ -193,6 +193,23 @@ image::resources-accounts-02.png[]
 .Select Marks to be added to shadow
 image::resources-accounts-03.png[]
 
+=== Removing Shadow Marks in Resource Details
+
+MidPoint GUI allows removing manually mark of shadows in resource details view using *Remove Marks* actions in *Accounts* and *Entitlements*.
+
+==== Workflow screenshots
+.Go to Resource -> Accounts, select accounts from which marks will be removed
+image::mark-shadow-remove-01.png[]
+
+.Click on Menu for Selected Shadows, Select Remove Marks
+image::mark-shadow-remove-02.png[]
+
+.Select Marks which should be removed from selected accounts
+image::mark-shadow-remove-03.png[]
+
+.Click Remove Marks to remove them
+image::mark-shadow-remove-04.png[]
+
 === Marking Shadows in Simulation Results
 
 MidPoint GUI allows manually marking shadows in Simulations results -> Processed Object views.
@@ -214,4 +231,4 @@ image::simulations-processed-object-04.png[]
 
 === Listing marked shadows across resources
 
-In order to view all shadows marked by specific mark, you can navigate in midPoint GUI, to *Marks*, open specific object mark details and click on *Marked Shadows*. 
+In order to view all shadows marked by specific mark, you can navigate in midPoint GUI, to *Marks*, open specific object mark details and click on *Marked Shadows*.
