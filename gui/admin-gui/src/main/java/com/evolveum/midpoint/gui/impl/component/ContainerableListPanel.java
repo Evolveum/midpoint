@@ -101,7 +101,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
 
-    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_BUTTON = "button";
@@ -764,15 +763,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
         };
-        exportDataLink.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-            }
-        });
+        exportDataLink.add(new VisibleBehaviour(this::isExportDataLinkVisible));
         return exportDataLink;
+    }
+
+    private boolean isExportDataLinkVisible() {
+        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
+                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
     }
 
     private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
