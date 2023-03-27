@@ -712,7 +712,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     getPageBase().getModelService().executeChanges(
                             MiscUtil.createCollection(deleteDelta), options, task, result);
                 } else {
-                    result.setStatus(severityToStatus(severity));
+                    result.setStatus(OperationResultStatus.forViolationSeverity(severity));
                     result.setUserFriendlyMessage(
                             new SingleLocalizableMessage(
                                     "ShadowTablePanel.message.deletionForbidden",
@@ -730,20 +730,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         getPageBase().showResult(parentResult);
         refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
-    }
-
-    // Considered moving right to OperationResultStatus class, but INFO -> NOT_APPLICABLE mapping is specific for this situation.
-    private OperationResultStatus severityToStatus(ValidationIssueSeverityType severity) {
-        switch (severity) {
-            case ERROR:
-                return OperationResultStatus.FATAL_ERROR;
-            case WARNING:
-                return OperationResultStatus.WARNING;
-            case INFO:
-                return OperationResultStatus.NOT_APPLICABLE;
-            default:
-                throw new AssertionError(severity);
-        }
     }
 
     private IModel<String> createDeleteConfirmString(List<SelectableBean<ShadowType>> selectedShadow) {
