@@ -1,6 +1,6 @@
 = Report Script Library
 
-In addition to the common xref:/expressions/expressions/script/functions/[script expression libraries]
+In addition to the common xref:/midpoint/reference/expressions/expressions/script/functions/[script expression libraries]
 (`midpoint`, `basic` and `log`), you can also use `report` library inside report expressions.
 
 Functions from the `report` library are tailored for report creation, making it more convenient.
@@ -38,4 +38,4 @@ columns:
 
 == See Also
 
-* xref:/expressions/expressions/script/functions/[Script Expression Functions]
+* xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions]

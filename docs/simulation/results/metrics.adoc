@@ -378,7 +378,7 @@ We may focus the aggregation on a subset of original objects.
 ==== Examples
 
 This is how we would compute the average number of attribute modifications per single shadow seen by the simulation activity.
-We refer to the `attribute-modifications` metric defined in xref:_attribute_modifications_metric[] above.
+We refer to the `attribute-modifications` metric defined in xref:#_attribute_modifications_metric[] above.
 
 .Listing 4. Computation of average number of attribute modifications per account seen
 [source,xml]

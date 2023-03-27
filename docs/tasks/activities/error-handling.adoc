@@ -27,12 +27,12 @@ Yet others are those related directly to the source objects, e.g. if there are m
 This document deals with the latter category of failures, i.e. those related to individual objects.
 
 We may need to define how the activity should behave when they occur, e.g. whether it has to stop immediately, or continue the processing.
-This is dealt with in the xref:_error_handling_strategy[first part of this document].
+This is dealt with in the xref:#_error_handling_strategy[first part of this document].
 
 However, we usually want to re-process objects that failed their regular processing.
 There are two available mechanisms for this:
-The first one is explicit re-processing of failed objects based on xref:_operation_execution_records[operation execution records].
-The second one is based on automatic scheduling of re-processing using xref:_triggers[triggers].
+The first one is explicit re-processing of failed objects based on xref:#_operation_execution_records[operation execution records].
+The second one is based on automatic scheduling of re-processing using xref:#_triggers[triggers].
 (It is currently limited to synchronization of resource objects.)
 
 [#_error_handling_strategy]
@@ -106,9 +106,9 @@ E.g. for live sync tasks, this means that the sync token is advanced to the next
 | This is the default strategy for live sync and async update tasks.
 
 | `retryLater`
-| Processing of the specified account should be retried later using a xref:_triggers[trigger].
+| Processing of the specified account should be retried later using a xref:#_triggers[trigger].
 Available only for synchronization activities.
-| This strategy has xref:_configuring_retry_later[more parameters].
+| This strategy has xref:#_configuring_retry_later[more parameters].
 |===
 
 Notes:
@@ -294,7 +294,7 @@ If not, another trigger (with an interval that may be the same or different) is 
 [#_configuring_retry_later]
 === How to Configure
 
-Trigger-based re-processing is configured by setting up `retryLater` reaction in xref:_error_handling_strategy[an error handling strategy].
+Trigger-based re-processing is configured by setting up `retryLater` reaction in xref:#_error_handling_strategy[an error handling strategy].
 This reaction has the following properties:
 
 .Properties of `retryLater` error handling reaction
