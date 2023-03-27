@@ -346,6 +346,55 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             }
         });
 
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        var selected = getSelectedShadowsList(getRowModel());
+                        var selectedMarks = collectExistingMarks(selected);
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .and()
+                                .id(selectedMarks)
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.warn("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                removeShadowMarks(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select.remove");
+                            }
+
+                            protected org.apache.wicket.model.StringResourceModel getAddButtonTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.remove");
+                            };
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
+                    }
+
+                };
+            }
+        });
+
         return items;
     }
 
@@ -807,6 +856,57 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         changeOwnerInternal(ownerToChange.getOid(), ownerToChange.getClass(), Collections.singletonList(delta), target);
     }
 
+    private void removeShadowMarks(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
+
+        var selected = getSelectedShadowsList(rowModel);
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (SelectableBean<ShadowType> shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+
+            for (var statement : shadow.getValue().getPolicyStatement()) {
+                if (!PolicyStatementTypeType.APPLY.equals(statement.getType())) {
+                    continue;
+                }
+                if (markOids.contains(statement.getMarkRef().getOid())) {
+                    statements.add(statement.clone());
+                }
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationDeleteContainer(ShadowType.class,
+                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+
     private void markShadows(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
@@ -820,19 +920,19 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-            for (SelectableBean<ShadowType> shadow : selected) {
-                List<PolicyStatementType> statements = new ArrayList<>();
-                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-                // but for each delta we need separate statement
-                for (String oid : markOids) {
-                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
-                        .type(PolicyStatementTypeType.APPLY));
-                }
-                try {
-                    var delta = getPageBase().getPrismContext().deltaFactory().object()
-                            .createModificationAddContainer(ShadowType.class,
-                                    shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
-                                    statements.toArray(new PolicyStatementType[0]));
+        for (SelectableBean<ShadowType> shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                    .type(PolicyStatementTypeType.APPLY));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(ShadowType.class,
+                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -904,6 +1004,19 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private PrismObjectDefinition<FocusType> getFocusDefinition() {
         return getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
+    }
+
+
+    private String[] collectExistingMarks(List<SelectableBean<ShadowType>> selected) {
+        Set<String> marks = new HashSet<>();
+        for (SelectableBean<ShadowType> shadow : selected) {
+            for (var statement : shadow.getValue().getPolicyStatement()) {
+                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
+                    marks.add(statement.getMarkRef().getOid());
+                }
+            }
+        }
+        return marks.toArray(new String[] {});
     }
 
     protected ModelExecuteOptions createModelExecuteOptions() {
