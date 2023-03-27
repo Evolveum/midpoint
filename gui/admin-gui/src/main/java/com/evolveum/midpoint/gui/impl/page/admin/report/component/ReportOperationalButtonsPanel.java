@@ -135,7 +135,9 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         iconBuilder = new CompositedIconBuilder()
                 .setBasicIcon(GuiStyleConstants.ICON_FAR_ADDRESS_CARD, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconButton showPreview = new AjaxCompositedIconButton(showPreviewId, iconBuilder.build(),
-                createStringResource("pageCreateCollectionReport.button.showPreview.${}", isShowingPreview)) {
+                () -> createStringResource(
+                        "pageCreateCollectionReport.button.showPreview." + isShowingPreview.getObject()).getString()
+                ) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -155,7 +157,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                     info(createStringResource("PageReport.message.shownedReportPreview").getString());
                 }
                 target.add(getTableContainer());
-                target.add(this);
+                target.add(repeatingView.get(showPreviewId));
                 target.add(repeatingView.get(showPreviewInPopupId));
                 target.add(repeatingView.get(refreshId));
                 target.add(ReportOperationalButtonsPanel.this);
