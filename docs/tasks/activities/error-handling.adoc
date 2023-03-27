@@ -41,7 +41,7 @@ The second one is based on automatic scheduling of re-processing using xref:#_tr
 The reaction of an activity to errors is defined in so-called error handling strategy.
 It is part of the activity xref:control-flow.adoc[control flow specification], defined under `errorHandling` item.
 
-The strategy list of entries, each of which prescribes a reaction for given situation.
+The strategy is basically a list of entries, each of which prescribes a reaction for given situation.
 Each entry has:
 
 .An entry of error handling strategy
@@ -114,7 +114,6 @@ Available only for synchronization activities.
 Notes:
 
 1. Names for these options may be changed in the future, to make them more compatible with error handling based on operation execution records.
-(They were created before, and not revised afterwards.)
 
 2. Operation execution recording is *not* influenced by these settings.
 So each error is recorded regardless of the value of `reaction`.
@@ -162,9 +161,9 @@ The errors occurring in this task can be later handled again.
 
 === Special Cases
 
-. Although, in general, the recoverer runs the same type activity as the main task, there can be situations when they differ.
+. Although, in general, the recoverer runs the same type of activity as the main task, there can be situations when they differ.
 For example, the main activity can be a bulk action execution, and the recoverer can be a recomputation activity.
-Or the recoverer can use a different bulk action than was used in the main activity, if needed.
+Or the recoverer can use a different bulk action than was used in the main activity.
 
 . In general, one recoverer is connected to one main task.
 However, there can be recoverers that treat multiple main tasks.
