@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -91,5 +94,15 @@ public class ReactionOptionalSettingStepPanel
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return VisibleBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(SynchronizationReactionType.F_LIFECYCLE_STATE)) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
     }
 }
