@@ -8,8 +8,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
 import java.io.File;
 import java.util.Arrays;
@@ -410,6 +409,35 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
         and("their metadata are populated");
         assertAssignmentPath(userAsserter, businessRole1Oid, new ExpectedAssignmentPath(businessRole1Oid));
         segmentsHaveExpectedRelations(userAsserter, businessRole1Oid, SchemaConstants.ORG_APPROVER);
+    }
+
+    @Test(description = "MID-8664")
+    public void test700ValueMetadataShouldNotBeAddedToArchetypeRefs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("existing archetype");
+        String archetypeOid = addObject(new ArchetypeType().name("archetype-" + getTestNumber()), task, result);
+
+        when("user with the archetype is added");
+        String userOid = addObject(
+                new UserType()
+                        .name("user-" + getTestNumber())
+                        .assignment(new AssignmentType()
+                                .targetRef(createObjectReference(archetypeOid,
+                                        ArchetypeType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT))),
+                task, result);
+
+        then("roleMembershipRef and archetypeRef is populated");
+        UserAsserter<Void> userAsserter = assertUser(userOid, "after")
+                .displayXml() // XML also shows the metadata
+                .assertRoleMembershipRefs(1)
+                .assertArchetypeRefs(1);
+
+        and("only roleMembershipRef has value metadata, archetypeRef does not have any");
+        assertAssignmentPath(userAsserter, archetypeOid, new ExpectedAssignmentPath(archetypeOid));
+        userAsserter.valueMetadata(F_ARCHETYPE_REF, ValueSelector.refEquals(archetypeOid))
+                .assertSize(0);
     }
 
     @Test
