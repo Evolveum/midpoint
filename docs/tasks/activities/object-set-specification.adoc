@@ -12,48 +12,7 @@ Here we describe how sets of repository objects are specified in xref:../[activi
 | `searchOptions` | Search options to use. | No options.
 | `useRepositoryDirectly` | Whether to go directly to repository (bypassing e.g. authorizations). | Depends on the specific activity.
 | `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
-that was run before. See below. | No failed objects selection. (Processing all objects.)
+that was run before. | No failed objects selection. (Processing all objects.)
 |===
 
-[#_failed_objects_selector]
-== Failed Objects Selector
-
-This data structure is used to select objects that were failed to be processed in previous run(s)
-of this or other (compatible) activity. It is basically a specification of a filter against `operationExecution`
-records, looking for ones that indicate that a processing of the particular object by particular task failed.
-
-[%header]
-[%autowidth]
-|===
-| Item | Meaning | Default
-| `status` (multi) | What states to select. | `FATAL_ERROR` and `PARTIAL_ERROR`.
-| `taskRef` (multi) | What task(s) to look for? | The current task.
-| `timeFrom` | What is the earliest time of the record to be considered? | No limit (take all records).
-| `timeTo` | What is the latest time of the record to be considered? | If explicit task OID is not specified,
-then it is the last start timestamp of the current task root. (Just to avoid cycles in processing;
-although maybe we are too cautious here.) If the task is different one, then no limit is here (i.e. taking all records).
-| `selectionMethod` | How are failed objects selected. This is to overcome some technological obstacles in
-object searching in the provisioning module. Usually there's no need to change from the default. | `default`
-|===
-
-=== Failed Objects Selection Method
-
-[%header]
-[%autowidth]
-|===
-| Value | Meaning
-| `default` | Default processing method. Normally `narrowQuery`. But when searching
-for shadows via provisioning, `fetchFailedObjects` is used.
-| `narrowQuery` | Simply narrow the query by adding failed objects filter.
-It works with repository but usually not with provisioning.
-| `filterAfterRetrieval` | Uses original query to retrieve objects from a resource.
-Filtering is done afterwards, i.e. before results are passed to the processing.
-This is preferable when there is large percentage of failed records.
-| `fetchFailedObjects` | Failed objects are selected using the repository.
-Only after that, they are fetched  one-by-one via provisioning and processed.
-This is preferable when there is only a small percentage of failed records.
-|===
-
-For more information about handling failed objects, please see
-xref:/midpoint/reference/tasks/task-error-handling/[Task error handling] page. (It is a bit obsolete, though.
-It will be updated eventually.)
+For more information about handling failed objects, please see xref:error-handling.adoc[] page.
