@@ -56,6 +56,11 @@ public class ObjectOperationPolicyHelper {
             return null;
         }
 
+        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow,
+                List<ObjectReferenceType> effectiveMarkRef) throws SchemaException {
+            return null;
+        }
+
     }
 
     private static final String MARK_PROTECTED_SHADOW_OID = SystemObjectsType.MARK_PROTECTED.value();
@@ -315,6 +320,41 @@ public class ObjectOperationPolicyHelper {
                     .asItemDelta();
         }
 
+        @Override
+        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow,
+                List<ObjectReferenceType> effectiveMarks) throws SchemaException {
+            List<ObjectReferenceType> refsToDelete = new ArrayList<>();
+            List<ObjectReferenceType> refsToAdd = new ArrayList<>();
+            for (ObjectReferenceType mark : effectiveMarks) {
+                if (policyNotExcluded(repoShadow, mark.getOid()) && !containsRef(repoShadow.getEffectiveMarkRef(), mark)) {
+                    // Computed mark is not explicitly excluded, we may need to add it
+                    // if not present in repository
+                    refsToAdd.add(mark.clone());
+
+                }
+            }
+
+            // Shadow is not protected by resource policy
+            //   - We need to check repository shadow if it contains protected mark,
+            //   - which was maybe introduced by previously being protected by resource policy
+            if (!containsOid(effectiveMarks, MARK_PROTECTED_SHADOW_OID)
+                    && isProtectedByResourcePolicy(repoShadow, repoShadow.getEffectiveMarkRef())) {
+                refsToDelete.add(new ObjectReferenceType().oid(MARK_PROTECTED_SHADOW_OID).type(MarkType.COMPLEX_TYPE));
+            }
+
+            if (refsToDelete.isEmpty() && refsToAdd.isEmpty()) {
+                // Nothing to add or remove.
+                return null;
+            }
+            return PrismContext.get().deltaFor(ObjectType.class)
+                    .item(ObjectType.F_EFFECTIVE_MARK_REF)
+                    .deleteRealValues(refsToDelete)
+                    .addRealValues(refsToAdd)
+                    .asItemDelta();
+
+
+        }
+
         private ObjectReferenceType findEffectiveImpliedByStatement(ArrayList<ObjectReferenceType> effectiveMarks, String oid) {
             for (ObjectReferenceType mark : effectiveMarks) {
                 if (oid.equals(mark.getOid()) && isImpliedByStatement(mark)) {
@@ -411,5 +451,9 @@ public class ObjectOperationPolicyHelper {
 
     public ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType repoShadow, ItemDelta<?, ?> modification) throws SchemaException {
         return behaviour.computeEffectiveMarkDelta(repoShadow, modification);
+    }
+
+    public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow, List<ObjectReferenceType> effectiveMarkRef) throws SchemaException {
+        return behaviour.computeEffectiveMarkDelta(repoShadow, effectiveMarkRef);
     }
 }
