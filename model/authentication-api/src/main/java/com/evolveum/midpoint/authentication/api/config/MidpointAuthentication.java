@@ -248,13 +248,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private boolean atLeastOneSuccessfulModuleExists() {
         return sequence.getModule()
                 .stream()
-                .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
+                .anyMatch(m -> getAuthenticationByIdentifier(m) != null &&
+                        AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m).getState()));
     }
 
     private boolean allModulesStateMatch(AuthenticationModuleState... states) {
         return sequence.getModule()
                 .stream()
-                .allMatch(m -> Arrays.stream(states).anyMatch(s -> s.equals(getAuthenticationByIdentifier(m).getState())));
+                .allMatch(m -> Arrays.stream(states).anyMatch(s ->
+                        getAuthenticationByIdentifier(m) != null && s.equals(getAuthenticationByIdentifier(m).getState())));
     }
 
     private boolean getRequiredModulesDecision() {
