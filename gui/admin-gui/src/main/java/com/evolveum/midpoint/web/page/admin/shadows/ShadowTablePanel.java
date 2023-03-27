@@ -1,40 +1,16 @@
 package com.evolveum.midpoint.web.page.admin.shadows;
 
-import java.util.*;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithDescriptionPanel;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.web.component.data.column.*;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResultObjects;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
@@ -51,14 +27,18 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -68,6 +48,24 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import javax.xml.namespace.QName;
+import java.util.*;
 
 public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
@@ -351,7 +349,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     @Override
     protected IColumn<SelectableBean<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ContainerableNameColumn<>(displayModel, ObjectType.F_NAME.getLocalPart(),  customColumn, expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, getPageBase()) {
 
             @Override
             protected IModel<String> getContainerName(SelectableBean<ShadowType> rowModel) {
@@ -380,12 +378,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                         return StringUtils.joinWith(", ", marks);
                     }
                 };
-                return new TitleWithDescriptionPanel(componentId, labelModel, marks) {
-
-                    @Override
-                    protected boolean hasDescriptionCssInvisibleIfEmpty() {
-                        return false;
-                    }
+                return new TitleWithMarks(componentId, labelModel, marks) {
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
@@ -716,7 +709,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     result.setUserFriendlyMessage(
                             new SingleLocalizableMessage(
                                     "ShadowTablePanel.message.deletionForbidden",
-                                    new Object[] { shadow.getName() }));
+                                    new Object[]{shadow.getName()}));
                 }
             } catch (Throwable e) {
                 result.recordPartialError("Could not delete " + shadow + ", reason: " + e.getMessage(), e);
@@ -808,7 +801,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void markShadows(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
-            AjaxRequestTarget target) {
+                             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
         Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
 
@@ -820,23 +813,23 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-            for (SelectableBean<ShadowType> shadow : selected) {
-                List<PolicyStatementType> statements = new ArrayList<>();
-                // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-                // but for each delta we need separate statement
-                for (String oid : markOids) {
-                    statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+        for (SelectableBean<ShadowType> shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
                         .type(PolicyStatementTypeType.APPLY));
-                }
-                try {
-                    var delta = getPageBase().getPrismContext().deltaFactory().object()
-                            .createModificationAddContainer(ShadowType.class,
-                                    shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
-                                    statements.toArray(new PolicyStatementType[0]));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(ShadowType.class,
+                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
