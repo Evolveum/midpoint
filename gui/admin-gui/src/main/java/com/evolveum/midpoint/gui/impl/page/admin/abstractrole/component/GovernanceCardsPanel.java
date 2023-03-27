@@ -301,9 +301,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
         SelectableBean<FocusType> object = defaultTile.getValue();
         List<AssignmentType> memberships = object.getValue().getAssignment().stream()
-                .filter(assignment -> assignment.getTargetRef() != null
-                        && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
-                        && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE))
+                .filter(this::isMember)
                 .collect(Collectors.toList());
         if (memberships.size() == 1) {
             defaultTile.getValue().setCustomData(memberships.get(0).getTargetRef().getRelation());
@@ -324,6 +322,13 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                                 (QName)tile.getValue().getCustomData()).getDisplay()));
 
         return ret;
+    }
+
+    private boolean isMember(AssignmentType assignment) {
+        return assignment.getTargetRef() != null
+                && getObjectWrapper().getOid() != null
+                && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
+                && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE);
     }
 
     private WebMarkupContainer createBaseTileForAssignMembers() {
