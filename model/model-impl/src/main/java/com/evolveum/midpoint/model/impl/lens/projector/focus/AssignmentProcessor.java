@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -1045,6 +1046,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
         if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+            // Refs can be shared also for archetype refs and we don't want metadata there (MID-8664).
+            membershipRefVals = CloneUtil.cloneCollectionMembers(membershipRefVals);
             for (PrismReferenceValue roleRef : membershipRefVals) {
                 addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
             }
