@@ -3147,6 +3147,9 @@
 
     <xsd:complexType name="PolicyStatementType">
       <xsd:annotation>
+          <xsd:documentation>
+              Statement specifying explicit include (marking) of object or exclude from specified policy.
+          </xsd:documentation>
           <xsd:appinfo>
               <a:container/>
           </xsd:appinfo>
@@ -3159,11 +3162,20 @@
                 </xsd:documentation>
                 <xsd:appinfo>
                     <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                    <a:experimental>true</a:experimental>
+                    <a:displayName>PolicyStatementType.markRef</a:displayName>
                 </xsd:appinfo>
             </xsd:annotation>
          </xsd:element>
-         <xsd:element name="type" type="tns:PolicyStatementTypeType" />
+         <xsd:element name="type" type="tns:PolicyStatementTypeType">
+            <xsd:annotation>
+                <xsd:documentation>
+                   Type of policy statement.
+                   apply: mark is applied to object explicitly.
+                   exclude: mark is not applied to object even if it matches policy specific for mark.
+                </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
          <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
       </xsd:sequence>
     </xsd:complexType>
