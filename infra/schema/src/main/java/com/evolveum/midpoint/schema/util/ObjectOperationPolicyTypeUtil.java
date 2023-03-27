@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueSeverityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,13 +19,13 @@ import java.util.Objects;
 public class ObjectOperationPolicyTypeUtil {
 
     /** Returns the `delete` policy severity, or `null` if there are no restrictions. */
-    public static @Nullable ValidationIssueSeverityType getDeletionRestrictionSeverity(@NotNull ObjectOperationPolicyType policy) {
+    public static @Nullable OperationPolicyViolationSeverityType getDeletionRestrictionSeverity(
+            @NotNull ObjectOperationPolicyType policy) {
         // Current implementation indicates that the policy is computed in full.
         // But to make things more robust (e.g. until it's documented) let us be careful.
         OperationPolicyConfigurationType delete = policy.getDelete();
         if (delete != null && Boolean.FALSE.equals(delete.isEnabled())) {
-            // TODO what is the default severity?
-            return Objects.requireNonNullElse(delete.getSeverity(), ValidationIssueSeverityType.ERROR);
+            return Objects.requireNonNullElse(delete.getSeverity(), OperationPolicyViolationSeverityType.ERROR);
         } else {
             return null; // operation is allowed
         }

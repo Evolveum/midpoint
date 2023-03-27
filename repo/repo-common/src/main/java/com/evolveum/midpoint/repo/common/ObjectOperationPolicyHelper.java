@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,18 +27,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizeOperationPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueSeverityType;
+
 import com.google.common.base.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.*;
@@ -367,24 +358,24 @@ public class ObjectOperationPolicyHelper {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()
-                                .inbound(op(false, ValidationIssueSeverityType.INFO))
-                                .outbound(op(false, ValidationIssueSeverityType.WARNING))
-                                )
-                        .add(op(false, ValidationIssueSeverityType.ERROR))
-                        .modify(op(false, ValidationIssueSeverityType.ERROR))
-                        .delete(op(false, ValidationIssueSeverityType.ERROR));
+                                .inbound(op(false, OperationPolicyViolationSeverityType.INFO))
+                                .outbound(op(false, OperationPolicyViolationSeverityType.INFO))
+                        )
+                        .add(op(false, OperationPolicyViolationSeverityType.ERROR))
+                        .modify(op(false, OperationPolicyViolationSeverityType.ERROR))
+                        .delete(op(false, OperationPolicyViolationSeverityType.ERROR));
             }
             return new ObjectOperationPolicyType()
                     .synchronize(new SynchronizeOperationPolicyConfigurationType()
                             .inbound(op(true, null))
                             .outbound(op(true, null))
-                            )
+                    )
                     .add(op(true, null))
                     .modify(op(true, null))
                     .delete(op(true, null));
         }
 
-        private OperationPolicyConfigurationType op(boolean value, ValidationIssueSeverityType severity) {
+        private OperationPolicyConfigurationType op(boolean value, OperationPolicyViolationSeverityType severity) {
             var ret = new OperationPolicyConfigurationType();
             ret.setEnabled(value);
             if (!value) {

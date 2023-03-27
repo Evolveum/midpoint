@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema.result;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,6 +156,15 @@ public enum OperationResultStatus {
                 return SUCCESS;
             default:
                 throw new AssertionError(severity);
+        }
+    }
+
+    public static OperationResultStatus forViolationSeverity(@NotNull OperationPolicyViolationSeverityType severity) {
+        if (severity == OperationPolicyViolationSeverityType.ERROR) {
+            return OperationResultStatus.FATAL_ERROR;
+        } else {
+            // Severity "info" means that the operation is simply not applicable in given context. Hence this value.
+            return OperationResultStatus.NOT_APPLICABLE;
         }
     }
 

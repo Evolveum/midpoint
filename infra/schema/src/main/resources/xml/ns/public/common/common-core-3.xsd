@@ -20172,12 +20172,58 @@
     </xsd:complexType>
 
     <xsd:complexType name="OperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+                <!-- intentionally not a container (really?) -->
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true" />
-            <xsd:element name="severity" minOccurs="0" type="tns:ValidationIssueSeverityType" />
+            <xsd:element name="severity" minOccurs="0" type="tns:OperationPolicyViolationSeverityType" default="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How severe is the policy violation? I.e. how "loudly" is a policy enforced - if the given
+                        operation would occur, what should be signalled to the upper layers?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO find a better name; maybe the values are not ideal either -->
+    <xsd:simpleType name="OperationPolicyViolationSeverityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Severity level of operation policy violation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If a given operation would occur, a (fatal) error should be signalled.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="info">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The operation should be skipped silently.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INFO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SynchronizeOperationPolicyConfigurationType">
         <xsd:sequence>
