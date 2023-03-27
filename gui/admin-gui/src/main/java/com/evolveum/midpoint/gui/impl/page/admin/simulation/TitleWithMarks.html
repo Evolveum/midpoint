@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div>
+        <a wicket:id="link"><span wicket:id="title"/></a>
+        <a wicket:id="iconLink">
+            <i wicket:id="icon"/>
+        </a>
+    </div>
+    <wicket:enclosure child="realMarks">
+        <div class="text-sm">
+            <i class="fa-solid fa-tag text-success mr-1" wicket:message="title:TitleWithMarks.realMarks"/>
+            <span class="text-secondary text-truncate" wicket:id="realMarks"/>
+        </div>
+    </wicket:enclosure>
+    <wicket:enclosure child="processedMarks">
+        <div class="text-sm">
+            <i class="fa-solid fa-tag text-info mr-1" wicket:message="title:TitleWithMarks.processedMarks"/>
+            <span class="text-secondary text-truncate" wicket:id="processedMarks"/>
+        </div>
+    </wicket:enclosure>
+</wicket:panel>
+</html>

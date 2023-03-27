@@ -11,6 +11,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -151,8 +155,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                 };
 
                 IModel<String> title = () -> SimulationsGuiUtil.getProcessedObjectName(model.getObject(), getPageBase());
-                IModel<String> description = () -> createProcessedObjectDescription(model.getObject());
-                item.add(new TitleWithDescriptionPanel(id, title, description) {
+                IModel<String> realMarksModel = () -> createRealMarksList(model.getObject());
+                item.add(new TitleWithMarks(id, title, realMarksModel) {
 
                     @Override
                     protected boolean isTitleLinkEnabled() {
@@ -192,6 +196,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                             return getString(LocalizationUtil.createKeyForEnum(status));
                         };
                     }
+
+                    @Override
+                    protected IModel<String> createProcessedMarksContainer() {
+                        return () -> createProcessedObjectDescription(model.getObject());
+                    }
                 });
             }
         };
@@ -203,6 +212,33 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         IModel<OperationResult> result = () -> model.getObject().getResult();
 
         page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
+    }
+
+    private String createRealMarksList(ProcessedObject<?> obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        if (!ShadowType.class.equals(obj.getType())) {
+            // we don't currently support marking other objects - only shadows
+            return null;
+        }
+
+        PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(new ObjectReferenceType()
+                .type(ShadowType.COMPLEX_TYPE)
+                .oid(obj.getOid()), getPageBase());
+        if (shadow == null) {
+            return null;
+        }
+
+        List<ObjectReferenceType> refs = shadow.asObjectable().getEffectiveMarkRef();
+        Object[] marks = refs.stream()
+                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
+                .filter(mark -> mark != null)
+                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                .toArray();
+
+        return StringUtils.joinWith(", ", marks);
     }
 
     private String createProcessedObjectDescription(ProcessedObject<?> obj) {

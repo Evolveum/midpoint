@@ -11,55 +11,52 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TitleWithDescriptionPanel extends BasePanel {
+public class TitleWithMarks extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
     private static final String ID_TITLE = "title";
-    private static final String ID_DESCRIPTION_CONTAINER = "descriptionContainer";
-    private static final String ID_DESCRIPTION = "description";
     private static final String ID_ICON_LINK = "iconLink";
     private static final String ID_ICON = "icon";
+    private static final String ID_REAL_MARKS = "realMarks";
+    private static final String ID_PROCESSED_MARKS = "processedMarks";
 
-    private IModel<String> description;
+    private final IModel<String> realMarks;
 
-    public TitleWithDescriptionPanel(String id, IModel<String> title, IModel<String> description) {
+    public TitleWithMarks(String id, IModel<String> title, IModel<String> realMarks) {
         super(id, title);
 
-        this.description = description;
+        this.realMarks = realMarks;
 
         initLayout();
     }
 
     private void initLayout() {
-        AjaxLink link = new AjaxLink<>(ID_LINK) {
+        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onTitleClicked(target);
             }
         };
-        link.add(new EnableBehaviour(() -> isTitleLinkEnabled()));
+        link.add(new EnableBehaviour(this::isTitleLinkEnabled));
         add(link);
 
         Label title = new Label(ID_TITLE, getModel());
         link.add(title);
 
         IModel<String> iconCssModel = createIconCssModel();
-        AjaxLink iconLink = new AjaxLink<>(ID_ICON_LINK) {
+        AjaxLink<Void> iconLink = new AjaxLink<>(ID_ICON_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -72,20 +69,16 @@ public class TitleWithDescriptionPanel extends BasePanel {
         IconComponent icon = new IconComponent(ID_ICON, iconCssModel, createIconTitleModel());
         iconLink.add(icon);
 
-        WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
-        descriptionContainer.add(AttributeAppender.append("class", () ->
-                StringUtils.isEmpty(this.description.getObject()) ?
-                        (hasDescriptionCssInvisibleIfEmpty() ? "invisible" : "d-none") :
-                        null));
-        add(descriptionContainer);
+        Label realMarks = new Label(ID_REAL_MARKS, this.realMarks);
+        realMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.realMarks.getObject())));
+        add(realMarks);
 
-        Label description = new Label(ID_DESCRIPTION, this.description);
-        description.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.description.getObject())));
-        descriptionContainer.add(description);
-    }
+        IModel<String> processedMarksModel = createProcessedMarksContainer();
 
-    protected boolean hasDescriptionCssInvisibleIfEmpty() {
-        return true;
+        Label processedMarks = new Label(ID_PROCESSED_MARKS, processedMarksModel);
+        processedMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(processedMarksModel.getObject())));
+        add(processedMarks);
+
     }
 
     protected boolean isTitleLinkEnabled() {
@@ -105,6 +98,10 @@ public class TitleWithDescriptionPanel extends BasePanel {
     }
 
     protected IModel<String> createIconTitleModel() {
+        return () -> null;
+    }
+
+    protected IModel<String> createProcessedMarksContainer() {
         return () -> null;
     }
 }
