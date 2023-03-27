@@ -80,7 +80,7 @@ public class PageTasks extends PageAdmin {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
-                return createSelectableBeanObjectDataProvider(() -> getTaskQuery(isCollectionViewPanel(), predefinedQuery), null);
+                return createSelectableBeanObjectDataProvider(() -> getTaskQuery(predefinedQuery), null);
             }
 
             @Override
@@ -99,10 +99,7 @@ public class PageTasks extends PageAdmin {
         add(tablePanel);
     }
 
-    private ObjectQuery getTaskQuery(boolean collectionViewPanel, ObjectQuery predefinedQuery) {
-        if (collectionViewPanel) {
-            return null;
-        }
+    private ObjectQuery getTaskQuery(ObjectQuery predefinedQuery) {
         ObjectQuery query = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_PARENT)
                 .isNull()
