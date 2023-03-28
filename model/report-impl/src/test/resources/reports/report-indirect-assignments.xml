@@ -120,7 +120,7 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
             <column>
                 <name>nameColumn</name>
                 <display>
-                    <label>Role</label>
+                    <label>Name</label>
                 </display>
                 <previousColumn>user</previousColumn>
                 <export>

@@ -95,7 +95,7 @@
             <column>
                 <name>nameColumn</name>
                 <display>
-                    <label>Role</label>
+                    <label>Name</label>
                 </display>
                 <previousColumn>user</previousColumn>
                 <export>
