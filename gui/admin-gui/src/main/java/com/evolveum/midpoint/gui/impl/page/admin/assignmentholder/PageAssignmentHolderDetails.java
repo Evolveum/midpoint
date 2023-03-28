@@ -143,7 +143,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
-                getBreadcrumbs().clear();
+                getWizardBreadcrumbs().clear();
                 applyTemplate(collectionViews);
 
                 Fragment fragment = createDetailsFragment();

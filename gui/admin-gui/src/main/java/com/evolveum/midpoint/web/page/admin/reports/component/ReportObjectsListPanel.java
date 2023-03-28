@@ -252,6 +252,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
     @Override
     protected SearchPanel initSearch(String headerId) {
+        getSearchModel().getObject().setAllowedModeList(List.of(SearchBoxModeType.BASIC));
         return new SearchPanel<>(headerId, getSearchModel()) {
             private static final long serialVersionUID = 1L;
 

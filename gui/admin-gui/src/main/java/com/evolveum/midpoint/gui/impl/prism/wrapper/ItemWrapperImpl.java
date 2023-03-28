@@ -61,6 +61,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private String displayName;
 
+    private String helpText;
+
     private boolean column;
 
 //    private boolean stripe;
@@ -132,7 +134,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public String getHelp() {
-        return WebPrismUtil.getHelpText(getItemDefinition());
+        if (helpText == null) {
+            helpText = getLocalizedHelpText();
+        }
+        return helpText;
+    }
+
+    private String getLocalizedHelpText() {
+        Class<?> containerClass = null;
+        PrismContainerValue<?> val = newItem.getParent();
+        if (val != null && val.getDefinition() != null
+                && !val.getDefinition().isRuntimeSchema()
+                && val.getRealClass() != null) {
+            containerClass = val.getRealClass();
+        }
+
+        return WebPrismUtil.getHelpText(getItemDefinition(), containerClass);
     }
 
     @Override
