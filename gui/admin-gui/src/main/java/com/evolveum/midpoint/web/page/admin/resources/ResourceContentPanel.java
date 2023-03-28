@@ -508,7 +508,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 newTask.getActivity().beginExecution()
                         .mode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
                         .beginConfigurationToUse().predefined(PredefinedConfigurationType.DEVELOPMENT);
-                newTask.getActivity().beginReporting().beginSimulationResult();
+                newTask.getActivity()
+                        .beginReporting()
+                            .beginSimulationResult()
+                                .beginDefinition()
+                                    .useOwnPartitionForProcessedObjects(false);
             }
 
             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);

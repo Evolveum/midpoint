@@ -330,7 +330,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypePolicyAdditionalCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = getArchetypePolicyDisplayType();
             return GuiDisplayTypeUtil.getIconColor(displayType);
         }
         return "";
@@ -338,7 +338,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypeLabel() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = getArchetypePolicyDisplayType();
             return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
         }
         return "";
@@ -346,10 +346,20 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypeIconCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = getArchetypePolicyDisplayType();
             return GuiDisplayTypeUtil.getIconCssClass(displayType);
         }
         return "";
+    }
+
+    private DisplayType getArchetypePolicyDisplayType(){
+        return GuiDisplayTypeUtil.getArchetypePolicyDisplayType(
+                getAssignmentHolderTypeObjectForArchetypeDisplayType(),
+                getPageBase());
+    }
+
+    protected AssignmentHolderType getAssignmentHolderTypeObjectForArchetypeDisplayType() {
+        return (AssignmentHolderType) getModelObject();
     }
 
     protected abstract String getDefaultIconCssClass();

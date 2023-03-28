@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 import org.apache.wicket.model.IModel;
@@ -21,9 +22,12 @@ public class ArchetypeSummaryPanel extends FocusSummaryPanel<ArchetypeType>{
 
     private static final long serialVersionUID = 1L;
 
-    public ArchetypeSummaryPanel(String id, IModel<ArchetypeType> model,
+    private final IModel<ArchetypeType> modelWithApplyDelta;
+
+    public ArchetypeSummaryPanel(String id, IModel<ArchetypeType> modelWithApplyDelta, IModel<ArchetypeType> model,
             SummaryPanelSpecificationType summaryPanelSpecificationType) {
         super(id, ArchetypeType.class, model, summaryPanelSpecificationType);
+        this.modelWithApplyDelta = modelWithApplyDelta;
     }
 
 
@@ -52,4 +56,8 @@ public class ArchetypeSummaryPanel extends FocusSummaryPanel<ArchetypeType>{
         return "summary-panel-user";
     }
 
+    @Override
+    protected AssignmentHolderType getAssignmentHolderTypeObjectForArchetypeDisplayType() {
+        return modelWithApplyDelta.getObject();
+    }
 }
