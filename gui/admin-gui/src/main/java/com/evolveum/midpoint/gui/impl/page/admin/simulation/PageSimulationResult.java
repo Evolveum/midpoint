@@ -433,6 +433,17 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 item.add(new MetricWidgetPanel(widgetId, item.getModel()) {
 
                     @Override
+                    protected boolean isMoreInfoVisible() {
+                        DashboardWidgetDataType data = getWidgetData();
+                        SimulationMetricReferenceType ref = data.getMetricRef();
+                        if (ref == null || ref.getEventMarkRef() == null) {
+                            return false;
+                        }
+
+                        return StringUtils.isNotEmpty(data.getStoredData()) || !metricValues.getObject().isEmpty();
+                    }
+
+                    @Override
                     protected void onMoreInfoPerformed(AjaxRequestTarget target) {
                         openMarkMetricPerformed(item.getModelObject());
                     }
