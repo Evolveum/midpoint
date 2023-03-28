@@ -34,6 +34,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -5770,5 +5772,10 @@ public final class WebComponentUtil {
         CompiledGuiProfile profile = principal.getCompiledGuiProfile();
 
         return profile != null && BooleanUtils.isTrue(profile.isEnableExperimentalFeatures());
+    }
+
+    public static boolean isDarkModeEnabled() {
+        MidPointAuthWebSession session = MidPointAuthWebSession.get();
+        return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
     }
 }

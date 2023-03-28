@@ -34,7 +34,7 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -222,20 +222,21 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     }
 
     private void initLayout() {
-        add(AttributeModifier.prepend("class", "d-flex flex-column border rounded bg-white"));
+        add(AttributeModifier.prepend("class", "metric-widget d-flex flex-column border rounded"));
 
         IModel<String> titleModel = () -> {
             DisplayType display = getModelObject().getDisplay();
-            return display != null ? WebComponentUtil.getTranslatedPolyString(display.getLabel()) : null;
+            return display != null ? LocalizationUtil.translatePolyString(display.getLabel()) : null;
         };
 
         Label title = new Label(ID_TITLE, titleModel);
         title.add(AttributeAppender.append("title", titleModel));
         add(title);
 
+        // todo implement properly and make visible
         BadgePanel trendBadge = new BadgePanel(ID_TREND_BADGE, () -> {
             Badge badge = new Badge();
-            badge.setCssClass("badge badge-success trend trend-success");   // todo implement properly and make visible
+            badge.setCssClass("badge badge-success trend trend-success");
             badge.setIconCssClass("fa-solid fa-arrow-trend-up mr-1");
             badge.setText("+3,14%");
             return badge;
@@ -251,7 +252,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         Label valueDescription = new Label(ID_VALUE_DESCRIPTION, createDescriptionModel());
         add(valueDescription);
 
-        IModel<CompositedIcon> iconModel = () -> createIcon();
+        IModel<CompositedIcon> iconModel = this::createIcon;
 
         CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel);
         icon.add(new VisibleBehaviour(() -> isIconVisible(iconModel)));
@@ -262,14 +263,14 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-        AjaxLink moreInfo = new AjaxLink<>(ID_MORE_INFO) {
+        AjaxLink<Void> moreInfo = new AjaxLink<>(ID_MORE_INFO) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onMoreInfoPerformed(target);
             }
         };
-        moreInfo.add(new VisibleBehaviour(() -> isMoreInfoVisible()));
-        moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "bg-secondary" : "bg-primary"));
+        moreInfo.add(new VisibleBehaviour(this::isMoreInfoVisible));
+        moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-primary"));
         add(moreInfo);
     }
 
@@ -314,7 +315,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         return () -> {
             DisplayType display = getModelObject().getDisplay();
             if (display != null && display.getTooltip() != null) {
-                return WebComponentUtil.getTranslatedPolyString(display.getTooltip());
+                return LocalizationUtil.translatePolyString(display.getTooltip());
             }
 
             MarkType mark = markModel.getObject();
@@ -324,7 +325,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             display = mark.getDisplay();
 
-            return WebComponentUtil.getTranslatedPolyString(display.getTooltip());
+            return LocalizationUtil.translatePolyString(display.getTooltip());
         };
     }
 
