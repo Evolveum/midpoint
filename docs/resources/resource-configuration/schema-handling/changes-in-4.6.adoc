@@ -719,7 +719,7 @@ Let us have the following configuration of object types:
 [source,xml]
 ----
 <objectType>
-    <!-- no kind nor intent specified --><!--1--><!--2-->
+    <!-- no kind nor intent specified --> <!--1--><!--2-->
     <displayName>Default account</displayName>
     <defaultForKind>true</defaultForKind>
     <!-- ... -->
@@ -757,13 +757,13 @@ Let us have the following configuration of object types:
         <construction>
             <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
             <kind>entitlement</kind>
-            <!-- no intent specified --><!--1-->
+            <!-- no intent specified --> <!--1-->
         </construction>
     </assignment>
     <inducement>
         <construction>
             <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
-            <!-- no kind nor intent specified --><!--2-->
+            <!-- no kind nor intent specified --> <!--2-->
             <association>
                 <ref>ri:groups</ref>
                 <outbound>
@@ -771,7 +771,7 @@ Let us have the following configuration of object types:
                         <associationFromLink>
                             <projectionDiscriminator>
                                 <kind>entitlement</kind>
-                                <!-- no intent specified --><!--3-->
+                                <!-- no intent specified --> <!--3-->
                             </projectionDiscriminator>
                         </associationFromLink>
                     </expression>
