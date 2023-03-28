@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -31,6 +33,7 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
     private static final String ID_SEARCH_BUTTON_LABEL = "searchButtonLabel";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_DROPDOWN_BUTTON = "dropdownButton";
 
 //    E selectedValue = null;
 
@@ -79,6 +82,15 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
         searchButton.add(buttonLabel);
         add(searchButton);
 
+        AjaxButton dropdownButton = new AjaxButton(ID_DROPDOWN_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+            }
+        };
+        dropdownButton.setOutputMarkupId(true);
+        dropdownButton.add(new VisibleEnableBehaviour(() -> true, () -> getModelObject().size() > 1));
+        add(dropdownButton);
         ListView<E> menuItems = new ListView<E>(ID_MENU_ITEMS, getModel()) {
 
             private static final long serialVersionUID = 1L;
