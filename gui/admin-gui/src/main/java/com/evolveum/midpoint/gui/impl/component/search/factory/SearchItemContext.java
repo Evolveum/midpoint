@@ -198,7 +198,7 @@ public class SearchItemContext implements Serializable {
             return help;
         }
         if (itemDef !=null) {
-            help = WebPrismUtil.getHelpText(itemDef);
+            help = WebPrismUtil.getHelpText(itemDef, containerType);
             if (StringUtils.isNotBlank(help)) {
                 Pattern pattern = Pattern.compile("<.+?>");
                 Matcher m = pattern.matcher(help);

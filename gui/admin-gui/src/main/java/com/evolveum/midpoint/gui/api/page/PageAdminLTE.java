@@ -704,6 +704,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 
+    @NotNull
+    public static StringResourceModel createStringResourceStatic(String resourceKey, String defaultValue, Object... objects) {
+        return new StringResourceModel(resourceKey).setModel(new Model<String>())
+                .setDefaultValue(defaultValue).setParameters(objects);
+    }
+
     public StringResourceModel createStringResourceDefault(String defaultKey, PolyStringType polystringKey, Object... objects) {
         if (polystringKey == null) {
             return createStringResource(defaultKey);

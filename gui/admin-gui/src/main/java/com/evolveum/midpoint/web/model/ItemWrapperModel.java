@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -14,10 +16,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -92,7 +90,15 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
 
             // TODO this should most definitely add parent wrapper to newly created item wrapper otherwise localization
             // keys are mostly useless (unless nicely specified in XSD, which is not very often)
-            return createItemWrapper(def.instantiate(), pageBase);
+            Item item = def.instantiate();
+            if (path.namedSegmentsOnly().size() == 1) {
+                Item parentContainer = container.instantiate();
+                PrismContainerValue value = container.createValue();
+                value.setParent(parentContainer);
+                value.applyDefinition(container, true);
+                item.setParent(value);
+            }
+            return createItemWrapper(item, pageBase);
         } catch (SchemaException e) {
             LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, path,
                     this.parent.getObject(), e.getMessage(), e);
