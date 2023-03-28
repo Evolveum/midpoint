@@ -34,7 +34,8 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
     @Override
     protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
         AvailabilityStatusType availability = ResourceTypeUtil.getLastAvailabilityStatus(getModelObject());
-        AdministrativeAvailabilityStatusType administrativeAvailability = ResourceTypeUtil.getAdministrativeAvailabilityStatus(getModelObject());
+        IModel<AdministrativeAvailabilityStatusType> administrativeAvailability =
+                () -> ResourceTypeUtil.getAdministrativeAvailabilityStatus(getModelObject());
 
         List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
 
@@ -43,9 +44,9 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
             @Override
             protected void initialize(ResourceType object) {
-                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability) {
+                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability.getObject()) {
                     setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE);
-                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability));
+                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability.getObject()));
                     return;
                 }
 
