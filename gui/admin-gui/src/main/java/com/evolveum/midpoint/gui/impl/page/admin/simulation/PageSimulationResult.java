@@ -239,8 +239,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         }
 
                         dw.setDisplay(display);
-                    } else {
-                        // built-in -> ignored
+                    } else if (metricRef.getBuiltIn() != null) {
+                        DisplayType display = new DisplayType();
+                        display.setLabel(new PolyStringType(LocalizationUtil.createKeyForEnum(metricRef.getBuiltIn())));
+                        dw.setDisplay(display);
                     }
 
                     return dw;
