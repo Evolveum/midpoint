@@ -38,11 +38,13 @@ The query is determined from `kind`, `intent`, and `objectclass` like this:
 
 . If `kind` is specified (with or without object class), then the object class is found by looking at `kind` and `intent` values.
 We strongly recommend specifying the `intent`, especially for versions before midPoint 4.6.
-(For 4.6 and above, please see xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6.adoc#_defaults_for_kind_and_intent[].)
+For 4.6 and above, please see xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6.adoc#_defaults_for_kind_and_intent[how the defaults are handled].
 . If `kind` is not specified but `objectclass` and `intent` are, then the behavior is undefined.
-We suggest avoiding this case.
-. If only `objectclass` is specified (i.e. both `kind` and `intent` are not present), then it is used.footnote:[There are some issues with this setting present before midPoint 4.6, see bug:MID-7470[].]
-. If none of them is specified, then an error is thrown. Import and reconciliation cannot proceed without specific object class.
+Please do not do this.
+. If only `objectclass` is specified (i.e. both `kind` and `intent` are not present), then it is used.
+(There are some issues with this setting present before midPoint 4.6, see bug:MID-7470[].)
+. If none of them is specified, then an error is thrown.
+Import and reconciliation cannot proceed without specific object class.
 
 Each object to be processed is then checked if all the `kind`, `intent`, and `objectclass` match.
 (The algorithm ignores potential hierarchical relations between object classes, like that `inetOrgPerson` is a subclass of `person`.

@@ -700,8 +700,8 @@ When a resource object construction is assigned to a focus object (for example, 
 ==== Search for Resource Objects
 
 There are situations when midPoint searches for resource objects.
-The most prominent situations are searches done as part of import or reconciliation activities.
-Also, `projectionDiscriminator` in `associationFromLink` is considered as a search as well.
+The most prominent are searches done as part of import or reconciliation activities.
+The use of `projectionDiscriminator` in `associationFromLink` results in a search operation as well.
 (See xref:#_sample_constructions[sample constructions] below.)
 
 When searching for resource objects _without providing object class name_, the following applies:
@@ -719,7 +719,7 @@ Let us have the following configuration of object types:
 [source,xml]
 ----
 <objectType>
-    <!--1--><!--2-->
+    <!-- no kind nor intent specified --><!--1--><!--2-->
     <displayName>Default account</displayName>
     <defaultForKind>true</defaultForKind>
     <!-- ... -->
@@ -733,12 +733,14 @@ Let us have the following configuration of object types:
 <objectType>
     <kind>entitlement</kind>
     <intent>group</intent>
+    <displayName>Standard group</displayName>
     <defaultForKind>true</defaultForKind>
     <!-- ... -->
 </objectType>
 <objectType>
     <kind>entitlement</kind>
     <intent>other</intent>
+    <displayName>Some other entitlement</displayName>
     <!-- ... -->
 </objectType>
 ----
@@ -754,13 +756,14 @@ Let us have the following configuration of object types:
     <assignment>
         <construction>
             <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
-            <kind>entitlement</kind> <!--1-->
+            <kind>entitlement</kind>
+            <!-- no intent specified --><!--1-->
         </construction>
     </assignment>
     <inducement>
         <construction>
             <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
-            <!--2-->
+            <!-- no kind nor intent specified --><!--2-->
             <association>
                 <ref>ri:groups</ref>
                 <outbound>
@@ -768,7 +771,7 @@ Let us have the following configuration of object types:
                         <associationFromLink>
                             <projectionDiscriminator>
                                 <kind>entitlement</kind>
-                                <!--3-->
+                                <!-- no intent specified --><!--3-->
                             </projectionDiscriminator>
                         </associationFromLink>
                     </expression>
@@ -794,7 +797,7 @@ There are two specific places where this is used.
 ==== Classifying the Resource Objects
 
 When xref:#_resource_object_classification[classifying resource objects], we often use the type marked as "default for object class" as a "catch-all" type when no other type matches.
-However, this functionality can be achieved - perhaps more clearly - also using `classificationOrder` property of object type delineation.
+However, this functionality can be achieved - perhaps more cleanly - also using `classificationOrder` property of object type delineation.
 See the classification algorithm description.
 
 ==== Looking for Default Definitions
@@ -822,14 +825,14 @@ For example:
 
 There are definitions that should be applied when the query against the resource (looking for all `inetOrgPerson` objects) is issued.
 For example, midPoint needs to specify attributes to return or the base context.
-When "defaultForObjectClass" is used in a type definition that refers to `inetOrgPerson` class, that type definition is used to provide the necessary information.
+When `defaultForObjectClass` is used in a type definition that refers to `inetOrgPerson` class, that type definition is used to provide the necessary information.
 (Note that midPoint still attempts to synchronize all members of `inetOrgPerson`.)
 
 However, since 4.6, the preferred way to provide such object-class-level definitions that should be applicable to all objects of given object class
 (e.g. `inetOrgPerson`) is to use <<Object Class Definition Adaptation>>, i.e. to provide `schemaHandling/objectClass` refinement for `ri:inetOrgPerson`.
 Therefore, it's no longer necessary nor recommended to specify default object type for object class just for this purpose.
 
-Overall, it is better to avoid `defaultForObjectClass` setting.
+Overall, it is better to avoid `defaultForObjectClass` setting, and hence also `default` setting.
 
 === "Default" Property
 
