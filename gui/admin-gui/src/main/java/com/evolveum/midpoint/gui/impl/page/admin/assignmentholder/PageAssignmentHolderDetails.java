@@ -238,7 +238,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             return null;
         }
 
-        PrismObject<AH> assignmentHolderObj = getModelWrapperObject().getObject();
+        PrismObject<AH> assignmentHolderObj = getObjectForResolvingArchetypePolicyDisplayType();
         DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAssignmentHolderDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
@@ -251,6 +251,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
 
         return null;
+    }
+
+    protected PrismObject<AH> getObjectForResolvingArchetypePolicyDisplayType() {
+        return getModelWrapperObject().getObject();
     }
 
     public List<Breadcrumb> getWizardBreadcrumbs() {
