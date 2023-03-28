@@ -24,8 +24,9 @@
                 </q:orgRef>
             </q:org>
         </searchFilter>
-        <relation>default</relation>        <!-- the default -->
+        <relation>default</relation> <!-- the default -->
     </scopeDefinition>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <remediationDefinition>
         <style>automated</style>
     </remediationDefinition>
@@ -33,7 +34,7 @@
         <number>1</number>
         <duration>P14D</duration>
         <reviewerSpecification>
-            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" /> <!-- administrator -->
         </reviewerSpecification>
     </stageDefinition>
 </accessCertificationDefinition>

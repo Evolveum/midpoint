@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
@@ -33,6 +34,7 @@ public interface CommonInitialObjects {
 
     String MARKS = INITIAL_OBJECTS + "/mark";
     String REPORTS = INITIAL_OBJECTS + "/report";
+    String OBJECT_COLLECTION = INITIAL_OBJECTS + "/object-collection";
 
     String ARCHETYPES = INITIAL_OBJECTS + "/archetype";
 
@@ -167,6 +169,31 @@ public interface CommonInitialObjects {
             REPORTS,
             "180-report-simulation-results.xml",
             "00000000-0000-0000-0000-97631b84fde7");
+
+    TestObject<ObjectCollectionType> OBJECT_COLLECTION_CERTIFICATION_CAMPAIGNS_ALL = TestObject.classPath(
+            OBJECT_COLLECTION,
+            "280-object-collection-certification-campaign-all.xml",
+            "00000000-0000-0000-0001-000000000280");
+
+    TestReport REPORT_CERTIFICATION_DEFINITIONS = TestReport.classPath(
+            REPORTS,
+            "130-report-certification-definitions.xml",
+            "00000000-0000-0000-0000-000000000130");
+
+    TestReport REPORT_CERTIFICATION_CAMPAIGNS = TestReport.classPath(
+            REPORTS,
+            "140-report-certification-campaigns.xml",
+            "00000000-0000-0000-0000-000000000140");
+
+    TestReport REPORT_CERTIFICATION_CASES = TestReport.classPath(
+            REPORTS,
+            "150-report-certification-cases.xml",
+            "00000000-0000-0000-0000-000000000150");
+
+    TestReport REPORT_CERTIFICATION_WORK_ITEMS = TestReport.classPath(
+            REPORTS,
+            "160-report-certification-work-items.xml",
+            "00000000-0000-0000-0000-000000000160");
 
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)

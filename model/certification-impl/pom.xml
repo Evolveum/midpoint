@@ -246,6 +246,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
             <!-- This is not really "provided". But if set to "test" then it is not on the

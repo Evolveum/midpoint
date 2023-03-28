@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="00000000-0000-0000-0000-000000000160">
+    <name>Certification work items report</name>
+    <description>Work items created for certification campaign(s).</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
+    <objectCollection>
+        <collection>
+            <filter>
+                <q:inOid>
+                    <expression>
+                        <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>campaignRef?.oid</code>
+                        </script>
+                    </expression>
+                    <q:considerOwner>true</q:considerOwner>
+                </q:inOid>
+            </filter>
+        </collection>
+        <view>
+            <!-- We do sorting on object name. Hence, it is the first column. The campaign name would be more logical as the
+                 first one, but we currently cannot sort on both campaign name and object name. And perhaps the primary use
+                 case will be reporting on a specific campaign. -->
+            <column>
+                <name>object</name>
+                <path>objectRef</path>
+                <display>
+                    <label>Object</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                import com.evolveum.midpoint.report.impl.ReportUtils
+
+                                // Provides the type plus object name
+                                ReportUtils.prettyPrintForReport(input)
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>target</name>
+                <path>targetRef</path>
+                <display>
+                    <label>Target</label>
+                </display>
+                <previousColumn>object</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                import com.evolveum.midpoint.report.impl.ReportUtils
+
+                                // Provides the type plus object name
+                                ReportUtils.prettyPrintForReport(input)
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>campaignName</name>
+                <display>
+                    <label>Campaign</label>
+                </display>
+                <previousColumn>target</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
+
+                                CertCampaignTypeUtil.getCampaign(object as AccessCertificationCaseType)?.name?.orig
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>iteration</name>
+                <display>
+                    <label>Iteration</label>
+                </display>
+                <previousColumn>campaignName</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].iteration
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>stageNumber</name>
+                <display>
+                    <label>Stage number</label>
+                </display>
+                <previousColumn>iteration</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].stageNumber
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>originalAssigneeRef</name>
+                <display>
+                    <label>Original assignee</label>
+                </display>
+                <previousColumn>stageNumber</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].originalAssigneeRef
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>deadline</name>
+                <display>
+                    <label>Deadline</label>
+                </display>
+                <previousColumn>originalAssigneeRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].deadline
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>assigneeRef</name>
+                <display>
+                    <label>Current assignee(s)</label>
+                </display>
+                <previousColumn>deadline</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].assigneeRef
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>escalationLevel</name>
+                <display>
+                    <label>Escalation level</label>
+                </display>
+                <previousColumn>assigneeRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].escalationLevel?.number
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>performerRef</name>
+                <display>
+                    <label>Performer</label>
+                </display>
+                <previousColumn>escalationLevel</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].performerRef
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>outcome</name>
+                <display>
+                    <label>Outcome</label>
+                </display>
+                <previousColumn>performerRef</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.report.impl.ReportUtils
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                def output = (workItems as Collection<AccessCertificationWorkItemType>)[0].output
+                                ReportUtils.prettyPrintCertOutcomeForReport(output, false)
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>comment</name>
+                <display>
+                    <label>Comment</label>
+                </display>
+                <previousColumn>outcome</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].output?.comment
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>outputChangeTimestamp</name>
+                <display>
+                    <label>Last changed on</label>
+                </display>
+                <previousColumn>comment</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].outputChangeTimestamp
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>closeTimestamp</name>
+                <display>
+                    <label>Closed on</label>
+                </display>
+                <previousColumn>outputChangeTimestamp</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code><![CDATA[
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
+
+                                (workItems as Collection<AccessCertificationWorkItemType>)[0].closeTimestamp
+                            ]]></code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <paging>
+                <q:orderBy>objectRef/@/name</q:orderBy>
+            </paging>
+            <type>c:AccessCertificationCaseType</type>
+        </view>
+        <parameter>
+            <name>campaignRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:AccessCertificationCampaignType</targetType>
+            <display>
+                <label>
+                    <t:orig>campaignName</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.campaignName</t:key>
+                    </t:translation>
+                </label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>stageNumber</name>
+            <type>xsd:int</type>
+            <display>
+                <label>
+                    <t:orig>stageNumber</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.stageNumber</t:key>
+                    </t:translation>
+                </label>
+            </display>
+        </parameter>
+        <parameter>
+            <name>iteration</name>
+            <type>xsd:int</type>
+            <display>
+                <label>
+                    <t:orig>iteration</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.iteration</t:key>
+                    </t:translation>
+                </label>
+            </display>
+        </parameter>
+        <subreport>
+            <name>workItems</name>
+            <type>AccessCertificationWorkItemType</type>
+            <expression>
+                <script>
+                    <code>
+
+                        import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
+
+                        def aCase = object as AccessCertificationCaseType
+                        aCase.workItem
+                                .findAll { stageNumber == null || it.stageNumber == stageNumber }
+                                .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
+                                .collect()
+                    </code>
+                </script>
+            </expression>
+            <order>10</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+                <noValues>removeParentRow</noValues>
+            </resultHandling>
+        </subreport>
+    </objectCollection>
+</report>

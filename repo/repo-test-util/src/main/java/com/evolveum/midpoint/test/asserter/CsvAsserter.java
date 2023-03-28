@@ -196,6 +196,7 @@ public class CsvAsserter<RA> extends AbstractAsserter<RA> {
             int minOccurrences,
             Predicate<CSVRecord> selector,
             Function<RecordAsserter, RecordAsserter> function) throws IOException {
+        parse();
         int matching = 0;
         for (int i = 0; i < records.size(); i++) {
             CSVRecord record = records.get(i);

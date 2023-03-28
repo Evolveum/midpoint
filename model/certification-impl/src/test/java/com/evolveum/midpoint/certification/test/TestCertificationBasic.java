@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -21,6 +23,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,11 +71,13 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, initResult).asObjectable();
 
         // to test MID-3838
-        assignFocus(UserType.class, USER_JACK_OID, UserType.COMPLEX_TYPE, USER_GUYBRUSH_OID, SchemaConstants.ORG_DEPUTY, null, initTask, initResult);
+        assignFocus(
+                UserType.class, USER_JACK_OID, UserType.COMPLEX_TYPE, USER_GUYBRUSH_OID, SchemaConstants.ORG_DEPUTY,
+                null, initTask, initResult);
     }
 
-    /*
-     *  "Foreign" campaign - generates a few cases, just to test authorizations.
+    /**
+     * "Foreign" campaign - generates a few cases, just to test authorizations.
      */
     @Test
     public void test001CreateForeignCampaign() throws Exception {
@@ -139,7 +146,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));            // this is a deputy with limitation blocking all assignments
+        login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID)); // this is a deputy with limitation blocking all assignments
 
         expect();
         try {
@@ -172,8 +179,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
-        assertPercentCompleteCurrent(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100); // no cases
+        assertPercentCompleteCurrent(campaign, 100, 100, 100); // no cases
 
         // delete the campaign to keep other tests working
         login(userAdministrator.asPrismObject());
@@ -202,8 +209,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
-        assertPercentCompleteCurrent(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100); // no cases
+        assertPercentCompleteCurrent(campaign, 100, 100, 100); // no cases
     }
 
     @Test
@@ -498,7 +505,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         when();
         List<AccessCertificationWorkItemType> workItems =
-                certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                certificationService.searchOpenWorkItems(
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
 
         then();
@@ -519,7 +527,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         when();
         List<AccessCertificationWorkItemType> workItems =
-                certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                certificationService.searchOpenWorkItems(
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
 
         then();
@@ -543,7 +552,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         when();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem =
+                CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
@@ -557,11 +567,14 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
-        assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertSingleDecision(
+                superuserCase, ACCEPT, "no comment", 1, 1,
+                USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));      // 1 reviewer per case (always administrator)
-        assertPercentCompleteCurrent(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
+        assertPercentCompleteCurrent(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
     }
 
     @Test
@@ -576,7 +589,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         when();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem =
+                CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "ok", task, result);
@@ -591,11 +605,13 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
-        assertSingleDecision(ceoCase, ACCEPT, "ok", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertSingleDecision(
+                ceoCase, ACCEPT, "ok", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
-        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
     }
 
     @Test
@@ -612,7 +628,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem =
+                CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         certificationService.recordDecision(campaignOid, id, workItem.getId(), REVOKE, "no way", task, result);
 
         then();
@@ -626,11 +643,13 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         displayDumpable("CEO case", ceoCase.asPrismContainerValue());
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
-        assertSingleDecision(ceoCase, REVOKE, "no way", 1, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
+        assertSingleDecision(
+                ceoCase, REVOKE, "no way", 1, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
-        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
     }
 
     @SuppressWarnings("Duplicates")
@@ -717,8 +736,9 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, REVOKE, REVOKE, 1);
         assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, 1);
 
-        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
-        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
     }
 
     @Test
@@ -782,8 +802,9 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertEquals("wrong # of jack's assignments", 4, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
 
-        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
-        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f), Math.round(200.0f / 7.0f));
     }
 
     @Test
@@ -802,7 +823,128 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
         display("administrator", userAdministrator);
         AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID);
-        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("administrator: no comment"));
+        assertCertificationMetadata(
+                assignment.getMetadata(),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_ADMINISTRATOR_OID),
+                singleton("administrator: no comment"));
+    }
+
+    /**
+     * Checks whether certification reports basically work. MID-8665.
+     *
+     * Note that we check the reports here and not in `report-impl` because of the current dependencies between these
+     * two modules (`report-impl` and `certification-impl`). Maybe we'll move this test in the future into `report-impl`.
+     */
+    @Test
+    public void test220CreateReports() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String year = String.valueOf(currentYear());
+
+        var definitions = REPORT_CERTIFICATION_DEFINITIONS.export()
+                .execute(result);
+
+        assertCsv(definitions, "definitions")
+                .forRecord(C_DEF_NAME, "Basic User Assignment Certification (ERoot only)", a ->
+                        a.assertValue(C_DEF_OWNER, "administrator")
+                                .assertValue(C_DEF_CAMPAIGNS, "1")
+                                .assertValue(C_DEF_OPEN_CAMPAIGNS, "0")
+                                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(year))
+                                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(year)))
+                .forRecord(C_DEF_NAME, "Role Inducements", a ->
+                        a.assertValue(C_DEF_OWNER, "")
+                                .assertValue(C_DEF_CAMPAIGNS, "1")
+                                .assertValue(C_DEF_OPEN_CAMPAIGNS, "1")
+                                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(year))
+                                .assertValue(C_DEF_LAST_CLOSED, ""));
+
+        var campaigns = REPORT_CERTIFICATION_CAMPAIGNS.export()
+                .execute(result);
+
+        assertCsv(campaigns, "campaigns")
+                .assertRecords(1) // only Role Inducements is open
+                .record(0)
+                .assertValue(C_CMP_NAME, "Role Inducements 1")
+                .assertValue(C_CMP_OWNER, "administrator")
+                .assertValue(C_CMP_START, v -> v.contains(year))
+                .assertValue(C_CMP_FINISH, "")
+                .assertValue(C_CMP_CASES, "5")
+                .assertValue(C_CMP_STATE, "In review stage")
+                .assertValue(C_CMP_ACTUAL_STAGE, "1")
+                .assertValue(C_CMP_STAGE_CASES, "5")
+                .assertValue(C_CMP_PERCENT_COMPLETE, "100.0 %");
+
+        var campaignsAll = REPORT_CERTIFICATION_CAMPAIGNS.export()
+                .withParameter("alsoClosedCampaigns", "true")
+                .execute(result);
+
+        assertCsv(campaignsAll, "campaigns")
+                .assertRecords(2);
+
+        var cases = REPORT_CERTIFICATION_CASES.export()
+                .withParameter(
+                        "campaignRef",
+                        ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN))
+                .execute(result);
+
+        assertCsv(cases, "cases")
+                .assertRecords(7)
+                .forRecords(1,
+                        r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
+                                && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
+                        a -> a.assertValue(C_CASES_CAMPAIGN, "Basic User Assignment Certification (ERoot only) 2")
+                                .assertValue(C_CASES_REVIEWERS, "")
+                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(year))
+                                .assertValue(C_CASES_REVIEWED_BY, "administrator")
+                                .assertValue(C_CASES_ITERATION, "1")
+                                .assertValue(C_CASES_IN_STAGE, "1")
+                                .assertValue(C_CASES_OUTCOME, "Accept")
+                                .assertValue(C_CASES_COMMENTS, "no comment")
+                                .assertValue(C_CASES_REMEDIED_ON, ""));
+
+        var casesAll = REPORT_CERTIFICATION_CASES.export()
+                .execute(result);
+
+        assertCsv(casesAll, "cases")
+                .assertRecords(12);
+
+        var workItemsAll = REPORT_CERTIFICATION_WORK_ITEMS.export()
+                .execute(result);
+
+        assertCsv(workItemsAll, "work items")
+                .assertRecords(11)
+                .forRecords(1,
+                        r -> "Role: CEO".equals(r.get(C_WI_OBJECT))
+                                && "Resource: Dummy Resource".equals(r.get(C_WI_TARGET)),
+                        a -> a.assertValue(C_WI_CAMPAIGN, "Role Inducements 1")
+                                .assertValue(C_WI_ITERATION, "1")
+                                .assertValue(C_WI_STAGE_NUMBER, "1")
+                                .assertValue(C_WI_ORIGINAL_ASSIGNEE, "elaine")
+                                .assertValue(C_WI_DEADLINE, "")
+                                .assertValue(C_WI_CURRENT_ASSIGNEES, "elaine")
+                                .assertValue(C_WI_ESCALATION, "")
+                                .assertValue(C_WI_PERFORMER, "")
+                                .assertValue(C_WI_OUTCOME, "")
+                                .assertValue(C_WI_COMMENT, "")
+                                .assertValue(C_WI_LAST_CHANGED, "")
+                                .assertValue(C_WI_CLOSED, ""))
+                .forRecords(1,
+                        r -> "User: jack".equals(r.get(C_WI_OBJECT))
+                                && "Role: CEO".equals(r.get(C_WI_TARGET)),
+                        a -> a.assertValue(C_WI_CAMPAIGN, "Basic User Assignment Certification (ERoot only) 2")
+                                .assertValue(C_WI_ITERATION, "1")
+                                .assertValue(C_WI_STAGE_NUMBER, "1")
+                                .assertValue(C_WI_ORIGINAL_ASSIGNEE, "administrator")
+                                .assertValue(C_WI_DEADLINE, "")
+                                .assertValue(C_WI_CURRENT_ASSIGNEES, "administrator")
+                                .assertValue(C_WI_ESCALATION, "")
+                                .assertValue(C_WI_PERFORMER, "administrator")
+                                .assertValue(C_WI_OUTCOME, "Revoke")
+                                .assertValue(C_WI_COMMENT, "no way")
+                                .assertValue(C_WI_LAST_CHANGED, s -> s.contains(year))
+                                .assertValue(C_WI_CLOSED, s -> s.contains(year)));
     }
 
     @Test
@@ -865,19 +1007,19 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
-        AccessCertificationCampaignType c1 = new AccessCertificationCampaignType(prismContext)
+        AccessCertificationCampaignType c1 = new AccessCertificationCampaignType()
                 .name("c1")
                 .state(CLOSED)
                 .stageNumber(0)
                 .iteration(1)
                 .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-PT10M")));
-        AccessCertificationCampaignType c2 = new AccessCertificationCampaignType(prismContext)
+        AccessCertificationCampaignType c2 = new AccessCertificationCampaignType()
                 .name("c2")
                 .state(CLOSED)
                 .stageNumber(0)
                 .iteration(1)
                 .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2D")));
-        AccessCertificationCampaignType c3 = new AccessCertificationCampaignType(prismContext)
+        AccessCertificationCampaignType c3 = new AccessCertificationCampaignType()
                 .name("c3")
                 .state(CLOSED)
                 .stageNumber(0)

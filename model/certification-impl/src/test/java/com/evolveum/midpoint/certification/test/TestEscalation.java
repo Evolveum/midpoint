@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
@@ -40,7 +41,6 @@ import static org.testng.AssertJUnit.assertTrue;
 public class TestEscalation extends AbstractCertificationTest {
 
     private static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments-escalations.xml");
-    //protected static final String CERT_DEF_OID = "399e117a-baaa-4e59-b845-21bb838cb7bc";
 
     private AccessCertificationDefinitionType certificationDefinition;
 
@@ -79,7 +79,7 @@ public class TestEscalation extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100); // no cases
     }
 
     @Test
@@ -140,7 +140,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         assertPercentCompleteAll(campaign, 0, 0, 0);
 
-        assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
+        assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size()); // completion + timed-action
         displayDumpable("dummy transport", dummyTransport);
     }
 
@@ -198,7 +198,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem =
+                CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
@@ -213,12 +214,14 @@ public class TestEscalation extends AbstractCertificationTest {
 
         superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
-        assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertSingleDecision(
+                superuserCase, ACCEPT, "no comment", 1, 1,
+                USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));
     }
-
 
     @Test
     public void test110Escalate() throws Exception {
@@ -234,7 +237,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
-        clock.overrideDuration("P2D");          // first escalation is at P1D
+        clock.overrideDuration("P2D"); // first escalation is at P1D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
@@ -271,18 +274,19 @@ public class TestEscalation extends AbstractCertificationTest {
         assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+        // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));
 
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(currentStage);
         assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
-        assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action (P3D)
+        assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size()); // completion + timed-action (P3D)
 
         displayDumpable("dummy transport", dummyTransport);
         List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
-        assertEquals("Wrong # of dummy notifications", 3, messages.size());            // original + new approver + deputy of administrator
+        assertEquals("Wrong # of dummy notifications", 3, messages.size()); // original + new approver + deputy of administrator
     }
 
     @Test
@@ -299,7 +303,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
-        clock.overrideDuration("P4D");          // second escalation is at P3D
+        clock.overrideDuration("P4D"); // second escalation is at P3D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
@@ -345,11 +349,11 @@ public class TestEscalation extends AbstractCertificationTest {
         assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
-        assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // completion
+        assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size()); // completion
 
         displayDumpable("dummy transport", dummyTransport);
         List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
-        assertEquals("Wrong # of dummy notifications", 1, messages.size());            // new approver
+        assertEquals("Wrong # of dummy notifications", 1, messages.size()); // new approver
     }
 
     @Test
@@ -366,7 +370,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
-        clock.overrideDuration("P15D");          // stage ends at P14D
+        clock.overrideDuration("P15D"); // stage ends at P14D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
@@ -405,7 +409,7 @@ public class TestEscalation extends AbstractCertificationTest {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after close", campaign);
         assertStateAndStage(campaign, AccessCertificationCampaignStateType.CLOSED, 2);
-        assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // reiterate
+        assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size()); // reiterate
     }
 
     @Test
@@ -423,7 +427,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
-        clock.overrideDuration("P18D");          // campaign ends at P16D, reiteration scheduled to P17D
+        clock.overrideDuration("P18D"); // campaign ends at P16D, reiteration scheduled to P17D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
@@ -462,6 +466,114 @@ public class TestEscalation extends AbstractCertificationTest {
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
         displayDumpable("dummy transport", dummyTransport);
+    }
+
+    /** MID-8665 */
+    @Test
+    public void test210Reports() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        String year = String.valueOf(currentYear());
+        String definitionName = "Basic User Assignment Certification (ERoot only) with escalations";
+        String campaignName = definitionName + " 1";
+
+        var definitions = REPORT_CERTIFICATION_DEFINITIONS.export()
+                .execute(result);
+
+        assertCsv(definitions, "definitions")
+                .assertRecords(1)
+                .record(0)
+                .assertValue(C_DEF_NAME, definitionName)
+                .assertValue(C_DEF_OWNER, "")
+                .assertValue(C_DEF_CAMPAIGNS, "1")
+                .assertValue(C_DEF_OPEN_CAMPAIGNS, "1")
+                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(year))
+                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(year));
+
+        var campaigns = REPORT_CERTIFICATION_CAMPAIGNS.export()
+                .execute(result);
+
+        assertCsv(campaigns, "campaigns")
+                .assertRecords(1)
+                .record(0)
+                .assertValue(C_CMP_NAME, campaignName)
+                .assertValue(C_CMP_OWNER, "administrator")
+                .assertValue(C_CMP_START, v -> v.contains(year))
+                .assertValue(C_CMP_FINISH, "")
+                .assertValue(C_CMP_CASES, "7")
+                .assertValue(C_CMP_STATE, "In review stage")
+                .assertValue(C_CMP_ACTUAL_STAGE, "1")
+                .assertValue(C_CMP_STAGE_CASES, "7")
+                .assertValue(C_CMP_PERCENT_COMPLETE, s -> s.startsWith("14."));
+
+        var cases = REPORT_CERTIFICATION_CASES.export()
+                .execute(result);
+
+        assertCsv(cases, "cases")
+                .assertRecords(7)
+                .forRecords(1,
+                        r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
+                                && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
+                        a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
+                                .assertValue(C_CASES_REVIEWERS, "")
+                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(year))
+                                .assertValue(C_CASES_REVIEWED_BY, "administrator")
+                                .assertValue(C_CASES_ITERATION, "1")
+                                .assertValue(C_CASES_IN_STAGE, "1")
+                                .assertValue(C_CASES_OUTCOME, "Accept")
+                                .assertValue(C_CASES_COMMENTS, "no comment")
+                                .assertValue(C_CASES_REMEDIED_ON, ""))
+                .forRecords(1,
+                        r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
+                                && "Role: COO".equals(r.get(C_CASES_TARGET)),
+                        a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
+                                .assertValue(C_CASES_REVIEWERS, "administrator")
+                                .assertValue(C_CASES_LAST_REVIEWED_ON, "")
+                                .assertValue(C_CASES_REVIEWED_BY, "")
+                                .assertValue(C_CASES_ITERATION, "2")
+                                .assertValue(C_CASES_IN_STAGE, "1")
+                                .assertValue(C_CASES_OUTCOME, "")
+                                .assertValue(C_CASES_COMMENTS, "")
+                                .assertValue(C_CASES_REMEDIED_ON, ""));
+
+        var workItemsAll = REPORT_CERTIFICATION_WORK_ITEMS.export()
+                .execute(result);
+
+        assertCsv(workItemsAll, "work items")
+                .assertRecords(13)
+                .forRecords(1,
+                        r -> "User: jack".equals(r.get(C_WI_OBJECT))
+                                && "Role: Reviewer".equals(r.get(C_WI_TARGET))
+                                && "1".equals(r.get(C_WI_ITERATION)),
+                        a -> a.assertValue(C_WI_CAMPAIGN, campaignName)
+                                .assertValue(C_WI_STAGE_NUMBER, "1")
+                                .assertValue(C_WI_ORIGINAL_ASSIGNEE, "administrator")
+                                .assertValue(C_WI_DEADLINE, "")
+                                .assertValue(C_WI_CURRENT_ASSIGNEES, "elaine")
+                                .assertValue(C_WI_ESCALATION, "2")
+                                .assertValue(C_WI_PERFORMER, "")
+                                .assertValue(C_WI_OUTCOME, "")
+                                .assertValue(C_WI_COMMENT, "")
+                                .assertValue(C_WI_LAST_CHANGED, "")
+                                .assertValue(C_WI_CLOSED, s -> s.contains(year)))
+                .forRecords(1,
+                        r -> "User: jack".equals(r.get(C_WI_OBJECT))
+                                && "Role: Reviewer".equals(r.get(C_WI_TARGET))
+                                && "2".equals(r.get(C_WI_ITERATION)),
+                        a -> a.assertValue(C_WI_CAMPAIGN, campaignName)
+                                .assertValue(C_WI_STAGE_NUMBER, "1")
+                                .assertValue(C_WI_ORIGINAL_ASSIGNEE, "administrator")
+                                .assertValue(C_WI_DEADLINE, "")
+                                .assertValue(C_WI_CURRENT_ASSIGNEES, "administrator")
+                                .assertValue(C_WI_ESCALATION, "")
+                                .assertValue(C_WI_PERFORMER, "")
+                                .assertValue(C_WI_OUTCOME, "")
+                                .assertValue(C_WI_COMMENT, "")
+                                .assertValue(C_WI_LAST_CHANGED, "")
+                                .assertValue(C_WI_CLOSED, ""));
     }
 
     @Test
