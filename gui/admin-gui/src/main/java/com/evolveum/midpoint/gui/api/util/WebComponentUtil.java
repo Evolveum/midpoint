@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -5761,6 +5762,17 @@ public final class WebComponentUtil {
         }
 
         return column.getPath().getItemPath();
+    }
+
+    public static boolean hasPopupableParent(@NotNull Component component) {
+        Component parent = component.getParent();
+        while (parent != null) {
+            if (parent instanceof Popupable) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     public static boolean isEnabledExperimentalFeatures() {

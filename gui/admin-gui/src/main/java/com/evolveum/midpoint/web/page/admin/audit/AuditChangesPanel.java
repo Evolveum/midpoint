@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.page.admin.audit;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -82,10 +84,11 @@ public class AuditChangesPanel extends ChangesPanel {
                 showFullResultsPerformed(target);
             }
         };
-        showFullResultsLink.add(new VisibleBehaviour(() -> deltaOperationModel.getObject() != null && deltaOperationModel.getObject().getExecutionResult() != null));
+        showFullResultsLink.add(new VisibleBehaviour(this::isShowFullResultVisible));
         body.add(showFullResultsLink);
 
-        Label resourceName = new Label(ID_RESOURCE_NAME, new PropertyModel<>(deltaOperationModel, ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
+        Label resourceName = new Label(ID_RESOURCE_NAME,
+                new PropertyModel<>(deltaOperationModel, ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
         resourceName.add(new VisibleBehaviour(() -> deltaOperationModel.getObject().getResourceName() != null));
         body.add(resourceName);
 
@@ -100,9 +103,18 @@ public class AuditChangesPanel extends ChangesPanel {
         getPageBase().showMainPopup(operationResultPopupPanel, target);
     }
 
+    private boolean isShowFullResultVisible() {
+        return isExecutionEventStage()
+                && !WebComponentUtil.isSuccessOrHandledError(deltaOperationModel.getObject().getExecutionResult());
+    }
+
+    private boolean isExecutionEventStage() {
+        return deltaOperationModel.getObject() != null && deltaOperationModel.getObject().getExecutionResult() != null;
+    }
+
     private IModel<OperationResult> createOperationResultModel() {
         return () -> {
-            if (getModelObject() == null) {
+            if (deltaOperationModel == null) {
                 return null;
             }
             OperationResultType executionResult = deltaOperationModel.getObject().getExecutionResult();
@@ -160,7 +172,8 @@ public class AuditChangesPanel extends ChangesPanel {
                 return loadVisualizationForDelta();
             } catch (SchemaException | ExpressionEvaluationException e) {
                 OperationResult result = new OperationResult(AuditChangesPanel.class.getName() + ".loadSceneForDelta");
-                result.recordFatalError(LocalizationUtil.translate("AuditChangesPanel.message.fetchOrVisualize.fatalError", new Object[] { e.getMessage() }), e);
+                result.recordFatalError(LocalizationUtil.translate("AuditChangesPanel.message.fetchOrVisualize.fatalError",
+                        new Object[] { e.getMessage() }), e);
                 page.showResult(result);
                 throw page.redirectBackViaRestartResponseException();
             }
@@ -180,7 +193,8 @@ public class AuditChangesPanel extends ChangesPanel {
 
             try {
                 Task task = page.createSimpleTask("visualized delta");
-                visualization = page.getModelInteractionService().visualizeDelta(delta, true, false, task, task.getResult());
+                visualization = page.getModelInteractionService().visualizeDelta(delta, true,
+                        false, task, task.getResult());
             } catch (SchemaException | ExpressionEvaluationException e) {
                 LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}", e, DebugUtil.debugDump(delta));
                 throw e;

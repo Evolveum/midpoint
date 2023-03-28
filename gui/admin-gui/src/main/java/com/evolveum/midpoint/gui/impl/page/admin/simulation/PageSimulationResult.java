@@ -239,8 +239,10 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                         }
 
                         dw.setDisplay(display);
-                    } else {
-                        // built-in -> ignored
+                    } else if (metricRef.getBuiltIn() != null) {
+                        DisplayType display = new DisplayType();
+                        display.setLabel(new PolyStringType(LocalizationUtil.createKeyForEnum(metricRef.getBuiltIn())));
+                        dw.setDisplay(display);
                     }
 
                     return dw;
@@ -431,6 +433,17 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
                 item.add(new MetricWidgetPanel(widgetId, item.getModel()) {
+
+                    @Override
+                    protected boolean isMoreInfoVisible() {
+                        DashboardWidgetDataType data = getWidgetData();
+                        SimulationMetricReferenceType ref = data.getMetricRef();
+                        if (ref == null || ref.getEventMarkRef() == null) {
+                            return false;
+                        }
+
+                        return StringUtils.isNotEmpty(data.getStoredData()) || !metricValues.getObject().isEmpty();
+                    }
 
                     @Override
                     protected void onMoreInfoPerformed(AjaxRequestTarget target) {

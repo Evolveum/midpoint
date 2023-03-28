@@ -307,9 +307,18 @@ public class SearchableItemsDefinitions {
         List<ItemPath> extensionPaths = new ArrayList<>();
         extensionPaths.add(ObjectType.F_EXTENSION);
         if (AssignmentType.class.equals(type)) {
-            extensionPaths.add(ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(assignmentTargetType), ObjectType.F_EXTENSION));
+            if (assignmentTargetType == null || isAssignmentTargetTypeObjectable()) {
+                extensionPaths.add(ItemPath.create(AssignmentType.F_TARGET_REF,
+                        new ObjectReferencePathSegment(assignmentTargetType), ObjectType.F_EXTENSION));
+            }
         }
         return extensionPaths;
+    }
+
+    private boolean isAssignmentTargetTypeObjectable() {
+        TypeDefinition targetRefTypeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(assignmentTargetType);
+        return targetRefTypeDef != null && targetRefTypeDef.getCompileTimeClass() != null
+                && ObjectType.class.isAssignableFrom(targetRefTypeDef.getCompileTimeClass());
     }
 
     private PrismObjectDefinition findObjectDefinition() {

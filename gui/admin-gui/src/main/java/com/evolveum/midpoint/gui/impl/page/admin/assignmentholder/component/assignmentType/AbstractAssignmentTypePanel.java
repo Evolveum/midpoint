@@ -513,7 +513,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         var searchModel = getSearchModel();
         var assignments = loadValuesModel();
         var itemPath = model.getObject().getPath();
-        return providerFactory().create(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath, getObjectCollectionView(), new ContainerValueDataProviderFactory.Customization<AssignmentType>() {
+        return providerFactory().create(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid,
+                itemPath, getObjectCollectionView(), new ContainerValueDataProviderFactory.Customization<AssignmentType>() {
 
             private static final long serialVersionUID = 1L;
 

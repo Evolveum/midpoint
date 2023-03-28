@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectCollectionListSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -54,7 +52,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -186,7 +183,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
     private void initSavedFiltersContainer(MidpointForm form) {
         WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
-        saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow() && isCollectionInstancePage()));
+        saveSearchContainer.add(new VisibleBehaviour(this::isSaveSearchVisible));
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
         savedSearchListModel = new LoadableDetachableModel<>() {
@@ -436,15 +433,8 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         return page.getClass().getAnnotation(CollectionInstance.class);
     }
 
-    private boolean isPopupWindow() {
-        Component parent = SearchPanel.this.getParent();
-        while (parent != null) {
-            if (parent instanceof Popupable) {
-                return true;
-            }
-            parent = parent.getParent();
-        }
-        return false;
+    private boolean isSaveSearchVisible() {
+        return  !WebComponentUtil.hasPopupableParent(SearchPanel.this) && isCollectionInstancePage();
     }
 
     private void searchBoxTypeUpdated(AjaxRequestTarget target) {

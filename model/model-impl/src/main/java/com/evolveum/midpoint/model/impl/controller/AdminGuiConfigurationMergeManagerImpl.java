@@ -310,6 +310,10 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             mergedPanel.setDefault(configuredPanel.isDefault());
         }
 
+        if (configuredPanel.getApplicableForOperation() != null) {
+            mergedPanel.setApplicableForOperation(configuredPanel.getApplicableForOperation());
+        }
+
         if (!configuredPanel.getPanel().isEmpty()) {
             List<ContainerPanelConfigurationType> mergedConfigs = mergeContainerPanelConfigurationType(mergedPanel.getPanel(), configuredPanel.getPanel());
             mergedPanel.getPanel().clear();
