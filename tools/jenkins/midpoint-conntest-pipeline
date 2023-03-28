@@ -64,9 +64,12 @@ podTemplate(
                     """
                     currentBuild.result = 'SUCCESS'
 
-                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                    step([$class: 'Publisher',
+                        reportFilenamePattern: '**/testng-results.xml',
+                        failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                    ])
 
-                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                    if (currentBuild.result == 'UNSTABLE' || currentBuild.result == 'FAILURE' || params.ARCHIVE_LOGS) {
                         sh "tar --transform \"s-.*/--g\" -cvzf conntest-log.tgz testing/conntest/target/test.log"
 	                    archiveArtifacts allowEmptyArchive: true, artifacts: "conntest-log.tgz", followSymlinks: false
                     }

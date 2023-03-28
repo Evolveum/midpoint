@@ -1829,3 +1829,13 @@ th.debug-list-buttons {
     }
   }
 }
+
+.metric-widget {
+  background-color: $white;
+}
+
+@include dark-mode() {
+  .metric-widget {
+    background-color: $dark;
+  }
+}
