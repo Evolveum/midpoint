@@ -5709,14 +5709,14 @@ public final class WebComponentUtil {
                 .success()
                 .title(PageBase.createStringResourceStatic(
                                 key,
-                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
+                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
                         .getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
                 .body(PageBase.createStringResourceStatic(
                                 key + ".text",
-                                translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
+                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
                         .getString())
                 .show(target);
     }

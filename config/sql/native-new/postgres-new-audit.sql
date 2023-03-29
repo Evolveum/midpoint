@@ -248,7 +248,7 @@ BEGIN
         END IF;
         COMMIT;
     ELSE
-        RAISE NOTICE 'Audit change #% skipped, last change #% is newer!', changeNumber, lastChange;
+        RAISE NOTICE 'Audit change #% skipped - not newer than the last change #%!', changeNumber, lastChange;
     END IF;
 END $$;
 -- endregion
