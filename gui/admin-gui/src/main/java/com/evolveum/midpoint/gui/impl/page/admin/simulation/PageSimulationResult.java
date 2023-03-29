@@ -335,21 +335,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void redirectToProcessedObjects(BuiltInSimulationMetricType identifier) {
-        ObjectProcessingStateType state = ObjectProcessingStateType.UNMODIFIED;
-        if (identifier != null) {
-            switch (identifier) {
-                case ADDED:
-                    state = ObjectProcessingStateType.ADDED;
-                    break;
-                case MODIFIED:
-                    state = ObjectProcessingStateType.MODIFIED;
-                    break;
-                case DELETED:
-                    state = ObjectProcessingStateType.DELETED;
-                    break;
-            }
+        if (identifier == null) {
+            redirectToProcessedObjects(ObjectProcessingStateType.UNMODIFIED);
         }
 
+        ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(identifier);
         redirectToProcessedObjects(state);
     }
 
