@@ -476,7 +476,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
-        String year = String.valueOf(currentYear());
+        String year = currentYearFragment();
         String definitionName = "Basic User Assignment Certification (ERoot only) with escalations";
         String campaignName = definitionName + " 1";
 

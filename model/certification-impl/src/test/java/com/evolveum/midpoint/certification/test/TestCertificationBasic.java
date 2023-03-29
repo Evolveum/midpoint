@@ -841,7 +841,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        String year = String.valueOf(currentYear());
+        String year = currentYearFragment();
 
         var definitions = REPORT_CERTIFICATION_DEFINITIONS.export()
                 .execute(result);
