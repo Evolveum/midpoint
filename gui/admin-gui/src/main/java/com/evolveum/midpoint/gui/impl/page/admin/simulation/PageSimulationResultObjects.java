@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -145,6 +148,28 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         addBreadcrumb(new Breadcrumb(PageSimulationResultObjects.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
+    private IModel<List<MarkType>> createNonEmptyMarksModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<MarkType> load() {
+                List<MarkType> all = availableMarksModel.getObject();
+
+                Set<String> nonEmptyMarkOids = resultModel.getObject().getMetric().stream()
+                        .filter(m -> m.getRef() != null && m.getRef().getEventMarkRef() != null)
+                        .filter(m -> !Objects.equals(BigDecimal.ZERO, SimulationMetricValuesTypeUtil.getValue(m)))
+                        .map(m -> m.getRef().getEventMarkRef().getOid())
+                        .collect(Collectors.toUnmodifiableSet());
+
+                // filter only marks that occur in simulation result (their respective metric count > 0)
+
+                return all.stream()
+                        .filter(m -> nonEmptyMarkOids.contains(m.getOid()))
+                        .collect(Collectors.toUnmodifiableList());
+            }
+        };
+    }
+
     private void initLayout() {
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
@@ -165,10 +190,12 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         };
         add(navigation);
 
-        MidpointForm form = new MidpointForm(ID_FORM);
+        MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
-        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, availableMarksModel) {
+        IModel<List<MarkType>> nonEmptyMarksModel = createNonEmptyMarksModel();
+
+        ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, nonEmptyMarksModel) {
 
             @Override
             protected void onInitialize() {
