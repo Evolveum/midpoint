@@ -189,6 +189,9 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                     .collect(Collectors.toMap(
                             def -> def.getIdentifier(),
                             def -> def));
+        } else {
+            simulationDefinitions = List.of();
+            explicitMetricDefinitions = Map.of();
         }
     }
 
