@@ -677,7 +677,10 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         } else {
             objectClass = objectClassDef.getTypeName();
             if (getIntent() == null) {
-                intent = ((ResourceObjectTypeDefinitionImpl) objectClassDef).getIntent();
+                ResourceObjectTypeDefinition typeDefinition = objectClassDef.getTypeDefinition();
+                if (typeDefinition != null) {
+                    intent = typeDefinition.getIntent();
+                }
             }
         }
     }
