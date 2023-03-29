@@ -15081,15 +15081,12 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
-                        DEPRECATED. Use markRef instead.
 
-                        TODO specify the time of planned removal
+                        Will be eventually replaced by markRef.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyRuleType.policySituation</a:displayName>
                         <a:help>PolicyRuleType.policySituation.help</a:help>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
