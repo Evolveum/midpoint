@@ -793,7 +793,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         return repositoryService.searchObjects(AccessCertificationCampaignType.class, null, null, result);
     }
 
-    int currentYear() {
-        return Year.now().getValue();
+    String currentYearFragment() {
+        // In some environments, the date format does not contain "2023" but only "23".
+        return String.valueOf(
+                (Year.now().getValue() % 100));
     }
 }

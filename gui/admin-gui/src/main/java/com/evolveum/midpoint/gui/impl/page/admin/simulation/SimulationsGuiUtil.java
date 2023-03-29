@@ -7,17 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -48,6 +37,17 @@ import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -279,5 +279,22 @@ public class SimulationsGuiUtil {
         }
 
         return unmodifiedCount;
+    }
+
+    public static ObjectProcessingStateType builtInMetricToProcessingState(BuiltInSimulationMetricType identifier) {
+        if (identifier == null) {
+            return null;
+        }
+
+        switch (identifier) {
+            case ADDED:
+                return ObjectProcessingStateType.ADDED;
+            case MODIFIED:
+                return ObjectProcessingStateType.MODIFIED;
+            case DELETED:
+                return ObjectProcessingStateType.DELETED;
+            default:
+                return null;
+        }
     }
 }

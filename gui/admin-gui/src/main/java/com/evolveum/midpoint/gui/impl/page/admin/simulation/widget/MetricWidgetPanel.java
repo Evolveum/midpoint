@@ -43,7 +43,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResultObjects;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -301,7 +303,10 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         add(trendBadge);
 
         IModel<String> valueModel = createValueModel();
-        Label value = new Label(ID_VALUE, valueModel);
+        Label value = new Label(ID_VALUE, () -> {
+            String v = valueModel.getObject();
+            return v != null ? v : LocalizationUtil.translate("MetricWidgetPanel.noValue");
+        });
         value.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-bold"));
         add(value);
 
@@ -387,8 +392,18 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         PageParameters params = new PageParameters();
         params.add(SimulationPage.PAGE_PARAMETER_RESULT_OID, ref.getOid());
+
+        ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(metricRef.getBuiltIn());
+        if (state != null) {
+            params.set(PageSimulationResultObjects.PAGE_QUERY_PARAMETER, state.value());
+            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            return;
+        }
+
         if (markRef != null) {
             params.add(SimulationPage.PAGE_PARAMETER_MARK_OID, markRef.getOid());
+            getPageBase().navigateToNext(PageSimulationResultObjects.class, params);
+            return;
         }
 
         getPageBase().navigateToNext(PageSimulationResult.class, params);
