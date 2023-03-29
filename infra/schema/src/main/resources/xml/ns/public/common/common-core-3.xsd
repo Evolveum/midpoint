@@ -406,9 +406,45 @@
 
             <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Lifecycle state of the object. This property defines whether the
+                            object represents a draft, proposed definition, whether it is active,
+                            deprecated, and so on.
+                        </p>
+                        <p>
+                            There are few pre-defined lifecycle states. But custom lifecycle states
+                            may also be defined. Pre-defined lifecycle states are:
+                        </p>
+                        <ul>
+                            <li>draft: Definition of the new object in progress. The object is
+                                NOT active. The definition may change at any moment. It is
+                                not ready yet.</li>
+                            <li>proposed: Definition of a new object is ready for use, but there
+                                is still a review process to be applied (e.g. approval).
+                                The object is NOT active. However the definition should
+                                not change in this state.</li>
+                            <li>active: Active and working definition. Ready to be used without
+                                any unusual limitations.</li>
+                            <li>deprecated: Active definition which is being phased out. The
+                                definition is still fully operational. But it should not
+                                be used for new assignments. E.g. it should not be requested,
+                                it should not be approved, etc.</li>
+                            <li>archived: Inactive historical definition. It is no longer used.
+                                It is maintained only for historical, auditing and
+                                sentimental reasons.</li>
+                            <li>failed: Unexpected error has occurred during object lifecycle. Result
+                                of that event is that the object is rendered inactive.
+                                The situation cannot be automatically remedied. Manual action
+                                is needed.</li>
+                        </ul>
+
+                        TODO adapt this definition regarding the "simulations" feature.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:displayOrder>20</a:displayOrder>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -4198,6 +4234,7 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5143,6 +5180,7 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
