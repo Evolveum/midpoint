@@ -4424,7 +4424,7 @@ public final class WebComponentUtil {
         List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, pageBase);
 
         if (taskList.size() != 1) {
-            pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
+            pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch").getString());
         } else {
             task = taskList.get(0);
             PrismProperty<?> property = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
