@@ -198,12 +198,8 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
         ProcessedObjectsPanel table = new ProcessedObjectsPanel(ID_TABLE, nonEmptyMarksModel) {
 
             @Override
-            protected void onInitialize() {
-                if (getStateQueryParameter() != null) {
-                    getPageStorage().setSearch(null);
-                    resetSearchModel();
-                }
-                super.onInitialize();
+            protected ObjectProcessingStateType getPredefinedProcessingState() {
+                return getStateQueryParameter();
             }
 
             @Override
@@ -225,7 +221,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
             }
 
             @Override
-            protected String getMarkOid() {
+            protected String getPredefinedMarkOid() {
                 String oid = getPageParameterMarkOid();
                 if (oid != null && !Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);

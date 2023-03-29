@@ -26,7 +26,7 @@ public class ProcessedObjectTypeSearchItemWrapper extends ChoicesSearchItemWrapp
     public ProcessedObjectTypeSearchItemWrapper() {
         super(SimulationResultProcessedObjectType.F_TYPE,
                 WebComponentUtil.createObjectTypesList().stream()
-                        .map(o -> new DisplayableValueImpl<QName>(o.getTypeQName(), WebComponentUtil.createEnumResourceKey(o)))
+                        .map(o -> new DisplayableValueImpl<>(o.getTypeQName(), WebComponentUtil.createEnumResourceKey(o)))
                         .collect(Collectors.toList()));
     }
 

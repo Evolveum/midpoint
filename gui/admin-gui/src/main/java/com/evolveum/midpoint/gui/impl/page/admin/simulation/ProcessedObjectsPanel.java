@@ -11,10 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-
-import com.evolveum.midpoint.prism.PrismObject;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -37,14 +33,18 @@ import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -89,14 +89,48 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        Search<SimulationResultProcessedObjectType> search = getSearchModel().getObject();
+        PropertySearchItemWrapper<?> wrapper = search.findPropertySearchItem(SimulationResultProcessedObjectType.F_STATE);
+        if (wrapper instanceof ChoicesSearchItemWrapper) {
+            updateSearchForObjectProcessingState((ChoicesSearchItemWrapper) wrapper);
+        }
+    }
+
+    private void updateSearchForObjectProcessingState(ChoicesSearchItemWrapper<ObjectProcessingStateType> wrapper) {
+        ObjectProcessingStateType state = getPredefinedProcessingState();
+        if (state == null) {
+            wrapper.setValue(null);
+            return;
+        }
+
+        List<DisplayableValue<ObjectProcessingStateType>> availableValues = wrapper.getAvailableValues();
+        DisplayableValue<ObjectProcessingStateType> newValue = availableValues.stream()
+                .filter(d -> Objects.equals(d.getValue(), state))
+                .findFirst().orElse(null);
+
+        wrapper.setValue(newValue);
+    }
+
+    private void updateSearchForAvailableMarks(AvailableMarkSearchItemWrapper wrapper) {
+        List<DisplayableValue<String>> marks = wrapper.getAvailableValues();
+        marks.clear();
+        marks.addAll(createSearchValuesForAvailableMarks());
+
+        String markOid = getPredefinedMarkOid();
+        wrapper.setValue(markOid);
+    }
+
+    @Override
     protected void onConfigure() {
         super.onConfigure();
 
-        String markOid = getMarkOid();
-        PropertySearchItemWrapper<?> wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        Search<SimulationResultProcessedObjectType> search = getSearchModel().getObject();
+        PropertySearchItemWrapper<?> wrapper = search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
         if (wrapper instanceof AvailableMarkSearchItemWrapper) {
-            AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
-            markWrapper.setValue(markOid);
+            updateSearchForAvailableMarks((AvailableMarkSearchItemWrapper) wrapper);
         }
     }
 
@@ -105,19 +139,23 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
 
-    @Override
-    protected SearchContext createAdditionalSearchContext() {
-        SearchContext ctx = new SearchContext();
-
-        List<DisplayableValue<String>> values = availableMarksModel.getObject().stream()
+    private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
+        return availableMarksModel.getObject().stream()
                 .map(o -> new DisplayableValueImpl<>(
                         o.getOid(),
                         WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
                         o.getDescription()))
                 .sorted(Comparator.comparing(DisplayableValueImpl::getLabel, Comparator.naturalOrder()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+
+        List<DisplayableValue<String>> values = createSearchValuesForAvailableMarks();
         ctx.setAvailableEventMarks(values);
-        ctx.setSelectedEventMark(getMarkOid());
+        ctx.setSelectedEventMark(getPredefinedMarkOid());
 
         return ctx;
     }
@@ -345,7 +383,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
         PageParameters params = new PageParameters();
         params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
-        String markOid = getMarkOid();
+        String markOid = getPredefinedMarkOid();
         if (markOid != null) {
             params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }
@@ -368,7 +406,17 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
     @NotNull
     protected abstract String getSimulationResultOid();
 
-    protected String getMarkOid() {
+    /**
+     * Mark OID that should be used in search filter during first initialization (can be changed by user later)
+     */
+    protected String getPredefinedMarkOid() {
+        return null;
+    }
+
+    /**
+     * Object processing state that should be used in search filter during first initialization (can be changed by user later)
+     */
+    protected ObjectProcessingStateType getPredefinedProcessingState() {
         return null;
     }
 
@@ -462,7 +510,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
         DisplayableValue<String> value = markWrapper.getValue();
         String newMarkOid = value != null ? value.getValue() : null;
-        if (Objects.equals(getMarkOid(), newMarkOid)) {
+        if (Objects.equals(getPredefinedMarkOid(), newMarkOid)) {
             return;
         }
 
@@ -512,7 +560,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             try {
                 @SuppressWarnings("unchecked")
                 var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
-                    .getCompileTimeClassForObjectType(shadow.getType());
+                        .getCompileTimeClassForObjectType(shadow.getType());
                 var delta = page.getPrismContext().deltaFactory().object()
                         .createModificationAddContainer(type,
                                 shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
