@@ -75,7 +75,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment.construction", new Object[] {
                         new SingleLocalizableMessage("ShadowKindType." + kind),
-                        new SingleLocalizableMessage(intent),
+                        intent,
                         resourceName,
                         createAssignedMessage(change == ADD)
                 })
