@@ -385,6 +385,15 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+        if (hasTargetObject()) {
+            selectNewAssignmentTargetObjectPerformed(target);
+        } else {
+            List<PrismContainerValueWrapper<AssignmentType>> newAssignmentList = addSelectedAssignmentsPerformed(target);
+            itemDetailsPerformed(target, newAssignmentList);
+        }
+    }
+
+    private void selectNewAssignmentTargetObjectPerformed(AjaxRequestTarget target) {
         AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId(), createAssignmentPopupModel()) {
 
             private static final long serialVersionUID = 1L;
@@ -393,6 +402,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             protected void addPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
                 super.addPerformed(target, newAssignmentsList);
                 addSelectedAssignmentsPerformed(target, newAssignmentsList);
+                AbstractAssignmentTypePanel.this.refreshTable(target);
+                getPageBase().hideMainPopup(target);
             }
 
             @Override
@@ -423,6 +434,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         popupPanel.setOutputMarkupId(true);
         popupPanel.setOutputMarkupPlaceholderTag(true);
         getPageBase().showMainPopup(popupPanel, target);
+    }
+
+    protected boolean hasTargetObject() {
+        return true;
     }
 
     protected List<ObjectTypes> getObjectTypesList() {
@@ -457,19 +472,24 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     protected abstract QName getAssignmentType();
 
-    protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
+    private List<PrismContainerValueWrapper<AssignmentType>> addSelectedAssignmentsPerformed(AjaxRequestTarget target) {
+        return addSelectedAssignmentsPerformed(target, Collections.singletonList(new AssignmentType()));
+    }
+
+    private List<PrismContainerValueWrapper<AssignmentType>> addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
         if (CollectionUtils.isEmpty(newAssignmentsList)) {
             warn(getPageBase().getString("AssignmentTablePanel.message.noAssignmentSelected"));
             target.add(getPageBase().getFeedbackPanel());
-            return;
+            return new ArrayList<>();
         }
         boolean isAssignmentsLimitReached = isAssignmentsLimitReached(newAssignmentsList.size(), true);
         if (isAssignmentsLimitReached) {
             warn(getPageBase().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsRequestsLimit));
             target.add(getPageBase().getFeedbackPanel());
-            return;
+            return new ArrayList<>();
         }
 
+        List<PrismContainerValueWrapper<AssignmentType>> newAssignmentList = new ArrayList<>();
         newAssignmentsList.forEach(assignment -> {
 
             PrismContainerValue<AssignmentType> newAssignment = getContainerModel().getObject().getItem().createNewValue();
@@ -477,14 +497,24 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
             if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
                 assignmentType.setConstruction(assignment.getConstruction());
+            } else if (!hasTargetObject()) {
+                initializeNewAssignmentData(newAssignment, assignmentType, target);
             } else {
                 assignmentType.setTargetRef(assignment.getTargetRef());
             }
-            AbstractAssignmentTypePanel.this.createNewItemContainerValueWrapper(newAssignment, getContainerModel().getObject(),
-                    target);
+            newAssignmentList.add(AbstractAssignmentTypePanel.this.createNewItemContainerValueWrapper(newAssignment,
+                    getContainerModel().getObject(), target));
         });
-        AbstractAssignmentTypePanel.this.refreshTable(target);
-        getPageBase().hideMainPopup(target);
+        return newAssignmentList;
+    }
+
+    /**
+     * should be used for such cases as creation of the assignment/inducement without any target reference object
+     * (e.g. focus mapping or policy rule)
+     * @return
+     */
+    protected void initializeNewAssignmentData(PrismContainerValue<AssignmentType> newAssignmentValue,
+            AssignmentType assignmentObject, AjaxRequestTarget target) {
     }
 
     @Override

@@ -74,22 +74,22 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
     }
 
     @Override
-    protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<AssignmentType> newAssignment = getContainerModel().getObject().getItem().createNewValue();
-        AssignmentType assignmentType = newAssignment.asContainerable();
+    protected boolean hasTargetObject() {
+        return false;
+    }
+
+    @Override
+    protected void initializeNewAssignmentData(PrismContainerValue<AssignmentType> newAssignmentValue,
+            AssignmentType assignmentObject, AjaxRequestTarget target) {
         try {
-            newAssignment.findOrCreateContainer(AssignmentType.F_POLICY_RULE);
-            assignmentType.setPolicyRule(new PolicyRuleType());
+            newAssignmentValue.findOrCreateContainer(AssignmentType.F_POLICY_RULE);
+            assignmentObject.setPolicyRule(new PolicyRuleType());
         } catch (SchemaException e) {
             LOGGER.error("Cannot create policy rule assignment: {}", e.getMessage(), e);
             getSession().error("Cannot create policyRule assignment.");
             target.add(getPageBase().getFeedbackPanel());
-            return;
         }
-        PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewItemContainerValueWrapper(newAssignment, getContainerModel().getObject(), target);
-        itemDetailsPerformed(target, Collections.singletonList(newAssignmentWrapper));
     }
-
 
     protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
