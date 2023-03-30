@@ -20213,7 +20213,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
-                <!-- intentionally not a container (really?) -->
+                <!-- not a container by mistake, will be fixed in the future -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
