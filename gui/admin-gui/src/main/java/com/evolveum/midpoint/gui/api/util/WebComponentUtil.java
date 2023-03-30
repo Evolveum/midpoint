@@ -2320,9 +2320,9 @@ public final class WebComponentUtil {
         return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
-    public static boolean isTemplateCategory(ResourceType resourceType) {
-        return (resourceType.isTemplate() != null && resourceType.isTemplate()) ||
-                (resourceType.isAbstract() != null && resourceType.isAbstract());
+    public static boolean isTemplateCategory(@NotNull ResourceType resource) {
+        return Boolean.TRUE.equals(resource.isTemplate())
+                || Boolean.TRUE.equals(resource.isAbstract());
     }
 
     public static String createTaskIcon() {
