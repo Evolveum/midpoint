@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -42,8 +42,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.CollectionInstance;
-import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -63,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/resources", matchUrlForSecurity = "/admin/resources")
+                @Url(mountUrl = "/admin/resourceTemplates", matchUrlForSecurity = "/admin/resourceTemplates")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
@@ -76,16 +74,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResources.auth.resources.view.label",
                         description = "PageResources.auth.resources.view.description")
         })
-@CollectionInstance(identifier = "allResources", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageAdmin.menu.top.resources.list", singularLabel = "ObjectType.resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON))
-public class PageResources extends PageAdmin {
+public class PageResourceTemplates extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
-    private static final String DOT_CLASS = PageResources.class.getName() + ".";
-    private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
+    private static final Trace LOGGER = TraceManager.getTrace(PageResourceTemplates.class);
+    private static final String DOT_CLASS = PageResourceTemplates.class.getName() + ".";
     private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
-    private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
     private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
 
     private static final String ID_MAIN_FORM = "mainForm";
@@ -93,11 +87,11 @@ public class PageResources extends PageAdmin {
 
     private ResourceType singleDelete;
 
-    public PageResources() {
+    public PageResourceTemplates() {
         this(null);
     }
 
-    public PageResources(PageParameters params) {
+    public PageResourceTemplates(PageParameters params) {
         super();
     }
 
@@ -114,10 +108,9 @@ public class PageResources extends PageAdmin {
 
         if (!isNativeRepo()) {
             mainForm.add(new ErrorPanel(ID_TABLE,
-                    () -> getString("PageAdmin.menu.top.resources.list.nonNativeRepositoryWarning")));
+                    () -> getString("PageAdmin.menu.top.resources.templates.list.nonNativeRepositoryWarning")));
             return;
         }
-
         MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class, getQueryOptions()) {
 
             @Override
@@ -138,17 +131,17 @@ public class PageResources extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_RESOURCES;
+                return UserProfileStorage.TableId.TABLE_RESOURCE_TEMPLATES;
             }
 
             @Override
             protected List<IColumn<SelectableBean<ResourceType>, String>> createDefaultColumns() {
-                return PageResources.this.initResourceColumns();
+                return PageResourceTemplates.this.initResourceColumns();
             }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return PageResources.this.createRowMenuItems();
+                return PageResourceTemplates.this.createRowMenuItems();
             }
         };
         table.setOutputMarkupId(true);
@@ -158,11 +151,10 @@ public class PageResources extends PageAdmin {
 
     }
 
-    protected ObjectQuery getCustomizeContentQuery() {
+    private ObjectQuery getCustomizeContentQuery() {
         return getPrismContext().queryFor(ResourceType.class)
-                .not().item(ResourceType.F_TEMPLATE).eq(true)
-                .and()
-                .not().item(ResourceType.F_ABSTRACT).eq(true)
+                .item(ResourceType.F_TEMPLATE).eq(true).or()
+                .item(ResourceType.F_ABSTRACT).eq(true)
                 .build();
     }
 
@@ -176,33 +168,6 @@ public class PageResources extends PageAdmin {
     private List<InlineMenuItem> createRowMenuItems() {
 
         List<InlineMenuItem> menuItems = new ArrayList<>();
-
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageResources.inlineMenuItem.test")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
-                        testResourcePerformed(target, rowDto.getValue());
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
-            }
-        });
 
         menuItems.add(new ButtonInlineMenuItem(createStringResource("pageResources.button.editAsXml")) {
             private static final long serialVersionUID = 1L;
@@ -228,28 +193,6 @@ public class PageResources extends PageAdmin {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
-            }
-        });
-
-        menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
-                        refreshSchemaPerformed(rowDto.getValue(), target);
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
             }
         });
 
@@ -315,7 +258,7 @@ public class PageResources extends PageAdmin {
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         WebComponentUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
-                                OPERATION_SET_MAINTENANCE, target, PageResources.this);
+                                OPERATION_SET_MAINTENANCE, target, PageResourceTemplates.this);
                         target.add(getResourceTable());
                     }
                 };
@@ -333,11 +276,15 @@ public class PageResources extends PageAdmin {
     private List<IColumn<SelectableBean<ResourceType>, String>> initResourceColumns() {
         List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
+        columns.add(new PropertyColumn<>(createStringResource("pageResources.template"),
+                SelectableBeanImpl.F_VALUE + "." + ResourceType.F_TEMPLATE.getLocalPart()));
+        columns.add(new PropertyColumn<>(createStringResource("pageResources.abstract"),
+                SelectableBeanImpl.F_VALUE + "." + ResourceType.F_ABSTRACT.getLocalPart()) {
+        });
         columns.add(new PropertyColumn<>(createStringResource("pageResources.connectorType"),
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorType"));
         columns.add(new PropertyColumn<>(createStringResource("pageResources.version"),
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
-
         return columns;
     }
 
@@ -345,19 +292,6 @@ public class PageResources extends PageAdmin {
         return single != null
                 ? Collections.singletonList(single)
                 : getResourceTable().getSelectedRealObjects();
-
-    }
-
-    private void refreshSchemaPerformed(ResourceType resource, AjaxRequestTarget target) {
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                createStringResource("pageResources.message.refreshResourceSchemaConfirm")) {
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.refreshResourceSchema(resource.asPrismObject(),
-                        OPERATION_REFRESH_SCHEMA, target, PageResources.this);
-            }
-        };
-        ((PageBase) getPage()).showMainPopup(dialog, target);
     }
 
     private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {
@@ -369,10 +303,6 @@ public class PageResources extends PageAdmin {
         }
 
         singleDelete = single;
-
-        if (selected.isEmpty()) {
-            return;
-        }
 
         ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
                 createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
@@ -395,23 +325,19 @@ public class PageResources extends PageAdmin {
      */
     private IModel<String> createDeleteConfirmString(
             final String oneDeleteKey, final String moreDeleteKey) {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                List<ResourceType> selected = new ArrayList<>();
-                if (singleDelete != null) {
-                    selected.add(singleDelete);
-                } else {
-                    selected = getResourceTable().getSelectedRealObjects();
-                }
-
-                if (selected.size() == 1) {
-                    String name = WebComponentUtil.getName(selected.get(0));
-                    return createStringResource(oneDeleteKey, name).getString();
-                }
-                return createStringResource(moreDeleteKey, selected.size()).getString();
+        return () -> {
+            List<ResourceType> selected = new ArrayList<>();
+            if (singleDelete != null) {
+                selected.add(singleDelete);
+            } else {
+                selected = getResourceTable().getSelectedRealObjects();
             }
+
+            if (selected.size() == 1) {
+                String name = WebComponentUtil.getName(selected.get(0));
+                return createStringResource(oneDeleteKey, name).getString();
+            }
+            return createStringResource(moreDeleteKey, selected.size()).getString();
         };
     }
 
@@ -452,36 +378,8 @@ public class PageResources extends PageAdmin {
         target.add(getFeedbackPanel(), getResourceTable());
     }
 
-    private void testResourcePerformed(AjaxRequestTarget target, ResourceType resourceType) {
-
-        OperationResult result = new OperationResult(OPERATION_TEST_RESOURCE);
-
-        if (StringUtils.isEmpty(resourceType.getOid())) {
-            result.recordFatalError(createStringResource(
-                    "PageResources.message.testResourcePerformed.partialError").getString());
-        }
-
-        Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
-        try {
-            getModelService().testResource(resourceType.getOid(), task, result);
-            // todo de-duplicate code (see the same operation in PageResource)
-            // this provides some additional tests, namely a test for schema
-            // handling section
-            getModelService().getObject(ResourceType.class, resourceType.getOid(), null, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError(createStringResource(
-                    "PageResources.message.testResourcePerformed.fatalError").getString(), ex);
-        }
-
-        result.close();
-
-        showResult(result);
-        target.add(getFeedbackPanel());
-        target.add(getResourceTable());
-    }
-
     private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType) {
-        WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResources.this);
+        WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResourceTemplates.this);
     }
 
     private void editAsXmlPerformed(ResourceType resourceType) {

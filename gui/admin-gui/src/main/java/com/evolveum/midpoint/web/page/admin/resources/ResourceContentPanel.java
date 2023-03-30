@@ -153,7 +153,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
-            warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            if (WebComponentUtil.isTemplateCategory(resourceModel.getObject().asObjectable())) {
+                warn("No schema found in resource.");
+            } else {
+                warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            }
             return null;
         }
         String intent = getIntent();
@@ -168,7 +172,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
-            warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            if (WebComponentUtil.isTemplateCategory(resourceModel.getObject().asObjectable())) {
+                warn("No schema found in resource.");
+            } else {
+                warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            }
             return null;
         }
         return refinedSchema.findDefinitionForObjectClass(getObjectClass());

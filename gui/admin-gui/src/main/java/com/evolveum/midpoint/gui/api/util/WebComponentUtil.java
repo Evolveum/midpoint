@@ -2320,6 +2320,11 @@ public final class WebComponentUtil {
         return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
+    public static boolean isTemplateCategory(ResourceType resourceType) {
+        return (resourceType.isTemplate() != null && resourceType.isTemplate()) ||
+                (resourceType.isAbstract() != null && resourceType.isAbstract());
+    }
+
     public static String createTaskIcon() {
         return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }

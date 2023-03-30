@@ -61,7 +61,8 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     }
 
     private void initResourceButtons(RepeatingView resourceButtons) {
-        AjaxIconButton test = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM),
+        AjaxIconButton test = new AjaxIconButton(resourceButtons.newChildId(),
+                Model.of(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM),
                 createStringResource("pageResource.button.test")) {
             private static final long serialVersionUID = 1L;
 
@@ -69,12 +70,18 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
             public void onClick(AjaxRequestTarget target) {
                 testConnectionPerformed(target);
             }
+
+            @Override
+            public boolean isVisible() {
+                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
+            }
         };
         test.showTitleAsLabel(true);
         test.add(new VisibleBehaviour(() -> isEditingObject()));
         resourceButtons.add(test);
 
-        AjaxIconButton setMaintenance = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE),
+        AjaxIconButton setMaintenance = new AjaxIconButton(resourceButtons.newChildId(),
+                Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE),
                 createStringResource("pageResource.button.toggleMaintenance")) {
             private static final long serialVersionUID = 1L;
 
@@ -88,13 +95,19 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         setMaintenance.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
         resourceButtons.add(setMaintenance);
 
-        AjaxIconButton refreshSchema = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA),
+        AjaxIconButton refreshSchema = new AjaxIconButton(resourceButtons.newChildId(),
+                Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA),
                 createStringResource("pageResource.button.refreshSchema")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 WebComponentUtil.refreshResourceSchema(getPrismObject(), OPERATION_REFRESH_SCHEMA, target, getPageBase());
+            }
+
+            @Override
+            public boolean isVisible() {
+                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
             }
         };
         refreshSchema.add(new VisibleBehaviour(() -> isVisibleRefresSchemaButton(getObjectType())));
@@ -103,7 +116,8 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     }
 
     private void initModeButtons(RepeatingView modeButtons) {
-        AjaxIconButton toggleToProduction = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
+        AjaxIconButton toggleToProduction = new AjaxIconButton(modeButtons.newChildId(),
+                Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToProduction")) {
             private static final long serialVersionUID = 1L;
 
@@ -118,7 +132,8 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         toggleToProduction.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_ACTIVE)));
         modeButtons.add(toggleToProduction);
 
-        AjaxIconButton toggleToDevelopment = new AjaxIconButton(modeButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
+        AjaxIconButton toggleToDevelopment = new AjaxIconButton(modeButtons.newChildId(),
+                Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
                 createStringResource("OperationalButtonsPanel.button.toggleToDevelopment")) {
             private static final long serialVersionUID = 1L;
 
@@ -197,7 +212,8 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
                 return false;
             }
             if (resource.getCapabilities().getConfigured() != null) {
-                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured(), SchemaCapabilityType.class);
+                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(
+                        resource.getCapabilities().getConfigured(), SchemaCapabilityType.class);
                 if (configuredCapability == null) {
                     return false;
                 }
