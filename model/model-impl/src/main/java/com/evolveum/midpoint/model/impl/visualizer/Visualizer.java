@@ -890,30 +890,36 @@ public class Visualizer {
     }
 
     private List<VisualizationItemValueImpl> toVisualizationItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
+        if (refValues == null) {
+            return new ArrayList<>();
+        }
+
         List<VisualizationItemValueImpl> rv = new ArrayList<>();
-        if (refValues != null) {
-            for (PrismReferenceValue refValue : refValues) {
-                if (refValue != null) {
-                    refValue = createRefValueWithObject(refValue, context, task, result);
-                    String name;
-                    if (refValue.getObject() != null) {
-                        name = PolyString.getOrig(refValue.getObject().getName());
-                    } else if (refValue.getTargetName() != null) {
-                        name = refValue.getTargetName().getOrig();
-                    } else {
-                        name = refValue.getOid();
-                    }
-                    String relation;
-                    if (refValue.getRelation() != null) {
-                        relation = "[" + refValue.getRelation().getLocalPart() + "]";
-                    } else {
-                        relation = null;
-                    }
-                    VisualizationItemValueImpl itemValue = new VisualizationItemValueImpl(name, relation);
-                    itemValue.setSourceValue(refValue);
-                    rv.add(itemValue);
-                }
+        for (PrismReferenceValue refValue : refValues) {
+            if (refValue == null) {
+                continue;
             }
+
+            refValue = createRefValueWithObject(refValue, context, task, result);
+            String name;
+            if (refValue.getObject() != null) {
+                name = PolyString.getOrig(refValue.getObject().getName());
+            } else if (refValue.getTargetName() != null) {
+                name = refValue.getTargetName().getOrig();
+            } else {
+                name = refValue.getOid();
+            }
+
+            String relation;
+            if (refValue.getRelation() != null) {
+                relation = "[" + refValue.getRelation().getLocalPart() + "]";
+            } else {
+                relation = null;
+            }
+
+            VisualizationItemValueImpl itemValue = new VisualizationItemValueImpl(name, relation);
+            itemValue.setSourceValue(refValue);
+            rv.add(itemValue);
         }
         return rv;
     }

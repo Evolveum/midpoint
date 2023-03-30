@@ -65,6 +65,8 @@ public class AuditChangesPanel extends ChangesPanel {
 
         this.deltaOperationModel = deltaOperationModel;
 
+        setShowOperationalItems(true);
+
         initLayout();
     }
 
