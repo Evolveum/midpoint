@@ -46,10 +46,10 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
 
         ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
         Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-        String name = realName != null ? realName.toString() : "";
+        String name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
         ChangeType change = visualization.getChangeType();
 
-        String intent = shadow.getIntent() != null ? shadow.getIntent() : "";
+        String intent = shadow.getIntent() != null ? "(" + shadow.getIntent() + ")" : "";
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
 
@@ -62,7 +62,7 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("ShadowDescriptionHandler.shadow", new Object[] {
                         new SingleLocalizableMessage("ShadowKindType." + kind.name()),
-                        name,
+                        new SingleLocalizableMessage(name),
                         intent,
                         new SingleLocalizableMessage("ShadowDescriptionHandler.changeType." + change.name()),
                         resourceName
