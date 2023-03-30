@@ -58,8 +58,8 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     private void handleConstruction(VisualizationImpl visualization, ConstructionType construction, Task task, OperationResult result) {
         ChangeType change = visualization.getChangeType();
 
-        ShadowKindType kind = construction.getKind();
-        String intent = construction.getIntent() != null ? construction.getIntent() : "";
+        ShadowKindType kind = construction.getKind() != null ? construction.getKind() : ShadowKindType.UNKNOWN;
+        String intent = construction.getIntent() != null ? "(" + construction.getIntent() + ")" : "";
 
         ObjectReferenceType resourceRef = construction.getResourceRef();
         Object resourceName = null;
@@ -74,8 +74,8 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment.construction", new Object[] {
-                        new SingleLocalizableMessage("ShadowKindType." + (kind != null ? kind.name() : "UNKNOWN")),
-                        intent,
+                        new SingleLocalizableMessage("ShadowKindType." + kind),
+                        new SingleLocalizableMessage(intent),
                         resourceName,
                         createAssignedMessage(change == ADD)
                 })
