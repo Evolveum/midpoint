@@ -20,11 +20,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -48,24 +46,60 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
-        ChangeType changeType = visualization.getChangeType();
 
         AssignmentType a = (AssignmentType) value.asContainerable();
-        ObjectReferenceType targetRef = a.getTargetRef();
-        if (targetRef == null) {
-            return;
+        if (a.getConstruction() != null) {
+            handleConstruction(visualization, a.getConstruction(), task, result);
+        } else if (a.getTargetRef() != null) {
+            handleTargetRef(visualization, a.getTargetRef(), task, result);
+        }
+    }
+
+    private void handleConstruction(VisualizationImpl visualization, ConstructionType construction, Task task, OperationResult result) {
+        ChangeType change = visualization.getChangeType();
+
+        ShadowKindType kind = construction.getKind();
+        String intent = construction.getIntent() != null ? construction.getIntent() : "";
+
+        ObjectReferenceType resourceRef = construction.getResourceRef();
+        Object resourceName = null;
+        if (resourceRef != null) {
+            resourceName = resolver.resolveReferenceName(resourceRef, false, task, result);
         }
 
+        if (resourceName == null) {
+            resourceName = new SingleLocalizableMessage("ShadowDescriptionHandler.unknownResource",
+                    new Object[] { resourceRef != null ? resourceRef.getOid() : null });
+        }
+
+        visualization.getName().setOverview(
+                new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment.construction", new Object[] {
+                        new SingleLocalizableMessage("ShadowKindType." + (kind != null ? kind.name() : "UNKNOWN")),
+                        intent,
+                        resourceName,
+                        createAssignedMessage(change == ADD)
+                })
+        );
+    }
+
+    private LocalizableMessage createAssignedMessage(boolean assigned) {
+        String key = assigned ? "AssignmentDescriptionHandler.assigned" : "AssignmentDescriptionHandler.unassigned";
+        return new SingleLocalizableMessage(key);
+    }
+
+    private void handleTargetRef(VisualizationImpl visualization, ObjectReferenceType targetRef, Task task, OperationResult result) {
         QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
         String targetName = resolver.resolveReferenceDisplayName(targetRef, true, task, result);
 
+        ChangeType change = visualization.getChangeType();
+
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
                         new SingleLocalizableMessage("ObjectTypes." + ot.name()),
                         targetName,
-                        changeType == ADD ? "assigned" : "unassigned"
+                        createAssignedMessage(change == ADD)
                 }, (String) null));
     }
 }
