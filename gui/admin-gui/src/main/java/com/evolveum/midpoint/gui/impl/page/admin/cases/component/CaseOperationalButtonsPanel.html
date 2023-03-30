@@ -9,10 +9,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:extend>
-        <fieldset class="objectButtons">
-            <legend><wicket:message key="CaseOperationalButtonsPanel.buttons.case" /></legend>
-            <a class="mr-2 btn" wicket:id="caseButtons"/>
-        </fieldset>
+        <wicket:enclosure child="stopProcess">
+            <fieldset class="objectButtons gap-2">
+                <legend>
+                    <wicket:message key="CaseOperationalButtonsPanel.buttons.case"/>
+                </legend>
+                <a class="btn btn-default btn-sm" wicket:id="stopProcess"/>
+            </fieldset>
+        </wicket:enclosure>
     </wicket:extend>
 </wicket:panel>
 </html>

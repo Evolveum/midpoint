@@ -6,23 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import java.util.Objects;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<CaseType> {
@@ -31,40 +32,44 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String DOT_CLASS = CaseOperationalButtonsPanel.class.getName() + ".";
     private static final String OPERATION_STOP_CASE_PROCESS = DOT_CLASS + "stopCaseProcess";
 
-    private static final String ID_CASES_BUTTONS = "caseButtons";
+    private static final String ID_STOP_PROCESS = "stopProcess";
 
     public CaseOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> model) {
         super(id, model);
     }
 
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
         initStopProcessButton();
     }
 
     private void initStopProcessButton() {
-        RepeatingView repeatingView = new RepeatingView(ID_CASES_BUTTONS);
-        add(repeatingView);
-
-        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_STOP_MENU_ITEM), createStringResource("pageCases.button.stopProcess")) {
+        AjaxIconButton stop = new AjaxIconButton(ID_STOP_PROCESS, Model.of(GuiStyleConstants.CLASS_STOP_MENU_ITEM), createStringResource("pageCases.button.stopProcess")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 stopCaseProcessConfirmed(ajaxRequestTarget);
             }
         };
-        preview.showTitleAsLabel(true);
-        preview.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        stop.showTitleAsLabel(true);
+        stop.add(new VisibleBehaviour(() -> {
+            PrismObjectWrapper<CaseType> wrapper = getModelObject();
+            if (wrapper == null) {
+                return false;
+            }
+            CaseType c = wrapper.getObject().asObjectable();
+            return !Objects.equals(c.getState(), SchemaConstants.CASE_STATE_CLOSED);
+        }));
 
-        repeatingView.add(preview);
+        add(stop);
     }
 
     private void stopCaseProcessConfirmed(AjaxRequestTarget target) {
         PageBase page = getPageBase();
 
-        OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
         Task task = page.createSimpleTask(OPERATION_STOP_CASE_PROCESS);
+        OperationResult result = task.getResult();
         try {
             page.getCaseService().cancelCase(getModelObject().getOid(), task, result);
         } catch (Exception ex) {
