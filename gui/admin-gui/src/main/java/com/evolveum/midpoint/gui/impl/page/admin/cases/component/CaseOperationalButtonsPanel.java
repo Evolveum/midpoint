@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
-import java.util.Objects;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 
@@ -17,8 +15,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,7 +57,7 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 return false;
             }
             CaseType c = wrapper.getObject().asObjectable();
-            return !Objects.equals(c.getState(), SchemaConstants.CASE_STATE_CLOSED);
+            return !CaseTypeUtil.isClosed(c);
         }));
 
         add(stop);
