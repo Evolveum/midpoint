@@ -42,7 +42,6 @@ public abstract class AbstractObjectClassFactory extends AbstractInputGuiCompone
                 return true;
             }
         };
-        panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return panel;
     }
 

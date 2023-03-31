@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -44,7 +46,7 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
                 }
                 return "";
             }));
-            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                 private boolean lastValidationWasError = false;
 
@@ -63,6 +65,7 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
                     if (lastValidationWasError) {
                         lastValidationWasError = false;
                         updateFeedbackPanel(target);
+                        target.focusComponent(null);
                     }
                 }
 
@@ -71,6 +74,7 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
                     updateFeedbackPanel(target);
                 }
             });
+//            baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
     }
 
