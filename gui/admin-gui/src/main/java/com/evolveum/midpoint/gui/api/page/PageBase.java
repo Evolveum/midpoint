@@ -850,6 +850,19 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
+
+        removeAllAfterBreadcrumb(breadcrumb);
+
+        WebPage page = breadcrumb.redirect();
+        if (page instanceof PageBase) {
+            PageBase base = (PageBase) page;
+            base.setBreadcrumbs(breadcrumbs);
+        }
+
+        setResponsePage(page);
+    }
+
+    private void removeAllAfterBreadcrumb(Breadcrumb breadcrumb) {
         Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
         boolean found = false;
@@ -865,13 +878,16 @@ public abstract class PageBase extends PageAdminLTE {
                 found = true;
             }
         }
-        WebPage page = breadcrumb.redirect();
-        if (page instanceof PageBase) {
-            PageBase base = (PageBase) page;
-            base.setBreadcrumbs(breadcrumbs);
-        }
+    }
 
-        setResponsePage(page);
+    protected void removeLastBreadcrumb() {
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        if (canRedirectBack(DEFAULT_BREADCRUMB_STEP)) {
+            Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - DEFAULT_BREADCRUMB_STEP);
+            removeAllAfterBreadcrumb(breadcrumb);
+        } else {
+            clearBreadcrumbs();
+        }
     }
 
     protected void setTimeZone() {

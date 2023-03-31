@@ -47,11 +47,6 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
             }
-
-            @Override
-            protected boolean isExitButtonVisible() {
-                return true;
-            }
         });
 
         steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){

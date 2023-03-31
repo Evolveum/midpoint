@@ -92,4 +92,9 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Focus
         }
         return itemWrapper.isMandatory();
     }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
+    }
 }
