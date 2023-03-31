@@ -383,7 +383,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), true);
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(), true);
                     }
                 };
             }
