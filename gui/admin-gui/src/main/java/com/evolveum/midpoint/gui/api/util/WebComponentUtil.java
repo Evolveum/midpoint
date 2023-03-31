@@ -2320,6 +2320,11 @@ public final class WebComponentUtil {
         return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
+    public static boolean isTemplateCategory(@NotNull ResourceType resource) {
+        return Boolean.TRUE.equals(resource.isTemplate())
+                || Boolean.TRUE.equals(resource.isAbstract());
+    }
+
     public static String createTaskIcon() {
         return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
@@ -4424,7 +4429,7 @@ public final class WebComponentUtil {
         List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, pageBase);
 
         if (taskList.size() != 1) {
-            pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
+            pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch").getString());
         } else {
             task = taskList.get(0);
             PrismProperty<?> property = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));

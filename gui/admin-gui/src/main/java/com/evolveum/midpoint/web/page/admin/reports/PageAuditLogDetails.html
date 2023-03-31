@@ -11,7 +11,7 @@
     <wicket:extend>
 
         <div wicket:id="eventPanel" class="row">
-            <div wicket:id="eventDetailsPanel" class="col-md-6">
+            <div wicket:id="eventDetailsPanel" class="col-12 col-xl-6">
                 <div class="card card-outline card-secondary">
                     <div class="card-body p-0">
                         <table class="table table-striped" style="word-break: break-word;">
@@ -118,17 +118,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-xl-6">
                 <div wicket:id="deltaListPanel">
                     <div wicket:id="delta"/>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="main-button-bar" style="padding-left: 15px;">
-                <span class="button-group">
-                    <a class="btn btn-default" wicket:id="back"/>
-                </span>
+            <div class="col">
+                <div class="main-button-bar">
+                    <span class="button-group">
+                        <a class="btn btn-default" wicket:id="back"/>
+                    </span>
+                </div>
             </div>
         </div>
     </wicket:extend>

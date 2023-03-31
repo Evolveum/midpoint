@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -404,8 +406,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createResourcesItems() {
-        MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
+        MainMenuItem resourceMenu = createMainMenuItem(
+                "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
+
+        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resource.templates.list",
+                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class));
+
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
+
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
         return resourceMenu;

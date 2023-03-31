@@ -84,7 +84,7 @@ public class PageShadow extends AbstractPageObjectDetails<ShadowType, ShadowDeta
                 String name = WebComponentUtil.getName(resource);
 
                 //TODO: refactor
-                return createStringResourceStatic("PageAccount.title", accName, name).getString();
+                return createStringResourceStatic("PageAccount.title", accName, accName, name).getString();
             }
         };
     }

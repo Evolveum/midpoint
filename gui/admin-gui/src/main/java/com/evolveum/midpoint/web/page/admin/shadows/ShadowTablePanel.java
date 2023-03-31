@@ -326,7 +326,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                                 Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
 
                             protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
-                                LOGGER.warn("Selected marks: {}", selected);
+                                LOGGER.debug("Selected marks: {}", selected);
 
                                 List<String> markOids = Lists.transform(selected, MarkType::getOid);
                                 markShadows(getRowModel(), markOids, target);

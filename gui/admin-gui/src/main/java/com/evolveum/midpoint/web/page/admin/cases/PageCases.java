@@ -6,17 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -46,6 +35,16 @@ import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -125,6 +124,15 @@ public class PageCases extends PageAdmin {
                 .build();
     }
 
+    private boolean isCaseInRowClosed(IModel<SelectableBeanImpl<CaseType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+            return false;
+        }
+
+        CaseType c = rowModel.getObject().getValue();
+        return !CaseTypeUtil.isClosed(c);
+    }
+
     private List<InlineMenuItem> createActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
 
@@ -151,18 +159,13 @@ public class PageCases extends PageAdmin {
             }
 
             @Override
-            public IModel<Boolean> getEnabled() {
-                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>) getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
-                    return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
-                } else {
-                    return super.getEnabled();
-                }
+            public IModel<Boolean> getVisible() {
+                return () -> isCaseInRowClosed(((ColumnMenuAction<SelectableBeanImpl<CaseType>>) getAction()).getRowModel());
             }
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_STOP_MENU_ITEM);
             }
 
             @Override
@@ -197,17 +200,7 @@ public class PageCases extends PageAdmin {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-            }
-
-            @Override
-            public IModel<Boolean> getEnabled() {
-                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>) getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
-                    return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
-                } else {
-                    return super.getEnabled();
-                }
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override
@@ -216,7 +209,6 @@ public class PageCases extends PageAdmin {
                         createStringResource("pageCases.button.delete.multiple.confirmationMessage", getTablePanel().getSelectedObjectsCount()) :
                         createStringResource("pageCases.button.delete.confirmationMessage");
             }
-
         });
 
         return menu;
