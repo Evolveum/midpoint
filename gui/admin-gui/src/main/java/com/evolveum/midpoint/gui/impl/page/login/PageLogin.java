@@ -103,22 +103,24 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     private String getPasswordResetUrl(SecurityPolicyType securityPolicy) {
-        String sequenceName = getResetPasswordAuthenticationSequenceName(securityPolicy);
-
-        if (StringUtils.isBlank(sequenceName)) {
+        String resetSequenceIdOrName = getResetPasswordAuthenticationSequenceName(securityPolicy);
+        if (StringUtils.isBlank(resetSequenceIdOrName)) {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        AuthenticationsPolicyType authenticationPolicy = securityPolicy.getAuthentication();
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(resetSequenceIdOrName, authenticationPolicy);
         if (sequence == null) {
-            sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+            // this lookup by name will be (probably) eventually removed
+            sequence = SecurityUtils.getSequenceByName(resetSequenceIdOrName, authenticationPolicy);
         }
         if (sequence == null) {
+            LOGGER.warn("Password reset authentication sequence '{}' does not exist", resetSequenceIdOrName);
             return "";
         }
 
         if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-            String message = "Sequence with name " + sequenceName + " doesn't contain urlSuffix";
+            String message = "Sequence with name " + resetSequenceIdOrName + " doesn't contain urlSuffix";
             LOGGER.error(message, new IllegalArgumentException(message));
             error(message);
             return "";
