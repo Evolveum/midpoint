@@ -611,9 +611,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private PolyStringType createPolyStringType(String key) {
-        PolyStringTranslationType translationType = new PolyStringTranslationType();
-        translationType.setKey(key);
-        PolyString polyString = new PolyString(null, null, translationType);
-        return new PolyStringType(polyString);
+        PolyStringTranslationType translation = new PolyStringTranslationType();
+        translation.setKey(key);
+        translation.setFallback(key);
+        PolyString poly = new PolyString(null, null, translation);
+
+        return new PolyStringType(poly);
     }
 }

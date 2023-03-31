@@ -110,7 +110,13 @@ public class LocalizationUtil {
         String translatedValue = localizationService.translate(poly, locale, true);
         String translationKey = poly.getTranslation() != null ? poly.getTranslation().getKey() : null;
 
+        // todo this should not be here, we translated what we could, there's key, fallback and fallbackMessage to handle this properly
         if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
+            return translatedValue;
+        }
+
+        // todo this should not be here either
+        if (poly.getOrig() == null) {
             return translatedValue;
         }
 
