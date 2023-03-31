@@ -1926,6 +1926,8 @@ public final class WebComponentUtil {
             return createObjectTemplateIcon();
         } else if (type == SimulationResultType.class) {
             return createSimulationResultIcon();
+        } else if (type == MarkType.class) {
+            return createMarkIcon();
         }
         return "";
     }
@@ -2363,6 +2365,10 @@ public final class WebComponentUtil {
 
     private static String createObjectTemplateIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
+    }
+
+    private static String createMarkIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_MARK);
     }
 
     private static String createSimulationResultIcon() {
