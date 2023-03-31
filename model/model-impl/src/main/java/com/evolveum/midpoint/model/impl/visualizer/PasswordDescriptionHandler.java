@@ -37,7 +37,7 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
             return false;
         }
 
-        if (value.asContainerable() instanceof CredentialsType) {
+        if (CredentialsType.class.equals(value.getCompileTimeClass())) {
             // if there's password
             return value.findContainer(CredentialsType.F_PASSWORD) != null;
         }

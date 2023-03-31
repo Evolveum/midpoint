@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -21,6 +18,9 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -34,7 +34,7 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
     @Override
     public boolean match(VisualizationImpl visualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
-        return value != null && value.asContainerable() instanceof ShadowType;
+        return value != null && ShadowType.class.equals(value.getCompileTimeClass());
     }
 
     @Override
