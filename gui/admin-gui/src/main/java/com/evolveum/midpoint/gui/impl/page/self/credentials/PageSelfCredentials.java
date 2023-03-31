@@ -13,8 +13,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -67,8 +65,7 @@ public class PageSelfCredentials extends PageSelf {
     private void initLayout() {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
 
-        List<ITab> tabs = new ArrayList<>();
-        tabs.addAll(createTabs());
+        List<ITab> tabs = new ArrayList<>(createTabs());
 
         TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
         credentialsTabPanel.setOutputMarkupId(true);
@@ -86,7 +83,7 @@ public class PageSelfCredentials extends PageSelf {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new PropagatePasswordPanel(panelId, new LoadableDetachableModel<FocusType>() {
+                return new PropagatePasswordPanel<>(panelId, new LoadableDetachableModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override

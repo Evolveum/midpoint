@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -127,7 +126,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
                 //rest of the questions
                 int difference = questionSize - userQuestionList.size();
                 dto.getActualQuestionAnswers().addAll(executeAddingQuestions(difference, userQuestionList.size(), questionsDef));
-            } else if (questionSize <= userQuestionList.size()) {
+            } else {
                 //QUESTION NUMBER SMALLER THAN QUESTION LIST OR EQUALS TO QUESTION LIST
                 dto.getActualQuestionAnswers().addAll(executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, 0));
             }
@@ -170,7 +169,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
     }
 
     public void initLayout() {
-        add(new ListView<SecurityQuestionAnswerDTO>(ID_SECURITY_QUESTIONS_PANEL, getModelObject().getActualQuestionAnswers()) {
+        add(new ListView<>(ID_SECURITY_QUESTIONS_PANEL, getModelObject().getActualQuestionAnswers()) {
             private static final long serialVersionUID = 1L;
             @Override
             protected void populateItem(ListItem<SecurityQuestionAnswerDTO> item) {
@@ -283,14 +282,11 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
         List<SecurityQuestionAnswerType> answerTypeList = new ArrayList<>();
 
         try {
-            int listnum = 0;
             for (SecurityQuestionAnswerDTO answerDto : getModelObject().getActualQuestionAnswers()) {
                 SecurityQuestionAnswerType answerType = new SecurityQuestionAnswerType();
                 ProtectedStringType answer = new ProtectedStringType();
 
                 if (StringUtils.isEmpty(answerDto.getPwdAnswer())) {
-//                    warn(getString("SecurityQuestionsPanel.emptySecurityQuestionAnswerFiled"));
-//                    target.add(getPageBase().getFeedbackPanel());
                     continue;
                 }
                 answer.setClearValue(answerDto.getPwdAnswer());
@@ -301,8 +297,6 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
 
                 answerType.setQuestionIdentifier(answerDto.getPwdQuestionIdentifier());
                 answerTypeList.add(answerType);
-                listnum++;
-
             }
 
             // fill in answerType data here
