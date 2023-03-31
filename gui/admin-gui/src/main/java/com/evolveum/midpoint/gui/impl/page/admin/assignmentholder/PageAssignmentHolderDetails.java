@@ -340,13 +340,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 OperationResult result = new OperationResult(OPERATION_SAVE);
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError()) {
-                    WebComponentUtil.createToastForUpdateObject(target, getType());
                     if (!isEditObject()) {
+                        removeLastBreadcrumb();
                         String oid = getPrismObject().getOid();
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                         Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(getType());
                         navigateToNext(page, parameters);
+                        WebComponentUtil.createToastForCreateObject(target, getType());
+                    } else {
+                        WebComponentUtil.createToastForUpdateObject(target, getType());
                     }
                 }
                 return result;

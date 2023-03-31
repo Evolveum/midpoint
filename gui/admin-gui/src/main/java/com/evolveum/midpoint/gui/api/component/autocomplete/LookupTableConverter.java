@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
@@ -30,9 +32,8 @@ public class LookupTableConverter<C> implements IConverter<C> {
     private Component baseComponent;
     private boolean strict;
 
-    public LookupTableConverter(IConverter<C> originConverter, String lookupTableOid, Component baseComponent, boolean strict) {
+    public LookupTableConverter(IConverter<C> originConverter, Component baseComponent, boolean strict) {
         this.originConverter = originConverter;
-        this.lookupTableOid = lookupTableOid;
         this.baseComponent = baseComponent;
         this.strict = strict;
     }
@@ -41,7 +42,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
     public C convertToObject(String value, Locale locale) throws ConversionException {
         LookupTableType lookupTable = getLookupTable();
         for (LookupTableRowType row : lookupTable.getRow()) {
-            if (value.equals(row.getKey()) || value.equals(WebComponentUtil.translateLabel(lookupTableOid, row))) {
+            if (value.equals(row.getKey()) || value.equals(LocalizationUtil.translateLookupTableRowLabel(row))) {
                 return originConverter.convertToObject(row.getKey(), locale);
             }
         }
@@ -65,7 +66,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
         if (lookupTable != null) {
             for (LookupTableRowType row : lookupTable.getRow()) {
                 if (key.toString().equals(row.getKey())) {
-                    return WebComponentUtil.translateLabel(lookupTableOid, row);
+                    return LocalizationUtil.translateLookupTableRowLabel(row);
                 }
             }
         }

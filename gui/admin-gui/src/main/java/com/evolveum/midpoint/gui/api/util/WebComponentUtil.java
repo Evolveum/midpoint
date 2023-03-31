@@ -3299,7 +3299,7 @@ public final class WebComponentUtil {
         List<LookupTableRowType> rows = lookupTable.getRow();
 
         for (LookupTableRowType row : rows) {
-            String value = translateLabel(lookupTable.getOid(), row);
+            String value = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLookupTableRowLabel(row);
             if (input == null || input.isEmpty()) {
                 values.add(value);
             } else if (value != null && value.toLowerCase().contains(input.toLowerCase())) {
@@ -3308,14 +3308,6 @@ public final class WebComponentUtil {
         }
 
         return values;
-    }
-
-    /**
-     * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
-     */
-    @Deprecated
-    public static String translateLabel(String lookupTableOid, LookupTableRowType row) {
-        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLookupTableRowLabel(lookupTableOid, row);
     }
 
     public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
