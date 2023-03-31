@@ -41,7 +41,7 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         String lookupTableOid = panelCtx.getPredefinedValuesOid();
         if (lookupTableOid != null) {
-            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
+            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
         }
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
     }

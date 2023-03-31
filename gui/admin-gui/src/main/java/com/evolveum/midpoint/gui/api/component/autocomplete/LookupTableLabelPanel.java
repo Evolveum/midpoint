@@ -12,20 +12,13 @@ import org.apache.wicket.util.convert.IConverter;
 
 public class LookupTableLabelPanel extends Label {
 
-    private String lookupTableOid;
 
-    public LookupTableLabelPanel(String id, IModel<?> model, String lookupTableOid) {
+    public LookupTableLabelPanel(String id, IModel<?> model) {
         super(id, model);
-        this.lookupTableOid = lookupTableOid;
     }
 
     @Override
     public <C> IConverter<C> getConverter(Class<C> type) {
-        IConverter<C> originConverter = super.getConverter(type);
-        if (lookupTableOid == null) {
-            return originConverter;
-        }
-
-        return new LookupTableConverter<C>(originConverter, lookupTableOid, this, true);
+        return new LookupTableConverter<C>(super.getConverter(type), this, true);
     }
 }

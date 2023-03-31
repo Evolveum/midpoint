@@ -77,11 +77,12 @@ public class LocalizationUtil {
         return application.getLocalizationService().translate(msg, findLocale());
     }
 
-    public static String translateLookupTableRowLabel(String lookupTableOid, LookupTableRowType row) {
+    public static String translateLookupTableRowLabel(@NotNull LookupTableRowType row) {
         LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
-
-        String fallback = row.getLabel() != null ? row.getLabel().getOrig() : row.getKey();
-        return localizationService.translate(lookupTableOid + "." + row.getKey(), new String[0], findLocale(), fallback);
+        if (row.getLabel() != null) {
+            return translatePolyString(row.getLabel());
+        }
+        return row.getKey();
     }
 
     public static String translatePolyString(PolyStringType poly) {
