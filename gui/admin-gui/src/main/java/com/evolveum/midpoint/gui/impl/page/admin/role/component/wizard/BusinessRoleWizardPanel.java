@@ -42,7 +42,17 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()));
+        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()){
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            protected boolean isExitButtonVisible() {
+                return true;
+            }
+        });
 
         steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
             @Override

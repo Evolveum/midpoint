@@ -186,8 +186,4 @@ public class AccessApplicationRoleStepPanel
         return createStringResource("PageRole.wizard.step.access.applicationRole.subText");
     }
 
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-    }
 }
