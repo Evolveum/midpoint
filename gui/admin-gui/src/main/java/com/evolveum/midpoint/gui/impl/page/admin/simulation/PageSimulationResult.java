@@ -337,6 +337,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     private void redirectToProcessedObjects(BuiltInSimulationMetricType identifier) {
         if (identifier == null) {
             redirectToProcessedObjects(ObjectProcessingStateType.UNMODIFIED);
+            return;
         }
 
         ObjectProcessingStateType state = SimulationsGuiUtil.builtInMetricToProcessingState(identifier);
