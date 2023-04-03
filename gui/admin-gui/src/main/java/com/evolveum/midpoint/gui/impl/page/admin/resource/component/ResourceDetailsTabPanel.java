@@ -357,24 +357,17 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             String numberMessage;
             String description = null;
 
-            Integer progress = null;
             ResourceSchema refinedSchema;
             try {
                 refinedSchema = getObjectDetailsModels().getRefinedSchema();
                 if (refinedSchema != null) {
                     backgroundColor = "bg-purple";
                     icon = "fa fa-cubes";
-                    // TODO is this correct?
+                    // This is a preliminary solution for MID-8391.
                     int numObjectTypes = refinedSchema.getObjectTypeDefinitions().size();
-                    int numAllDefinitions = numObjectTypes + refinedSchema.getObjectClassDefinitions().size();
+                    int numObjectClasses = refinedSchema.getObjectClassDefinitions().size();
                     numberMessage = numObjectTypes + " " + getString("PageResource.resource.objectTypes");
-                    if (numAllDefinitions != 0) {
-                        progress = numObjectTypes * 100 / numAllDefinitions;
-                        if (progress > 100) {
-                            progress = 100;
-                        }
-                    }
-                    description = numAllDefinitions + " " + getString("PageResource.resource.schemaDefinitions");
+                    description = numObjectClasses + " " + getString("PageResource.resource.schemaDefinitions");
                 } else {
                     numberMessage = getString("PageResource.resource.noSchema");
                 }
@@ -386,8 +379,8 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             InfoBoxData data = new InfoBoxData(backgroundColor, icon, getString("PageResource.resource.schema"));
             data.setNumber(numberMessage);
-            data.setProgress(progress);
             data.setDescription(description);
+            // There is no use in providing a ratio of objects to classes or vice versa. Hence we do not set the progress here.
 
             return data;
         };
