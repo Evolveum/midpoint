@@ -2475,12 +2475,7 @@
                         successful login or a time-out or may not.
                         It depends on the policy setting. If
                         not present, value of zero (0) is assumed.
-
-                        Since 4.7 this is considered deprecated, but as operational attribute it is not
-                        marked so, as it can generate many non-actionable Ninja verify warnings.
-                        This is replaced by "failedAttempts" in "authenticationAttempt".
                     </xsd:documentation>
-                    <!-- TODO deprecated in 4.7, see the documentation above for details. -->
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                     </xsd:appinfo>
