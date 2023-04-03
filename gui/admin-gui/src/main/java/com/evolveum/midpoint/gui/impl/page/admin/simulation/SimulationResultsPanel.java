@@ -136,6 +136,14 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        if (selected.isEmpty()) {
+                            getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         deleteConfirmedPerformed(target, getRowModel());
                     }
                 };
@@ -143,7 +151,15 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                return createConfirmationMessage((ColumnMenuAction) getAction(),
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+
+                // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
+                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(null, action.getRowModel());
+                if (selected.isEmpty()) {
+                    return null;
+                }
+
+                return createConfirmationMessage(action,
                         "SimulationResultsPanel.message.deleteResultActionSingle", "SimulationResultsPanel.message.deleteResultActionMulti");
             }
         });
@@ -155,6 +171,14 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        if (selected.isEmpty()) {
+                            getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         deleteResultObjectsConfirmedPerformed(target, getRowModel());
                     }
                 };
@@ -162,7 +186,15 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                return createConfirmationMessage((ColumnMenuAction<SelectableBean<SimulationResultType>>) getAction(),
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+
+                // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
+                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(null, action.getRowModel());
+                if (selected.isEmpty()) {
+                    return null;
+                }
+
+                return createConfirmationMessage(action,
                         "SimulationResultsPanel.message.deleteResultObjectsActionSingle",
                         "SimulationResultsPanel.message.deleteResultObjectsActionMulti");
             }
