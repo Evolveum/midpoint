@@ -110,7 +110,14 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<SimulationResultType> bean = getRowModel().getObject();
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        if (selected.isEmpty()) {
+                            getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
+                        SelectableBean<SimulationResultType> bean = selected.get(0);
                         listProcessedObjectsPerformed(bean.getValue());
                     }
                 };
