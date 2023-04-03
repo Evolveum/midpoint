@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +50,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType,
+    public <T extends ObjectType> T resolve(Referencable ref, Class<T> expectedType,
                                             Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
                                             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return getObject(expectedType, ref.getOid(), options, task, result);

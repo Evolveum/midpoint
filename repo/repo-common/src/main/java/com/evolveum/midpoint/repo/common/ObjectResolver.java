@@ -13,6 +13,7 @@ import java.util.Map;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -47,7 +47,6 @@ public interface ObjectResolver {
      *
      * @param ref object reference to resolve
      * @param contextDescription short description of the context of resolution, e.g. "executing expression FOO". Used in error messages.
-     * @param task
      * @return resolved object
      * @throws ObjectNotFoundException
      *             requested object does not exist
@@ -58,7 +57,7 @@ public interface ObjectResolver {
      *
      * TODO resolve module dependencies to allow task to be of type Task
      */
-    <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
+    <O extends ObjectType> O resolve(Referencable ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 

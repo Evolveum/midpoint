@@ -204,7 +204,7 @@ public class ExpressionUtil {
         TypedValue<?> convertedTypedValue = originalTypedValue.shallowClone();
         convertedTypedValue.setPrismContext(prismContext);
 
-        if (convertedTypedValue.getValue() instanceof ObjectReferenceType) {
+        if (convertedTypedValue.getValue() instanceof Referencable) {
             convertedTypedValue = resolveReference(convertedTypedValue,
                     variableName, objectResolver, contextDescription, objectVariableMode,
                     task, result);
@@ -356,7 +356,7 @@ public class ExpressionUtil {
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         TypedValue<?> resolvedTypedValue;
-        ObjectReferenceType reference = ((ObjectReferenceType) referenceTypedValue.getValue()).clone();
+        Referencable reference = ((Referencable) referenceTypedValue.getValue()).clone();
         OperationResult subResult = new OperationResult("Resolve reference"); // TODO proper op result handling (for tracing)
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -397,7 +397,7 @@ public class ExpressionUtil {
             Collection<SelectorOptions<GetOperationOptions>> options, String varDesc, String contextDescription,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
+        Referencable ref = (Referencable) refAndDef.getValue();
         if (ref.getOid() == null) {
             throw new SchemaException(
                     "Null OID in reference in variable " + varDesc + " in " + contextDescription);
@@ -1128,7 +1128,7 @@ public class ExpressionUtil {
         }
 
         if (definition instanceof PrismReferenceDefinition) {
-            return (V) ((ObjectReferenceType) value).asReferenceValue();
+            return (V) ((Referencable) value).asReferenceValue();
 
         } else if (definition instanceof PrismContainerDefinition) {
 

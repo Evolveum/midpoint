@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -83,6 +84,9 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
         }
         VariablesMap variables = new VariablesMap();
         Class typeClass = (valueToValidate == null ? String.class : valueToValidate.getClass());
+        if (valueToValidate instanceof Referencable && ((Referencable) valueToValidate).asReferenceValue().isEmpty()) {
+            valueToValidate = null;
+        }
         variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, typeClass);
         variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
