@@ -409,10 +409,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem resourceMenu = createMainMenuItem(
                 "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
 
-        resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resource.templates.list",
-                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class));
-
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
+
+        resourceMenu.addMenuItemAtIndex(new MenuItem("PageAdmin.menu.top.resource.templates.list",
+                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class),1);
 
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
