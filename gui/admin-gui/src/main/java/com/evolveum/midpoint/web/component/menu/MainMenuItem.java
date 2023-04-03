@@ -63,6 +63,16 @@ public class MainMenuItem extends BaseMenuItem {
         }
     }
 
+    public void addMenuItemAtIndex(MenuItem menuItem, int position) {
+        if (SecurityUtils.isMenuAuthorized(menuItem)) {
+            if (getItems().size() >= position) {
+                getItems().add(position, menuItem);
+            }else {
+                getItems().add(menuItem);
+            }
+        }
+    }
+
     public void addCollectionMenuItem(MenuItem menuItem) {
         if (SecurityUtils.isCollectionMenuAuthorized(menuItem)) {
             getItems().add(menuItem);

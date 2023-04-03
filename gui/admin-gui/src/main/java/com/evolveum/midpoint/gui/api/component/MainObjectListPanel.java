@@ -317,7 +317,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return importObject;
     }
 
-    private boolean isImportObjectButtonVisible() {
+    protected boolean isImportObjectButtonVisible() {
         try {
             return ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.IMPORT_OBJECTS.getUrl())
                     && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,

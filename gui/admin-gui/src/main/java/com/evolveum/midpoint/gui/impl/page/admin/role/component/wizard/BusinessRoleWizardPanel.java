@@ -47,6 +47,11 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
             }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                BusinessRoleWizardPanel.this.onExitPerformed(target);
+            }
         });
 
         steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
@@ -54,6 +59,11 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
                 BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                BusinessRoleWizardPanel.this.onExitPerformed(target);
             }
         });
 
