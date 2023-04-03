@@ -259,7 +259,12 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
             @Override
             protected boolean isCreateNewObjectVisible() {
-                return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
+                return false;
+            }
+
+            @Override
+            protected boolean isImportObjectButtonVisible() {
+                return false;
             }
         };
         childrenListPanel.setOutputMarkupId(true);
