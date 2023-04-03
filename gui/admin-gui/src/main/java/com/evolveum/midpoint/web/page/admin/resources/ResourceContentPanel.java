@@ -11,6 +11,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -24,6 +27,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -356,7 +360,36 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private void initSimulationButton(String id, String label, String icon, WebMarkupContainer taskButtonsContainer) {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        InlineMenuItem item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.import")) {
+        ObjectQuery existingTasksQuery = getExistingTasksQuery(
+                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+                SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+        List<PrismObject<TaskType>> tasksList = WebModelServiceUtils.searchObjects(TaskType.class, existingTasksQuery,
+                result, getPageBase());
+
+        List<PrismObject<TaskType>> simulatedTasks = getSimulatedTasks(tasksList);
+
+        InlineMenuItem item = new InlineMenuItem(
+                getPageBase().createStringResource("ResourceContentResourcePanel.showExisting")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        List<TaskType> filteredByKindIntentTasks = getTasksForKind(simulatedTasks);
+                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), null);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.import")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -408,7 +441,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         items.add(item);
 
         DropdownButtonPanel button = new DropdownButtonPanel(id,
-                new DropdownButtonDto(null, icon, getString(label), items)) {
+                new DropdownButtonDto(String.valueOf(simulatedTasks.size()), icon, getString(label), items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-left";
@@ -518,9 +551,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         .beginConfigurationToUse().predefined(PredefinedConfigurationType.DEVELOPMENT);
                 newTask.getActivity()
                         .beginReporting()
-                            .beginSimulationResult()
-                                .beginDefinition()
-                                    .useOwnPartitionForProcessedObjects(false);
+                        .beginSimulationResult()
+                        .beginDefinition()
+                        .useOwnPartitionForProcessedObjects(false);
             }
 
             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
@@ -544,15 +577,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid) {
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
+
         if (StringUtils.isNotEmpty(taskCollectionViewName)) {
             pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
-            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
-            getPageBase().setResponsePage(pageTasks);
-        } else {
-            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
-            getPageBase().setResponsePage(pageTasks);
         }
 
+        PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
+        getPageBase().setResponsePage(pageTasks);
     }
 
     private String getTaskCollectionViewNameByArchetypeOid(String archetypeOid) {
@@ -620,6 +651,22 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return tasksForKind;
     }
 
+    private List<PrismObject<TaskType>> getSimulatedTasks(List<PrismObject<TaskType>> tasks) {
+        List<PrismObject<TaskType>> simulatedTasks = new ArrayList<>();
+        for (PrismObject<TaskType> task : tasks) {
+            if (task == null) {
+                continue;
+            }
+            @NotNull TaskType bean = task.asObjectable();
+            if (bean.getActivity() != null
+                    && bean.getActivity().getReporting() != null
+                    && bean.getActivity().getReporting().getSimulationResult() != null) {
+                simulatedTasks.add(task);
+            }
+        }
+        return simulatedTasks;
+    }
+
     protected void initCustomLayout() {
         // Nothing to do, for subclass extension
     }
@@ -656,11 +703,10 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     protected abstract ModelExecuteOptions createModelOptions();
 
-    private ObjectQuery getExistingTasksQuery(String archetypeRefOid) {
+    private ObjectQuery getExistingTasksQuery(String... archetypeRefOids) {
         return getPageBase().getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
-                .and()
-                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOid)
+                .and().item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOids)
                 .build();
     }
 
