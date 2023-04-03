@@ -20,10 +20,12 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
  */
 public class MidpointForm<T> extends Form<T> {
 
+    private static final long DEFAULT_MAX_FILE_COUNT = 10;
     private boolean addFakeInputFields = false;
 
     public MidpointForm(String id) {
         super(id);
+        setFileCountMax(DEFAULT_MAX_FILE_COUNT);
     }
 
     /**
@@ -34,7 +36,7 @@ public class MidpointForm<T> extends Form<T> {
      * To overcome Chrome auto-completion of password and other form fields
      */
     public MidpointForm(String id, boolean addFakeInputFields) {
-        super(id);
+        this(id);
         this.addFakeInputFields = addFakeInputFields;
     }
 

@@ -235,7 +235,7 @@
         <snakeyaml.version>1.33</snakeyaml.version> <!-- fixes CVE-2022-25857 -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>9.12.0</wicket.version>
+        <wicket.version>9.12.0.e1</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.12 is also default for Spring Boot 2.7.3 -->
