@@ -126,7 +126,8 @@ podTemplate(
 
                     step([
                         $class: 'Publisher',
-                        reportFilenamePattern: '**/testng-results.xml'
+                        reportFilenamePattern: '**/testng-results.xml',
+                        failureOnFailedTestConfig: true
                     ])
 
                     if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
