@@ -382,6 +382,9 @@ public final class WebComponentUtil {
         }
         String name = ref.getTargetName() == null ? "" :
                 (translate ? ref.getTargetName().getOrig() : "");
+        if (StringUtils.isEmpty(name)) {
+            name = ref.getOid();
+        }
         StringBuilder sb = new StringBuilder(name);
         if (showTypes) {
             sb.append(" (");

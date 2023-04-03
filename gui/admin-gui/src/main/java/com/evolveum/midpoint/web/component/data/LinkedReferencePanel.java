@@ -120,7 +120,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 return false;
             }
 
-            return ref.getOid() != null;
+            return ref.getObject() != null;
         }));
         add(nameLink);
 
@@ -128,6 +128,9 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             PrismReferenceValue ref = referenceModel.getObject();
             if (ref == null) {
                 return "";
+            }
+            if (ref.getTargetName() == null && ref.getObject()== null) {
+                return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(ref.asReferencable(), true, true);
             }
             return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
         });
