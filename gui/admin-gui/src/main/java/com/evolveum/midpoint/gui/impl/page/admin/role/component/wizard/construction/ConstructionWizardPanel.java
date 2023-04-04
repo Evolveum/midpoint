@@ -99,6 +99,7 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
+                super.onSubmitPerformed(target);
                 OperationResult result = ConstructionWizardPanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
                     onExitPerformed(target);
