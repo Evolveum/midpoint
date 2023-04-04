@@ -77,7 +77,8 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
         WebMarkupContainer shadowRefValueContainer = new WebMarkupContainer(ID_SHADOW_REF_VALUE_CONTAINER);
         shadowRefValueContainer.setOutputMarkupId(true);
         shadowRefValueContainer.add(new VisibleBehaviour(
-                () -> ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject())));
+                () -> showShadowRefPanel()
+                        || ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject())));
         add(shadowRefValueContainer);
 
         LoadableModel<List<ObjectReferenceType>> loadableModel = new LoadableModel<>() {
@@ -138,6 +139,10 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
         };
         multiShadowRefPanel.setOutputMarkupId(true);
         shadowRefValueContainer.add(multiShadowRefPanel);
+    }
+
+    protected boolean showShadowRefPanel() {
+        return false;
     }
 
     private void initAssociationTargetSearchExpressionPanel() {
