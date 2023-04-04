@@ -6,9 +6,7 @@
   -->
 <role oid="455edc40-30c6-11e7-937f-df84f38dd402"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Role Self Task Owner</name>
     <authorization>
         <name>read-self-task-owner</name>
@@ -19,6 +17,7 @@
                 <special>self</special>
             </owner>
         </object>
+        <exceptItem>activityState</exceptItem> <!-- MID-8635 -->
     </authorization>
     <authorization>
         <name>add-self-task-owner</name>

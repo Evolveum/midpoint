@@ -76,7 +76,9 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
     private void initShadowRefExpressionPanel() {
         WebMarkupContainer shadowRefValueContainer = new WebMarkupContainer(ID_SHADOW_REF_VALUE_CONTAINER);
         shadowRefValueContainer.setOutputMarkupId(true);
-        shadowRefValueContainer.add(new VisibleBehaviour(() -> ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject())));
+        shadowRefValueContainer.add(new VisibleBehaviour(
+                () -> showShadowRefPanel()
+                        || ExpressionUtil.isShadowRefNodeExists(AssociationExpressionValuePanel.this.getModelObject())));
         add(shadowRefValueContainer);
 
         LoadableModel<List<ObjectReferenceType>> loadableModel = new LoadableModel<>() {
@@ -84,13 +86,16 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 
             @Override
             protected List<ObjectReferenceType> load() {
-                List<ObjectReferenceType> refs =  ExpressionUtil.getShadowRefValue(AssociationExpressionValuePanel.this.getModelObject(), getPageBase().getPrismContext());
+                List<ObjectReferenceType> refs = ExpressionUtil.getShadowRefValue(
+                        AssociationExpressionValuePanel.this.getModelObject(),
+                        getPageBase().getPrismContext());
                 refs.forEach(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()));
 
                 return refs;
             }
         };
-        MultiValueObjectChoosePanel<ObjectReferenceType> multiShadowRefPanel = new MultiValueObjectChoosePanel<>(ID_MULTI_SHADOW_REF_PANEL, loadableModel) {
+        MultiValueObjectChoosePanel<ObjectReferenceType> multiShadowRefPanel = new MultiValueObjectChoosePanel<>(
+                ID_MULTI_SHADOW_REF_PANEL, loadableModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -100,7 +105,9 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 
             @Override
             protected ObjectFilter createCustomFilter() {
-                return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE, AssociationExpressionValuePanel.this.getPageBase());
+                return WebComponentUtil.getShadowTypeFilterForAssociation(
+                        construction, OPERATION_LOAD_RESOURCE,
+                        AssociationExpressionValuePanel.this.getPageBase());
             }
 
             @Override
@@ -113,11 +120,29 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 
             @Override
             protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
-                ExpressionUtil.addShadowRefEvaluatorValue(AssociationExpressionValuePanel.this.getModelObject(), object.getOid(), AssociationExpressionValuePanel.this.getPrismContext());
+                ExpressionUtil.addShadowRefEvaluatorValue(
+                        AssociationExpressionValuePanel.this.getModelObject(),
+                        object.getOid(),
+                        AssociationExpressionValuePanel.this.getPrismContext());
+            }
+
+            @Override
+            protected void removeObjectPerformed(ObjectReferenceType object) {
+                List<ObjectReferenceType> refs =  ExpressionUtil.getShadowRefValue(
+                        AssociationExpressionValuePanel.this.getModelObject(), getPageBase().getPrismContext());
+                refs.removeIf(ref -> ref.getOid().equals(object.getOid()));
+                ExpressionUtil.updateShadowRefEvaluatorValue(
+                        AssociationExpressionValuePanel.this.getModelObject(),
+                        refs);
+                getModel().detach();
             }
         };
         multiShadowRefPanel.setOutputMarkupId(true);
         shadowRefValueContainer.add(multiShadowRefPanel);
+    }
+
+    protected boolean showShadowRefPanel() {
+        return false;
     }
 
     private void initAssociationTargetSearchExpressionPanel() {

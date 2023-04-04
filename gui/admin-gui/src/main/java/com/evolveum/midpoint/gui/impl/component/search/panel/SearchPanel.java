@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -57,10 +59,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailableFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class SearchPanel<C extends Serializable> extends BasePanel<Search<C>> {
@@ -358,8 +356,10 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
     private void saveSearchFilterPerformed(AjaxRequestTarget target) {
         savedSearchListModel.detach();
-        target.add(SearchPanel.this.get(ID_FORM));
+        getModelObject().reloadSavedFilters(getParentPage());
+        refreshSearchForm(target);
     }
+
     private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
         OperationResult result = task.getResult();

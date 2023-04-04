@@ -52,6 +52,8 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 //            }
 //        });
 
+        queryDslField.add(AttributeAppender.append("class",
+                () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid"));
         queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
         add(queryDslField);
 

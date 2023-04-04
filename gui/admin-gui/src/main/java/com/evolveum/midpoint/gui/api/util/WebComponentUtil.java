@@ -5416,17 +5416,17 @@ public final class WebComponentUtil {
         return stringValue == null ? null : stringValue.toString();
     }
 
-    public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
-        PageParameters parameters = pageBase.getPageParameters();
+    public static StringValue getCollectionNameParameterValue(PageAdminLTE parentPage) {
+        PageParameters parameters = parentPage.getPageParameters();
         return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
-    public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
+    public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageAdminLTE parentPage,
             FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist, String defaultIdentifier) {
         if (!(principalFocus instanceof UserType)) {
             return null;
         }
-        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(pageBase);
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(parentPage);
         String viewName = !collectionViewParameter.isNull() && !collectionViewParameter.isEmpty() ? collectionViewParameter.toString() : defaultIdentifier;
         AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
         if (adminGui == null) {

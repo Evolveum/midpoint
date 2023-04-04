@@ -83,6 +83,18 @@ public class ResourceTemplateProvider
             return PrismContext.get().queryFor(ConnectorType.class)
                     .item(ConnectorType.F_AVAILABLE)
                     .eq(true)
+                    .and()
+                    .not()
+                    .item(ConnectorType.F_CONNECTOR_TYPE)
+                    .eq("AsyncUpdateConnector")
+                    .and()
+                    .not()
+                    .item(ConnectorType.F_CONNECTOR_TYPE)
+                    .eq("AsyncProvisioningConnector")
+                    .and()
+                    .not()
+                    .item(ConnectorType.F_CONNECTOR_TYPE)
+                    .eq("ManualConnector")
                     .build();
         }
         return null;

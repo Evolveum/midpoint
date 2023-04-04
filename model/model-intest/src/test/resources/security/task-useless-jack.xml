@@ -7,9 +7,7 @@
   -->
 
 <task oid="642d8174-30c8-11e7-b338-c3cf3a6c548a"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Useless task: jack</name>
 
@@ -21,4 +19,15 @@
     <executionState>closed</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</handlerUri>
+
+    <!-- MID-8635 -->
+    <activity>
+        <work>
+            <focusValidityScan/>
+        </work>
+    </activity>
+    <activityState>
+        <activity/>
+        <tree/>
+    </activityState>
 </task>
