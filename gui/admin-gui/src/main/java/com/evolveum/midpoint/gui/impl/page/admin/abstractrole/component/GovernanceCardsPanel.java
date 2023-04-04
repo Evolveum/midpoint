@@ -99,7 +99,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
             @Override
             protected Search load() {
-                SearchBuilder searchBuilder = new SearchBuilder(FocusType.class)
+                SearchBuilder searchBuilder = new SearchBuilder(getSearchableType())
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
@@ -112,13 +112,17 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         };
     }
 
+    protected Class<? extends FocusType> getSearchableType() {
+        return FocusType.class;
+    }
+
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
         return ctx;
     }
 
-    private CompiledObjectCollectionView getObjectCollectionView() {
+    protected CompiledObjectCollectionView getObjectCollectionView() {
         ContainerPanelConfigurationType config = getPanelConfiguration();
         if (config == null) {
             return null;

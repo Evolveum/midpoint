@@ -140,6 +140,7 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
 
                     @Override
                     protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
+                        removeObjectPerformed(item.getModelObject());
                         chooseObjectPerformed(target, object);
                     }
                 };
@@ -169,7 +170,7 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        MultiValueObjectChoosePanel.this.getModelObject().remove(item.getModelObject());
+                        removeObjectPerformed(item.getModelObject());
                         target.add(MultiValueObjectChoosePanel.this);
 
                     }
@@ -182,6 +183,10 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
         multiValuesPanel.add(new VisibleBehaviour(() -> !isEmptyModel()));
         multiValuesPanel.setOutputMarkupId(true);
         add(multiValuesPanel);
+    }
+
+    protected void removeObjectPerformed(R object) {
+        MultiValueObjectChoosePanel.this.getModelObject().remove(object);
     }
 
     private boolean isEmptyModel() {

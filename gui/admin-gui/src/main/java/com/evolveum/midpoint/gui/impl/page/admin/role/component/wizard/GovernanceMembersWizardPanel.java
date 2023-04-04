@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -20,11 +21,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,6 +62,11 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
             }
 
             @Override
+            protected Class<? extends FocusType> getSearchableType() {
+                return UserType.class;
+            }
+
+            @Override
             protected Behavior createCardDetailsButtonBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
             }
@@ -92,6 +94,35 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
             @Override
             protected WebMarkupContainer getFeedback() {
                 return GovernanceMembersWizardPanel.this.getFeedback();
+            }
+
+            protected CompiledObjectCollectionView getObjectCollectionView() {
+                ContainerPanelConfigurationType config = getPanelConfiguration();
+                if (config == null) {
+                    return null;
+                }
+                GuiObjectListViewType listViewType = config.getListView();
+                if (listViewType == null) {
+                    listViewType = config.beginListView();
+                }
+
+                if (listViewType.getSearchBoxConfiguration() == null) {
+                    listViewType.beginSearchBoxConfiguration();
+                }
+
+                if (listViewType.getSearchBoxConfiguration().getObjectTypeConfiguration() == null) {
+                    listViewType.getSearchBoxConfiguration().beginObjectTypeConfiguration();
+                }
+
+                if (listViewType.getSearchBoxConfiguration().getObjectTypeConfiguration().getSupportedTypes().isEmpty()) {
+                    listViewType
+                            .getSearchBoxConfiguration()
+                            .getObjectTypeConfiguration()
+                            .getSupportedTypes()
+                            .add(UserType.COMPLEX_TYPE);
+                }
+
+                return WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
             }
         };
         table.setOutputMarkupId(true);
