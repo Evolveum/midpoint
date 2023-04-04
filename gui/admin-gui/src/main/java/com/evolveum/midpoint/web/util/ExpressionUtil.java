@@ -487,6 +487,19 @@ public class ExpressionUtil {
         }
     }
 
+    public static void updateShadowRefEvaluatorValue(ExpressionType expression, List<ObjectReferenceType> values) {
+        if (expression == null) {
+            expression = new ExpressionType();      // TODO ??? this is thrown away
+        }
+        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+        PrismContext prismContext = PrismContext.get();
+        for (ObjectReferenceType value : values) {
+            JAXBElement element = new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, ShadowAssociationType.class,
+                    new ShadowAssociationType(prismContext).shadowRef(value));
+            expression.expressionEvaluator(element);
+        }
+    }
+
     public static @NotNull List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException {
         List<String> values = new ArrayList<>();
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_VALUE);
