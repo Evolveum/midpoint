@@ -59,6 +59,8 @@ public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
         TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), AdvancedQueryWrapper.F_ADVANCED_QUERY));
         advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
+        advancedArea.add(AttributeAppender.append("class",
+                () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid"));
 //        advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
 //        advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
         add(advancedArea);
