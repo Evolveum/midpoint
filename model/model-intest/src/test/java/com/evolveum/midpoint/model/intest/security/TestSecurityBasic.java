@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -91,8 +93,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         then();
         assertSuperuserAccess(NUMBER_OF_ALL_USERS);
 
-        Collection<SelectorOptions<GetOperationOptions>> withCases = SchemaService.get().getOperationOptionsBuilder().
-                item(AccessCertificationCampaignType.F_CASE).retrieve().build();
+        Collection<SelectorOptions<GetOperationOptions>> withCases =
+                SchemaService.get().getOperationOptionsBuilder()
+                        .item(AccessCertificationCampaignType.F_CASE).retrieve().build();
         assertSearch(AccessCertificationCampaignType.class, null, withCases, new SearchAssertion<>() {
 
             public void assertObjects(String message, List<PrismObject<AccessCertificationCampaignType>> objects) {
@@ -3166,7 +3169,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
         assertGetDeny(TaskType.class, TASK_USELESS_ADMINISTRATOR_OID);
-        assertGetAllow(TaskType.class, TASK_USELESS_JACK_OID);
+        var task = assertGetAllow(TaskType.class, TASK_USELESS_JACK_OID).asObjectable();
+        Assertions.assertThat(task.getActivity()).as("activity in the task").isNotNull();
+        Assertions.assertThat(task.getActivityState()).as("activity state in the task, denied by the autz").isNull();
+
+        assertOwnTaskEditSchema(task.asPrismObject());
 
         assertSearch(UserType.class, null, 0);
         assertSearch(ObjectType.class, null, 0);
@@ -3186,6 +3193,18 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
 
         assertGlobalStateUntouched();
+    }
+
+    private void assertOwnTaskEditSchema(PrismObject<TaskType> task) throws Exception {
+        PrismObjectDefinition<TaskType> def = getEditObjectDefinition(task);
+        displayDumpable("task edit def", def);
+        // All items are readable, except for `activityState` (see `read-self-task-owner` autz)
+        // All items are "addable" (see `add-self-task-owner` autz)
+        // No items are modifiable, as there's no autz to modify the task.
+        assertItemFlags(def, TaskType.F_NAME, true, true, false);
+        assertItemFlags(def, TaskType.F_DESCRIPTION, true, true, false);
+        assertItemFlags(def, TaskType.F_ACTIVITY, true, true, false);
+        assertItemFlags(def, TaskType.F_ACTIVITY_STATE, false, true, false);
     }
 
     /**

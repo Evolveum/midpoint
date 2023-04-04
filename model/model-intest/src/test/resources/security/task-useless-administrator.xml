@@ -7,9 +7,7 @@
   -->
 
 <task oid="daa36dba-30c7-11e7-bd7d-6311953a3ecd"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Useless task: administrator</name>
 
@@ -21,4 +19,15 @@
     <executionState>closed</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</handlerUri>
+
+    <!-- MID-8635 -->
+    <activity>
+        <work>
+            <focusValidityScan/>
+        </work>
+    </activity>
+    <activityState>
+        <activity/>
+        <tree/>
+    </activityState>
 </task>
