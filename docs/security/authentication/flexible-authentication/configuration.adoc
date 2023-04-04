@@ -219,6 +219,7 @@ The HTTP SecQ mechanism is similar to HTTP BASIC mechanism, but it is using secu
 ----
 
 
+[#_securityQuestionsForm]
 ==== Module securityQuestionsForm
 
 Definition of "security questions form" module.
@@ -1168,6 +1169,7 @@ This module has no other configuration options.
 </hint>
 ----
 
+[#_attributeVerification]
 ==== Module attributeVerification
 
 Attribute verification authentication module.
