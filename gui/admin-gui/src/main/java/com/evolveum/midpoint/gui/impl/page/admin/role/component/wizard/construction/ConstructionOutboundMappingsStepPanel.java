@@ -136,4 +136,9 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
             LOGGER.error("Couldn't apply delta from attribute value container.");
         }
     }
+
+    @Override
+    public String appendCssToWizard() {
+        return "mt-5 mx-auto col-11";
+    }
 }
