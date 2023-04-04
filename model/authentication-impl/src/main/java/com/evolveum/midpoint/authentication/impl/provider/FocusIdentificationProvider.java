@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -65,9 +66,10 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
             if (authentication instanceof FocusVerificationToken) {
                 Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
                 if (attrValuesMap == null || attrValuesMap.isEmpty()) {
-                    // E.g. no user name provided when resetting the password (hence DEBUG, not ERROR)
+                    // E.g. no user name or other required property provided when resetting the password.
+                    // Hence DEBUG, not ERROR, and BadCredentialsException, not AuthenticationServiceException.
                     LOGGER.debug("No details provided: {}", authentication);
-                    throw new AuthenticationServiceException("web.security.provider.unavailable"); // TODO better message key!
+                    throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
                 }
                 ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
                 List<ModuleItemConfigurationType> itemsConfig = null;
