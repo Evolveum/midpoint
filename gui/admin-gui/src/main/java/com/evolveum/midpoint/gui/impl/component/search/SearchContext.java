@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 public class SearchContext {
 
@@ -32,6 +33,8 @@ public class SearchContext {
     private String selectedEventMark;
 
     private ObjectProcessingStateType objectProcessingState;
+
+    private List<SearchBoxModeType> availableSearchBoxModes;
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
@@ -98,5 +101,13 @@ public class SearchContext {
 
     public void setObjectProcessingState(ObjectProcessingStateType objectProcessingState) {
         this.objectProcessingState = objectProcessingState;
+    }
+
+    public List<SearchBoxModeType> getAvailableSearchBoxModes() {
+        return availableSearchBoxModes;
+    }
+
+    public void setAvailableSearchBoxModes(List<SearchBoxModeType> availableSearchBoxModes) {
+        this.availableSearchBoxModes = availableSearchBoxModes;
     }
 }

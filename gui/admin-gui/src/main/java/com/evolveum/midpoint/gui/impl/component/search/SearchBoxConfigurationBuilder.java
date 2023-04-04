@@ -120,8 +120,16 @@ public class SearchBoxConfigurationBuilder {
 
     private SearchBoxConfigurationType createDefaultSearchBoxConfig() {
         SearchBoxConfigurationType searchBoxConfig = new SearchBoxConfigurationType();
-        searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
-        searchBoxConfig.setDefaultMode(SearchBoxModeType.BASIC);
+        if (additionalSearchContext != null && additionalSearchContext.getAvailableSearchBoxModes() != null) {
+            searchBoxConfig.getAllowedMode().addAll(additionalSearchContext.getAvailableSearchBoxModes());
+        } else {
+            searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
+        }
+        if (searchBoxConfig.getAllowedMode().size() == 1) {
+            searchBoxConfig.setDefaultMode(searchBoxConfig.getAllowedMode().iterator().next());
+        } else {
+            searchBoxConfig.setDefaultMode(SearchBoxModeType.BASIC);
+        }
         return searchBoxConfig;
     }
 
