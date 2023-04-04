@@ -352,10 +352,10 @@ public class ExpressionUtil {
 
         XNodeFactory factory = prismContext.xnodeFactory();
         Map<QName, XNode> valuesMap = new HashMap<>();
-        valuesMap.put(new QName("path"), factory.primitive());
-        valuesMap.put(new QName("value"), factory.primitive());
+        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY,"path"), factory.primitive());
+        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), factory.primitive());
         MapXNode values = factory.map(valuesMap);
-        MapXNode filterClauseNode = factory.map(new QName("equal"), values);
+        MapXNode filterClauseNode = factory.map(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), values);
 
         SearchFilterType filterType = new SearchFilterType();
         filterType.setFilterClauseXNode(filterClauseNode);
@@ -383,10 +383,12 @@ public class ExpressionUtil {
         if (filterClauseNode == null) {
             filterClauseNode = prismContext.xnodeFactory().map();
         }
-        if (!filterClauseNode.containsKey(new QName("equal"))) {
-            prismContext.xnodeMutator().putToMapXNode(filterClauseNode, new QName("equal"), null);
+        if (!filterClauseNode.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"))) {
+            prismContext.xnodeMutator().putToMapXNode(
+                    filterClauseNode,
+                    new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), null);
         }
-        MapXNode values = (MapXNode) filterClauseNode.get(new QName("equal"));
+        MapXNode values = (MapXNode) filterClauseNode.get(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"));
         if (values == null) {
             values = prismContext.xnodeFactory().map();        // todo [med] this has no effect on the map node!
         }
@@ -585,8 +587,8 @@ public class ExpressionUtil {
                 return null;
             }
             MapXNode filterValue = filter.getFilterClauseXNode();
-            return filterValue != null && filterValue.containsKey(new QName("equal")) ?
-                    (MapXNode) filterValue.get(new QName("equal")) : null;
+            return filterValue != null && filterValue.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) ?
+                    (MapXNode) filterValue.get(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) : null;
 
         }
         return null;
@@ -597,10 +599,11 @@ public class ExpressionUtil {
             return null;
         }
         MapXNode filterNodeMap = getAssociationTargetSearchFilterValuesMap(expression);
-        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("path"))) {
+        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "path"))) {
             return null;
         }
-        PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>) filterNodeMap.get(new QName("path"));
+        PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>) filterNodeMap.get(
+                new QName(SchemaConstantsGenerated.NS_QUERY, "path"));
         return pathValue != null && pathValue.getValue() != null ? pathValue.getValue().toString() : null;
     }
 
@@ -609,10 +612,10 @@ public class ExpressionUtil {
             return null;
         }
         MapXNode filterNodeMap = getAssociationTargetSearchFilterValuesMap(expression);
-        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("value"))) {
+        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "value"))) {
             return null;
         }
-        XNode node = filterNodeMap.get(new QName("value"));
+        XNode node = filterNodeMap.get(new QName(SchemaConstantsGenerated.NS_QUERY, "value"));
         if (node instanceof ListXNode) {
             if (((ListXNode) node).size() > 0) {
                 node = ((ListXNode) node).get(0);
