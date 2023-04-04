@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import javax.xml.namespace.QName;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
@@ -20,6 +18,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,17 +52,24 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
             return;
         }
 
-        QName type = ObjectTypes.OBJECT.getTypeQName();
+        String typeKey = null;
         PrismContainerValue root = value.getRootValue();
         if (root != null) {
-            type = root.getTypeName();
+            Class clazz = root.getCompileTimeClass();
+            if (clazz != null && ObjectType.class.isAssignableFrom(clazz)) {
+                typeKey = "ObjectTypes." + ObjectTypes.getObjectType(clazz).name();
+            } else {
+                typeKey = root.getDefinition() != null ? root.getDefinition().getDisplayName() : null;
+            }
         }
 
-        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+        if (typeKey == null) {
+            typeKey = "ObjectTypes.OBJECT";
+        }
 
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("ActivationDescriptionHandler.effectiveStatus", new Object[] {
-                        new SingleLocalizableMessage("ObjectTypes." + ot.name()),
+                        new SingleLocalizableMessage(typeKey),
                         new SingleLocalizableMessage("ActivationDescriptionHandler.ActivationStatusType." + status.name())
                 })
         );
