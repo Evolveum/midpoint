@@ -64,7 +64,7 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
                 token = getPreAuthenticationToken(authentication, username, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());
+                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage()); // TODO debug?
                 throw e;
             }
         } else {

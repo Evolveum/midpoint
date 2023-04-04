@@ -65,8 +65,9 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
             if (authentication instanceof FocusVerificationToken) {
                 Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
                 if (attrValuesMap == null || attrValuesMap.isEmpty()) {
-                    LOGGER.error("Unsupported authentication {}", authentication);
-                    throw new AuthenticationServiceException("web.security.provider.unavailable");
+                    // E.g. no user name provided when resetting the password (hence DEBUG, not ERROR)
+                    LOGGER.debug("No details provided: {}", authentication);
+                    throw new AuthenticationServiceException("web.security.provider.unavailable"); // TODO better message key!
                 }
                 ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
                 List<ModuleItemConfigurationType> itemsConfig = null;
@@ -75,7 +76,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 }
                 FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, itemsConfig, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);
-                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(),token.getCredentials());
+                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
                 pwdToken.setAuthenticated(false);
                 return pwdToken;
 
@@ -84,7 +85,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", "TODO", e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
             throw e;
         }
     }
@@ -102,10 +103,5 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
     public boolean supports(Class<?> authentication) {
         return FocusVerificationToken.class.equals(authentication);
     }
-
-//    @Override
-//    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-//        return null; //todo
-//    }
 
 }
