@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "userAllAccesses")
 @PanelInstance(identifier = "igaAccesses",
+        applicableForOperation = OperationTypeType.MODIFY,
         applicableForType = UserType.class,
         display = @PanelDisplay(label = "AllAccessListPanel.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
 public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
