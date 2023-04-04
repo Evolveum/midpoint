@@ -42,8 +42,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '8Gi',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        resourceRequestMemory: '10Gi',
+                        resourceLimitMemory: '10Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
@@ -89,7 +89,7 @@ podTemplate(
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx8g should fit into 10GB of RAM, 4g is not enough for some tests
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then
@@ -103,7 +103,7 @@ podTemplate(
                             -Dmidpoint.repository.driverClassName=org.postgresql.Driver \
                             -Dmidpoint.repository.hibernateHbm2ddl=validate \
                             -Dmidpoint.repository.hibernateDialect=com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect \
-                            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                            -Dfailsafe.args="-Xms2g -Xmx8g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                         if [ "${verbose}" -ge 1 ]
                         then
