@@ -9,21 +9,20 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="card-body">
-        <div class="container-fluid prism-object">
-
-            <div class="row">
-                <div class="container-fluid prism-container">
-                    <div class="prism-properties">
-
-                        <div wicket:id="associations">
-                            <div class="row prism-property">
-                                <div class="col-xs-12 col-md-12 col-lg-12">
-                                    <div wicket:id="associationReferencePanel"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div wicket:id="associations" class="pb-3">
+            <div class="d-flex flex-column">
+                <div class="d-flex">
+                    <span class="pb-2">
+                        <span class="text-bold" wicket:id="associationReferenceLabel"/>
+                        <button class="btn btn-tool" wicket:id="associationReferenceRemoveButton">
+                            <i class="fa fa-minus-circle"/>
+                        </button>
+                    </span>
                 </div>
+                <div wicket:id="associationReferencePanel"/>
+                <button class="btn btn-tool mr-auto" wicket:id="associationReferenceAddButton">
+                    <i class="fa fa-plus-circle"/>
+                </button>
             </div>
         </div>
     </div>
