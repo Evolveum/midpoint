@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -47,8 +46,11 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 @PanelType(name = "userAllAccesses")
 @PanelInstance(identifier = "igaAccesses",
+        applicableForOperation = OperationTypeType.MODIFY,
         applicableForType = UserType.class,
         display = @PanelDisplay(label = "AllAccessListPanel.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
 public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
@@ -91,7 +93,8 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
             @Override
             protected IColumn<SelectableBean<ObjectReferenceType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-                return createCustomExportableColumn(displayModel, customColumn, expression);
+                return createAccessNameColumn();
+//                return createCustomExportableColumn(displayModel, customColumn, expression);
             }
 
             @Override
@@ -108,6 +111,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext ctx = new SearchContext();
                 ctx.setDefinitionOverride(getContainerDefinitionForColumns());
+                ctx.setAvailableSearchBoxModes(Arrays.asList(SearchBoxModeType.AXIOM_QUERY));
                 return ctx;
             }
 
@@ -138,15 +142,19 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         add(accessesTable);
     }
 
-    private List<IColumn<SelectableBean<ObjectReferenceType>, String>> createAllAccessesColumns() {
-        List<IColumn<SelectableBean<ObjectReferenceType>, String>> columns = new ArrayList<>();
+    private ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> createAccessNameColumn() {
         ObjectReferenceColumn<SelectableBean<ObjectReferenceType>> accessColumn = new ObjectReferenceColumn<>(createStringResource("AllAccessListPanel.accessColumnTitle"), "value") {
             @Override
             public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ObjectReferenceType>> rowModel) {
                 return () -> Collections.singletonList(getReferenceWithResolvedName(rowModel.getObject().getValue()));
             }
         };
-        columns.add(accessColumn);
+        return accessColumn;
+    }
+
+    private List<IColumn<SelectableBean<ObjectReferenceType>, String>> createAllAccessesColumns() {
+        List<IColumn<SelectableBean<ObjectReferenceType>, String>> columns = new ArrayList<>();
+
 
         AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String> source = new AbstractExportableColumn<>(createStringResource("AllAccessListPanel.sourceColumnTitle")) {
 
@@ -159,6 +167,11 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
                 for (ProvenanceMetadataType metadataType : metadataValues) {
                     assignmentPaths.add(metadataType.getAssignmentPath());
+                }
+
+                if (assignmentPaths.size() == 1) {
+                    cellItem.add(new Label(componentId, createStringResource("DirectAndIndirectAssignmentPanel.type.direct")));
+                    return;
                 }
 
                 AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(assignmentPaths));
@@ -187,7 +200,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 }
                 String chanel = metadataType.getCreateChannel();
                 if (chanel == null) {
-                    return () -> "channel null, cannot deremine why";
+                    return () -> "N/A";
                 }
 
                 return () -> {
@@ -229,28 +242,18 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         var since = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("AllAccessListPanel.sinceColumnTitle")) {
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<ObjectReferenceType>> iModel) {
-                AssignmentType assignmentType = getAssignment(iModel.getObject().getValue());
-                if (assignmentType == null) {
-                    return () -> "";
+                List<StorageMetadataType> storageMetadataTypes = collectStorageMetadata(iModel.getObject().getValue().asReferenceValue());
+                Optional<XMLGregorianCalendar> since = storageMetadataTypes.stream()
+                        .map(m -> m.getCreateTimestamp())
+                        .findFirst();
+                if (since.isPresent()) {
+                    return () -> WebComponentUtil.formatDate(since.get());
                 }
-                MetadataType metadataType = assignmentType.getMetadata();
-                if (metadataType == null) {
-                    return null;
-                }
-                return () -> WebComponentUtil.formatDate(metadataType.getCreateTimestamp());
-
+                return () -> "";
             }
 
         };
         columns.add(since);
-
-        var activationColumn = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("AllAccessListPanel.activationColumnTitle")) {
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<ObjectReferenceType>> iModel) {
-                return AssignmentsUtil.createActivationTitleModel(getActivation(iModel.getObject().getValue()), getPageBase());
-            }
-        };
-        columns.add(activationColumn);
 
         return columns;
     }
@@ -285,7 +288,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
             List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
             if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
-                continue;
+                return Arrays.asList(getString("DirectAndIndirectAssignmentPanel.type.direct"));
             }
             String path = segments.stream()
                     .map(segment -> WebComponentUtil.getEffectiveName(segment.getTargetRef(), AbstractRoleType.F_DISPLAY_NAME, getPageBase(), "resolveName", true))
@@ -316,11 +319,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
     }
 
     private <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
-        PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
-        if (valueMetadataContainer == null) {
-            return null;
-        }
-        List<ValueMetadataType> valueMetadataValues = (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
+        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
         if (valueMetadataValues == null) {
             return null;
         }
@@ -328,6 +327,26 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         return valueMetadataValues.stream()
                 .map(valueMetadata -> valueMetadata.getProvenance())
                 .collect(Collectors.toList());
+
+    }
+
+    private <PV extends PrismValue> List<StorageMetadataType> collectStorageMetadata(PV rowValue){
+        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
+        if (valueMetadataValues == null) {
+            return null;
+        }
+
+        return valueMetadataValues.stream()
+                .map(valueMetadataType -> valueMetadataType.getStorage())
+                .collect(Collectors.toList());
+    }
+
+    private <PV extends PrismValue> List<ValueMetadataType> collectValueMetadata(PV rowValue) {
+        PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
+        if (valueMetadataContainer == null) {
+            return null;
+        }
+        return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
 
     }
 

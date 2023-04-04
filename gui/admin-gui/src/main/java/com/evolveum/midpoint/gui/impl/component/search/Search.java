@@ -224,6 +224,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             LOGGER.trace("Cannot create query, not supported search box mode: {}", getSearchMode());
             return PrismContext.get().queryFactory().createQuery();
         }
+        queryWrapper.setAdvancedError(null);
 
         ObjectQuery query = null;
         try {
