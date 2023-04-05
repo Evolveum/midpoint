@@ -869,6 +869,24 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
     }
 
+    @Override
+    public void fixEstimatedOldValuesInDelta() {
+        if (!ObjectDelta.isModify(delta) || before == null) {
+            return;
+        }
+
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            if (modification.getEstimatedOldValues() == null) {
+                ItemPath path = modification.getPath();
+                var item = before.asPrismContainerValue().findItem(path);
+                //noinspection unchecked
+                modification.setEstimatedOldValues(
+                        item != null ?
+                                item.getClonedValues() : List.of());
+            }
+        }
+    }
+
     class ProcessedObjectItemDeltaImpl<V extends PrismValue, D extends ItemDefinition<?>>
             implements ItemDeltaDelegator<V, D>, ProcessedObjectItemDelta<V, D> {
 

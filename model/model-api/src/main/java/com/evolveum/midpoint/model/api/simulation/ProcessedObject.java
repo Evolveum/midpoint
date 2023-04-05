@@ -122,6 +122,13 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      */
     @Nullable ObjectDelta<O> getDelta();
 
+    /**
+     * Resolves "estimated old values" for item deltas where they are not known.
+     *
+     * TEMPORARY; see MID-8536. This will be part of standard processing but because of code freeze doing it as separate code.
+     */
+    void fixEstimatedOldValuesInDelta();
+
     default O getAfterOrBefore() {
         return MiscUtil.getFirstNonNull(getAfter(), getBefore());
     }
