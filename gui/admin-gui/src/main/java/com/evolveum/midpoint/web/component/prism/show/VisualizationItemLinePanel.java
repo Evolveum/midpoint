@@ -19,16 +19,9 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.ValueMetadata;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -164,36 +157,12 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         return new LoadableDetachableModel() {
             @Override
             protected Object load() {
-                VisualizationItemValue item = getModelObject().getNewValue();
-                if (item == null || item.getSourceValue() == null) {
+                VisualizationItemValue item = model.getObject();
+                if (item == null) {
                     return null;
                 }
 
-                PrismValue value = item.getSourceValue();
-                ValueMetadata valueMetadata = value.getValueMetadata();
-                if (valueMetadata == null || valueMetadata.isEmpty()) {
-                    return null;
-                }
-
-                try {
-                    PageBase page = getPageBase();
-                    Task task = page.createSimpleTask("load wrapper");
-
-                    PrismContainerWrapperFactory<?> factory = getPageBase().findContainerWrapperFactory(valueMetadata.getDefinition());
-
-                    WrapperContext ctx = new WrapperContext(task, task.getResult());
-                    ctx.setMetadata(true);
-                    ctx.setReadOnly(true);
-                    ctx.setCreateOperational(true);
-                    PrismContainerWrapper cw = factory.createWrapper(null, valueMetadata, ItemStatus.NOT_CHANGED, ctx);
-
-                    return new ValueMetadataWrapperImpl(cw);
-                } catch (Exception ex) {
-                    // todo handle
-                    ex.printStackTrace();
-                }
-
-                return null;
+                return VisualizationUtil.createValueMetadataWrapper(item.getSourceValue(), getPageBase());
             }
         };
     }
