@@ -10,8 +10,9 @@ import java.util.*;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -623,7 +624,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
+                getObjectClassFromSearch(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -671,7 +672,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
+                getObjectClassFromSearch(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -716,8 +717,48 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return resourceContentSearch.getObject().getIntent();
     }
 
-    protected QName getObjectClass() {
+    protected QName getObjectClassFromSearch() {
         return resourceContentSearch.getObject().getObjectClass();
+    }
+
+    protected QName getObjectClass() {
+        QName objectClass = null;
+        IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = getResourceObjectTypeValue(null);
+        if (model != null) {
+            ResourceObjectTypeDefinitionType objectType = model.getObject().getRealValue();
+            if (objectType.getDelineation() != null) {
+                objectClass = objectType.getDelineation().getObjectClass();
+            }
+            if (objectClass == null) {
+                objectClass = objectType.getObjectClass();
+            }
+        }
+        if (objectClass == null) {
+            objectClass = getObjectClassFromSearch();
+        }
+
+        if (objectClass == null) {
+            ResourceSchema refinedSchema = null;
+            try {
+                refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObject());
+            } catch (SchemaException | ConfigurationException e) {
+                // ignore it
+            }
+            if (refinedSchema == null) {
+                return null;
+            }
+            String intent = getIntent();
+            ResourceObjectDefinition ocDef;
+            if (ShadowUtil.isKnown(getIntent())) {
+                ocDef = refinedSchema.findObjectDefinition(getKind(), intent);
+            } else {
+                ocDef = refinedSchema.findDefaultDefinitionForKind(getKind());
+            }
+            if (ocDef != null) {
+                objectClass = ocDef.getObjectClassName();
+            }
+        }
+        return objectClass;
     }
 
     protected boolean isResourceSearch() {
@@ -763,19 +804,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 IModel<String> confirmModel;
-                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectType = getResourceObjectTypeValue(null);
-                if (objectType != null) {
-                    ResourceObjectTypeDefinitionType value = objectType.getObject().getRealValue();
-                    String objectTypeLabel = getPageBase().createStringResource(value.getKind()).getString()
-                            + "/" + value.getIntent();
-                    confirmModel = getPageBase().createStringResource(
-                            "ResourceCategorizedPanel.button.reclassify.confirmation.objectType",
-                            objectTypeLabel);
-                } else {
-                    confirmModel = getPageBase().createStringResource(
-                            "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
-                            getObjectClass().getLocalPart());
-                }
+
+                confirmModel = getPageBase().createStringResource(
+                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
+                        getObjectClass().getLocalPart());
 
                 ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
                     @Override
@@ -791,9 +823,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
         reclassify.setOutputMarkupId(true);
         reclassify.showTitleAsLabel(true);
-        reclassify.add(new VisibleBehaviour(() ->
-                (isTopTableButtonsVisible() || getObjectClass() != null)
-                        && isReclassifyButtonVisible()));
+        reclassify.add(new VisibleBehaviour(() -> getObjectClass() != null && isReclassifyButtonVisible()));
         buttonsList.add(reclassify);
 
         return buttonsList;
@@ -826,29 +856,12 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     .beginConfigurationToUse()
                     .predefined(PredefinedConfigurationType.DEVELOPMENT);
 
-            QName objectClass = null;
-
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = getResourceObjectTypeValue(null);
-            if (model != null) {
-                ResourceObjectTypeDefinitionType objectType = model.getObject().getRealValue();
-                if (objectType.getDelineation() != null) {
-                    objectClass = objectType.getDelineation().getObjectClass();
-                }
-                if (objectClass == null) {
-                    objectClass = objectType.getObjectClass();
-                }
-            }
-            QName searchObjectClass = getObjectClass();
-            if (searchObjectClass != null) {
-                objectClass = searchObjectClass;
-            }
-
             task.getUpdatedTaskObject().getRealValue()
                     .getActivity()
                     .getWork()
                     .getImport()
                     .getResourceObjects()
-                    .objectclass(objectClass)
+                    .objectclass(getObjectClass())
                     .intent(null)
                     .kind(null);
 

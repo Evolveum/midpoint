@@ -80,8 +80,17 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             }
 
             @Override
-            protected QName getObjectClass() {
-                return resourceObjectType.getObject().getRealValue().getObjectClass();
+            protected QName getObjectClassFromSearch() {
+                QName objectClass = null;
+                ResourceObjectTypeDefinitionType objectType = resourceObjectType.getObject().getRealValue();
+                if (objectType.getDelineation() != null) {
+                    objectClass = objectType.getDelineation().getObjectClass();
+                }
+                if (objectClass == null) {
+                    objectClass = objectType.getObjectClass();
+                }
+
+                return objectClass;
             }
 
             @Override

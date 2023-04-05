@@ -42,7 +42,12 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new AccessApplicationStepPanel(getHelper().getDetailsModel()));
+        steps.add(new AccessApplicationStepPanel(getHelper().getDetailsModel()){
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ApplicationRoleWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()) {
 
@@ -50,6 +55,11 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
                 ApplicationRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ApplicationRoleWizardPanel.this.onExitPerformed(target);
             }
         });
 
