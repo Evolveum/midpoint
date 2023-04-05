@@ -169,11 +169,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     assignmentPaths.add(metadataType.getAssignmentPath());
                 }
 
-                if (assignmentPaths.size() == 1) {
-                    cellItem.add(new Label(componentId, createStringResource("DirectAndIndirectAssignmentPanel.type.direct")));
-                    return;
-                }
-
                 AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(assignmentPaths));
                 cellItem.add(panel);
 
