@@ -38,7 +38,7 @@ Note that the lifecycle state of the resource is `proposed`, so the whole resour
 You should see something like this:
 +
 .Content of the HR resource
-image::unclassified-accounts.png[Content of the HR resource]
+image::unclassified-accounts.png[Content of the HR resource, width=1600]
 
 Note that the accounts are not classified: their intent is `unknown`.
 
@@ -74,7 +74,7 @@ Now, list the accounts on the resource again.
 You should see something like this:
 
 .Content of HR resource with preliminary classification
-image::accounts-intent-default.png[Content of HR resource with preliminary classification]
+image::accounts-intent-default.png[Content of HR resource with preliminary classification, width=1600]
 
 The intents were immediately set to `default`, because the accounts were not classified before.
 
@@ -201,13 +201,13 @@ We see that the classification of both shadows would be changed.
 We can look at the details by clicking on "Shadow classification changed" mark:
 
 .Reclassified objects
-image::result-after-reclassification-details.png[Reclassified objects]
+image::result-after-reclassification-details.png[Reclassified objects, width=1600]
 
 And then on a shadow.
 After clicking on _Advanced_ button the details will be shown:
 
 .Reclassified object details
-image::result-after-reclassification-details-2.png[Reclassified object details]
+image::result-after-reclassification-details-2.png[Reclassified object details, width=1600]
 
 ===== Creating a Report
 
@@ -243,7 +243,7 @@ A task is created in background.
 After the task finishes, we may refresh the view to see the updated classification.
 
 .Reclassification through the GUI
-image::reclassification-using-gui.png[Reclassification through the GUI]
+image::reclassification-using-gui.png[Reclassification through the GUI, width=1600]
 
 ===== Running the Reclassification Task Manually
 
@@ -432,6 +432,10 @@ After looking at the simulation result, we should see "6 focus activations" and 
 === Step HR-5: Switching the Resource into Production
 
 Now we can switch the resource to production mode, either by clicking on the _Switch to production_ button, or changing the lifecycle state to `Active`.
+
+.Switching the resource into production
+image::switching-resource-into-production.png[Switching the resource into production]
+
 After that, we can run the https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
 
 We observe that the users were added.
@@ -662,7 +666,7 @@ We can look at the details by clicking on "Shadow correlation state changed" mar
 image::result-after-first-correlation-objects.png[Correlated accounts]
 
 .Correlated account details
-image::result-after-first-correlation-object-details.png[Correlated account details]
+image::result-after-first-correlation-object-details.png[Correlated account details, width=1600]
 
 ===== Creating a Report
 
@@ -725,7 +729,7 @@ Import the following https://github.com/Evolveum/midpoint-samples/tree/master/sa
 After running the task and listing the accounts, we see their synchronization situation was changed like this.
 
 .Content of LDAP resource after initial correlation run
-image::shadows-after-first-correlation.png[Content of LDAP resource after initial correlation run]
+image::shadows-after-first-correlation.png[Content of LDAP resource after initial correlation run, width=1600]
 
 === Step LDAP-4: Improving the Correlation
 
@@ -837,7 +841,7 @@ image::result-after-second-correlation.png[Simulation result capturing the secon
 image::result-after-second-correlation-objects.png[Correlated accounts]
 
 .Correlated account details
-image::result-after-second-correlation-object-details.png[Correlated account details]
+image::result-after-second-correlation-object-details.png[Correlated account details, width=1600]
 
 .Specialized correlation report
 image::result-after-second-correlation-report.png[Specialized correlation report]
@@ -851,7 +855,7 @@ Here we could mark some shadows as protected, "do not touch", "decommission late
 NOTE: For more information about how to mark the shadows, please see xref:/midpoint/reference/mark/#gui-object-marks-and-shadows[Object Marks].
 
 .Marked shadows
-image::marked-shadows.png[Marked shadows]
+image::marked-shadows.png[Marked shadows, width=1600]
 
 These marked shadows will be skipped during synchronization activities.
 
@@ -909,7 +913,7 @@ After that, the LDAP accounts should look like this:
 
 // TODO refresh screenshot (to see the marks)
 .LDAP shadows after the first import
-image::shadows-after-first-import.png[LDAP shadows after the first import]
+image::shadows-after-first-import.png[LDAP shadows after the first import, width=1600]
 
 We see that two shadows are now linked to their owners (`empNo:1`, `empNo:2`), two are disputed, and others are unmatched.
 
@@ -920,14 +924,14 @@ After running the import again, the shadows should look like this:
 
 // TODO refresh screenshot (to see the marks)
 .LDAP shadows after the second import
-image::shadows-after-second-import.png[LDAP shadows after the second import]
+image::shadows-after-second-import.png[LDAP shadows after the second import, width=1600]
 
 === Step LDAP-7: Importing the usernames into midPoint
 
 Currently, our users have their (temporary) names derived from employee numbers:
 
 .Temporary usernames
-image::temporary-usernames.png[Temporary usernames]
+image::temporary-usernames.png[Temporary usernames, width=1600]
 
 Eventually, we would like the names to be consistent with LDAP dn and uid values, and to be generated in such format for new users.
 To achieve this, we now need to import existing names from LDAP to midPoint.
@@ -962,17 +966,17 @@ After running the import, we can see the expected changes:
 
 // TODO refresh screenshot
 .Simulation result after simulated import of usernames
-image::renamed-users-result.png[Simulation result after simulated import of usernames]
+image::renamed-users-result.png[Simulation result after simulated import of usernames, width=1600]
 
 We see 5 "focus renamed" events, so let us have a look.
 
 // TODO refresh screenshot
 .Simulation result objects
-image::renamed-users-objects.png[Simulation result objects]
+image::renamed-users-objects.png[Simulation result objects, width=1600]
 
 // TODO refresh screenshot
 .Simulation result object details
-image::renamed-users-object-details.png[Simulation result object details]
+image::renamed-users-object-details.png[Simulation result object details, width=1600]
 
 We can also run the "Simulation report: Items changed" to see the results in a spreadsheet.
 We recommend setting "Show rows with no details" to `false` to hide objects that were not changed.
