@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -15,7 +29,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,18 +49,6 @@ import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -66,7 +67,7 @@ public class SimulationsGuiUtil {
                 return null;
             }
 
-            return LocalizationUtil.translate(WebComponentUtil.createEnumResourceKey(state));
+            return LocalizationUtil.translate(LocalizationUtil.createKeyForEnum(state));
         });
 
         label.add(AttributeModifier.append("class", () -> {
@@ -99,7 +100,7 @@ public class SimulationsGuiUtil {
 
         QName type = object.getType();
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
-        String key = WebComponentUtil.createEnumResourceKey(ot);
+        String key = LocalizationUtil.createKeyForEnum(ot);
 
         return LocalizationUtil.translate(key);
     }
@@ -122,14 +123,12 @@ public class SimulationsGuiUtil {
         };
     }
 
-    public static Visualization createVisualization(ObjectDeltaType objectDelta, PageBase page) {
-        if (objectDelta == null) {
+    public static Visualization createVisualization(ObjectDelta<? extends ObjectType> delta, PageBase page) {
+        if (delta == null) {
             return null;
         }
 
         try {
-            ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDelta);
-
             Task task = page.getPageTask();
             OperationResult result = task.getResult();
 
@@ -139,15 +138,6 @@ public class SimulationsGuiUtil {
 
             throw new SystemException(e);
         }
-    }
-
-    public static VisualizationDto createVisualizationDto(ObjectDeltaType objectDelta, PageBase page) {
-        if (objectDelta == null) {
-            return null;
-        }
-
-        Visualization visualization = createVisualization(objectDelta, page);
-        return createVisualizationDto(visualization);
     }
 
     public static VisualizationDto createVisualizationDto(Visualization visualization) {
@@ -160,7 +150,7 @@ public class SimulationsGuiUtil {
         }
 
         final WrapperVisualization wrapper =
-                new WrapperVisualization(new SingleLocalizableMessage("PageSimulationResultObject.changes"), Arrays.asList(visualization));
+                new WrapperVisualization(new SingleLocalizableMessage("PageSimulationResultObject.changes"), List.of(visualization));
 
         return new VisualizationDto(wrapper);
     }
@@ -234,7 +224,7 @@ public class SimulationsGuiUtil {
         return LocalizationUtil.translateMessage(msg);
     }
 
-    public static ProcessedObject parseProcessedObject(@NotNull SimulationResultProcessedObjectType obj, @NotNull PageBase page) {
+    public static ProcessedObject<?> parseProcessedObject(@NotNull SimulationResultProcessedObjectType obj, @NotNull PageBase page) {
         Task task = page.createSimpleTask(OPERATION_PARSE_PROCESSED_OBJECT);
         OperationResult result = task.getResult();
 
@@ -268,11 +258,15 @@ public class SimulationsGuiUtil {
     }
 
     public static int getUnmodifiedProcessedObjectCount(SimulationResultType result, Map<BuiltInSimulationMetricType, Integer> builtInMetrics) {
-        int totalCount = SimulationResultTypeUtil.getObjectsProcessed(result);
-        int unmodifiedCount = totalCount;
+        int unmodifiedCount = SimulationResultTypeUtil.getObjectsProcessed(result);
 
         for (Map.Entry<BuiltInSimulationMetricType, Integer> entry : builtInMetrics.entrySet()) {
             BuiltInSimulationMetricType identifier = entry.getKey();
+            if (identifier != BuiltInSimulationMetricType.ADDED
+                    && identifier != BuiltInSimulationMetricType.DELETED) {
+                continue;
+            }
+
             int value = entry.getValue();
 
             unmodifiedCount = unmodifiedCount - value;

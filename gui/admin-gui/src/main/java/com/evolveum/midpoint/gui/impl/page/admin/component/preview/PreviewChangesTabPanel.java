@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -39,6 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
@@ -165,7 +164,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 createVisualizationModel(secondaryModel, "PagePreviewChanges.secondaryChangesOne", "PagePreviewChanges.secondaryChangesMore"));
         add(secondaryDeltas);
 
-        add(new ChangesPanel(ID_PRIMARY, null, primaryModel) {
+        add(new ChangesPanel(ID_PRIMARY, primaryModel) {
 
             @Override
             protected IModel<String> createTitle() {
@@ -177,7 +176,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 };
             }
         });
-        add(new ChangesPanel(ID_SECONDARY, null, secondaryModel) {
+        add(new ChangesPanel(ID_SECONDARY, secondaryModel) {
 
             @Override
             protected IModel<String> createTitle() {
