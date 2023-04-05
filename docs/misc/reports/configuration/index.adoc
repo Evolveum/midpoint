@@ -316,6 +316,52 @@ Defining columns can be skipped when report in meant for audit records or any of
 If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object.
 However, then the report is defined for containers, the columns definition cannot be omitted.
 
+The following variables are available in column expressions:
+
+|===
+| Variable | Description
+
+| `object`
+| Contains the whole object for the currently processed row.
+This is a single object from the collection, e.g. one result from a query.
+If subreports are used to multiply rows (see below), this object contains the same object for all such rows.
+
+| `input`
+| Contains the value for this column, as extracted from the `object` with the provided `path`.
+If no `path` was specified for the column, it has the same value as `object` variable.
+
+| `report`
+| xref:/midpoint/reference/misc/reports/report-functions/[Report Script Library]
+provides functions supporting report processing.
+
+| `basic`
+| xref:/midpoint/reference/expressions/expressions/script/functions/#basic-library[Basic Library].
+Part of standard script evaluator variable set.
+
+| `midpoint`
+| xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[midPoint Script Library].
+Part of standard script evaluator variable set.
+
+| `prismContext`
+| Prism context component providing access to various Prism related functionality.
+Part of standard script evaluator variable set.
+
+| `localizationService`
+| Localization service providing message translation functions.
+Part of standard script evaluator variable set.
+
+| `log`
+| xref:/midpoint/reference/expressions/expressions/script/functions/#midpoint-library[Logging Library].
+Part of standard script evaluator variable set.
+
+| subreport variables
+| Variable is present for each subreport (see below).
+
+| parameter variables
+| Variable is present for each parameter (see below).
+
+|===
+
 ==== Parameters
 
 There are situation when we want to run report with slightly different settings.
@@ -461,6 +507,49 @@ See the following sections for the details.
 |===
 
 After the subreport is evaluated, it is available as a variable in the subsequent subreport expressions as well.
+
+The following variables are available in subreport expressions:
+
+|===
+| Variable | Description
+
+| `object`
+| Contains the whole object for the currently processed row.
+This is a single object from the collection, e.g. one result from a query.
+If subreports are used to multiply rows (see below), this object contains the same object for all such rows.
+
+| `report`
+| xref:/midpoint/reference/misc/reports/report-functions/[Report Script Library]
+provides functions supporting report processing.
+
+| `basic`
+| xref:/midpoint/reference/expressions/expressions/script/functions/#basic-library[Basic Library].
+Part of standard script evaluator variable set.
+
+| `midpoint`
+| xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[midPoint Script Library].
+Part of standard script evaluator variable set.
+
+| `prismContext`
+| Prism context component providing access to various Prism related functionality.
+Part of standard script evaluator variable set.
+
+| `localizationService`
+| Localization service providing message translation functions.
+Part of standard script evaluator variable set.
+
+| `log`
+| xref:/midpoint/reference/expressions/expressions/script/functions/#midpoint-library[Logging Library].
+Part of standard script evaluator variable set.
+
+| subreport variables
+| Variable is present for each previous subreport (with lower order).
+
+| parameter variables
+| Variable is present for each parameter (see below).
+
+|===
+
 
 ==== Subreports generating rows
 
