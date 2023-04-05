@@ -70,6 +70,7 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
             return token;
 
         } catch (AuthenticationException e) {
+            // This is something that the administrator should know about. Hence not DEBUG but INFO.
             LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
             throw e;
         }

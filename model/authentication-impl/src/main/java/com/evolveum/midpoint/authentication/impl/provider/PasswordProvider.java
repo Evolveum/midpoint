@@ -84,7 +84,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
             return token;
 
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
             throw e;
         }
     }

@@ -102,7 +102,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
                 }
             } catch (Exception ex) {
                 unsuccessfulAuthentication(request, response,
-                new InternalAuthenticationServiceException("web.security.provider.invalid", ex));
+                        new InternalAuthenticationServiceException("web.security.provider.invalid", ex));
                 return;
             }
             try {

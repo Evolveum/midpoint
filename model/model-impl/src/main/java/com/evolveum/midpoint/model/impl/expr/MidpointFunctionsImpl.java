@@ -1734,7 +1734,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
-            LOGGER.error("No pattern defined. It can break link generation.");
+            LOGGER.error("No public HTTP URL pattern defined. It can break link generation.");
         }
 
         return publicHttpUrlPattern;

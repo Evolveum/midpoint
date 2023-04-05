@@ -9,11 +9,14 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
@@ -27,24 +30,23 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         extends AuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext> {
 
     @Override
-    protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
-            SecurityQuestionsAuthenticationContext authCtx) {
+    protected void checkEnteredCredentials(ConnectionEnvironment connEnv, SecurityQuestionsAuthenticationContext authCtx) {
         if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
             recordModuleAuthenticationFailure(authCtx.getUsername(), null, connEnv, null, "empty answers for security questions provided");
-            throw new BadCredentialsException("web.security.provider.securityQuestion.bad");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
         Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
-        boolean allBlank = false;
+        boolean someBlank = false;
         for (String enteredAnswers : enteredQuestionAnswer.values()) {
             if (StringUtils.isBlank(enteredAnswers)) {
-                allBlank = true;
+                someBlank = true;
             }
         }
 
-        if (allBlank) {
-            recordModuleAuthenticationFailure(authCtx.getUsername(), null, connEnv, null, "all empty");
-            throw new BadCredentialsException("web.security.provider.password.encoding");
+        if (someBlank) {
+            recordModuleAuthenticationFailure(authCtx.getUsername(), null, connEnv, null, "some empty");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }
 
