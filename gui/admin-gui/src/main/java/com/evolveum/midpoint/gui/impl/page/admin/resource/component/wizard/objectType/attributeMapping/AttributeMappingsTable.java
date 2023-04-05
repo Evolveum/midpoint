@@ -279,7 +279,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 newItemPerformed(target, null);
             }
         };
-        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-default btn-sm ml-3"));
+        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
         newObjectSimpleButton.add(new VisibleBehaviour(this::isCreateNewObjectSimpleVisible));
         newObjectSimpleButton.showTitleAsLabel(true);
         buttons.add(newObjectSimpleButton);
