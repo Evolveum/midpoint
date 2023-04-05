@@ -389,18 +389,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     private void backToDetailsFromWizard(AjaxRequestTarget target) {
-        //TODO change it and use parameter, when it will be implemented
-        ObjectDetailsStorage storage =
-                getSessionStorage().getObjectDetailsStorage("details" + ResourceType.class.getSimpleName());
-        ContainerPanelConfigurationType defaultConfig = null;
-        if (storage != null) {
-            defaultConfig = storage.getDefaultConfiguration();
-        }
         DetailsFragment detailsFragment = createDetailsFragment();
         PageAssignmentHolderDetails.this.addOrReplace(detailsFragment);
-        if (defaultConfig != null) {
-            replacePanel(defaultConfig, target);
-        }
         target.add(detailsFragment);
 
         getFeedbackPanel().setVisible(true);

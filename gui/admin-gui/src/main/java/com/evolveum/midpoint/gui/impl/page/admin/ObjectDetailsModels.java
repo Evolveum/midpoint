@@ -108,7 +108,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         };
     }
 
-    public WrapperContext createWrapperContext(){
+    public WrapperContext createWrapperContext() {
         Task task = getModelServiceLocator().createSimpleTask("createWrapper");
         OperationResult result = task.getResult();
         WrapperContext context = createWrapperContext(task, result);
@@ -133,6 +133,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         }
         return detailsPage.getPanel();
     }
+
     private void loadParentOrgs(PrismObject<O> object) {
         Task task = getModelServiceLocator().createSimpleTask(OPERATION_LOAD_PARENT_ORG);
         OperationResult subResult = task.getResult();
@@ -168,7 +169,6 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         }
         subResult.computeStatus();
     }
-
 
     protected PageBase getPageBase() {
         return (PageBase) getModelServiceLocator();
@@ -206,51 +206,51 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
         switch (objectWrapper.getStatus()) {
             case ADDED:
-                    PrismObject<O> objectToAdd = delta.getObjectToAdd();
+                PrismObject<O> objectToAdd = delta.getObjectToAdd();
 //                    WebComponentUtil.encryptCredentials(objectToAdd, true, modelServiceLocator);
-                    prepareObjectForAdd(objectToAdd);
-                    getPrismContext().adopt(objectToAdd, objectWrapper.getCompileTimeClass());
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before add user:\n{}", delta.debugDump(3));
-                    }
+                prepareObjectForAdd(objectToAdd);
+                getPrismContext().adopt(objectToAdd, objectWrapper.getCompileTimeClass());
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Delta before add user:\n{}", delta.debugDump(3));
+                }
 
-                    if (!delta.isEmpty()) {
-                        delta.revive(getPrismContext());
+                if (!delta.isEmpty()) {
+                    delta.revive(getPrismContext());
 
-                        final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
-                        validationErrors = performCustomValidation(objectToAdd, deltas);
-                        return deltas;
+                    final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
+                    validationErrors = performCustomValidation(objectToAdd, deltas);
+                    return deltas;
 
 //                        if (checkValidationErrors(target, validationErrors)) {
 //                            return null;
 //                        }
-                    }
+                }
                 break;
 
             case NOT_CHANGED:
 //                    WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
-                    prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK)
+                prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK)
 
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before modify user:\n{}", delta.debugDump(3));
-                    }
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Delta before modify user:\n{}", delta.debugDump(3));
+                }
 
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-                    if (!delta.isEmpty()) {
-                        delta.revive(getPrismContext());
-                        deltas.add(delta);
-                    }
+                Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+                if (!delta.isEmpty()) {
+                    delta.revive(getPrismContext());
+                    deltas.add(delta);
+                }
 
-                    List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
-                    if (additionalDeltas != null) {
-                        for (ObjectDelta additionalDelta : additionalDeltas) {
-                            if (!additionalDelta.isEmpty()) {
-                                additionalDelta.revive(getPrismContext());
-                                deltas.add(additionalDelta);
-                            }
+                List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
+                if (additionalDeltas != null) {
+                    for (ObjectDelta additionalDelta : additionalDeltas) {
+                        if (!additionalDelta.isEmpty()) {
+                            additionalDelta.revive(getPrismContext());
+                            deltas.add(additionalDelta);
                         }
                     }
-                    return deltas;
+                }
+                return deltas;
             // support for add/delete containers (e.g. delete credentials)
             default:
                 throw new UnsupportedOperationException("Unsupported state");
@@ -311,7 +311,6 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return new ArrayList<>();
     }
 
-
     public void reset() {
         prismObjectModel.detach();
         objectWrapperModel.reset();
@@ -348,7 +347,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             savedDeltas.forEach(delta -> {
                 try {
                     if (delta.isAdd()) {
-                        if (newObject.isEmpty()) {
+                        if (newObject.getOid() == null) {
                             newObject.getValue().mergeContent(delta.getObjectToAdd().getValue(), List.of());
                         }
                     } else {
@@ -359,7 +358,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 }
             });
         }
-        prismObjectModel = new LoadableDetachableModel<>(){
+        prismObjectModel = new LoadableDetachableModel<>() {
 
             @Override
             protected PrismObject<O> load() {
@@ -442,10 +441,16 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                             .findFirst();
             if (match.isPresent()) {
                 ObjectDelta<? extends ObjectType> newDelta = delta.clone();
-                newDelta.merge(match.get());
-                if (newDelta.getOid() == null) {
-                    newDelta.setOid(match.get().getOid());
-                    newDelta.setChangeType(match.get().getChangeType());
+                if (match.get().isAdd() && match.get().getOid() == null
+                        && delta.isAdd() && delta.getOid() == null) {
+                    newDelta = match.get().clone();
+                } else {
+                    newDelta.merge(match.get());
+
+                    if (newDelta.getOid() == null) {
+                        newDelta.setOid(match.get().getOid());
+                        newDelta.setChangeType(match.get().getChangeType());
+                    }
                 }
                 if (!newDelta.isEmpty()) {
                     retDeltas.add(newDelta);
