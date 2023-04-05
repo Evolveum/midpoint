@@ -13,7 +13,7 @@ It could be characterized as an ability to see expected effects of some actions 
 Let us introduce few basic terms first: execution mode and configuration used.
 
 . _Execution mode_ determines whether any actions carried out by an activity will have persistent effects or not.
-. _Configuration used_ tells whether the activity should use "production" or "development-mode" configuration.
+. _Configuration used_ tells whether the activity should use "production" or "development" configuration.
 
 .Execution modes and system configurations
 image::mode-config-matrix.drawio.png[Mode-config matrix]
@@ -26,7 +26,7 @@ Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute
 
 === Persistent-Effects Mode
 
-This is the standard mode of operation, where any actions are really executed, be that in midPoint repository or on the resources.
+This is the standard mode of operation, where any actions are really executed, be they in the midPoint repository or on the resources.
 All such changes are also recorded in the system audit log.
 
 [NOTE]
@@ -46,18 +46,18 @@ We are looking for a better one.
 
 === Simulation Mode
 
-Here, no actions that could have persistent externally-visible effects are executed.
+Here, no actions that could have persistent externally visible effects are executed.
 Accordingly, nothing is written to the system audit log.
 
-The changes are computed, just like in <<Persistent-Effects Mode>> but instead of their application, they are written to so-called xref:/midpoint/reference/simulation/results/[simulation result].
-It is a special kind of objects in midPoint repository, collecting both statistical and detailed information about changes that would be applied.
+The changes are computed, just like in <<Persistent-Effects Mode>>, but instead of their application, they are written to so-called xref:/midpoint/reference/simulation/results/[simulation result].
+It is a special kind of object in the midPoint repository, collecting both statistical and detailed information about changes that would be applied.
 
 == Production vs Development Configuration
 
 === Production Configuration
 
 The production configuration comprises all configuration items that are engaged in regular midPoint operations.
-By _configuration item_ we mean for example a definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
+By _configuration item_, we mean, for example, a definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
 
 Items in the production configuration are the only ones that can cause persistent effects.
 (See <<Persistent-Effects Mode>>.)
@@ -69,12 +69,12 @@ With regard to the production configuration, some items may be added, some repla
 
 The development configuration cannot be executed in "persistent-effects" mode.
 
-Before 4.7, the development configuration had to reside in separate midPoint instance called typically "development" or "testing" one.
-Although such approach still has its advantages, now it is possible that both configurations share a single midPoint instance.
+Before 4.7, the development configuration had to reside in a separate midPoint instance, typically called the "development" or "testing" one.
+Although such an approach still has its advantages, it is now possible for both configurations to share a single midPoint instance.
 
 === Distinguishing Production and Development Configurations
 
-This distinction is currently done using the `lifecycleState` property on configuration items.
+This distinction is currently made using the `lifecycleState` property on configuration items.
 
 .Lifecycle states and configurations
 image::lifecycle-states.drawio.png[Lifecycle States]
@@ -103,8 +103,8 @@ Lifecycle state is currently supported on the following configuration items:
 - object template,
 - mapping.
 
-NOTE: For short, we will sometime use the statements "configuration item (like resource) is in development mode" to denote the fact that the item is part of the development configuration but not present in the production one.
-On the other hand, when saying "item is in production mode", we mean that it is a part of the production configuration, with not saying anything whether it is also part of the development configuration.
+NOTE: For short, we will sometimes use the statement "configuration item (like a resource) is in development mode" to denote the fact that the item is part of the development configuration but not present in the production one.
+On the other hand, when we say that "item is in production mode", we mean that it is a part of the production configuration without saying anything about whether it is also part of the development configuration.
 
 === Examples
 
@@ -124,7 +124,7 @@ The following resource is in development configuration only.
 ----
 
 This setting guarantees that the content of the real resource will not be touched by midPoint.
-All operations that could affect this resource could be only simulated.
+All operations that could affect this resource could only be simulated.
 
 ==== Replacing a Mapping in an Object Template
 
@@ -171,50 +171,51 @@ Hence, this mapping is part of both production and development configurations.
 <2> The `deprecated` state means that this mapping belongs only to the production configuration.
 <3> The `proposed` state means that this mapping belongs only to the development configuration.
 
-The third mapping serves as a replacement of the second one in the development configuration.
-Hence, when you run a persistent-effect activity (or a simulation one using production configuration), users are assigned to `old-unit`.
-But when running a simulation using development configuration, the users are assigned to `new-unit` instead.
+The third mapping serves as a replacement for the second one in the development configuration.
+Hence, when you run a persistent-effect activity (or a simulation using production configuration), users are assigned to `old-unit`.
+But when running a simulation using the development configuration, the users are assigned to `new-unit` instead.
 
 == Typical Simulation Scenarios
 
 This section presents a couple of typical simulation-related scenarios.
 
-NOTE: Please see the xref:/midpoint/reference/simulation/tutorial/[tutorial] where these scenarios are shown in more details.
+NOTE: Please see the xref:/midpoint/reference/simulation/tutorial/[tutorial] where these scenarios are shown in more detail.
 
 === Introduction of a New Resource Configuration
 
-When connecting new source or target system to midPoint, we must create its resource definition.
-However, the first version of the definition is rarely completely correct and usually there is a need to fine-tune it.
-MidPoint supports this by allowing us to evolve the definition safely, in development mode, so that potential mistakes will not cause any harm in production data in midPoint nor on resources.
+When connecting a new source or target system to midPoint, we must create its resource definition.
+However, the first version of the definition is rarely completely correct, and usually there is a need to fine-tune it.
+MidPoint supports this by allowing us to evolve the definition safely in development mode so that potential mistakes will not cause any harm to production data in midPoint or on resources.
 
-Processes directly supported in this area:
+Processes directly supported in this area include:
 
-- classification of resource objects (e.g. accounts) into object types, like `account/default` or `account/person`;
+- classification of resource objects (e.g., accounts) into object types, like `account/default` or `account/person`;
 - correlation of resource objects to so-called focus objects, like users, roles, and so on;
 - mapping of data between resource objects and focus objects.
 
 === Evolution of a Resource Configuration
 
 Eventually, the first version of resource configuration is completed and put into production use.
-Sooner or later, requirements for its evolution emerge.
-The simulations feature supports such evolution by allowing adding pieces of the configuration (like new object types, attributes, association, or mappings) first in the development mode, and only after being developed and tested enough, switching them into production.
-Also, other items can be replaced, by marking them as deprecated and adding analogous proposed items.
+Sooner or later, requirements for its evolution will emerge.
+The simulations feature supports such evolution by allowing adding pieces of the configuration (like new object types, attributes, associations, or mappings) first in the development mode and, after they have been developed and tested enough, switching them into production.
+Also, other items can be replaced by marking them as deprecated and adding analogous proposed items.
 Yet other items can be deprecated without replacement, effectively planning for their removal.
 
 == Specific Functionality
 // TODO better name
 
-=== Resource Wizard
+=== Switching Between Production and Development Mode
 
-. #TODO# resources and other configuration items are in "proposed" state by default
-. #TODO# switching between "proposed", "active", and "deprecated" states
-. #TODO# previewing content of a resource in simulation mode, so that re-classification occurs instantly
+Various configuration items (such as a resource) can be switched between production and development mode using a button in the GUI.
+An example is shown in Figure 3.
 
-#TODO implement + document#
+.Switching between production and development mode for a resource
+image::production-development-mode.png[Switching between production and development mode for a resource, width=750]
 
 === Running the Simulation on Foreground
 
-Simulation results and related objects can be diplayed via midPoint GUI. For more information see xref:../admin-gui/simulations.adoc#_running_the_simulation_on_foreground[Simulations UI].
+Simulation results and related objects can be displayed via the midPoint GUI.
+For more information, please see xref:../admin-gui/simulations.adoc#_running_the_simulation_on_foreground[Simulations UI].
 
 === Running the Simulation on Background
 
@@ -226,24 +227,24 @@ There are three aspects that can be defined:
 An activity can be run in one of three basic modes:
 
 1. *Full execution.*
-All computed changes are applied, everything has persistent effects.
-This is <<Persistent-Effects Mode>> described in the introduction.
+All computed changes are applied; everything has persistent effects.
+This is the <<Persistent-Effects Mode>> described in the introduction.
 
 2. *Simulation (or preview).*
-Changes to the data (user properties, account attributes, and so on) are only simulated, nothing is really changed in midPoint nor on resources.
-This is <<Simulation Mode>> described in the introduction.footnote:[Simulation and preview are used as synonyms.]
+Changes to the data (user properties, account attributes, and so on) are only simulated; nothing is really changed in midPoint or on resources.
+This is the <<Simulation Mode>> described in the introduction.footnote:[Simulation and preview are used as synonyms.]
 
 3. *Shadow management simulation (or preview).*
 This is a special low-level simulation of shadow-management-related changes that are normally applied automatically.
-Those changes are related to shadow _classification_ i.e. determining its kind and intent, and shadow _correlation_ i.e. determining its owner.
-In modes 1 and 2 such changes are applied automatically, because they have no visible effects on the identity data.
-However, we may preview even those changes, to make development of classification and correlation configuration easier.
-This is an xref:/midpoint/versioning/experimental/[experimental functionality].
+Those changes are related to shadow _classification_, i.e., determining its kind and intent, and shadow _correlation_, i.e., determining its owner.
+In modes 1 and 2, such changes are applied automatically because they have no visible effects on the identity data.
+However, we may preview even those changes to make the development of classification and correlation configuration easier.
+This is xref:/midpoint/versioning/experimental/[experimental functionality].
 Please see the xref:/midpoint/reference/simulation/tutorial/[tutorial] for an example.
 
-This configuration is driven by `execution/mode` parameter in the activity definition.
+This configuration is driven by the `execution/mode` parameter in the activity definition.
 
-For more information, please see xref:/midpoint/reference/tasks/activities/execution-mode.adoc[activity execution mode specification].
+For more information, please see the xref:/midpoint/reference/tasks/activities/execution-mode.adoc[activity execution mode specification].
 
 ==== Configuration Used
 
@@ -257,9 +258,9 @@ For more information, please see xref:/midpoint/reference/tasks/activities/execu
 ==== Simulation Result
 
 We can run the simulation with or without creating the simulation result.
-Furthermore, there are various options connected with the result itself, for example, what metrics and event marks should we include in the result.
+Furthermore, there are various options connected with the result itself, such as what metrics and event marks we should include in the result.
 
-This configuration is driven by `reporting/simulationResult` parameter in the activity definition.
+This configuration is driven by the `reporting/simulationResult` parameter in the activity definition.
 
 For more information, please see <<Configuring Simulation Results>> and xref:/midpoint/reference/tasks/activities/reporting/simulation-result.adoc[activity simulation result definition].
 
@@ -300,7 +301,8 @@ For more information, please see <<Configuring Simulation Results>> and xref:/mi
 
 === Displaying and Managing the Simulation Results
 
-Simulation results and related objects can be diplayed via midPoint GUI. For more information see xref:../admin-gui/simulations.adoc[Simulations UI].
+Simulation results and related objects can be displayed via midPoint GUI.
+For more information, please see xref:../admin-gui/simulations.adoc[Simulations UI].
 
 === Configuring Simulation Results
 
@@ -314,7 +316,7 @@ Please see xref:results/definition.adoc[] for more information.
 
 === Reporting
 
-Simulation results can be displayed interactively via midPoint GUI, or their content can be exported using the xref:/midpoint/reference/misc/reports/configuration/[reporting] functionality.
+Simulation results can be displayed interactively via the midPoint GUI, or their content can be exported using the xref:/midpoint/reference/misc/reports/configuration/[reporting] functionality.
 
 There are the following built-in simulation reports.
 
@@ -329,12 +331,12 @@ Shows metadata and individual metrics.
 | overview, trends
 
 | xref:reports/objects.adoc[]
-| Lists objects processed by given simulation.
+| Lists objects processed by a given simulation.
 One processed object corresponds to one report row.
 | high-level view of one simulation
 
 | xref:reports/objects-with-metrics.adoc[]
-| Lists objects processed by given simulation along with metrics related to each object.
+| Lists objects processed by a given simulation along with metrics related to each object.
 | more detailed quantitative analysis of the simulation
 
 | xref:reports/items-changed.adoc[]
@@ -343,16 +345,14 @@ One processed object corresponds to one report row.
 
 | xref:reports/values-changed.adoc[]
 | Lists values added or deleted within individual items in processed objects.
-| changes of items, suitable especially for multivalued ones with larger number of values
+| changes of items, suitable especially for multivalued ones with a larger number of values
 |===
 
-=== Application Programming Interface
+// === Application Programming Interface
+// #TODO#
 
-#TODO#
-
-=== Configuring Lifecycle State
-
-#TODO#
+// === Configuring Lifecycle State
+// #TODO#
 
 == Limitations
 
@@ -360,6 +360,7 @@ One processed object corresponds to one report row.
 
 . Errors during pre-clockwork stage are not captured
 . Shadows that do not enter clockwork stage are not captured
+. "Clockwork view" ~ provisioning-level operations are not captured (just like in audit)
 
 === Shadow Management Simulations
 

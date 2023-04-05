@@ -25,6 +25,5 @@ This elimination of details can be done in various ways:
 .Deleting processed objects
 image::deleting-processed-objects.png[Deleting processed objects]
 
-#TODO - authorizations in code#
-
-#TODO - deleting the partitions#
+// #TODO - authorizations in code#
+// #TODO - deleting the partitions#

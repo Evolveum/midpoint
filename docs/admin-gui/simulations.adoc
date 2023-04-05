@@ -25,6 +25,7 @@ image::./simulations/simulation-processed-object.png[Processed object details,10
 .Processed object with error
 image::./simulations/simulation-processed-objects-error.png[Processed object with error,100%]
 
+[#_running_the_simulation_on_foreground]
 == Running the Simulation on Foreground
 
 // TODO: finish
