@@ -380,9 +380,15 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     if (object == null || object.getDelta() == null) {
                         return Collections.emptyList();
                     }
-                    // this should provide better delta - with proper estimated old values, since simulation processed object
-                    // contains before/after state of object together with delta
-                    delta = DeltaConvertor.toObjectDeltaType(object.getDelta());
+
+                    object.fixEstimatedOldValuesInDelta();
+
+                    Visualization visualization = SimulationsGuiUtil.createVisualization(object.getDelta(), PageSimulationResultObject.this);
+                    if (visualization == null) {
+                        return Collections.emptyList();
+                    }
+
+                    return List.of(new VisualizationDto(visualization));
                 } catch (Exception ex) {
                     // intentionally empty
                 }
