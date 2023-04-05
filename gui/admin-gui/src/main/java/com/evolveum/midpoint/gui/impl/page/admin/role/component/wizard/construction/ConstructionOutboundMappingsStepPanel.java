@@ -56,7 +56,9 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {
-                    inEditOutboundValue(rowModel, target);
+                    if (isValidFormComponentsOfRow(rowModel, target)) {
+                        inEditOutboundValue(rowModel, target);
+                    }
                 }
             }
         );

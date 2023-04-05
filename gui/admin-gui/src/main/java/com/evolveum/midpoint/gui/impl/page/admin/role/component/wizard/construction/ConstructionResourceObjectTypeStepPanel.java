@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -51,7 +55,8 @@ import java.util.Optional;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.objectType", icon = "fa fa-database"),
         containerPath = "empty")
-public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType> extends AbstractWizardStepPanel<FocusDetailsModels<AR>> {
+public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType>
+        extends AbstractWizardStepPanel<FocusDetailsModels<AR>> implements WizardListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceObjectTypeStepPanel.class);
 
@@ -61,8 +66,10 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
     private static final String ID_TILES = "tiles";
     private static final String ID_TILE = "tile";
 
+    private String oldOidResource;
+
     private final IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
-    private IModel<List<Tile<ResourceObjectTypeWrapper>>> tilesModel;
+    private LoadableModel<List<Tile<ResourceObjectTypeWrapper>>> tilesModel;
 
     public ConstructionResourceObjectTypeStepPanel(
             FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
@@ -80,6 +87,15 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                 return null;
             }
         };
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (tilesModel == null || tilesModel.getObject().isEmpty()) {
+            getPageBase().info(getPageBase().createStringResource("ConstructionResourceObjectTypeStepPanel.emptyList").getString());
+            getFeedback();
+        }
+        super.onBeforeRender();
     }
 
     @Override
@@ -107,6 +123,9 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
 
                     try {
                         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+                        if (schema == null) {
+                            return list;
+                        }
                         ResourceObjectDefinition resourceObjectDefinition = WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
                         ResourceObjectTypeDefinition actualOc = resourceObjectDefinition instanceof ResourceObjectTypeDefinition
                                 ? (ResourceObjectTypeDefinition) resourceObjectDefinition
@@ -140,6 +159,12 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                 }
             };
         }
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        wizard.addWizardListener(ConstructionResourceObjectTypeStepPanel.this);
     }
 
     private boolean matchResourceObjectTypes(ResourceObjectTypeDefinition actualOc, ResourceObjectTypeDefinition oc) {
@@ -285,6 +310,28 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
         private ResourceObjectTypeWrapper(ResourceObjectTypeDefinition oc) {
             this.kind = oc.getKind();
             this.intent = oc.getIntent();
+        }
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        if (!ConstructionResourceObjectTypeStepPanel.this.equals(newStep)) {
+            return;
+        }
+
+        ConstructionType construction = valueModel.getObject().getRealValue();
+        if (construction == null) {
+            return;
+        }
+
+        ObjectReferenceType resourceRef = construction.getResourceRef();
+        String resourceOid = resourceRef != null ? resourceRef.getOid() : null;
+
+        if (StringUtils.isNotEmpty(resourceOid)) {
+            if (!resourceOid.equals(oldOidResource)) {
+                tilesModel.reset();
+            }
+            oldOidResource = resourceOid;
         }
     }
 }

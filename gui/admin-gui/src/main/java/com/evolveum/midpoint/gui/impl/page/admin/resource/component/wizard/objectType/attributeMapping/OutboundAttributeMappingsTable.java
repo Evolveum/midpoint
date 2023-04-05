@@ -165,7 +165,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "px-1";
+                return "px-0";
             }
         });
 
@@ -183,7 +183,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "px-1";
+                return "px-0";
             }
         });
 
