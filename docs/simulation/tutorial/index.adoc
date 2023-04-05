@@ -848,6 +848,8 @@ After we are satisfied with the results, we can "commit" them by executing the s
 
 Here we could mark some shadows as protected, "do not touch", "decommission later", or "correlate later":
 
+NOTE: For more information about how to mark the shadows, please see xref:/midpoint/reference/mark/#gui-object-marks-and-shadows[Object Marks].
+
 .Marked shadows
 image::marked-shadows.png[Marked shadows]
 
