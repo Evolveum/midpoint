@@ -1102,7 +1102,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             getAuthenticationEvaluator().authenticate(connEnv, context);
 
             fail("unexpected success");
-        } catch (InternalAuthenticationServiceException e) {
+        } catch (DisabledException e) {
             writeGlobalBehaviour(e.getMessage(), USER_PAINTER_NAME);
 
             then("an exception is raised");
@@ -1146,7 +1146,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
     }
 
-    private void assertMissingAssignment(InternalAuthenticationServiceException e) {
+    private void assertMissingAssignment(DisabledException e) {
         assertEquals("Wrong exception message (key)", messages.getMessage("web.security.flexAuth.invalid.required.assignment"), getTranslatedMessage(e));
     }
 

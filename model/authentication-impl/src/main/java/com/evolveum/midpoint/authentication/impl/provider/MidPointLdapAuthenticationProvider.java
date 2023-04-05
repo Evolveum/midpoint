@@ -25,10 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -128,7 +125,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             List<ObjectReferenceType> requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
             if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, requireAssignment)) {
                 recordPasswordAuthenticationFailure(midPointPrincipal.getUsername(), "does not contain required assignment");
-                throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+                throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
             }
         }
 

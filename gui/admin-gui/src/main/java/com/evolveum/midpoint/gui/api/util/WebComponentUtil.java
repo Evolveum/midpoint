@@ -3824,6 +3824,9 @@ public final class WebComponentUtil {
         }
 
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (schema == null) {
+            return null;
+        }
         ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
         return oc;
     }

@@ -129,7 +129,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
-                        inEditInboundValue(rowModel, target);
+                        if (isValidFormComponentsOfRow(rowModel, target)) {
+                            inEditInboundValue(rowModel, target);
+                        }
                     }
                 };
             }
@@ -159,7 +161,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
-                        inEditOutboundValue(rowModel, target);
+                        if (isValidFormComponentsOfRow(rowModel, target)) {
+                            inEditOutboundValue(rowModel, target);
+                        }
                     }
                 };
             }

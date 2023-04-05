@@ -51,7 +51,7 @@ public class HintAuthenticationProvider extends MidPointAbstractAuthenticationPr
         try {
             return new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", "TODO", e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
             throw e;
         }
     }

@@ -89,8 +89,9 @@ public class Saml2Provider extends RemoteModuleProvider {
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
-                                                    AuthenticationChannel channel, Class focusType) throws AuthenticationException {
+    protected Authentication internalAuthentication(
+            Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType)
+            throws AuthenticationException {
         Authentication token;
         if (authentication instanceof Saml2AuthenticationToken) {
             Saml2AuthenticationToken samlAuthenticationToken = (Saml2AuthenticationToken) authentication;
@@ -114,7 +115,7 @@ public class Saml2Provider extends RemoteModuleProvider {
                 token = getPreAuthenticationToken(authentication, enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 samlModule.setAuthentication(samlAuthenticationToken);
-                LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
+                LOGGER.info("Authentication with saml module failed: {}", e.getMessage()); // TODO debug?
                 throw e;
             }
         } else {

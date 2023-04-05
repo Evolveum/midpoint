@@ -32,12 +32,10 @@ public class FocusIdentificationAuthenticationEvaluatorImpl extends Authenticati
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
             recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
-//            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
             throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
             recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
-//            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }

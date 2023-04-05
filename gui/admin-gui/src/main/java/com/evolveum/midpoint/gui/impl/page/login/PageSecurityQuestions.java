@@ -107,7 +107,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
                 try {
                     return createUsersSecurityQuestionsList();
                 } catch (BadCredentialsException e) {
-                    LOGGER.error(getString(e.getMessage()));
+                    LOGGER.debug(getString(e.getMessage()));
                     saveException(e);
                     throw new RestartResponseException(getMidpointApplication().getHomePage());
                 }
@@ -257,10 +257,13 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
         SecurityQuestionsCredentialsType credentialsPolicyType = user.getCredentials()
                 .getSecurityQuestions();
-        if (credentialsPolicyType == null || credentialsPolicyType.getQuestionAnswer() == null
+        if (credentialsPolicyType == null
+                || credentialsPolicyType.getQuestionAnswer() == null
                 || credentialsPolicyType.getQuestionAnswer().isEmpty()) {
-            String key = "web.security.flexAuth.any.security.questions";
-            throw new BadCredentialsException(key);
+            // This is better than "web.security.flexAuth.any.security.questions", because it is specific to the context
+            // of resetting the password through security questions. (At least I suppose these questions are used only for
+            // this reason.)
+            throw new BadCredentialsException("pageForgetPassword.message.ContactAdminQuestionsNotSet");
         }
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
@@ -287,7 +290,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         List<SecurityQuestionDto> questionsDto = new ArrayList<>();
         int questionNumber = secQuestionsPolicy != null && secQuestionsPolicy.getQuestionNumber() != null ? secQuestionsPolicy.getQuestionNumber() : 1;
         for (SecurityQuestionDefinitionType question : questionList) {
-            if (Boolean.TRUE.equals(question.isEnabled())) {
+            if (!Boolean.FALSE.equals(question.isEnabled())) {
                 for (SecurityQuestionAnswerType userAnswer : secQuestAnsList) {
                     if (question.getIdentifier().equals(userAnswer.getQuestionIdentifier())) {
                         SecurityQuestionDto questionDto = new SecurityQuestionDto(question.getIdentifier());

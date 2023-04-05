@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -65,8 +66,10 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
             if (authentication instanceof FocusVerificationToken) {
                 Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
                 if (attrValuesMap == null || attrValuesMap.isEmpty()) {
-                    LOGGER.error("Unsupported authentication {}", authentication);
-                    throw new AuthenticationServiceException("web.security.provider.unavailable");
+                    // E.g. no user name or other required property provided when resetting the password.
+                    // Hence DEBUG, not ERROR, and BadCredentialsException, not AuthenticationServiceException.
+                    LOGGER.debug("No details provided: {}", authentication);
+                    throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
                 }
                 ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
                 List<ModuleItemConfigurationType> itemsConfig = null;
@@ -75,7 +78,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 }
                 FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, itemsConfig, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);
-                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(),token.getCredentials());
+                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
                 pwdToken.setAuthenticated(false);
                 return pwdToken;
 
@@ -84,7 +87,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", "TODO", e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
             throw e;
         }
     }
@@ -102,10 +105,5 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
     public boolean supports(Class<?> authentication) {
         return FocusVerificationToken.class.equals(authentication);
     }
-
-//    @Override
-//    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-//        return null; //todo
-//    }
 
 }

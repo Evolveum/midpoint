@@ -56,7 +56,9 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {
-                    inEditOutboundValue(rowModel, target);
+                    if (isValidFormComponentsOfRow(rowModel, target)) {
+                        inEditOutboundValue(rowModel, target);
+                    }
                 }
             }
         );
@@ -135,5 +137,10 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
         } catch (SchemaException e) {
             LOGGER.error("Couldn't apply delta from attribute value container.");
         }
+    }
+
+    @Override
+    public String appendCssToWizard() {
+        return "mt-5 mx-auto col-11";
     }
 }

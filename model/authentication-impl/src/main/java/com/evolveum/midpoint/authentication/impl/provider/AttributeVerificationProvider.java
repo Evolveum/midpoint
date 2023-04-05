@@ -75,7 +75,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
                     authentication.getClass().getSimpleName(), principal.getAuthorities());
             return token;
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
             throw e;
         }
     }

@@ -115,7 +115,7 @@ public class OidcClientProvider extends RemoteModuleProvider {
                 ((OAuth2LoginAuthenticationToken) authentication).setDetails(oidcAuthenticationToken.getPrincipal());
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());
+                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage()); // TODO debug?
                 throw e;
             }
         } else {

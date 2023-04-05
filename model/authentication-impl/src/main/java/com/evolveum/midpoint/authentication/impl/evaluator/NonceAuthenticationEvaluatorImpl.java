@@ -32,7 +32,6 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
             NonceAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getNonce())) {
             recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty nonce provided");
-//            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty nonce provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.nonce.bad");
         }
     }

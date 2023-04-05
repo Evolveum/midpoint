@@ -99,7 +99,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (checkCredentials(principal, authnCtx, connEnv)) {
             if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, authnCtx.getRequireAssignments())) {
                 recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "does not contain required assignment");
-                throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+                throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
@@ -221,7 +221,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         // Authorizations
         if (hasNoneAuthorization(principal)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, passwordCredentialsPolicy, "no authorizations");
-            throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
+            throw new DisabledException("web.security.provider.access.denied");
         }
 
         return password;
@@ -235,7 +235,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         // Authorizations
         if (hasNoneAuthorization(principal)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no authorizations");
-            throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
+            throw new DisabledException("web.security.provider.access.denied");
         }
 
         if (AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(principal.getFocus(), authnCtx.getRequireAssignments())) {
@@ -244,7 +244,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             return token;
         } else {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "not contains required assignment");
-            throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+            throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
         }
     }
 
@@ -307,8 +307,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return !exist;
     }
 
-    private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credentials,
-            P passwordCredentialsPolicy) {
+    private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(
+            ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credentials, P passwordCredentialsPolicy) {
         if (credentials == null) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, passwordCredentialsPolicy, "no stored credential value");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.credential.bad");
