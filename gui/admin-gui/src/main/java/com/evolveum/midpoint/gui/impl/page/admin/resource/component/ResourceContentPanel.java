@@ -366,7 +366,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         attrMappingButton.setOutputMarkupId(true);
         attrMappingButton.showTitleAsLabel(true);
-        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         attrMappingButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(attrMappingButton);
     }
@@ -389,7 +388,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         synchConfButton.setOutputMarkupId(true);
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(synchConfButton);
     }
@@ -412,7 +410,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         synchConfButton.setOutputMarkupId(true);
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(synchConfButton);
     }
@@ -435,7 +432,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         correlationConfButton.setOutputMarkupId(true);
         correlationConfButton.showTitleAsLabel(true);
-        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         correlationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(correlationConfButton);
     }
@@ -458,7 +454,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         capabilitiesConfButton.setOutputMarkupId(true);
         capabilitiesConfButton.showTitleAsLabel(true);
-        capabilitiesConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         capabilitiesConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(capabilitiesConfButton);
     }
@@ -481,7 +476,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         credentialsConfButton.setOutputMarkupId(true);
         credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         credentialsConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(credentialsConfButton);
     }
@@ -504,7 +498,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         activationButton.setOutputMarkupId(true);
         activationButton.showTitleAsLabel(true);
-        activationButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         activationButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(activationButton);
     }
@@ -527,7 +520,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         associationConfButton.setOutputMarkupId(true);
         associationConfButton.showTitleAsLabel(true);
-        associationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
         associationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(associationConfButton);
     }
