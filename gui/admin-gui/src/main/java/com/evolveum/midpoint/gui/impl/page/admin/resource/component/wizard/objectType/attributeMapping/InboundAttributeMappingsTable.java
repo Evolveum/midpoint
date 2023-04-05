@@ -75,7 +75,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "px-1";
+                return "px-0";
             }
         });
 
@@ -93,7 +93,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "px-1";
+                return "px-0";
             }
         });
 

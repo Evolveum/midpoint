@@ -206,6 +206,11 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     }
 
     @Override
+    protected String getInlineMenuCssClass() {
+        return "";
+    }
+
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<MappingType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 

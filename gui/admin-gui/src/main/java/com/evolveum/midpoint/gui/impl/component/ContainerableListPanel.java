@@ -434,7 +434,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
                     @Override
                     public String getCssClass() {
-                        return "inline-menu-column ";
+                        return getInlineMenuCssClass();
                     }
 
                     @Override
@@ -446,6 +446,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
         return columns;
+    }
+
+    protected String getInlineMenuCssClass() {
+        return "inline-menu-column ";
     }
 
     protected boolean isMenuItemVisible(IModel<PO> rowModel) {
