@@ -826,46 +826,31 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     .beginConfigurationToUse()
                     .predefined(PredefinedConfigurationType.DEVELOPMENT);
 
-            ShadowKindType kind = null;
-            String intent = null;
             QName objectClass = null;
 
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = getResourceObjectTypeValue(null);
             if (model != null) {
                 ResourceObjectTypeDefinitionType objectType = model.getObject().getRealValue();
-                kind = objectType.getKind();
-                intent = objectType.getIntent();
-                objectClass = objectType.getObjectClass();
+                if (objectType.getDelineation() != null) {
+                    objectClass = objectType.getDelineation().getObjectClass();
+                }
+                if (objectClass == null) {
+                    objectClass = objectType.getObjectClass();
+                }
             }
             QName searchObjectClass = getObjectClass();
             if (searchObjectClass != null) {
                 objectClass = searchObjectClass;
             }
 
-            if (kind != null) {
-                task.getUpdatedTaskObject().getRealValue()
-                        .getActivity()
-                        .getWork()
-                        .getImport()
-                        .getResourceObjects()
-                        .kind(kind);
-
-                if (StringUtils.isNotEmpty(intent)) {
-                    task.getUpdatedTaskObject().getRealValue()
-                            .getActivity()
-                            .getWork()
-                            .getImport()
-                            .getResourceObjects()
-                            .intent(intent);
-                }
-            } else {
-                task.getUpdatedTaskObject().getRealValue()
-                        .getActivity()
-                        .getWork()
-                        .getImport()
-                        .getResourceObjects()
-                        .objectclass(objectClass);
-            }
+            task.getUpdatedTaskObject().getRealValue()
+                    .getActivity()
+                    .getWork()
+                    .getImport()
+                    .getResourceObjects()
+                    .objectclass(objectClass)
+                    .intent(null)
+                    .kind(null);
 
             task.makeSingle();
 
