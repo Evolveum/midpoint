@@ -318,6 +318,7 @@ However, then the report is defined for containers, the columns definition canno
 
 The following variables are available in column expressions:
 
+[%autowidth]
 |===
 | Variable | Description
 
@@ -510,6 +511,7 @@ After the subreport is evaluated, it is available as a variable in the subsequen
 
 The following variables are available in subreport expressions:
 
+[%autowidth]
 |===
 | Variable | Description
 
