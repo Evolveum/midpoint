@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -61,7 +62,11 @@ public class AssignmentPathPanel extends BasePanel<List<AssignmentPathMetadataTy
         item.add(new VisibleBehaviour(() -> !getSegments(item).isEmpty()));
         item.setOutputMarkupId(true);
 
-        item.add(new ObjectReferenceColumnPanel(ID_FIRST_SEGMENT, () -> getSegments(item).get(0).getTargetRef()));
+        if (hasSegments(item)) {
+            item.add(new ObjectReferenceColumnPanel(ID_FIRST_SEGMENT, () -> getSegments(item).get(0).getTargetRef()));
+        } else {
+            item.add(new Label(ID_FIRST_SEGMENT, createStringResource("DirectAndIndirectAssignmentPanel.type.direct")));
+        }
 
         IModel<Boolean> openModel = Model.of(false);
 

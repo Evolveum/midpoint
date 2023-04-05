@@ -281,7 +281,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private void showMetadataPerformed(VW value, AjaxRequestTarget target) {
         boolean showMetadata = !value.isShowMetadata();
-        System.out.println("showMetadataPerformed: " + showMetadata);
         value.setShowMetadata(showMetadata);
         getValueMetadata().unselect();
 
