@@ -415,7 +415,13 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
-                    ProcessedObject<?> obj = processedObjectModel.getObject();
+                    SelectableBean<SimulationResultProcessedObjectType> bean = rowModel.getObject();
+                    SimulationResultProcessedObjectType object = bean.getValue();
+                    if (object == null) {
+                        return null;
+                    }
+
+                    ProcessedObject<?> obj = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
 
                     return SimulationsGuiUtil.getProcessedObjectName(obj, PageSimulationResultObject.this);
                 };
