@@ -129,7 +129,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         List<DisplayableValue<ItemPathType>> choices = new ArrayList<>(values.getObject());
                         if (StringUtils.isNotEmpty(input)) {
                             choices = choices.stream()
-                                    .filter(v -> v.getLabel().contains(input))
+                                    .filter(v -> v.getLabel().toLowerCase().contains(input.toLowerCase()))
                                     .collect(Collectors.toList());
                         }
                         if (skipUsedAttributes(panelCtx)) {
@@ -145,7 +145,12 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
                     @Override
                     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values);
+                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values) {
+                            @Override
+                            protected boolean matchValues(ItemPathType key, ItemPathType value) {
+                                return value.equivalent(key);
+                            }
+                        };
                     }
                 };
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
