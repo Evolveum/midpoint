@@ -6,6 +6,7 @@
  */
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),

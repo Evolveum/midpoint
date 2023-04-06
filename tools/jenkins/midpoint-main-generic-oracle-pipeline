@@ -29,6 +29,7 @@ def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:oracle:thin:@$(cat ../logs-' +
         ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 28800, // 8h total build limit
         idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),

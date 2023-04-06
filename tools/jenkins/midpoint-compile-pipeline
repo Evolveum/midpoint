@@ -8,6 +8,7 @@
 def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 900,
         idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),

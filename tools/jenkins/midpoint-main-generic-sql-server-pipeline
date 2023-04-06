@@ -16,6 +16,7 @@ def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433\\;d
     ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 10,
         // No need for secret volume, no mvn deploy done here.
