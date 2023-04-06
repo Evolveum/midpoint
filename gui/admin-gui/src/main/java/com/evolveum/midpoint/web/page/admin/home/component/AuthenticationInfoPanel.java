@@ -10,16 +10,19 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.Date;
 
 public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
 
+    private static final String ID_PANEL_HEADER = "panelHeader";
     private static final String ID_LAST_LOGIN_DATE = "lastLoginDate";
     private static final String ID_LAST_LOGIN_FROM = "lastLoginFrom";
     private static final String ID_LAST_FAIL_DATE = "lastFailDate";
@@ -37,6 +40,11 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     private void initLayout() {
+        Label headerLabel = new Label(ID_PANEL_HEADER, createHeaderLabelModel());
+        headerLabel.add(new VisibleBehaviour(this::sequenceIdentifierNotEmpty));
+        headerLabel.setOutputMarkupId(true);
+        add(headerLabel);
+
         DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<>() {
 
             private static final long serialVersionUID = 1L;
@@ -119,5 +127,13 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
         }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
         passwordExp.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(passwordExp);
+    }
+
+    private IModel<String> createHeaderLabelModel() {
+        return createStringResource("AuthenticationInfoPanel.panelHeader", getModelObject().getSequenceIdentifier());
+    }
+
+    private boolean sequenceIdentifierNotEmpty() {
+        return StringUtils.isNotEmpty(getModelObject().getSequenceIdentifier());
     }
 }

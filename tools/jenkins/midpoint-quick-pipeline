@@ -8,6 +8,7 @@
 def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         // No need for secret volume, no mvn deploy done here.

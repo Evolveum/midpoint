@@ -9,8 +9,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <table class="table table-striped table-sm">
+        <th colspan="2" wicket:id="panelHeader" />
         <tr>
-            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.lastLogin"/></b></td>
+            <td colspan="2"><i><wicket:message key="PersonalInfoPanel.lastLogin"/></i></td>
         </tr>
         <tr>
             <td><wicket:message key="PersonalInfoPanel.lastLogin.date"/></td>
@@ -21,7 +22,7 @@
             <td><span wicket:id="lastLoginFrom"/></td>
         </tr>
         <tr>
-            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.lastFail"/></b></td>
+            <td colspan="2"><i><wicket:message key="PersonalInfoPanel.lastFail"/></i></td>
         </tr>
         <tr>
             <td><wicket:message key="PersonalInfoPanel.lastFail.date"/></td>
@@ -32,7 +33,7 @@
             <td><span wicket:id="lastFailFrom"/></td>
         </tr>
         <tr>
-            <td colspan="2"><b><wicket:message key="PersonalInfoPanel.other"/></b></td>
+            <td colspan="2"><i><wicket:message key="PersonalInfoPanel.other"/></i></td>
         </tr>
         <tr>
             <td><wicket:message key="PersonalInfoPanel.passwordExp"/></td>

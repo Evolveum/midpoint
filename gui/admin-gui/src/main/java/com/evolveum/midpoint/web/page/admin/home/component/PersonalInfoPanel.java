@@ -89,6 +89,8 @@ public class PersonalInfoPanel extends BasePanel<List<PersonalInfoDto>> {
                 dto.setLastFailDate(MiscUtil.asDate(behaviour.getLastFailedLogin().getTimestamp()));
                 dto.setLastFailFrom(behaviour.getLastFailedLogin().getFrom());
             }
+
+            dto.setSequenceIdentifier(behaviour.getSequenceIdentifier());
         }
         Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
         CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(focus.asPrismContainer(), getPageBase(), task);

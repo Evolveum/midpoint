@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
@@ -128,7 +129,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         List<DisplayableValue<ItemPathType>> choices = new ArrayList<>(values.getObject());
                         if (StringUtils.isNotEmpty(input)) {
                             choices = choices.stream()
-                                    .filter(v -> v.getLabel().contains(input))
+                                    .filter(v -> v.getLabel().toLowerCase().contains(input.toLowerCase()))
                                     .collect(Collectors.toList());
                         }
                         if (skipUsedAttributes(panelCtx)) {
@@ -144,7 +145,12 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
                     @Override
                     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values);
+                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values) {
+                            @Override
+                            protected boolean matchValues(ItemPathType key, ItemPathType value) {
+                                return value.equivalent(key);
+                            }
+                        };
                     }
                 };
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -203,15 +209,28 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                 List<DisplayableValue<ItemPathType>> choices = getAllAttributes(propertyWrapper, pageBase);
                 if (!choices.isEmpty()) {
                     PrismValueWrapper<ItemPathType> wrapper = propertyWrapper.getObject();
-                    if (wrapper.getParent().getParent().getParent().isSingleValue()) {
+                    ItemWrapper parent = wrapper.getParent().getParent().getParent();
+                    if (parent.isSingleValue()) {
                         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper.getObject());
                         if (objectType != null) {
                             List<ItemPathType> existingPaths = new ArrayList<>();
                             objectType.getAttribute().forEach(attributeMapping -> {
-                                if (attributeMapping.getRef() != null
-                                        && !attributeMapping.getRef().equivalent(wrapper.getRealValue())) {
-                                    existingPaths.add(attributeMapping.getRef());
+
+                                if (attributeMapping.getRef() == null
+                                        || attributeMapping.getRef().equivalent(wrapper.getRealValue())) {
+                                    return;
                                 }
+
+                                PrismContainer container =
+                                        attributeMapping.asPrismContainerValue().findContainer(parent.getItemName());
+                                container = container != null ? container.clone() : null;
+                                WebPrismUtil.cleanupEmptyContainers(container);
+
+                                if (container != null && container.isEmpty()) {
+                                    return;
+                                }
+
+                                existingPaths.add(attributeMapping.getRef());
                             });
                             choices.removeIf(value -> {
                                 for (ItemPathType existingPath : existingPaths) {
@@ -243,7 +262,6 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         } catch (Exception e) {
             LOGGER.debug("Couldn't get complete resource schema", e);
         }
-
 
         if (schema == null) {
             schema = ResourceDetailsModel.getResourceSchema(

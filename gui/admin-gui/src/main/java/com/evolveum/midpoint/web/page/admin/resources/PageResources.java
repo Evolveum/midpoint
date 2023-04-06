@@ -29,7 +29,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -112,12 +111,6 @@ public class PageResources extends PageAdmin {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        if (!isNativeRepo()) {
-            mainForm.add(new ErrorPanel(ID_TABLE,
-                    () -> getString("PageAdmin.menu.top.resources.list.nonNativeRepositoryWarning")));
-            return;
-        }
-
         MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class, getQueryOptions()) {
 
             @Override
@@ -128,12 +121,16 @@ public class PageResources extends PageAdmin {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<ResourceType>> createProvider() {
-                SelectableBeanObjectDataProvider<ResourceType> provider = createSelectableBeanObjectDataProvider(() ->
-                        getCustomizeContentQuery(), null);
-                provider.setEmptyListOnNullQuery(true);
-                provider.setSort(null);
-                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-                return provider;
+                if (isNativeRepo()) {
+                    SelectableBeanObjectDataProvider<ResourceType> provider = createSelectableBeanObjectDataProvider(() ->
+                            getCustomizeContentQuery(), null);
+                    provider.setEmptyListOnNullQuery(true);
+                    provider.setSort(null);
+                    provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                    return provider;
+                } else {
+                    return super.createProvider();
+                }
             }
 
             @Override
@@ -173,11 +170,22 @@ public class PageResources extends PageAdmin {
                 .build();
     }
 
+    private ButtonInlineMenuItem.VisibilityChecker isInlineButtonVisible() {
+        return (rowModel, isHeader) -> {
+            boolean templateCategory = false;
+            SelectableBean<ResourceType> object = (SelectableBean<ResourceType>) rowModel.getObject();
+            if (object != null && object.getValue() != null) {
+                templateCategory = !WebComponentUtil.isTemplateCategory(object.getValue());
+            }
+            return templateCategory;
+        };
+    }
+
     private List<InlineMenuItem> createRowMenuItems() {
 
         List<InlineMenuItem> menuItems = new ArrayList<>();
 
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageResources.inlineMenuItem.test")) {
+        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(createStringResource("PageResources.inlineMenuItem.test")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -202,7 +210,10 @@ public class PageResources extends PageAdmin {
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
             }
-        });
+        };
+
+        buttonInlineMenuItem.setVisibilityChecker(isInlineButtonVisible());
+        menuItems.add(buttonInlineMenuItem);
 
         menuItems.add(new ButtonInlineMenuItem(createStringResource("pageResources.button.editAsXml")) {
             private static final long serialVersionUID = 1L;
@@ -231,7 +242,7 @@ public class PageResources extends PageAdmin {
             }
         });
 
-        menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
+        InlineMenuItem inlineMenuItem = new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -251,7 +262,10 @@ public class PageResources extends PageAdmin {
             public boolean isHeaderMenuItem() {
                 return false;
             }
-        });
+        };
+
+        inlineMenuItem.setVisibilityChecker(isInlineButtonVisible());
+        menuItems.add(inlineMenuItem);
 
         menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
             private static final long serialVersionUID = 1L;
