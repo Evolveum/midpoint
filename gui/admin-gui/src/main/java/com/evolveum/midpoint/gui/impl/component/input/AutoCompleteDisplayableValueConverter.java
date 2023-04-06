@@ -58,11 +58,15 @@ public class AutoCompleteDisplayableValueConverter<T> implements IConverter<T> {
 
     @Override
     public String convertToString(T key, Locale locale) {
-        Optional<DisplayableValue<T>> displayValue = values.getObject().stream().filter(v -> v.getValue().equals(key)).findFirst();
+        Optional<DisplayableValue<T>> displayValue = values.getObject().stream().filter(v -> matchValues(key, v.getValue())).findFirst();
         if (displayValue.isPresent()) {
             return displayValue.get().getLabel();
         }
         return key == null ? "" : keyToString(key);
+    }
+
+    protected boolean matchValues(T key, T value){
+        return value.equals(key);
     }
 
     protected String keyToString(T key) {
