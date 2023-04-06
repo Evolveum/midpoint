@@ -7,40 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.data.CountToolbar;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang3.BooleanUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -58,10 +29,33 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.data.CountToolbar;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -89,7 +83,6 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
     private static final String ID_RELATED_OBJECTS = "relatedObjects";
-    private static final String ID_CHANGES_NEW = "changesNew";
     private static final String ID_CHANGES = "changes";
     private static final String ID_PAGING = "paging";
     private static final String ID_FOOTER = "footer";
@@ -99,9 +92,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private IModel<SimulationResultProcessedObjectType> objectModel;
 
-    private IModel<List<DetailsTableItem>> detailsModel;
+    private IModel<ProcessedObject<?>> processedObjectModel;
 
-    private IModel<VisualizationDto> changesModel;
+    private IModel<List<DetailsTableItem>> detailsModel;
 
     public PageSimulationResultObject() {
         this(new PageParameters());
@@ -150,6 +143,19 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 }
 
                 return result.get(0);
+            }
+        };
+
+        processedObjectModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected ProcessedObject<?> load() {
+                SimulationResultProcessedObjectType object = objectModel.getObject();
+                if (object == null) {
+                    return null;
+                }
+
+                return SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
             }
         };
 
@@ -281,15 +287,6 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 return items;
             }
         };
-
-        changesModel = new LoadableModel<>(false) {
-
-            @Override
-            protected VisualizationDto load() {
-                ObjectDeltaType objectDelta = objectModel.getObject().getDelta();
-                return SimulationsGuiUtil.createVisualizationDto(objectDelta, PageSimulationResultObject.this);
-            }
-        };
     }
 
     private void initLayout() {
@@ -374,49 +371,35 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
-        IModel<List<ObjectDeltaType>> deltas = new LoadableDetachableModel<>() {
+        IModel<List<VisualizationDto>> visualizations = new LoadableDetachableModel<>() {
 
             @Override
-            protected List<ObjectDeltaType> load() {
-                ObjectDeltaType delta = objectModel.getObject().getDelta();
-                if (delta == null) {
-                    return Collections.emptyList();
-                }
-
+            protected List<VisualizationDto> load() {
                 try {
-                    ProcessedObject<?> object = SimulationsGuiUtil.parseProcessedObject(objectModel.getObject(), PageSimulationResultObject.this);
+                    ProcessedObject<?> object = processedObjectModel.getObject();
                     if (object == null || object.getDelta() == null) {
                         return Collections.emptyList();
                     }
-                    // this should provide better delta - with proper estimated old values, since simulation processed object
-                    // contains before/after state of object together with delta
-                    delta = DeltaConvertor.toObjectDeltaType(object.getDelta());
+
+                    object.fixEstimatedOldValuesInDelta();
+
+                    Visualization visualization = SimulationsGuiUtil.createVisualization(object.getDelta(), PageSimulationResultObject.this);
+                    if (visualization == null) {
+                        return Collections.emptyList();
+                    }
+
+                    return List.of(new VisualizationDto(visualization));
                 } catch (Exception ex) {
                     // intentionally empty
                 }
 
-                return List.of(delta);
+                return Collections.emptyList();
             }
         };
 
-        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES_NEW, deltas, null);
+        ChangesPanel changesNew = new ChangesPanel(ID_CHANGES, visualizations);
         changesNew.setShowOperationalItems(true);
-        changesNew.add(new VisibleBehaviour(() -> !isExperimentalFeaturesDisabled()));
         add(changesNew);
-
-        VisualizationPanel changes = new VisualizationPanel(ID_CHANGES, changesModel);
-        changes.add(new VisibleBehaviour(() -> changesModel.getObject() != null && isExperimentalFeaturesDisabled()));
-        add(changes);
-    }
-
-    private boolean isExperimentalFeaturesDisabled() {
-        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
-        if (principal == null) {
-            return false;
-        }
-
-        CompiledGuiProfile profile = principal.getCompiledGuiProfile();
-        return BooleanUtils.isFalse(profile.isEnableExperimentalFeatures());
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
@@ -432,7 +415,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             @Override
             protected IModel<String> createLinkModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
-                    ProcessedObject<?> obj = SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), PageSimulationResultObject.this);
+                    ProcessedObject<?> obj = processedObjectModel.getObject();
 
                     return SimulationsGuiUtil.getProcessedObjectName(obj, PageSimulationResultObject.this);
                 };

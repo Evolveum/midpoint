@@ -15,12 +15,16 @@ import java.util.Date;
  */
 public class PersonalInfoDto implements Serializable {
 
+    public static final String F_SEQUENCE_IDENTIFIER = "sequenceIdentifier";
+    public static final String F_MODULE_IDENTIFIER = "moduleIdentifier";
+    public static final String F_CHANNEL_ID = "channelId";
     public static final String F_LAST_LOGIN_DATE = "lastLoginDate";
     public static final String F_LAST_LOGIN_FROM = "lastLoginFrom";
     public static final String F_LAST_FAIL_DATE = "lastFailDate";
     public static final String F_LAST_FAIL_FROM = "lastFailFrom";
     public static final String F_PASSWORD_EXP = "passwordExp";
 
+    private String sequenceIdentifier;
     private Date lastLoginDate;
     private String lastLoginFrom;
     private Date lastFailDate;
@@ -66,4 +70,13 @@ public class PersonalInfoDto implements Serializable {
     public void setPasswordExp(Date passwordExp) {
         this.passwordExp = passwordExp;
     }
+
+    public String getSequenceIdentifier() {
+        return sequenceIdentifier;
+    }
+
+    public void setSequenceIdentifier(String sequenceIdentifier) {
+        this.sequenceIdentifier = sequenceIdentifier;
+    }
+
 }

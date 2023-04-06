@@ -10,8 +10,6 @@ package com.evolveum.midpoint.web.page.admin.audit;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,6 +22,7 @@ import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -58,10 +57,10 @@ public class AuditChangesPanel extends ChangesPanel {
     private static final String ID_OBJECT_NAME = "objectName";
     private static final String ID_RESOURCE_NAME = "resourceName";
 
-    private IModel<ObjectDeltaOperationType> deltaOperationModel;
+    private final IModel<ObjectDeltaOperationType> deltaOperationModel;
 
     public AuditChangesPanel(String id, IModel<ObjectDeltaOperationType> deltaOperationModel, PageBase page) {
-        super(id, null, new VisualizationModel(page, deltaOperationModel));
+        super(id, new VisualizationModel(page, deltaOperationModel));
 
         this.deltaOperationModel = deltaOperationModel;
 
@@ -78,7 +77,7 @@ public class AuditChangesPanel extends ChangesPanel {
         Label executionResult = new Label(ID_EXECUTION_RESULT, new PropertyModel<>(deltaOperationModel, "executionResult.status"));
         body.add(executionResult);
 
-        AjaxLink showFullResultsLink = new AjaxLink<>(ID_FULL_RESULT_LINK) {
+        AjaxLink<Void> showFullResultsLink = new AjaxLink<>(ID_FULL_RESULT_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -159,8 +158,8 @@ public class AuditChangesPanel extends ChangesPanel {
 
     private static class VisualizationModel extends LoadableModel<List<VisualizationDto>> {
 
-        private PageBase page;
-        private IModel<ObjectDeltaOperationType> model;
+        private final PageBase page;
+        private final IModel<ObjectDeltaOperationType> model;
 
         public VisualizationModel(PageBase page, IModel<ObjectDeltaOperationType> model) {
             super(false);

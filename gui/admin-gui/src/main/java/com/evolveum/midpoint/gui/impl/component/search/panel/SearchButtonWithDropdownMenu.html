@@ -16,9 +16,9 @@
             <span class="sr-only"><wicket:message key="SplitButtonDropDown.toggle"/></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right" role="menu">
-            <li wicket:id="menuItems">
-                <div class="dropdown-item d-flex justify-content-between align-items-center" wicket:id="menuItem"/>
-            </li>
+            <wicket:container wicket:id="menuItems">
+                <a class="dropdown-item" wicket:id="menuItem"/>
+            </wicket:container>
         </ul>
     </div>
 </wicket:panel>
