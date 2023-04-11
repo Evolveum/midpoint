@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -55,6 +58,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ID_TITLE = "summaryTitle";
     protected static final String ID_TITLE2 = "summaryTitle2";
     protected static final String ID_TITLE3 = "summaryTitle3";
+    protected static final String ID_BADGES = "badges";
 
     protected static final String ID_PHOTO = "summaryPhoto";                  // perhaps useful only for focal objects but it was simpler to include it here
     protected static final String ID_ORGANIZATION = "summaryOrganization";    // similar (requires ObjectWrapper to get parent organizations so hard to use in ObjectSummaryPanel)
@@ -114,6 +118,11 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             }
         });
         box.add(identifierPanel);
+
+        IModel<List<Badge>> badgesModel = createBadgesModel();
+        BadgeListPanel badges = new BadgeListPanel(ID_BADGES, badgesModel);
+        badges.add(new VisibleBehaviour(() -> !badgesModel.getObject().isEmpty()));
+        box.add(badges);
 
         AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT_BUTTON) {
             @Override
@@ -231,6 +240,10 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         }
         tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(summaryTags)));
         box.add(tagBox);
+    }
+
+    protected IModel<List<Badge>> createBadgesModel() {
+        return Model.ofList(new ArrayList<>());
     }
 
     private IModel<String> getIconCssClass() {
