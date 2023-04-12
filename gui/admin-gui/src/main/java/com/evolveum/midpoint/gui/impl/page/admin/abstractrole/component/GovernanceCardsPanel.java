@@ -10,8 +10,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -22,8 +20,10 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -39,8 +39,6 @@ import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -314,7 +312,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             for (AssignmentType assignmentType : memberships) {
                 TemplateTile<SelectableBean<FocusType>> newTile = defaultTile.clone();
                 SelectableBeanImpl newBean = new SelectableBeanImpl<>(
-                        ((SelectableBeanImpl)defaultTile.getValue()).getModel());
+                        ((SelectableBeanImpl) defaultTile.getValue()).getModel());
                 newBean.setCustomData(assignmentType.getTargetRef().getRelation());
                 newTile.setValue(newBean);
                 ret.add(newTile);
@@ -323,7 +321,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         ret.stream().filter(tile -> tile.getValue().getCustomData() != null)
                 .forEach(tile -> tile.addTag(
                         WebComponentUtil.getRelationDefinition(
-                                (QName)tile.getValue().getCustomData()).getDisplay()));
+                                (QName) tile.getValue().getCustomData()).getDisplay()));
 
         return ret;
     }
@@ -361,7 +359,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                             tp.add(AttributeAppender.append("style", "min-width:200px"));
                         }
                     };
-                    ((ChooseRelationPopup)choose).setOutputMarkupId(true);
+                    ((ChooseRelationPopup) choose).setOutputMarkupId(true);
                 } else {
                     choose = createAssignPopup(null);
                 }
@@ -416,7 +414,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                 Object data = model.getObject().getValue().getCustomData();
                 unassignMembersPerformed(
                         new PropertyModel<>(model, "value"),
-                        data instanceof QName ? (QName)data : null,
+                        data instanceof QName ? (QName) data : null,
                         target);
             }
 
@@ -551,5 +549,20 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     protected void executeSimpleUnassignedOperation(IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
         super.executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
         unselectAllPerformed(target);
+    }
+
+    @Override
+    protected List<QName> getSupportedRelations() {
+        List<QName> relations = super.getSupportedRelations();
+
+        Optional<QName> approver = relations.stream()
+                .filter(relation -> QNameUtil.match(relation, RelationTypes.APPROVER.getRelation()))
+                .findFirst();
+
+        if (approver.isPresent()) {
+            relations.remove(approver.get());
+            relations.add(approver.get());
+        }
+        return relations;
     }
 }
