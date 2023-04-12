@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000700"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Event mark</name>
+    <description>Denotes marks for audit and simulation events</description>
+    <assignment>
+        <assignmentRelation>
+            <holderType>MarkType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Event Mark</label>
+            <pluralLabel>Event Marks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-tag</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <archetypeType>structural</archetypeType>
+</archetype>
