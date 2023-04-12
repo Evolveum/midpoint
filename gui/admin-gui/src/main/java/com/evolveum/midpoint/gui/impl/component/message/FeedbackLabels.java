@@ -58,7 +58,7 @@ public class FeedbackLabels extends FeedbackAlerts {
                 return "text-warning";
             case "SUCCESS":
                 return "text-success";
-            case "ERRO":
+            case "ERROR":
             case "FATAL":
                 return "text-danger";
         }
