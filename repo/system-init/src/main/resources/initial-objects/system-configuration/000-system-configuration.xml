@@ -825,6 +825,24 @@
                     <collectionRef oid="00000000-0000-0000-0000-000000000329" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>event-mark</identifier>
+                <type>c:MarkType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000700" relation="org:default" type="c:ArchetypeType">
+                        <!-- Event mark -->
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>object-mark</identifier>
+                <type>c:MarkType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000701" relation="org:default" type="c:ArchetypeType">
+                        <!-- Object mark -->
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage>
