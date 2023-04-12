@@ -280,6 +280,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                     @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
                             getType(),
                             resourceOid,
+                            getOperationOptions(),
                             AbstractPageObjectDetails.this,
                             task,
                             task.getResult());
