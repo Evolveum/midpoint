@@ -14,5 +14,15 @@
             <holderType>MarkType</holderType>
         </assignmentRelation>
     </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Event Mark</label>
+            <pluralLabel>Event Marks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-tag</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+    </archetypePolicy>
     <archetypeType>structural</archetypeType>
 </archetype>
