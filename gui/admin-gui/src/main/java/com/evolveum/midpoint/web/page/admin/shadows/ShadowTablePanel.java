@@ -440,7 +440,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                     @Override
                     protected boolean isTitleLinkEnabled() {
-                        return isClickable(rowModel);
+                        return isObjectDetailsEnabled(rowModel);
                     }
                 };
             }
