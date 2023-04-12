@@ -242,7 +242,8 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                         .map(m -> m.getCreateTimestamp())
                         .findFirst();
                 if (since.isPresent()) {
-                    return () -> WebComponentUtil.formatDate(since.get());
+                    String date = WebComponentUtil.formatDate(since.get());
+                    return () -> date;
                 }
                 return () -> "";
             }
