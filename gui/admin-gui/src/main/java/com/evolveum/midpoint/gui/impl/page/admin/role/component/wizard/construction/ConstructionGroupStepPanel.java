@@ -150,10 +150,12 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, AjaxRequestTarget target) {
         if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }
+
+        refreshSubmitAndNextButton(target);
 
         ShadowType shadow = value.getValue();
         if (value.isSelected()) {

@@ -68,8 +68,8 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
-                    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
-                        MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(value);
+                    protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
+                        MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(value, target);
                     }
 
                     @Override
@@ -117,6 +117,7 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     @Override
                     public void refresh(AjaxRequestTarget target) {
                         super.refresh(target);
+                        refreshSubmitAndNextButton(target);
                         target.add(this);
                     }
 
@@ -156,7 +157,7 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
         return new SearchContext();
     }
 
-    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
 
     }
 

@@ -96,7 +96,9 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 updateFeedbackPanels(target);
             }
         };
-        submit.add(new VisibleBehaviour(() -> isSubmitVisible()));
+        submit.add(new VisibleEnableBehaviour(
+                () -> isSubmitVisible(),
+                () -> isSubmitEnable()));
         submit.setOutputMarkupId(true);
         submit.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(submit);
@@ -125,6 +127,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
         next.add(nextLabel);
+    }
+
+    protected boolean isSubmitEnable() {
+        return true;
     }
 
     protected IModel<String> getSubmitLabelModel() {
@@ -167,6 +173,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected AjaxLink getBack() {
         return (AjaxLink) get(ID_BACK);
+    }
+
+    protected AjaxSubmitButton getSubmit() {
+        return (AjaxSubmitButton) get(ID_SUBMIT);
     }
 
     protected IModel<String> getTextModel() {

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -220,6 +221,8 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                 getModelObject().setSelected(!oldState);
 
                 target.add(ConstructionResourceObjectTypeStepPanel.this.get(ID_TILES_CONTAINER));
+
+                target.add(getNext());
             }
         };
     }
@@ -300,6 +303,13 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
         Optional<Tile<ResourceObjectTypeWrapper>> selectedTile =
                 tilesModel.getObject().stream().filter(tile -> tile.isSelected()).findFirst();
         return selectedTile.isEmpty();
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(
+                () -> !isSubmitVisible(),
+                () -> !isNotSelected());
     }
 
     class ResourceObjectTypeWrapper implements Serializable {

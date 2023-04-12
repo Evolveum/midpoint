@@ -113,7 +113,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
                 super.onClick(target);
                 getModelObject().getValue().setSelected(getModelObject().isSelected());
 
-                processSelectOrDeselectItem(getModelObject().getValue());
+                processSelectOrDeselectItem(getModelObject().getValue(), target);
                 target.add(getSelectedItemPanel());
             }
         };
@@ -123,7 +123,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         boolean oldState = model.getObject().isSelected();
 
         model.getObject().setSelected(!oldState);
-        processSelectOrDeselectItem(model.getObject());
+        processSelectOrDeselectItem(model.getObject(), target);
         if (model.getObject().isSelected()) {
             ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
         }
@@ -131,6 +131,6 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         refresh(target);
     }
 
-    protected void processSelectOrDeselectItem(SelectableBean<O> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
     }
 }

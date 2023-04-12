@@ -45,7 +45,8 @@ import java.util.List;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.resource", icon = "fa fa-database"),
         containerPath = "empty")
-public class ConstructionResourceStepPanel<AR extends AbstractRoleType> extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<AR>, AssignmentType> {
+public class ConstructionResourceStepPanel<AR extends AbstractRoleType>
+        extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<AR>, AssignmentType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceStepPanel.class);
 

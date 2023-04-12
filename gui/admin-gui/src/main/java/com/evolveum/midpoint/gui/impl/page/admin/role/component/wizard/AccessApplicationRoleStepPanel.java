@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -76,7 +77,9 @@ public class AccessApplicationRoleStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value, AjaxRequestTarget target) {
+        refreshSubmitAndNextButton(target);
+
         RoleType applicationRole = value.getValue();
         if (value.isSelected()) {
             selectedItems.getObject().add(
@@ -86,6 +89,11 @@ public class AccessApplicationRoleStepPanel
         } else {
             removeSelectedItem(applicationRole.getOid());
         }
+    }
+
+    @Override
+    protected boolean isMandatory() {
+        return true;
     }
 
     @Override
