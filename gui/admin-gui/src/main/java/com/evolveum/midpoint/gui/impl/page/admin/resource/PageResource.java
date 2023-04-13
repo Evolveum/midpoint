@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -130,16 +131,24 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
-        return getOperationOptionsBuilder()
-                .noFetch()
+        GetOperationOptionsBuilder builder = getOperationOptionsBuilder()
                 .item(ResourceType.F_CONNECTOR_REF).resolve()
                 .item(
                         ItemPath.create(
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
                                 ResourceObjectTypeDefinitionType.F_FOCUS,
-                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve()
-                .build();
+                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve();
+
+        if (useNoFetchOption()) {
+            builder.noFetch();
+        }
+        return builder.build();
+    }
+
+    private boolean useNoFetchOption() {
+        ResourceType resource = getObjectDetailsModels().getObjectType();
+        return resource == null || StringUtils.isNotEmpty(resource.getOid());
     }
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {

@@ -372,7 +372,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     }
 
     public O getObjectType() {
-        return getPrismObject().asObjectable();
+        PrismObject<O> object = getPrismObject();
+        return object == null ? null : object.asObjectable();
     }
 
     protected boolean isReadonly() {
