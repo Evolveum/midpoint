@@ -225,7 +225,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public List<QName> getSupportedRelations() {
-        return relationSearchItemWrapper.getRelationsForSearch();
+        return relationSearchItemWrapper.getSupportedRelations();
     }
 
     public QName getRelationValue() {
