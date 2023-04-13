@@ -129,13 +129,24 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
 Now, let us import the definition and check the accounts.
 Their intents have not changed.
 Why?
-Because - by default - the GUI does not engage the development configuration when listing the content of a resource.
+Because midPoint does the reclassification very carefully, in order to avoid breaking things.
+In general, a shadow is classified or re-classified only if:
+
+. It was not classified yet.
+. Or, it was classified, but the corresponding type (pointed to by kind and intent) no longer exists.
+. Or, it was classified, the corresponding type exists, and all the following conditions are met:
+.. the current shadow type is part of the development configuration,
+.. and the operation is able to see the development configuration.
+
+By default, the GUI does not engage the development configuration when listing the content of a resource.
+Hence, the shadows are not reclassified when looking at them.
 
 To re-classify the accounts from `default` to `person` we have the following options:
 
 . Delete the shadows and let midPoint re-create them.
 (This was the only way before version 4.7.)
-. Read the content of the resource in simulation mode with development configuration enabled.
+. Read the content of the resource with the development configuration enabled.
+(This implies the simulation mode.)
 This is currently doable using synchronization (e.g. import) tasks.
 Here are two alternatives:
 a. Execute the re-classification directly.
