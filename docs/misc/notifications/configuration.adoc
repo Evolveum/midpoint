@@ -596,11 +596,11 @@ Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
 Link any other expression documentation discussing variables?
 ////
 
-////
-TODO
 == Troubleshooting configuration
 
-Mention loggers NOTIFICATION and TRANSPORT (LoggingComponentType) and DEBUG level for them,
-when you don't know what is happening, why something is missing, notification is not sent, etc.
-
-////
+If the configuration doesn't do what is expected, or seemingly does nothing at all, it may
+be the right time to add some debug log messages for notifications and transport components.
+In the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration],
+add the logers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
+and set them to the `DEBUG` level.
+This should provide additional information if the notification is skipped and why.
