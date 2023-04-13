@@ -458,6 +458,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     supportedRelation.remove(RelationTypes.OWNER.getRelation());
                     supportedRelation.remove(RelationTypes.MANAGER.getRelation());
                 }
+                if (supportedRelation.isEmpty()) {
+                    return;
+                }
                 AssignmentObjectRelation assignmentObjectRelation = new AssignmentObjectRelation();
                 assignmentObjectRelation.addRelations(supportedRelation);
                 assignmentObjectRelation.addObjectTypes(Collections.singletonList(objectType));
