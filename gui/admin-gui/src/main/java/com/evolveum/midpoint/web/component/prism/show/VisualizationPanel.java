@@ -229,10 +229,12 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 showMetadata(target, metadataModel);
             }
         };
-        metadata.add(new VisibleBehaviour(() -> {
-            VisualizationDto val = model.getObject();
-            return val != null && val.getVisualization().getSourceValue() != null && metadataModel.getObject() != null;
-        }));
+        // todo MID-8658 not finished yet, hidden for 4.7 release
+        metadata.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+//        metadata.add(new VisibleBehaviour(() -> {
+//            VisualizationDto val = model.getObject();
+//            return val != null && val.getVisualization().getSourceValue() != null && metadataModel.getObject() != null;
+//        }));
         headerPanel.add(metadata);
 
         final Label warning = new Label(ID_WARNING);
