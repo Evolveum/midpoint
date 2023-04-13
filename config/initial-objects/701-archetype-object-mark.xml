@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000701"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Object mark</name>
+    <description>Denotes marks for objects and assignments. Replaces legacy policy situations.</description>
+    <assignment>
+        <assignmentRelation>
+            <holderType>MarkType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypeType>structural</archetypeType>
+    <archetypePolicy>
+        <display>
+            <label>Object Mark</label>
+            <pluralLabel>Object Marks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-tag</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel>
+                    <identifier>shadowMarksList</identifier>
+                    <display>
+                        <label>Marked shadows</label>
+                    </display>
+                    <panelType>markedShadowList</panelType>
+                </panel>
+                <panel>
+                    <identifier>eventMarkInformationPanel</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+</archetype>

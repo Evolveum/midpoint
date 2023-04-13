@@ -22,119 +22,94 @@
         </collection>
         <view>
             <column>
-                <name>nameColumn</name>
+                <name>name</name>
                 <path>name</path>
             </column>
             <column>
-                <name>ownerColumn</name>
+                <name>owner</name>
                 <path>ownerRef</path>
                 <display>
                     <label>Owner</label>
                 </display>
-                <previousColumn>nameColumn</previousColumn>
+                <previousColumn>name</previousColumn>
             </column>
             <column>
-                <name>campaignsColumn</name>
+                <name>campaigns</name>
                 <display>
                     <label>Campaigns</label>
                 </display>
-                <previousColumn>ownerColumn</previousColumn>
+                <previousColumn>owner</previousColumn>
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                return campaigns;
-                            </code>
+                            <code>campaigns</code>
                         </script>
                     </expression>
                 </export>
                 <displayValue>number</displayValue>
             </column>
             <column>
-                <name>openCampaignsColumn</name>
+                <name>openCampaigns</name>
                 <display>
                     <label>Open campaigns</label>
                 </display>
-                <previousColumn>campaignsColumn</previousColumn>
+                <previousColumn>campaigns</previousColumn>
                 <export>
                     <expression>
                         <script>
-                            <code>
+                            <code><![CDATA[
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
+                                import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*
 
-                                oid = object.getOid();
-                                numberOfCampaigns = 0;
-                                for (AccessCertificationCampaignType campaign : campaigns) {
-                                    if (oid.equals(campaign.getDefinitionRef().getOid())) {
-                                        AccessCertificationCampaignStateType state = campaign.getState();
-                                            if (state != AccessCertificationCampaignStateType.CREATED
-                                                &amp;&amp; state != AccessCertificationCampaignStateType.CLOSED) {
-                                                numberOfCampaigns++
-                                            }
-                                    }
-                                }
-                                return numberOfCampaigns;
-                            </code>
+                                (campaigns as Collection<AccessCertificationCampaignType>)
+                                        .count { it.state != CREATED && it.state != CLOSED }
+                            ]]></code>
                         </script>
                     </expression>
                 </export>
-                <displayValue>number</displayValue>
             </column>
             <column>
-                <name>lastStartedColumn</name>
+                <name>lastStarted</name>
                 <path>lastCampaignStartedTimestamp</path>
                 <display>
                     <label>Last started</label>
                 </display>
-                <previousColumn>openCampaignsColumn</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
-                            </code>
-                        </script>
-                    </expression>
-                </export>
+                <previousColumn>openCampaigns</previousColumn>
             </column>
             <column>
-                <name>lastClosedColumn</name>
+                <name>lastClosed</name>
                 <path>lastCampaignClosedTimestamp</path>
                 <display>
                     <label>Last closed</label>
                 </display>
-                <previousColumn>lastStartedColumn</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
-                            </code>
-                        </script>
-                    </expression>
-                </export>
+                <previousColumn>lastStarted</previousColumn>
             </column>
             <paging>
-                <orderDirection>ascending</orderDirection>
-                <orderBy>name</orderBy>
+                <q:orderBy>name</q:orderBy>
+                <q:orderDirection>ascending</q:orderDirection>
             </paging>
             <type>AccessCertificationDefinitionType</type>
         </view>
+        <useOnlyReportView>true</useOnlyReportView>
         <subreport>
             <name>campaigns</name>
             <type>AccessCertificationCampaignType</type>
             <expression>
                 <script>
                     <code>
+                        import com.evolveum.midpoint.prism.query.ObjectQuery
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
-                        query = prismContext.queryFor(AccessCertificationCampaignType.class).item(AccessCertificationCampaignType.F_DEFINITION_REF).ref(object.getOid()).build();
-                        return midpoint.searchObjects(AccessCertificationCampaignType.class, query, null);
+                        midpoint.searchObjects(
+                                AccessCertificationCampaignType.class,
+                                prismContext.queryFor(AccessCertificationCampaignType.class)
+                                        .item(AccessCertificationCampaignType.F_DEFINITION_REF)
+                                        .ref(object.oid)
+                                        .build() as ObjectQuery,
+                                null)
                     </code>
                 </script>
             </expression>
         </subreport>
-        <useOnlyReportView>true</useOnlyReportView>
     </objectCollection>
 </report>

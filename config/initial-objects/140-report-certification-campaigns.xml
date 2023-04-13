@@ -8,6 +8,7 @@
 
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="00000000-0000-0000-0000-000000000140">
     <name>Certification campaigns report</name>
     <description>All certification campaigns along with their state.</description>
@@ -27,10 +28,8 @@
                                 <code>
                                     import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
 
-                                    if (Boolean.TRUE.equals(alsoClosedCampaigns)) {
-                                        return null;
-                                    }
-                                    return AccessCertificationCampaignStateType.CREATED;
+                                    // If "alsoClosedCampaigns" is true, we return null that causes all campaigns to be considered
+                                    return alsoClosedCampaigns ? null : AccessCertificationCampaignStateType.CREATED
                                 </code>
                             </script>
                         </expression>
@@ -55,118 +54,104 @@
         </collection>
         <view>
             <column>
-                <name>nameColumn</name>
+                <name>name</name>
                 <path>name</path>
                 <display>
                     <label>Name</label>
                 </display>
             </column>
             <column>
-                <name>ownerColumn</name>
+                <name>owner</name>
                 <path>ownerRef</path>
                 <display>
                     <label>Owner</label>
                 </display>
-                <previousColumn>nameColumn</previousColumn>
+                <previousColumn>name</previousColumn>
             </column>
             <column>
-                <name>startTimestampColumn</name>
+                <name>startTimestamp</name>
                 <path>startTimestamp</path>
                 <display>
                     <label>Start</label>
                 </display>
-                <previousColumn>ownerColumn</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(input)
-                            </code>
-                        </script>
-                    </expression>
-                </export>
+                <previousColumn>owner</previousColumn>
             </column>
             <column>
-                <name>endTimestampColumn</name>
+                <name>endTimestamp</name>
                 <path>endTimestamp</path>
                 <display>
                     <label>Finish</label>
                 </display>
-                <previousColumn>startTimestampColumn</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(input)
-                            </code>
-                        </script>
-                    </expression>
-                </export>
+                <previousColumn>startTimestamp</previousColumn>
             </column>
             <column>
-                <name>casesColumn</name>
+                <name>cases</name>
                 <path>case</path>
                 <display>
                     <label>Cases</label>
                 </display>
-                <previousColumn>endTimestampColumn</previousColumn>
+                <previousColumn>endTimestamp</previousColumn>
                 <displayValue>number</displayValue>
             </column>
             <column>
-                <name>stateColumn</name>
+                <name>state</name>
                 <path>state</path>
                 <display>
                     <label>State</label>
                 </display>
-                <previousColumn>casesColumn</previousColumn>
+                <previousColumn>cases</previousColumn>
             </column>
             <column>
-                <name>stageNumberColumn</name>
+                <name>stageNumber</name>
                 <path>stageNumber</path>
                 <display>
                     <label>Actual stage</label>
                 </display>
-                <previousColumn>stateColumn</previousColumn>
+                <previousColumn>state</previousColumn>
             </column>
             <column>
-                <name>stageCasesColumn</name>
-                <previousColumn>stageNumberColumn</previousColumn>
+                <name>stageCases</name>
                 <display>
                     <label>Stage cases</label>
                 </display>
+                <previousColumn>stageNumber</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
-                                return CertCampaignTypeUtil.getActiveCases(object.getCase(), object.getStageNumber(), object.getState())
+                                def campaign = object as AccessCertificationCampaignType
+                                CertCampaignTypeUtil.getActiveCases(campaign.case, campaign.stageNumber, campaign.state)
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <column>
-                <name>percentageCompleteColumn</name>
-                <previousColumn>stageCasesColumn</previousColumn>
+                <name>percentComplete</name>
                 <display>
                     <label>% complete</label>
                 </display>
+                <previousColumn>stageCases</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
-                                CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(object) + " %"
+                                def campaign = object as AccessCertificationCampaignType
+                                CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(campaign) + " %"
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <paging>
-                <orderDirection>ascending</orderDirection>
-                <orderBy>name</orderBy>
+                <q:orderBy>name</q:orderBy>
+                <q:orderDirection>ascending</q:orderDirection>
             </paging>
             <type>AccessCertificationCampaignType</type>
         </view>
@@ -176,10 +161,10 @@
             <type>boolean</type>
             <display>
                 <label>
-                    <orig>alsoClosedCampaigns</orig>
-                    <translation>
-                        <key>runReportPopupContent.param.name.alsoClosedCampaigns</key>
-                    </translation>
+                    <t:orig>alsoClosedCampaigns</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.alsoClosedCampaigns</t:key>
+                    </t:translation>
                 </label>
             </display>
         </parameter>
