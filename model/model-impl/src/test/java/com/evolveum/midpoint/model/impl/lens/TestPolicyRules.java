@@ -658,7 +658,7 @@ public class TestPolicyRules extends AbstractLensTest {
         String messageSk = localizationService.translate(message, SLOVAK);
         System.out.println("Trigger message translated (US): " + messageUs);
         System.out.println("Trigger message translated (SK): " + messageSk);
-        assertEquals("Wrong US message", "Assignment of role \"Localized role\" (relation member) is to be added", messageUs);
+        assertEquals("Wrong US message", "Assignment of role \"Localized role\" (relation default) is to be added", messageUs);
         assertEquals("Wrong SK message", "Priradenie pre rola \"Lokalizovana rola\" (vztah predvolené) ma byt pridane", messageSk);
 
         assertSerializable(context);
