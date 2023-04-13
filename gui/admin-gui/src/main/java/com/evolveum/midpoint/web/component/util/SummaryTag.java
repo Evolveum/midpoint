@@ -64,10 +64,10 @@ public abstract class SummaryTag<C extends Containerable> extends Panel {
             }
         }));
 
-        add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
+        add(AttributeAppender.append("class", new SummaryTagModel<String>(model) {
             @Override
             protected String getValue() {
-                return "d-flex " + getCssClass();
+                return getCssClass();
             }
         }));
 
