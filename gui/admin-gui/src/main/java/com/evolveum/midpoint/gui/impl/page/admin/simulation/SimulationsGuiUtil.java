@@ -263,6 +263,7 @@ public class SimulationsGuiUtil {
         for (Map.Entry<BuiltInSimulationMetricType, Integer> entry : builtInMetrics.entrySet()) {
             BuiltInSimulationMetricType identifier = entry.getKey();
             if (identifier != BuiltInSimulationMetricType.ADDED
+                    && identifier != BuiltInSimulationMetricType.MODIFIED
                     && identifier != BuiltInSimulationMetricType.DELETED) {
                 continue;
             }
