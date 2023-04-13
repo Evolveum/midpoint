@@ -124,6 +124,11 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
 
                 return WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
             }
+
+            @Override
+            protected String getButtonTranslationPrefix() {
+                return "MembersWizardPanel.button";
+            }
         };
         table.setOutputMarkupId(true);
 

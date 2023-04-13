@@ -71,6 +71,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     private static final String ID_RELATIONS = "relations";
     private static final String ID_RELATION = "relation";
     private static final String ID_NEW_MEMBER_TILE = "newMemberTile";
+    private static final String ID_NEW_MEMBER_TILE_LABEL = "newMemberTileLabel";
 
     private IModel<Search> searchModel;
 
@@ -335,6 +336,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private WebMarkupContainer createBaseTileForAssignMembers() {
         WebMarkupContainer newMemberTile = new WebMarkupContainer(ID_NEW_MEMBER_TILE);
+
         newMemberTile.add(new AjaxEventBehavior("click") {
 
             @Override
@@ -367,6 +369,13 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             }
         });
         newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+
+        Label label =  new Label(
+                ID_NEW_MEMBER_TILE_LABEL,
+                createStringResource(getButtonTranslationPrefix() + ".addMembers"));
+        label.setOutputMarkupId(true);
+        newMemberTile.add(label);
+
         return newMemberTile;
     }
 

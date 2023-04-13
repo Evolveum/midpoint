@@ -489,7 +489,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     protected AjaxIconButton createAssignButton(String buttonId) {
         AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
-                createStringResource("TreeTablePanel.menu.addMembers")) {
+                createStringResource(getButtonTranslationPrefix() + ".addMembers")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -566,7 +566,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
         AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UNASSIGN),
-                createStringResource("TreeTablePanel.menu.removeMembers")) {
+                createStringResource(getButtonTranslationPrefix() + ".removeMembers")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -578,6 +578,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
         assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return assignButton;
+    }
+
+    protected String getButtonTranslationPrefix() {
+        return "TreeTablePanel.menu";
     }
 
     private CompositedIconButtonDto createCompositedIconButtonDto(DisplayType buttonDisplayType, AssignmentObjectRelation relation, CompositedIcon icon) {

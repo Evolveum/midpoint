@@ -127,6 +127,11 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
                 super.executeUnassign(object, relation, target);
                 target.add(getFeedback());
             }
+
+            @Override
+            protected String getButtonTranslationPrefix() {
+                return "MembersWizardPanel.button";
+            }
         };
         table.setOutputMarkupId(true);
 
