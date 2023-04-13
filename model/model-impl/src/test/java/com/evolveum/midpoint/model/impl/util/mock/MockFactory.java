@@ -245,6 +245,7 @@ public class MockFactory {
                     String shadowOid,
                     ConstraintViolationConfirmer constraintViolationConfirmer,
                     ConstraintsCheckingStrategyType strategy,
+                    ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;

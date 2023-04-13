@@ -998,6 +998,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceType resource, String shadowOid,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException,
@@ -1009,6 +1010,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             checker.setShadowObjectOld(shadowObjectOld);
             // "Whole class": we should not need it here. We do not invoke the search on resource here.
             ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, null, task);
+            ctx.setOperationContext(context);
+
             checker.setProvisioningContext(ctx);
             checker.setShadowObject(shadowObject);
             checker.setShadowOid(shadowOid);

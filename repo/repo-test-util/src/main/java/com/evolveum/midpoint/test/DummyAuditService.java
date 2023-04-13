@@ -198,11 +198,19 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return requestRecord;
     }
 
+    public synchronized AuditEventRecord getResourceRecord(int index) {
+        return getRecord(index, AuditEventStage.RESOURCE);
+    }
+
     public synchronized AuditEventRecord getExecutionRecord(int index) {
+        return getRecord(index, AuditEventStage.EXECUTION);
+    }
+
+    public synchronized AuditEventRecord getRecord(int index, AuditEventStage stage) {
         assertSingleBatch();
         AuditEventRecord executionRecord = records.get(index + 1);
         assert executionRecord != null : "The " + index + "th audit execution record is null";
-        assert executionRecord.getEventStage() == AuditEventStage.EXECUTION : "The " + index + "th audit execution record is not execution, it is " + executionRecord;
+        assert executionRecord.getEventStage() == stage : "The " + index + "th audit execution record is not execution, it is " + executionRecord;
         return executionRecord;
     }
 
@@ -224,7 +232,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
             if (executionRecord.getEventType() == AuditEventType.TERMINATE_SESSION) {
                 break;
             }
-            assert executionRecord.getEventStage() == AuditEventStage.EXECUTION : "Expected following record to be execution, it was " + executionRecord.getEventStage() + " instead: " + executionRecord;
+            assert executionRecord.getEventStage() == AuditEventStage.EXECUTION
+                    | executionRecord.getEventStage() == AuditEventStage.RESOURCE : "Expected following record to be execution, it was " + executionRecord.getEventStage() + " instead: " + executionRecord;
         }
     }
 
@@ -239,9 +248,17 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas(int index) {
-        AuditEventRecord executionRecord = getExecutionRecord(index);
+        return getDeltas(index, AuditEventStage.EXECUTION);
+    }
+
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getResourceDeltas(int index) {
+        return getDeltas(index, AuditEventStage.RESOURCE);
+    }
+
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas(int index, AuditEventStage stage) {
+        AuditEventRecord executionRecord = getRecord(index, stage);
         Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = executionRecord.getDeltas();
-        assert deltas != null : "Execution audit record has null deltas";
+        assert deltas != null : stage.name() + " audit record has null deltas";
         return deltas;
     }
 
@@ -253,7 +270,18 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(
             int index, ChangeType changeType, Class<O> typeClass) {
-        for (ObjectDeltaOperation<? extends ObjectType> deltaOp : getExecutionDeltas(index)) {
+        return getDelta(index, AuditEventStage.EXECUTION, changeType, typeClass);
+    }
+
+
+    public <O extends ObjectType> ObjectDeltaOperation<O> getResourceDelta(
+            int index, ChangeType changeType, Class<O> typeClass) {
+        return getDelta(index, AuditEventStage.RESOURCE, changeType, typeClass);
+    }
+
+    public <O extends ObjectType> ObjectDeltaOperation<O> getDelta(
+            int index, AuditEventStage stage, ChangeType changeType, Class<O> typeClass) {
+        for (ObjectDeltaOperation<? extends ObjectType> deltaOp : getDeltas(index, stage)) {
             ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
             if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
                 //noinspection unchecked
@@ -315,32 +343,42 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
             ChangeType expectedChangeType, Class<O> expectedClass) {
-        return assertHasDelta(null, 0, expectedChangeType, expectedClass);
+        return assertHasDelta(null, 0, AuditEventStage.EXECUTION, expectedChangeType, expectedClass);
     }
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
-            ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
-        return assertHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
+            ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expectedResult) {
+        return assertHasDelta(null, 0, expectedChangeType, expectedClass, expectedResult);
     }
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
             int index, ChangeType expectedChangeType, Class<O> expectedClass) {
-        return assertHasDelta(null, index, expectedChangeType, expectedClass);
+        return assertHasDelta(null, index, AuditEventStage.EXECUTION, expectedChangeType, expectedClass);
     }
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
-        return assertHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
+            int index, AuditEventStage stage, ChangeType expectedChangeType, Class<O> expectedClass) {
+        return assertHasDelta(null, index, stage, expectedChangeType, expectedClass);
     }
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass) {
-        return assertHasDelta(message, index, expectedChangeType, expectedClass, null);
+            int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expectedResult) {
+        return assertHasDelta(null, index, AuditEventStage.EXECUTION, expectedChangeType, expectedClass, expectedResult);
+    }
+
+    public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
+            String message, int index, AuditEventStage stage, ChangeType expectedChangeType, Class<O> expectedClass) {
+        return assertHasDelta(message, index, stage, expectedChangeType, expectedClass, null);
     }
 
     public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
             String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expectedResult) {
-        ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+        return assertHasDelta(message, index, AuditEventStage.EXECUTION, expectedChangeType, expectedClass, expectedResult);
+    }
+
+    public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(
+            String message, int index, AuditEventStage stage, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expectedResult) {
+        ObjectDeltaOperation<O> deltaOp = getDelta(index, stage, expectedChangeType, expectedClass);
         assert deltaOp != null : (message == null ? "" : message + ": ") + "Delta for " + expectedClass + " of type " + expectedChangeType + " was not found in audit trail";
         if (expectedResult != null) {
             assertEquals((message == null ? "" : message + ": ") + "Delta for " + expectedClass + " of type " + expectedChangeType + " has unexpected result",

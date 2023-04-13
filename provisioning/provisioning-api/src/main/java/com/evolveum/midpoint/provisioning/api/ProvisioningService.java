@@ -1050,10 +1050,27 @@ public interface ProvisioningService {
             String shadowOid,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
+
+    default ConstraintsCheckingResult checkConstraints(
+            ResourceObjectDefinition objectTypeDefinition,
+            PrismObject<ShadowType> shadowObject,
+            PrismObject<ShadowType> shadowObjectOld,
+            ResourceType resource,
+            String shadowOid,
+            ConstraintViolationConfirmer constraintViolationConfirmer,
+            ConstraintsCheckingStrategyType strategy,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+        return checkConstraints(objectTypeDefinition, shadowObject, shadowObjectOld, resource, shadowOid, constraintViolationConfirmer,
+                strategy, null, task, parentResult);
+    }
 
     void enterConstraintsCheckerCache();
 

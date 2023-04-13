@@ -139,6 +139,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 projectionContext.getOid(),
                 confirmer,
                 context.getProjectionConstraintsCheckingStrategy(),
+                context.createProvisioningOperationContext(task, result),
                 task, result);
 
         if (constraintsCheckingResult.isSatisfiesConstraints()) {
