@@ -108,7 +108,7 @@ public class PageResetPassword extends AbstractPageLogin {
                         }
                     }
 
-                    showResult(result);
+                    success(getString("PageResetPassword.reset.successful"));
                     AuthUtil.clearMidpointAuthentication();
                     throw new RestartResponseException(PageLogin.class);
                 } else if (showFeedback) {
