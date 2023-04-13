@@ -248,7 +248,8 @@ class LinkUpdater<F extends FocusType> {
     private void setLinkedFromLivenessState(OperationResult result) throws SchemaException, ObjectNotFoundException {
         LOGGER.trace("Setting link according to the liveness state: {}", shadowLivenessState);
         if (shadowLivenessState == null) {
-            LOGGER.warn("Null shadow liveness state in {}, using legacy criteria", projCtx.toHumanReadableString());
+            // Temporary workaround for MID-8653; TODO why we get here during simulation?
+            LOGGER.debug("Null shadow liveness state in {}, using legacy criteria", projCtx.toHumanReadableString());
             setLinkedFromLegacyCriteria(result);
             return;
         }

@@ -186,7 +186,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
         if (executionMode.isFullyPersistent()) {
-            LOGGER.warn("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
+            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
                     task.getName());
 
             task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
