@@ -974,7 +974,7 @@
             <objectDetailsPage>
                 <type>c:UserType</type>
                 <panel>
-                    <identifier>roleMemberships</identifier>
+                    <identifier>applications</identifier>
                     <display>
                         <label>Application.panel.applications</label>
                     </display>
@@ -1293,6 +1293,12 @@
                         </item>
                         <item>
                             <path>connectorConfiguration/configurationProperties/port</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/host</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/database</path>
                         </item>
                     </container>
                     <container>
