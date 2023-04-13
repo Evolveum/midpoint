@@ -143,8 +143,8 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     protected ModuleAuthentication getProcessingModule(MidpointAuthentication mpAuthentication) {
         ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
-            LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
-            throw new AuthenticationServiceException("web.security.auth.module.null"); //
+            LOGGER.debug("Couldn't find processing module authentication {}", mpAuthentication);    //todo temporary decision for mid-8727
+            throw new AuthenticationServiceException("web.security.auth.module.null");
         }
         return moduleAuthentication;
     }
