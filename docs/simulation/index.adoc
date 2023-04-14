@@ -356,11 +356,16 @@ One processed object corresponds to one report row.
 
 == Limitations
 
-#TODO#
+. Simulations in multi-node tasks are not supported yet.
+. xref:/midpoint/reference/expressions/expressions/index.adoc#_create_on_demand[Create on demand] scenarios are supported in a limited way:
+Creation of target objects is simulated, but not remembered across objects or even mapping evaluations.
+Hence, simulated object creation is reported multiple times.
+The delta visualization is not finished as well: midPoint shows OIDs instead of names there.
 
-. Errors during pre-clockwork stage are not captured
-. Shadows that do not enter clockwork stage are not captured
-. "Clockwork view" ~ provisioning-level operations are not captured (just like in audit)
+. Errors during pre-clockwork stage are not captured.
+. Shadows that do not enter clockwork stage are not captured.
+. Provisioning-level operations are not captured (just like in audit).
+. #TODO complete this list#
 
 === Shadow Management Simulations
 

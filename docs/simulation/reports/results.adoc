@@ -96,20 +96,21 @@ The default meaning is "all objects that have metric value greater than zero".)
 
 == Parameters
 
-#PLANNED#
+Currently, there are none.
+Parameters like "result", "name", "task", "start time" are planned but not yet implemented.
 
-.Report parameters
-[%autowidth]
-[%header]
-|===
-| Parameter | Description
-| Result | Specific simulation result we want to report on.
-| Name | Part of simulation result name to match.
-| Task | The task on whose simulation results we want to report on.
-| Started not earlier than | Selects simulation reports started on or after given time instant.
-|===
-
-Note: the above criteria are "and"-ed together.
+// .Report parameters
+// [%autowidth]
+// [%header]
+// |===
+// | Parameter | Description
+// | Result | Specific simulation result we want to report on.
+// | Name | Part of simulation result name to match.
+// | Task | The task on whose simulation results we want to report on.
+// | Started not earlier than | Selects simulation reports started on or after given time instant.
+// |===
+//
+// Note: the above criteria are "and"-ed together.
 
 == An Example
 
