@@ -1,0 +1,405 @@
+= Activity Error Handling
+:page-since: "4.4"
+:page-toc: top
+:page-keywords: task, error, failure, error handling, error recovery
+:page-moved-from: /midpoint/reference/tasks/task-error-handling/
+
+== Overview
+
+During an activity execution, failures can occur.
+
+NOTE: Although the words "error" and "failure" have their precise meaning in some contexts, we will use them here interchangeably and somehow freely.
+In this document they denote any midPoint-detected problems in processing, represented by appropriate operation status:
+either `FATAL_ERROR` or `PARTIAL_ERROR`.
+
+=== Scope of Failures: the Whole Activity or Individual Objects
+
+Some failures affect the whole activity.
+A typical example is misconfigured or unreachable resource when a reconciliation activity for that resource is run.
+These failures mean that no objects can be processed.
+They usually cause the whole task either to suspend, or to repeat its execution at defined time.
+
+However, there can be also failures that are limited to individual objects.
+Some are caused by issues during provisioning of changes to a target resource.
+Others may be related to mapping evaluation, for example because of a programming error.
+Yet others are those related directly to the source objects, e.g. if there are major data quality issues that prevent these objects be processed.
+
+This document deals with the latter category of failures, i.e. those related to individual objects.
+
+We may need to define how the activity should behave when they occur, e.g. whether it has to stop immediately, or continue the processing.
+This is dealt with in the xref:#_error_handling_strategy[first part of this document].
+
+However, we usually want to re-process objects that failed their regular processing.
+There are two available mechanisms for this:
+The first one is explicit re-processing of failed objects based on xref:#_operation_execution_records[operation execution records].
+The second one is based on automatic scheduling of re-processing using xref:#_triggers[triggers].
+(It is currently limited to synchronization of resource objects.)
+
+[#_error_handling_strategy]
+== Defining an Error Handling Strategy
+
+The reaction of an activity to errors is defined in so-called error handling strategy.
+It is part of the activity xref:control-flow.adoc[control flow specification], defined under `errorHandling` item.
+
+The strategy is basically a list of entries, each of which prescribes a reaction for given situation.
+Each entry has:
+
+.An entry of error handling strategy
+[%autowidth]
+[%header]
+|===
+| Item | Description | Default
+| `order`
+| Order in which this entry is to be evaluated.
+(Related to other entries.)
+Smaller numbers go first.
+Entries with no order go last.
+| No order.
+
+| `situation`
+| A situation that can occur.
+| Any error.
+
+| `reaction`
+| What should a task do when a given situation is encountered?
+| `ignore` or `stop` (see below)
+|===
+
+A `situation` contains the following:
+
+.Definition of an error handling situation
+[%autowidth]
+[%header]
+|===
+| Item | Description | Default
+
+| `status`
+| Operation result status to match.
+Can be either `PARTIAL_ERROR` or `FATAL_ERROR`.
+| If not present, we decide solely on error category.
+If error categories are not specified, any error matches.
+
+| `errorCategory`
+| Error category (`network`, `security`, `policy`, ...) to match.
+Note that some errors are not propagated to the level where they can be recognized by this selector.
+So be careful and consider this feature to be *highly experimental*.
+
+| If not present, we decide solely on the status.
+If status is not present, any error matches.
+|===
+
+The `reaction` is either:
+
+.Definition of an error handling reaction
+[%autowidth]
+[%header]
+|===
+| Reaction | Description | Note
+
+| `ignore`
+| The processing should continue, ignoring the error.
+E.g. for live sync tasks, this means that the sync token is advanced to the next item, effectively marking the record as processed.
+| This is the default strategy for the majority of tasks.
+
+| `stop`
+| The processing is stopped.
+| This is the default strategy for live sync and async update tasks.
+
+| `retryLater`
+| Processing of the specified account should be retried later using a xref:#_triggers[trigger].
+Available only for synchronization activities.
+| This strategy has xref:#_configuring_retry_later[more parameters].
+|===
+
+Notes:
+
+1. Names for these options may be changed in the future, to make them more compatible with error handling based on operation execution records.
+
+2. Operation execution recording is *not* influenced by these settings.
+So each error is recorded regardless of the value of `reaction`.
+This is why operation execution records based error handling works well with the default setting of `ignore` reaction (although by "ignoring" one can imagine that the error is not even recorded).
+
+3. Besides these options, you can specify also `stopAfter` property (applicable to `ignore` and `retryLater` reactions) that cause the activity to be stopped after seeing specified number of error situations.
+
+[#_operation_execution_records]
+== Operation Execution Records
+
+=== Background
+
+When an object is processed by an activity, an _operation execution record_ is attached to the object.
+
+NOTE: There are two kinds of operation execution records:
+operation-level records (sometimes called "complex") and modification execution records (sometimes called "simple").
+We now talk about the former ones.
+
+That record carries an information whether the processing was successful or not.
+These records allow us to easily select failed objects for re-processing, without the need to go through all the objects.
+
+=== How it Works
+
+. A main task is run, processing a set of objects.
+Some of these objects encounter errors.
+The respective operation execution records are created for them.
+
+. Then (when system administrator decides) another ("recoverer") task is run, aimed at re-processing of these erroneous objects.
+It has the following characteristics:
+
+.. Usually, it has the same type of activity as the main task.
+For example, if main task runs an import activity, then the recoverer runs usually an import activity as well.
+
+.. It operates on the same set of objects (specified e.g. by resource reference, object class, kind, intent, and/or a query) but with so-called xref:#_failed_objects_selector[failed objects selector] added.
+This selector specifies e.g.
+
+... result states that should be matched (e.g. fatal error, partial error, warning),
+... reference to the main task(s),
+... or the time interval when the error occurred.
+
+.. Other significant parameters, like specific bulk action to execute, should also match.
+
+. The recoverer then goes through failed objects, according to the original set specification combined with failed object selector, and tries to process them.
+The errors occurring in this task can be later handled again.
+
+=== Special Cases
+
+. Although, in general, the recoverer runs the same type of activity as the main task, there can be situations when they differ.
+For example, the main activity can be a bulk action execution, and the recoverer can be a recomputation activity.
+Or the recoverer can use a different bulk action than was used in the main activity.
+
+. In general, one recoverer is connected to one main task.
+However, there can be recoverers that treat multiple main tasks.
+Also, a recoverer can be the same task as the main one, with just the selector added.
+
+[#_failed_objects_selector]
+=== Failed Objects Selector
+
+This data structure is used to select objects that were failed to be processed in previous run(s) of this or other (compatible) activity.
+It is basically a specification of a filter against `operationExecution` records, looking for ones that indicate that a processing of the particular object by particular task failed.
+
+.Configuring failed objects selector
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `status` (multi)
+| What statuses to select.
+| `FATAL_ERROR` and `PARTIAL_ERROR`.
+
+| `taskRef` (multi)
+| What task(s) to look for?
+| The current task.
+
+| `timeFrom`
+| What is the earliest time of the record to be considered?
+This is important because the old execution records are not deleted automatically when an object is re-processed, unless one of the following occurs:
+either the recoverer task is the same as the main task (then the result is replaced by the new one), or a defined limit for operation execution records is reached.
+Then the oldest ones are purged.
+
+Therefore, one has to set up this information carefully to avoid repeated processing of already processed objects.
+| No limit (take all records).
+
+| `timeTo`
+| What is the latest time of the record to be considered?
+| If explicit task OID is not specified, then it is the last start timestamp of the current task's root.
+(Just to avoid cycles in processing; although maybe we are too cautious here.)
+If the task is different one, then no limit is here (i.e. taking all records).
+
+| `selectionMethod`
+| How are failed objects selected.
+This is to overcome some technological obstacles in object searching in the provisioning module.
+Usually there's no need to override the default value.
+| `default`
+|===
+
+=== Failed Objects Selection Method
+
+.Failed objects selection method
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+
+| `default`
+| Default processing method.
+Normally `narrowQuery`.
+But when searching for shadows via provisioning, `fetchFailedObjects` is used.
+
+| `narrowQuery`
+| Simply narrow the original query by adding failed objects filter.
+It works with repository but usually not with provisioning.
+
+| `fetchFailedObjects`
+| Failed objects are selected using the repository.
+Only after that, they are fetched one-by-one via provisioning and processed.
+This is preferable when there is only a small percentage of failed records.
+
+| `filterAfterRetrieval`
+| Uses original query to retrieve objects from a resource.
+Filtering is done afterwards, i.e. before results are passed to the processing.
+This is preferable when there is large percentage of failed records.
+|===
+
+=== An Example
+
+.Listing 1. An example of a recoverer task
+[source,xml]
+----
+<task oid="3a1fd36f-fbad-48bb-9178-dd9b7a2c2f5f"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Import from source (retry failures)</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <failedObjectsSelector>
+                        <taskRef oid="e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9" />
+                        <timeFrom>2021-02-18T15:00:00.342+01:00</timeFrom>
+                    </failedObjectsSelector>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+[#_triggers]
+== Triggers
+
+Another option is to automatically schedule any failed object for re-processing using _triggers_.
+
+NOTE: This mechanism is currently limited to synchronization tasks (import, reconciliation, live synchronization).
+
+=== How it Works
+
+. An error is encountered during processing of a resource object shadow in a task.
+
+. If appropriate configuration is set, a trigger is created on the respective resource object shadow.
+It reminds midPoint that the shadow should be synchronized again.
+The time interval for the trigger is configurable.
+
+. After specified time arrives, the `Trigger scanner` task retrieves the shadow and ensures that it is re-synchronized.
+
+. If the repeated processing is successful, the process ends here.
+If not, another trigger (with an interval that may be the same or different) is set up, and the process repeats.
+
+. If the process is not successful even after specified number of repetitions, the process ends.
+
+[#_configuring_retry_later]
+=== How to Configure
+
+Trigger-based re-processing is configured by setting up `retryLater` reaction in xref:#_error_handling_strategy[an error handling strategy].
+This reaction has the following properties:
+
+.Properties of `retryLater` error handling reaction
+[%autowidth]
+[%header]
+|===
+| Property | Meaning | The default
+
+| `initialInterval`
+| Initial retry interval.
+| 30 minutes
+
+| `nextInterval`
+| Next retry interval, after initial attempt.
+| 6 hours
+
+| `retryLimit`
+| Maximal number of retries to attempt.
+| unlimited
+|===
+
+=== An Example
+
+.Listing 2. An example of configuration of error handling strategy using triggers
+[source,xml]
+----
+<task oid="2d7f0709-3e9b-4b92-891f-c5e1428b6458"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Live Sync</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="a20bb7b7-c5e9-4bbb-94e0-79e7866362e6" />
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+        <controlFlow>
+            <errorHandling>
+                <entry>
+                    <situation>
+                        <errorCategory>generic</errorCategory>
+                    </situation>
+                    <reaction>
+                        <retryLater>
+                            <initialInterval>PT30M</initialInterval>
+                            <nextInterval>PT1H</nextInterval>
+                            <retryLimit>3</retryLimit>
+                        </retryLater>
+                    </reaction>
+                </entry>
+                <entry>
+                    <situation>
+                        <errorCategory>configuration</errorCategory>
+                        <status>fatal_error</status>
+                    </situation>
+                    <reaction>
+                        <retryLater>
+                            <initialInterval>PT1D</initialInterval>
+                            <nextInterval>PT3D</nextInterval>
+                            <!-- no retry limit -->
+                        </retryLater>
+                    </reaction>
+                </entry>
+            </errorHandling>
+        </controlFlow>
+    </activity>
+</task>
+----
+
+In this sample, after a generic error is encountered, the retry is attempted after 30 minutes.
+Next retries are done after 1 hour.
+The process stops after 4 attempts.
+However, if the error was configuration-related (with the status of `FATAL_ERROR`), then the initial interval is 1 day, with retries after 3 days, and without attempt limit.
+
+== Which Approach to Use
+
+Each of the options described has its own strengths and limitations. These are summarized
+in the table below.
+
+.Comparison of approaches to objects re-processing
+[%autowidth]
+[%header]
+|===
+| Feature | Operation Execution Records | Triggers
+
+| Applicability
+| Any kind of object processed by (almost) any task.
+| Shadows, processed by synchronization tasks.
+
+| Extra configuration required
+| Yes.
+A recoverer task should (usually) be set up, including careful specification of failed objects selector.
+| No.
+Trigger scanner takes care of everything.
+Only the retry strategy has to be set up  in the main task.
+
+|===
+
+== Limitations
+
+. Trigger-based re-processing is available only for synchronization activities (import, reconciliation, live synchronization).
+. Selection based on error category is highly experimental.

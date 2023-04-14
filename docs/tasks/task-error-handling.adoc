@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2021-01-18T12:18:23.008+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2021-01-18T12:39:41.246+01:00
-:page-experimental: true
 :page-since: "4.3"
 :page-toc: top
 :page-keywords: task, error, failure, error handling, error recovery
@@ -249,49 +248,51 @@ An example of configuration of error handling strategy using triggers:
 ----
 <task oid="2d7f0709-3e9b-4b92-891f-c5e1428b6458"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Live Sync</name>
 
-    <extension>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-    <objectRef oid="a20bb7b7-c5e9-4bbb-94e0-79e7866362e6" type="ResourceType"/>
-    <recurrence>single</recurrence>
-
-    <errorHandlingStrategy>
-        <entry>
-            <situation>
-                <errorCategory>generic</errorCategory>
-            </situation>
-            <reaction>
-                <retryLater>
-                    <initialInterval>PT30M</initialInterval>
-                    <nextInterval>PT1H</nextInterval>
-                    <retryLimit>3</retryLimit>
-                </retryLater>
-            </reaction>
-        </entry>
-        <entry>
-            <situation>
-                <errorCategory>configuration</errorCategory>
-                <status>fatal_error</status>
-            </situation>
-            <reaction>
-                <retryLater>
-                    <initialInterval>P1D</initialInterval>
-                    <nextInterval>P3D</nextInterval>
-                    <!-- no retry limit -->
-                </retryLater>
-            </reaction>
-        </entry>
-    </errorHandlingStrategy>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="a20bb7b7-c5e9-4bbb-94e0-79e7866362e6" />
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+        <controlFlow>
+            <errorHandling>
+                <entry>
+                    <situation>
+                        <errorCategory>generic</errorCategory>
+                    </situation>
+                    <reaction>
+                        <retryLater>
+                            <initialInterval>PT30M</initialInterval>
+                            <nextInterval>PT1H</nextInterval>
+                            <retryLimit>3</retryLimit>
+                        </retryLater>
+                    </reaction>
+                </entry>
+                <entry>
+                    <situation>
+                        <errorCategory>configuration</errorCategory>
+                        <status>fatal_error</status>
+                    </situation>
+                    <reaction>
+                        <retryLater>
+                            <initialInterval>PT1D</initialInterval>
+                            <nextInterval>PT3D</nextInterval>
+                            <!-- no retry limit -->
+                        </retryLater>
+                    </reaction>
+                </entry>
+            </errorHandling>
+        </controlFlow>
+    </activity>
 </task>
 ----
 

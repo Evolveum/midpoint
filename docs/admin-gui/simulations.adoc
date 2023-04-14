@@ -52,6 +52,7 @@ User can click on it to see whole operation result.
 .Processed object with error
 image::./simulations/simulation-processed-objects-error.png[Processed object with error,100%]
 
+[#_running_the_simulation_on_foreground]
 == Running the Simulation on Foreground
 
 Currently only place where simulation runs on foreground is when executing _Import preview_ action for one shadow.

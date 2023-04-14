@@ -3,18 +3,16 @@
 :page-since: "4.7"
 :page-upkeep-status: green
 
-#TODO refresh screenshots#
-
-This is a simple tutorial describing the new xref:/midpoint/reference/simulation/[simulations] feature.
+This is a simple tutorial describing the new xref:/midpoint/reference/simulation/[simulation] feature.
 
 NOTE: The reader is expected to have reasonable knowledge of midPoint; we don't describe individual steps in much detail here.
 
-NOTE: The simulations feature requires midPoint 4.7 or later, and the native (PostgreSQL-based) repository.
+NOTE: The simulations feature requires midPoint 4.7 or later and the native (PostgreSQL-based) repository.
 
-The overall scenario is that we connect HR system - represented by a CSV file - to midPoint.
+The overall scenario is that we connect the HR system, represented by a CSV file, to midPoint.
 Then, we will connect the target LDAP-based system, represented again by a CSV file.
 
-Source files for this tutorial are in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial[midPoint samples] repository.
+The source files for this tutorial are in the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial[midPoint samples] repository.
 
 == Connecting the Source (HR) System
 
@@ -40,7 +38,7 @@ Note that the lifecycle state of the resource is `proposed`, so the whole resour
 You should see something like this:
 +
 .Content of the HR resource
-image::unclassified-accounts.png[Content of the HR resource]
+image::unclassified-accounts.png[Content of the HR resource, width=1600]
 
 Note that the accounts are not classified: their intent is `unknown`.
 
@@ -76,13 +74,13 @@ Now, list the accounts on the resource again.
 You should see something like this:
 
 .Content of HR resource with preliminary classification
-image::accounts-intent-default.png[Content of HR resource with preliminary classification]
+image::accounts-intent-default.png[Content of HR resource with preliminary classification, width=1600]
 
 The intents were immediately set to `default`, because the accounts were not classified before.
 
 === Step HR-3: Change the Definition of the Object Type
 
-Imagine we want to change the definition of the object type so that employees will have the intent of `person` instead of `default`.
+Imagine we want to change the definition of the object type so that real persons (recognized by having a non-empty last name) will have the intent of `person` instead of `default`.
 Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/resource-hr-3.xml[HR definition #3].
 
 .Listing 3: The resource definition #3
@@ -97,9 +95,31 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
         <objectType>
             <kind>account</kind>
             <intent>person</intent>
-            <default>true</default>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:description>Everyone with non-empty last name is a person</q:description>
+                    <q:not>
+                        <q:equal>
+                            <q:path>attributes/ri:lastname</q:path>
+                            <!-- empty value -->
+                        </q:equal>
+                    </q:not>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:description>Everyone with empty last name is not a person</q:description>
+                    <q:equal>
+                        <q:path>attributes/ri:lastname</q:path>
+                        <!-- empty value -->
+                    </q:equal>
+                </filter>
             </delineation>
         </objectType>
     </schemaHandling>
@@ -107,20 +127,32 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
 ----
 
 Now, let us import the definition and check the accounts.
-Their intents have not changed. #TODO check after GUI is updated#
+Their intents have not changed.
 Why?
-Because - by default - the GUI does not engage the development configuration when listing the content of a resource.
+Because midPoint does the reclassification very carefully, in order to avoid breaking things.
+In general, a shadow is classified or re-classified only if:
 
-To re-classify the accounts from `default` to `person` we have two options:
+. It was not classified yet.
+. Or, it was classified, but the corresponding type (pointed to by kind and intent) no longer exists.
+. Or, it was classified, the corresponding type exists, and all the following conditions are met:
+.. the current shadow type is part of the development configuration,
+.. and the operation is able to see the development configuration.
+
+By default, the GUI does not engage the development configuration when listing the content of a resource.
+Hence, our shadows are not reclassified when looking at them.
+
+To re-classify the accounts from `default` to `person` we have the following options:
 
 . Delete the shadows and let midPoint re-create them.
 (This was the only way before version 4.7.)
-. Read the content of the resource in simulation mode with development configuration enabled.
-This is currently doable using synchronization (e.g. import) tasks. Here are two alternatives:
+. Read the content of the resource with the development configuration enabled.
+(This implies the simulation mode.)
+This is currently doable using synchronization (e.g. import) tasks.
+Here are two alternatives:
 a. Execute the re-classification directly.
 b. Simulate the re-classification.
 Unlike the standard simulation, this is a special low-level simulation that captures assumed changes on shadow objects.
-In 4.7, it is an xref:/midpoint/versioning/experimental/[experimental functionality].
+In 4.7, it is xref:/midpoint/versioning/experimental/[experimental functionality].
 
 Let us go through options 2b and 2a now.
 
@@ -177,13 +209,16 @@ It looks like this:
 image::result-after-reclassification.png[Simulation result capturing the shadows reclassification]
 
 We see that the classification of both shadows would be changed.
-We can look at the details by clicking on "Shadow classification changed" mark, and then on a shadow:
+We can look at the details by clicking on "Shadow classification changed" mark:
 
 .Reclassified objects
-image::result-after-reclassification-details.png[Reclassified objects]
+image::result-after-reclassification-details.png[Reclassified objects, width=1600]
+
+And then on a shadow.
+After clicking on _Advanced_ button the details will be shown:
 
 .Reclassified object details
-image::result-after-reclassification-details-2.png[Reclassified object details]
+image::result-after-reclassification-details-2.png[Reclassified object details, width=1600]
 
 ===== Creating a Report
 
@@ -194,11 +229,12 @@ The results can be also exported into CSV, by running a report named _Simulation
 |===
 | Parameter | Value | Description
 | Simulation result | choose the simulation result |
-| Paths to include | `intent` | to avoid showing other changes, e.g. those of synchronization timestamps
+| Paths to include | `ShadowType` `intent` | to avoid showing other changes, e.g. those of synchronization timestamps
 | Show rows with no details | `false` | to show only the really changed values
 |===
 
-(The preview in GUI does not work with these kinds of reports. You have to execute the report to create the CSV file.)
+(The preview in GUI does not work with these kinds of reports.
+You have to execute the report to create the CSV file.)
 
 After opening the CSV in the spreadsheet and hiding unimportant columns it will look like this:
 
@@ -208,6 +244,19 @@ image::result-after-reclassification-report.png[Reclassified objects report]
 ==== Running the Re-classification
 
 After we are satisfied with the expected re-classification results, we can run the re-classification in real.
+
+There are two options:
+
+===== Reclassification through the GUI
+
+We can open the _Accounts_ or _Uncategorized_ panel and click on the  _Reclassify_ button.
+A task is created in background.
+After the task finishes, we may refresh the view to see the updated classification.
+
+.Reclassification through the GUI
+image::reclassification-using-gui.png[Reclassification through the GUI, width=1600]
+
+===== Running the Reclassification Task Manually
 
 Import the following link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-full-simulation-no-result.xml[task]:
 
@@ -246,9 +295,6 @@ Changes to focus objects and resource objects are not executed.
 
 After running the task and listing the accounts, we see their intent was changed to `person`.
 
-.Content of HR resource after re-classification
-image::accounts-intent-person.png[Content of HR resource after re-classification]
-
 As an exercise, you can try running the simulated reclassification task again and check there are no simulated re-classification now.
 
 === Step HR-4: Simulation of Inbound Mappings
@@ -269,14 +315,27 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
         <objectType>
             <kind>account</kind>
             <intent>person</intent>
-            <default>true</default>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:description>Everyone with non-empty last name is a person</q:description>
+                    <q:not>
+                        <q:equal>
+                            <q:path>attributes/ri:lastname</q:path>
+                            <!-- empty value -->
+                        </q:equal>
+                    </q:not>
+                </filter>
             </delineation>
             <attribute>
                 <ref>ri:ident</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>"empNo:$input"</code>
+                        </script>
+                    </expression>
                     <target>
                         <path>name</path>
                     </target>
@@ -336,6 +395,11 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
                 </reaction>
             </synchronization>
         </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <!-- ... -->
+        </objectType>
     </schemaHandling>
 </resource>
 ----
@@ -346,31 +410,48 @@ just as if there were no mappings nor synchronization reactions defined.
 There is a possibility to preview (simulate) the import.
 But be sure to select the preview that uses the development configuration, otherwise there will be no effects at all.
 
-#TODO describe it here#
+==== Simulated Import of a Single Account (on Foreground)
 
-To simulate the execution of mappings in background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-simulation.xml[full simulation task].
+Select the account to be imported and choose _Import preview_:
 
-After looking at the simulation result, we should see "6 focus activations" and after clicking on that mark, we will see users that are going to be added.
-After displaying the details of the first of them, we see the following:
+.Simulated import of a single account
+image::simulated-import-1.png[Simulated import of a single account]
+
+Now choose _Simulated development_ and click on _Select_ button:
+
+.Simulated import of a single account (continued)
+image::simulated-import-2.png[Simulated import of a single account (continued)]
+
+Observe the result:
+
+.Simulated import of a single account (result)
+image::simulated-import-3.png[Simulated import of a single account (result)]
+
+After displaying the details of the user, we see the following:
 
 .Preview of the first user added
-image::user-after-first-import.png[Preview of the first user added]
+image::simulated-import-4.png[Preview of the first user added]
 
 We see that our mappings work correctly.
 
+==== Simulated Import of All Accounts (on Background)
+
+To simulate the execution of mappings for all accounts in a background task, let us import the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import-simulation.xml[full simulation task].
+
+After looking at the simulation result, we should see "6 focus activations" and after clicking on that mark, we will see users that are going to be added.
+
 === Step HR-5: Switching the Resource into Production
 
-Now we can change the lifecycle state of the resource to `active`, making it part of the production configuration.
+Now we can switch the resource to production mode, either by clicking on the _Switch to production_ button, or changing the lifecycle state to `Active`.
+
+.Switching the resource into production
+image::switching-resource-into-production.png[Switching the resource into production]
+
 After that, we can run the https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-hr-import.xml[regular HR import task].
 
 We observe that the users were added.
 
 We may now run the simulated import and check that there are no computed changes.
-
-#TODO refresh#
-
-.Four unmodified objects
-image::four-unmodified-objects.png[Four unmodified objects]
 
 === Step HR-6: Extending the Resource
 
@@ -408,6 +489,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
             </attribute>
             <synchronization> ... </synchronization>
         </objectType>
+        <!-- ... -->
     </schemaHandling>
 </resource>
 ----
@@ -419,7 +501,10 @@ After running the (full) simulation of import from HR, the result contains delta
 .Telephone number change
 image::telephone-number-delta.png[Telephone number change]
 
-After we are satisfied with the mapping, we can put it into production mode (`lifecycleState` = `active`) and run the import task in "persistent-effects" mode.
+After we are satisfied with the mapping, we can put it into production mode (e.g. by doing as shown in the following figure or by setting `lifecycleState` = `active` manually) and run the import task in "persistent-effects" mode.
+
+.Switching the mapping into production
+image::switching-mapping-into-production.png[Switching the mapping into production]
 
 == Connecting the Target System (Simulation of LDAP)
 
@@ -591,7 +676,7 @@ We can look at the details by clicking on "Shadow correlation state changed" mar
 image::result-after-first-correlation-objects.png[Correlated accounts]
 
 .Correlated account details
-image::result-after-first-correlation-object-details.png[Correlated account details]
+image::result-after-first-correlation-object-details.png[Correlated account details, width=1600]
 
 ===== Creating a Report
 
@@ -654,7 +739,7 @@ Import the following https://github.com/Evolveum/midpoint-samples/tree/master/sa
 After running the task and listing the accounts, we see their synchronization situation was changed like this.
 
 .Content of LDAP resource after initial correlation run
-image::shadows-after-first-correlation.png[Content of LDAP resource after initial correlation run]
+image::shadows-after-first-correlation.png[Content of LDAP resource after initial correlation run, width=1600]
 
 === Step LDAP-4: Improving the Correlation
 
@@ -766,20 +851,23 @@ image::result-after-second-correlation.png[Simulation result capturing the secon
 image::result-after-second-correlation-objects.png[Correlated accounts]
 
 .Correlated account details
-image::result-after-second-correlation-object-details.png[Correlated account details]
+image::result-after-second-correlation-object-details.png[Correlated account details, width=1600]
 
 .Specialized correlation report
 image::result-after-second-correlation-report.png[Specialized correlation report]
 
 After we are satisfied with the results, we can "commit" them by executing the same https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import-full-simulation-no-result.xml[task] as in <<Step LDAP-3: Correlation on Employee Number>>.
 
-#TODO show the list of shadows#
-
 === Step LDAP-5: Marking Shadows as Ignored
 
-Here we could mark some shadows as ignored.
+Here we could mark some shadows as protected, "do not touch", "decommission later", or "correlate later":
 
-#TODO put here after GUI and reports will support it#
+NOTE: For more information about how to mark the shadows, please see xref:/midpoint/reference/mark/#gui-object-marks-and-shadows[Object Marks].
+
+.Marked shadows
+image::marked-shadows.png[Marked shadows, width=1600]
+
+These marked shadows will be skipped during synchronization activities.
 
 === Step LDAP-6: Linking the Remaining Shadows Manually
 
@@ -833,8 +921,9 @@ So, please import the link:https://github.com/Evolveum/midpoint-samples/tree/mas
 Let us run the https://github.com/Evolveum/midpoint-samples/tree/master/samples/simulation/tutorial/task-ldap-import.xml[regular LDAP import task].
 After that, the LDAP accounts should look like this:
 
+// TODO refresh screenshot (to see the marks)
 .LDAP shadows after the first import
-image::shadows-after-first-import.png[LDAP shadows after the first import]
+image::shadows-after-first-import.png[LDAP shadows after the first import, width=1600]
 
 We see that two shadows are now linked to their owners (`empNo:1`, `empNo:2`), two are disputed, and others are unmatched.
 
@@ -843,15 +932,16 @@ Then we can link `bob` to `empNo:5` manually.
 
 After running the import again, the shadows should look like this:
 
+// TODO refresh screenshot (to see the marks)
 .LDAP shadows after the second import
-image::shadows-after-second-import.png[LDAP shadows after the second import]
+image::shadows-after-second-import.png[LDAP shadows after the second import, width=1600]
 
 === Step LDAP-7: Importing the usernames into midPoint
 
 Currently, our users have their (temporary) names derived from employee numbers:
 
 .Temporary usernames
-image::temporary-usernames.png[Temporary usernames]
+image::temporary-usernames.png[Temporary usernames, width=1600]
 
 Eventually, we would like the names to be consistent with LDAP dn and uid values, and to be generated in such format for new users.
 To achieve this, we now need to import existing names from LDAP to midPoint.
@@ -885,15 +975,15 @@ Note that we have to explicitly use `userOld` value to avoid possible 'true->fal
 After running the import, we can see the expected changes:
 
 .Simulation result after simulated import of usernames
-image::renamed-users-result.png[Simulation result after simulated import of usernames]
+image::renamed-users-result.png[Simulation result after simulated import of usernames, width=1600]
 
 We see 5 "focus renamed" events, so let us have a look.
 
 .Simulation result objects
-image::renamed-users-objects.png[Simulation result objects]
+image::renamed-users-objects.png[Simulation result objects, width=1600]
 
 .Simulation result object details
-image::renamed-users-object-details.png[Simulation result object details]
+image::renamed-users-object-details.png[Simulation result object details, width=1600]
 
 We can also run the "Simulation report: Items changed" to see the results in a spreadsheet.
 We recommend setting "Show rows with no details" to `false` to hide objects that were not changed.
@@ -906,4 +996,3 @@ After we are satisfied with the result, we can switch the mapping to production 
 == Conclusion
 
 In this tutorial, we showed how to use new xref:/midpoint/reference/simulation/[simulations] feature to realize a simple scenario of connecting one source and one target resource.
-You can find more detailed information #TODO here#.

@@ -229,6 +229,12 @@ Panels applicable for all AssignmentHolderType object (except ResourceType):
 | Panel displaying default properties, such as name, fullName, ...
 | 10
 | basic
+
+| Role memberships
+|
+| Panel for all memberships
+|
+| roleMemberships
 |===
 
 Panels applicable for all FocusType objects:
@@ -373,6 +379,11 @@ Panel applicable for all AbstractRoleType objects:
 | `serviceInducements`
 |
 | 40
+
+| Induced by roles
+| `inducedBy`
+| Table of roles that induce this role.
+| 130
 |===
 
 Panels applicable only for users:
@@ -990,7 +1001,6 @@ Panels applicable for resource wizard:
 | Attributes
 | `rw-attributes`
 | Attributes table of selected object type
-
 
 | Configuration of the override
 | `rw-attribute`
