@@ -1,4 +1,62 @@
 = Simulation Result
 :page-since: "4.7"
 
-#TODO#
+This item defines whether we want to create a simulation result object for this particular activity run, and how it should look like.
+
+Some examples:
+
+.Listing 1: Creating a simulation result using the default definition
+[source, xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- ... -->
+    <activity>
+        <!-- ... -->
+        <reporting>
+            <simulationResult/>
+        </reporting>
+    </activity>
+</task>
+----
+
+This causes the creation of a simulation result using xref:/midpoint/reference/simulation/results/definition.adoc#_library[the default definition].
+
+.Listing 2: Creating a simulation result using a specified global definition
+[source, xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <activity>
+        <reporting>
+            <simulationResult>
+                <definition>
+                    <super>standard-result</super>
+                </definition>
+            </simulationResult>
+        </reporting>
+    </activity>
+</task>
+----
+
+This uses a global definition named `standard-result`.
+It can be customized by providing further properties within the `definition` item, if needed.
+
+.Listing 3: Creating a simulation result using a custom definition
+[source, xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <activity>
+        <reporting>
+            <simulationResult>
+                <definition>
+                    <metrics> <!-- ... --> </metrics>
+                    <useOwnPartitionForProcessedObjects>true</useOwnPartitionForProcessedObjects>
+                </definition>
+            </simulationResult>
+        </reporting>
+    </activity>
+</task>
+----
+
+This creates a custom definition of the simulation result that will be used.
+
+See also xref:/midpoint/reference/simulation/results/definition.adoc[] for more information.
