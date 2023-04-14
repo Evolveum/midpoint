@@ -58,6 +58,8 @@ We need to select at least one application role.
 .Application role catalog
 image::brw-step-1-select-application-role.png[Application role catalog,100%]
 
+Adding users is done through the same panels as in the application role wizard.
+
 == Wizard for existing role
 
 If we want to create a new incentive for a resource, only then we can view wizard for the provisioning configuration.
