@@ -139,7 +139,7 @@ In general, a shadow is classified or re-classified only if:
 .. and the operation is able to see the development configuration.
 
 By default, the GUI does not engage the development configuration when listing the content of a resource.
-Hence, the shadows are not reclassified when looking at them.
+Hence, our shadows are not reclassified when looking at them.
 
 To re-classify the accounts from `default` to `person` we have the following options:
 
@@ -498,7 +498,6 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
 
 After running the (full) simulation of import from HR, the result contains deltas like this:
 
-// TODO refresh after fixing MID-8536
 .Telephone number change
 image::telephone-number-delta.png[Telephone number change]
 
@@ -975,17 +974,14 @@ Note that we have to explicitly use `userOld` value to avoid possible 'true->fal
 
 After running the import, we can see the expected changes:
 
-// TODO refresh screenshot
 .Simulation result after simulated import of usernames
 image::renamed-users-result.png[Simulation result after simulated import of usernames, width=1600]
 
 We see 5 "focus renamed" events, so let us have a look.
 
-// TODO refresh screenshot
 .Simulation result objects
 image::renamed-users-objects.png[Simulation result objects, width=1600]
 
-// TODO refresh screenshot
 .Simulation result object details
 image::renamed-users-object-details.png[Simulation result object details, width=1600]
 
