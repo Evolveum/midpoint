@@ -63,7 +63,8 @@ Note that built-in metrics currently have no values at the level of individual o
 
 == An Example
 
-#TODO#
+.An example report
+image::example-objects-with-metrics.png[Example report]
 
 == Definition
 

@@ -127,7 +127,8 @@ See https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/main/java/
 
 == An Example
 
-#TODO#
+.An example report
+image::example-items-changed.png[Example report]
 
 == Definition
 
