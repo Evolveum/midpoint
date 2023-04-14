@@ -6,6 +6,8 @@
 
 == Introduction
 
+NOTE: Please see xref:/midpoint/reference/simulation/[Simulation] for the comprehensive description of the "simulation" feature.
+
 // TODO: finish
 
 == User interface

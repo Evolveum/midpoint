@@ -139,7 +139,7 @@ In general, a shadow is classified or re-classified only if:
 .. and the operation is able to see the development configuration.
 
 By default, the GUI does not engage the development configuration when listing the content of a resource.
-Hence, the shadows are not reclassified when looking at them.
+Hence, our shadows are not reclassified when looking at them.
 
 To re-classify the accounts from `default` to `person` we have the following options:
 
