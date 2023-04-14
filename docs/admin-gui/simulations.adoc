@@ -1,0 +1,31 @@
+= Simulations
+:page-toc: top
+:page-since: "4.7"
+:page-midpoint-feature: true
+:page-upkeep-status: green
+
+== Introduction
+
+// TODO: finish
+
+== User interface
+
+.Simulation results
+image::./simulations/simulation-results.png[Simulation results,100%]
+
+.Simulation result details
+image::./simulations/simulation-result.png[Simulation result details,100%]
+
+.List of processed objects
+image::./simulations/simulation-processed-objects.png[List of processed objects,100%]
+
+.Processed object details
+image::./simulations/simulation-processed-object.png[Processed object details,100%]
+
+.Processed object with error
+image::./simulations/simulation-processed-objects-error.png[Processed object with error,100%]
+
+[#_running_the_simulation_on_foreground]
+== Running the Simulation on Foreground
+
+// TODO: finish

@@ -29,8 +29,8 @@ bucket is marked as complete without any processing, and the next bucket is fetc
 the item processing is skipped, and the next item is fetched.)
 | Processing all items.
 
-| `errorHandling`
-| Error handling strategy for this activity. (A preliminary description is link:https://docs.evolveum.com/midpoint/reference/tasks/task-error-handling/[here]. To be updated!)
+| xref:error-handling.adoc[`errorHandling`]
+| Error handling strategy for this activity.
 | Depends on specific activity.
 
 | `parallelExecution`

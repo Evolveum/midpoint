@@ -177,6 +177,16 @@ This is the default setting.
 | The base context is not used for classification.
 |===
 
+[#_resource_object_classification]
+=== Resource Object Classification
+
+The classification means determining the object type (i.e. kind and intent) for a resource object that is seen by midPoint.
+
+NOTE: The normal course of action is that the first time an object is seen, it is classified.
+There are special cases, however, when classification criteria are being developed.
+It is common to do objects classification and re-classification, until the criteria are stabilized.
+See also xref:/midpoint/reference/simulation/tutorial/[] (since 4.7).
+
 The overall classification algorithm is the following:
 
 1. First, candidate object types with classification order specified are tried - in their respective order.
@@ -663,41 +673,170 @@ Because of a limitation of XSD language we are not able to express these restric
 We also advise to avoid specification of pure object-type concepts (like mappings) in these definitions.
 It is better to create a special (abstract) object type to do this.
 
+[#_defaults_for_kind_and_intent]
 == Defaults for Kind and Intent
 
 In midPoint 4.4.x and before, the effects of not specifying `kind` and `intent` values (at various places in the configuration) were not clearly defined.
 In 4.5 and 4.6 we gradually clarified this.
 
-Currently, the behavior is driven by `defaultForKind` and `defaultForObjectClass` properties in the object type definition in the following way.
+Starting from 4.6, the behavior is driven by `defaultForKind` and `defaultForObjectClass` properties in the object type definition in the following way.
 
 === "Default for Kind" Property
 
-Specifies whether the given resource object type is the default one for given kind of objects, i.e. for accounts, entitlements or "generic objects".
-
-This means that if e.g. object type `T` is specified with `kind` of `account` and `defaultForKind` of `true`, and a resource object construction is assigned with `kind` = `account` (without providing an intent), then this object type (`T`) is being assigned as a result.
-
-In a similar way, if a synchronization activity (like import or reconciliation) is specified with `kind` = `account` (without providing an intent), then the synchronization proceeds against objects of this type `T`. (I.e. _not_ against all objects with kind of `account`!)
+This property specifies whether the given resource object type is the default one _for given kind of objects_, i.e. for accounts, entitlements or "generic objects".
 
 Only one type can be the default one for given kind.
 Setting this flag to `true` for more than one type is an error.
 
+There are two specific places where this is used.
+
+==== Resource Object Construction
+
+When a resource object construction is assigned to a focus object (for example, to a user), there are the following defaults:
+
+. if _kind_ is not specified, the _account_ is assumed;
+. if _intent_ is not specified, the "default for kind" intent is assumed - for the given kind.
+
+==== Search for Resource Objects
+
+There are situations when midPoint searches for resource objects.
+The most prominent are searches done as part of import or reconciliation activities.
+The use of `projectionDiscriminator` in `associationFromLink` results in a search operation as well.
+(See xref:#_sample_constructions[sample constructions] below.)
+
+When searching for resource objects _without providing object class name_, the following applies:
+
+. _kind_ must be specified;
+. if _intent_ is not specified, the "default for kind" intent is assumed - for the given kind.
+
+See also xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[].
+
+==== An Example
+
+Let us have the following configuration of object types:
+
+.Listing 10. Sample configuration
+[source,xml]
+----
+<objectType>
+    <!-- no kind nor intent specified --> <!--1--><!--2-->
+    <displayName>Default account</displayName>
+    <defaultForKind>true</defaultForKind>
+    <!-- ... -->
+</objectType>
+<objectType>
+    <kind>account</kind>
+    <intent>testing</intent>
+    <displayName>Testing account</displayName>
+    <!-- ... -->
+</objectType>
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <displayName>Standard group</displayName>
+    <defaultForKind>true</defaultForKind>
+    <!-- ... -->
+</objectType>
+<objectType>
+    <kind>entitlement</kind>
+    <intent>other</intent>
+    <displayName>Some other entitlement</displayName>
+    <!-- ... -->
+</objectType>
+----
+<1> If kind is not specified in the definition, `account` is assumed.
+<2> If intent is not specified in the definition, `default` (literally) is assumed.
+
+[#_sample_constructions]
+.Listing 11. Sample resource object constructions
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- ... -->
+    <assignment>
+        <construction>
+            <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+            <kind>entitlement</kind>
+            <!-- no intent specified --> <!--1-->
+        </construction>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+            <!-- no kind nor intent specified --> <!--2-->
+            <association>
+                <ref>ri:groups</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <!-- no intent specified --> <!--3-->
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+    </inducement>
+</role>
+----
+<1> `group` intent is assumed, as it is marked as "default for kind" for entitlements (see <<Resource Object Construction>>)
+<2> `account` kind is assumed, and within it, `default` intent, as it is marked as "default for kind" for accounts (see <<Resource Object Construction>>)
+<3> `group` intent is assumed, as it is marked as "default for kind" for entitlements, and we are doing a search for entitlements here (see <<Search for Resource Objects>>)
+
 === "Default for Object Class" Property
 
-Specifies whether the given resource object type is the default one for its object class, e.g. for `ri:AccountObjectClass` or `ri:inetOrgPerson`.
-
-This means that if e.g. given object type `T` is specified with `objectClass` of `ri:inetOrgPerson` and `defaultForObjectClass` of `true`, and a synchronization task is started for object class of `ri:inetOrgPerson` (without providing kind alone or kind and intent), the definition to be used when issuing the query - e.g. attributes to return, base context, and so on - is derived from the definition of this object type `T`.
-(Note that midPoint still attempts to synchronize all members of the said object class, if only the object class is specified in the synchronization task.)
-
-Since 4.6, the preferred way to provide such object-class-level definitions is to use <<Object Class Definition Adaptation>>, i.e. to provide `schemaHandling/objectClass` refinement for `ri:inetOrgPerson`.
-Therefore, it's no longer necessary to specify default object type for object class just for this purpose.
-
-Another use of this flag is to specify the default type for classification of resource objects of given object class.
-But this functionality can be achieved also using `classificationOrder` property of object type delineation.
+This property specifies whether the given resource object type is the default one for its object class, e.g. for `ri:AccountObjectClass` or `ri:inetOrgPerson`.
 
 Only one type can be the default one for given object class.
 Setting this flag to `true` for more than one type is an error.
+
+There are two specific places where this is used.
+
+==== Classifying the Resource Objects
+
+When xref:#_resource_object_classification[classifying resource objects], we often use the type marked as "default for object class" as a "catch-all" type when no other type matches.
+However, this functionality can be achieved - perhaps more cleanly - also using `classificationOrder` property of object type delineation.
+See the classification algorithm description.
+
+==== Looking for Default Definitions
+
+This applies when searching for resource objects, typically in import or reconciliation activities, and using only the object class name.
+For example:
+
+.Listing 12. Importing accounts by object class name
+[source,xml]
+----
+<task>
+    <!-- ... -->
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="2696334a-c3d1-4aa6-b147-ff16cd387a0f"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+There are definitions that should be applied when the query against the resource (looking for all `inetOrgPerson` objects) is issued.
+For example, midPoint needs to specify attributes to return or the base context.
+When `defaultForObjectClass` is used in a type definition that refers to `inetOrgPerson` class, that type definition is used to provide the necessary information.
+(Note that midPoint still attempts to synchronize all members of `inetOrgPerson`.)
+
+However, since 4.6, the preferred way to provide such object-class-level definitions that should be applicable to all objects of given object class
+(e.g. `inetOrgPerson`) is to use <<Object Class Definition Adaptation>>, i.e. to provide `schemaHandling/objectClass` refinement for `ri:inetOrgPerson`.
+Therefore, it's no longer necessary nor recommended to specify default object type for object class just for this purpose.
+
+Overall, it is better to avoid `defaultForObjectClass` setting, and hence also `default` setting.
 
 === "Default" Property
 
 This is a shorthand for specifying both `defaultForKind` and `defaultForObjectClass`.
 The behavior should be similar to the one in 4.4.x and before, although there may be subtle differences caused by the fact that the implementation was significantly reworked.
+
+These three properties, `defaultForKind`, `defaultForObjectClass` and `default`, may be changed or even removed in the future.
