@@ -354,6 +354,18 @@ One processed object corresponds to one report row.
 // === Configuring Lifecycle State
 // #TODO#
 
+[#_activities_supported]
+== Activities Supported
+
+Simulations are currently supported by the following activities:
+
+* synchronization ones: import, reconciliation, live synchronization,
+* recomputation,
+* iterative and non-iterative scripting (provided that model-level API is used to execute the actions, see <<Limitations>>),
+* change execution.
+
+For shadow management simulation, only synchronization activities (import, reconciliation, live synchronization) are supported.
+
 == Limitations
 
 When implementing the simulation feature in midPoint 4.7, we chose the following architectural approach:
@@ -406,6 +418,7 @@ Other limitations, not principal but practical, are:
 . Handling of objects created on demand is limited slightly more than described above:
 Their creation is reported multiple times, even for a single item being processed.
 The delta visualization is not finished yet: midPoint shows OIDs instead of names.
+. Only selected xref:#_activities_supported[activities] are supported.
 
 === Shadow Management Simulations
 
