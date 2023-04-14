@@ -38,7 +38,7 @@ Processed objects can be searched, filtered and explored in better detail.
 List of processed objects display also two sets of marks (if they exist):
 
 * With blue tag list of event marks assigned by simulation
-* With red tag icon list of current marks (currently for shadows only)
+* With green tag icon list of current marks (currently for shadows only)
 
 .List of processed objects
 image::./simulations/simulation-processed-objects.png[List of processed objects,100%]
