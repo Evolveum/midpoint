@@ -67,7 +67,8 @@ Applies only to projections.
 
 == An Example
 
-#TODO#
+.An example report
+image::example-objects.png[Example report]
 
 == Definition
 

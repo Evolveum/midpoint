@@ -71,7 +71,8 @@ The same as for xref:items-changed.adoc[].
 
 == An Example
 
-#TODO#
+.An example report
+image::example-values-changed.png[Example report]
 
 == Definition
 

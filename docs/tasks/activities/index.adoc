@@ -78,14 +78,14 @@ A definition of a simple (or predefined composite) activity contains the followi
 [%autowidth]
 |===
 | Section | Meaning
-| link:work[`work`] | The work that is to be done. Contains the definition of the activity and the item set.
-| link:execution-mode[`executionMode`] | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
-`bucketAnalysis`.
-| link:control-flow[`controlFlow`] | Items like prerequisites, preconditions, error handling strategy, and so on.
-| link:distribution[`distribution`] | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
-| link:reporting[`reporting`] | How various aspects of activity execution are reported, using logging, tracing,
+| xref:work.adoc[`work`] | The work that is to be done. Contains the definition of the activity and the item set.
+| xref:execution-mode.adoc[`execution` and `executionMode`] | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
+`bucketAnalysis` and related parameters.
+| xref:control-flow.adoc[`controlFlow`] | Items like prerequisites, preconditions, error handling strategy, and so on.
+| xref:distribution.adoc[`distribution`] | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
+| xref:reporting/[`reporting`] | How various aspects of activity execution are reported, using logging, tracing,
 profiling, reporting, and so on.
-| link:tailoring[`tailoring`] | Tailors the definition of individual sub-activities in a predefined composite activity.
+| xref:tailoring.adoc[`tailoring`] | Tailors the definition of individual sub-activities in a predefined composite activity.
 |===
 
 (More details are provided in the linked documents.)

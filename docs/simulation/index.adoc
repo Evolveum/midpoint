@@ -354,18 +354,79 @@ One processed object corresponds to one report row.
 // === Configuring Lifecycle State
 // #TODO#
 
+[#_activities_supported]
+== Activities Supported
+
+Simulations are currently supported by the following activities:
+
+* synchronization ones: import, reconciliation, live synchronization,
+* recomputation,
+* iterative and non-iterative scripting (provided that model-level API is used to execute the actions, see <<Limitations>>),
+* change execution.
+
+For shadow management simulation, only synchronization activities (import, reconciliation, live synchronization) are supported.
+
 == Limitations
 
-#TODO#
+When implementing the simulation feature in midPoint 4.7, we chose the following architectural approach:
 
-. Errors during pre-clockwork stage are not captured
-. Shadows that do not enter clockwork stage are not captured
-. "Clockwork view" ~ provisioning-level operations are not captured (just like in audit)
+_Simulated actions are executed using the same xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork] as persistent-effect ones.
+The main difference is present when computed operations are to be executed:
+While operations in persistent-effects mode are sent for real execution and audit, those in simulation mode are simply recorded without being executed._
+
+There are some fundamental limitations stemming from this approach:
+
+. Any operations invoked by the custom code that circumvent processing in the clockwork are really executed, even in simulation mode.
++
+These operations present a bad practice anyway and should be avoided regardless of whether simulation is used or not.
+Examples: direct modification through the repository or provisioning API; direct manipulation of outside objects (files, sockets, and so on).
+If absolutely necessary, your code should check for the execution mode using `task.getExecutionMode()` and related methods and act accordingly.
++
+Note that calling methods like `midpoint.addObject`, `midpoint.modifyObject`, or `midpoint.deleteObject` is safe in this regard, as these methods invoke the standard clockwork processing.
+
+. xref:/midpoint/reference/expressions/expressions/index.adoc#_create_on_demand[Create-on-demand] scenarios are supported in a very limited way:
+The creation of missing assignment target objects is simulated but not remembered across boundaries represented by the processing of individual source items.
++
+For example, let us assume that there is an import from HR with a department object (referenced by an account attribute) that is created if it does not exist.
+If multiple accounts reference the same (non-existing) department object, its creation will be simulated multiple times.
++
+The reason is that the current implementation does _not_ record the creation of the object in the repository, where it could be found while processing subsequent accounts.
+
+. Provisioning-level operations are not captured.
++
+Some actions, like the application of pending operations in the provisioning module, are "under the radar" of the clockwork.
+Just like they are currently not audited, they are also not recorded in the simulation results.
+
+. Shadows (or other objects) that do not enter clockwork processing are not captured.
++
+When simulating the execution of, e.g., an import task, the majority of shadows go through the clockwork and are hence correctly captured in the simulation result.
+However, the shadows that are not synchronized, for example, protected ones, are not mentioned in the simulation result.
+The exception is the (experimental) low-level shadow management simulation mode.
++
+This limitation includes any errors encountered before the clockwork is started (e.g., during shadow classification or correlation).
+Such errors and shadows are _not_ visible in the simulation result.
+They are visible only in the task-level statistics, as for normal, non-simulation, tasks.
+
+NOTE: Alternative designs, for example, creating "simulated worlds" right in the repository, were seriously evaluated.
+They would provide better fidelity in simulations while keeping the simulated executions separate from the production ones and among themselves.
+However, we found no practical way of implementing these designs in the time available.
+Hence, the current implementation uses the approach described above, with its inherent limitations.
+
+Other limitations, not principal but practical, are:
+
+. Simulations in multi-node tasks are not supported yet.
+. Handling of objects created on demand is limited slightly more than described above:
+Their creation is reported multiple times, even for a single item being processed.
+The delta visualization is not finished yet: midPoint shows OIDs instead of names.
+. Only selected xref:#_activities_supported[activities] are supported.
 
 === Shadow Management Simulations
 
-. This is an experimental feature.
-. There are often two records for each processed shadow: one for classification, one for correlation.
+This is a special low-level simulation of shadow-management-related changes that are normally applied automatically.
+It has the following limitations:
+
+. It is an xref:/midpoint/versioning/experimental/[experimental feature].
+. There are often two simulation records for each processed shadow: one for classification and one for correlation.
 . In this mode, higher-level processing (synchronization) is always skipped.
-. Errors are not reported in this mode.
-They can not be seen in the simulation result, only in the respective task.
+. Errors are not reported in this mode in the simulation result.
+They can be seen only in the respective task, just like they are visible in normal processing.
