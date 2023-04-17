@@ -1,5 +1,5 @@
-MidPoint 4.7 "Johnson"
-----------------------
+MidPoint 4.7 Support Branch
+---------------------------
 
 General information:
 
