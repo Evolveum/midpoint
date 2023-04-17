@@ -62,7 +62,7 @@ Adding users is done through the same panels as in the application role wizard.
 
 == Wizard for existing role
 
-If we want to create a new incentive for a resource, only then we can view wizard for the provisioning configuration.
+If we want to create a new inducement for a resource, only then we can view wizard for the provisioning configuration.
 
 .Role detail
 image::role-details.png[Role detail, 100%]
